@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createPool } = require('../../src/db');
-const { createItem, checkoutItem, returnItem } = require('../../src/services/inventory-service');
+const { createItem, updateItem, deactivateItem, checkoutItem, returnItem } = require('../../src/services/inventory-service');
 
 const databaseUrl = process.env.INTEGRATION_DATABASE_URL;
 
@@ -20,11 +20,21 @@ test('PostgreSQL에서 등록 → 대여 → 반납 왕복이 수량 무결성�
     loanId = loan.id;
     let quantity = await pool.query('SELECT available_quantity FROM items WHERE id=$1', [itemId]);
     assert.equal(quantity.rows[0].available_quantity, 3);
+    await assert.rejects(
+      updateItem(pool, actor.id, itemId, { name: '통합테스트 비품', category: '테스트', totalQuantity: 1, minQuantity: 1, location: '시험창고' }),
+      error => error.name === 'DomainError' && error.status === 409
+    );
     await returnItem(pool, actor.id, loanId, { condition: 'GOOD', note: '자동 테스트' });
     quantity = await pool.query('SELECT available_quantity FROM items WHERE id=$1', [itemId]);
     assert.equal(quantity.rows[0].available_quantity, 5);
+    const updated = await updateItem(pool, actor.id, itemId, { name: '통합테스트 수정 비품', category: '시험장비', totalQuantity: 8, minQuantity: 2, location: '시험창고 B' });
+    assert.equal(updated.name, '통합테스트 수정 비품');
+    assert.equal(updated.available_quantity, 8);
+    assert.equal(updated.location, '시험창고 B');
+    const deactivated = await deactivateItem(pool, actor.id, itemId);
+    assert.equal(deactivated.status, 'INACTIVE');
     const audit = await pool.query("SELECT count(*)::int AS count FROM audit_logs WHERE entity_id IN ($1,$2)", [String(itemId), String(loanId)]);
-    assert.ok(audit.rows[0].count >= 3);
+    assert.ok(audit.rows[0].count >= 5);
   } finally {
     if (loanId || itemId) {
       await pool.query("DELETE FROM audit_logs WHERE entity_id = ANY($1::text[])", [[String(itemId || ''), String(loanId || '')]]);

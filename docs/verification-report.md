@@ -7,11 +7,13 @@
 | JavaScript 구문 검사 | 통과 |
 | 단위 테스트 | 8/8 통과 |
 | PostgreSQL 등록·대여·반납 통합 테스트 | 1/1 통과 |
+| 비품 수정·비활성화 수량 무결성 | 통과 |
 | 프론트 health·API 프록시·로그인·대시보드 통합 테스트 | 1/1 통과 |
 | Docker `frontend` health | healthy |
 | Docker `backend` health | healthy |
 | Docker `database` health | healthy |
 | 브라우저 로그인·대시보드 | 통과 |
+| 브라우저 비품 상세·수정 화면 | 통과 / 오류 0건 |
 | 공식 로고 로그인·사이드바 렌더링 | 통과 |
 | 파란 배경 공식 반전 로고 자산 | 200 / `image/png` / 6,848 bytes |
 | 반전 로고 브라우저 콘솔·오류 오버레이 | 오류 0건 |
@@ -41,6 +43,7 @@ docker compose -f compose.yaml -f compose.test.yaml ps
 - `mock/screenshots/three-tier-dashboard.png`
 - `mock/screenshots/official-logo-login.png`
 - `mock/screenshots/official-logo-dashboard.png`
+- `mock/screenshots/phase8-item-detail.png`
 - `mock/screenshots/reference-v2-login.png`
 - `mock/screenshots/reference-v2-dashboard.png`
 - `mock/screenshots/reference-v2-catalogue.png`
@@ -52,6 +55,8 @@ docker compose -f compose.yaml -f compose.test.yaml ps
 공식 로고 변경 후 로그인 화면과 대시보드 사이드바에서 `SEOWON Since 1991` 공식 반전 자산이 153×47 원본 비율로 로드됨을 확인했다. 남색 배경 위의 파란 워드마크는 흰색으로 전환됐고 주황색 O는 유지됐다. 밝은 배경의 컬러형은 그대로 유지했다.
 
 Canva·Figma 레퍼런스 기반 개편 후 로그인 에디토리얼 히어로, 비대칭 지휘판, 비품 카탈로그, 단계형 인계 화면이 서로 다른 레이아웃으로 렌더링되고 메뉴 전환이 정상 작동함을 확인했다. 콘셉트 갤러리는 11개 업무별 HTML/CSS 아키타입을 포함한다.
+
+Phase 8에서는 관리자 비품 상세 화면의 현재 수량·위치·활성 대여·가용 제외 수량·수정 폼·비활성화 버튼을 확인했다. 수정 요청 성공 메시지가 표시됐으며 가용 제외 수량보다 총수량을 낮추는 변경과 활성 대여 비품의 비활성화는 DB 통합 테스트에서 409로 거부됨을 검증했다.
 
 ## 개선 루프
 

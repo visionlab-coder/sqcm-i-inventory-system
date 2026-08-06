@@ -5,7 +5,7 @@ const connectPgSimple = require('connect-pg-simple');
 const helmet = require('helmet');
 const bcrypt = require('bcryptjs');
 const { DUMMY_HASH, csrfToken, csrfProtection, requireAuth, requireRole, sanitizeUser } = require('./security');
-const { createItem, checkoutItem, returnItem } = require('./services/inventory-service');
+const { createItem, updateItem, deactivateItem, checkoutItem, returnItem } = require('./services/inventory-service');
 
 function safeReturnPath(value) {
   return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : '/';
@@ -174,6 +174,30 @@ function createApp({ pool, config }) {
   app.post('/api/items', apiRole('MANAGER', 'ADMIN'), async (req, res) => {
     const item = await createItem(pool, req.user.id, req.body);
     res.status(201).json({ item });
+  });
+
+  app.get('/api/items/:id', apiAuth, async (req, res) => {
+    if (!/^\d+$/.test(req.params.id)) return res.status(404).json({ code: 'NOT_FOUND', message: '비품을 찾을 수 없습니다.' });
+    const itemResult = await pool.query('SELECT * FROM items WHERE id=$1', [req.params.id]);
+    if (!itemResult.rowCount) return res.status(404).json({ code: 'NOT_FOUND', message: '비품을 찾을 수 없습니다.' });
+    const loanResult = await pool.query(
+      `SELECT l.id, l.quantity, l.loaned_at, l.due_at, l.returned_at, l.return_condition,
+              u.display_name AS borrower_name
+       FROM loans l JOIN users u ON u.id=l.user_id
+       WHERE l.item_id=$1 ORDER BY l.loaned_at DESC LIMIT 20`,
+      [req.params.id]
+    );
+    res.json({ item: itemResult.rows[0], loans: loanResult.rows });
+  });
+
+  app.patch('/api/items/:id', apiRole('MANAGER', 'ADMIN'), async (req, res) => {
+    const item = await updateItem(pool, req.user.id, req.params.id, req.body);
+    res.json({ item });
+  });
+
+  app.delete('/api/items/:id', apiRole('MANAGER', 'ADMIN'), async (req, res) => {
+    await deactivateItem(pool, req.user.id, req.params.id);
+    res.status(204).end();
   });
 
   app.get('/api/loans', apiAuth, async (req, res) => {

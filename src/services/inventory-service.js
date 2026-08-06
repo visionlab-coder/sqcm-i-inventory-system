@@ -32,6 +32,7 @@ async function createItem(pool, actorId, input) {
   const category = String(input.category || '').trim();
   const total = nonNegativeInteger(input.totalQuantity, '총수량');
   const minimum = nonNegativeInteger(input.minQuantity, '최소재고');
+  const location = String(input.location || '').trim().slice(0, 100);
   if (!/^[A-Z0-9-]{3,30}$/.test(code)) throw new DomainError('비품 코드는 영문 대문자, 숫자, 하이픈 3~30자로 입력하세요.');
   if (name.length < 2 || name.length > 100) throw new DomainError('비품명은 2~100자로 입력하세요.');
   if (category.length < 2 || category.length > 50) throw new DomainError('카테고리는 2~50자로 입력하세요.');
@@ -40,9 +41,9 @@ async function createItem(pool, actorId, input) {
   try {
     await client.query('BEGIN');
     const result = await client.query(
-      `INSERT INTO items (code, name, category, total_quantity, available_quantity, min_quantity)
-       VALUES ($1, $2, $3, $4, $4, $5) RETURNING *`,
-      [code, name, category, total, minimum]
+      `INSERT INTO items (code, name, category, total_quantity, available_quantity, min_quantity, location)
+       VALUES ($1, $2, $3, $4, $4, $5, NULLIF($6, '')) RETURNING *`,
+      [code, name, category, total, minimum, location]
     );
     await audit(client, actorId, 'ITEM_CREATED', 'ITEM', result.rows[0].id, { code, name, total });
     await client.query('COMMIT');
@@ -50,6 +51,66 @@ async function createItem(pool, actorId, input) {
   } catch (error) {
     await client.query('ROLLBACK');
     if (error.code === '23505') throw new DomainError('이미 사용 중인 비품 코드입니다.', 409);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function updateItem(pool, actorId, itemId, input) {
+  const id = positiveInteger(itemId, '비품번호');
+  const name = String(input.name || '').trim();
+  const category = String(input.category || '').trim();
+  const total = nonNegativeInteger(input.totalQuantity, '총수량');
+  const minimum = nonNegativeInteger(input.minQuantity, '최소재고');
+  const location = String(input.location || '').trim().slice(0, 100);
+  if (name.length < 2 || name.length > 100) throw new DomainError('비품명은 2~100자로 입력하세요.');
+  if (category.length < 2 || category.length > 50) throw new DomainError('카테고리는 2~50자로 입력하세요.');
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const currentResult = await client.query("SELECT * FROM items WHERE id = $1 AND status = 'ACTIVE' FOR UPDATE", [id]);
+    if (!currentResult.rowCount) throw new DomainError('수정할 비품을 찾을 수 없습니다.', 404);
+    const current = currentResult.rows[0];
+    const unavailable = current.total_quantity - current.available_quantity;
+    if (total < unavailable) throw new DomainError(`현재 가용 제외 수량 ${unavailable}개보다 총수량을 낮출 수 없습니다.`, 409);
+    const available = total - unavailable;
+    const result = await client.query(
+      `UPDATE items SET name=$1, category=$2, total_quantity=$3, available_quantity=$4,
+       min_quantity=$5, location=NULLIF($6, ''), updated_at=now()
+       WHERE id=$7 RETURNING *`,
+      [name, category, total, available, minimum, location, id]
+    );
+    await audit(client, actorId, 'ITEM_UPDATED', 'ITEM', id, {
+      before: { name: current.name, category: current.category, totalQuantity: current.total_quantity, minQuantity: current.min_quantity, location: current.location },
+      after: { name, category, totalQuantity: total, minQuantity: minimum, location: location || null }
+    });
+    await client.query('COMMIT');
+    return result.rows[0];
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function deactivateItem(pool, actorId, itemId) {
+  const id = positiveInteger(itemId, '비품번호');
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const currentResult = await client.query("SELECT * FROM items WHERE id = $1 AND status = 'ACTIVE' FOR UPDATE", [id]);
+    if (!currentResult.rowCount) throw new DomainError('비활성화할 비품을 찾을 수 없습니다.', 404);
+    const activeLoans = await client.query('SELECT count(*)::int AS count FROM loans WHERE item_id=$1 AND returned_at IS NULL', [id]);
+    if (activeLoans.rows[0].count > 0) throw new DomainError('대여 중인 비품은 비활성화할 수 없습니다.', 409);
+    const result = await client.query("UPDATE items SET status='INACTIVE', updated_at=now() WHERE id=$1 RETURNING *", [id]);
+    await audit(client, actorId, 'ITEM_DEACTIVATED', 'ITEM', id, { code: currentResult.rows[0].code });
+    await client.query('COMMIT');
+    return result.rows[0];
+  } catch (error) {
+    await client.query('ROLLBACK');
     throw error;
   } finally {
     client.release();
@@ -119,4 +180,4 @@ async function returnItem(pool, actorId, loanId, input = {}) {
   }
 }
 
-module.exports = { DomainError, positiveInteger, nonNegativeInteger, createItem, checkoutItem, returnItem };
+module.exports = { DomainError, positiveInteger, nonNegativeInteger, createItem, updateItem, deactivateItem, checkoutItem, returnItem };

@@ -85,13 +85,14 @@ async function renderDashboard() {
 
 async function renderItems(query = '') {
   const data = await request(`/api/items?q=${encodeURIComponent(query)}`);
-  const rows = data.items.map(item => `<tr><td class="mono">${escapeHtml(item.code)}</td><td><strong>${escapeHtml(item.name)}</strong></td><td>${escapeHtml(item.category)}</td><td>${escapeHtml(item.location || '-')}</td><td>${item.available_quantity}</td><td>${item.total_quantity}</td><td><span class="badge ${item.available_quantity <= item.min_quantity ? 'bad' : 'good'}">${item.available_quantity <= item.min_quantity ? '재고 부족' : '정상'}</span></td></tr>`).join('');
+  const rows = data.items.map(item => `<tr><td class="mono">${escapeHtml(item.code)}</td><td><strong>${escapeHtml(item.name)}</strong></td><td>${escapeHtml(item.category)}</td><td>${escapeHtml(item.location || '-')}</td><td>${item.available_quantity}</td><td>${item.total_quantity}</td><td><span class="badge ${item.available_quantity <= item.min_quantity ? 'bad' : 'good'}">${item.available_quantity <= item.min_quantity ? '재고 부족' : '정상'}</span></td><td><button class="small item-detail-button" data-id="${item.id}">상세</button></td></tr>`).join('');
   $('#view-root').innerHTML = `
     <div class="catalogue-head"><div class="page-heading"><div><p class="eyebrow">EQUIPMENT CATALOGUE</p><h1>비품<br>인덱스</h1><p class="muted">현장 자산을 빠르게 찾고 재고 상태를 비교합니다.</p></div></div><section class="catalogue-search"><p class="eyebrow">FIND / FILTER</p><form id="item-search" class="search-panel"><input type="search" name="q" value="${escapeHtml(query)}" placeholder="코드 · 비품명 · 카테고리"><button class="secondary">검색</button></form></section></div>
-    <section class="panel catalogue-table"><div class="table-wrap"><table><thead><tr><th>코드</th><th>비품명</th><th>카테고리</th><th>위치</th><th>가용</th><th>총수량</th><th>상태</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="empty-cell">검색 결과가 없습니다.</td></tr>'}</tbody></table></div></section>
-    ${isManager() ? `<section class="panel form-panel"><div><p class="eyebrow">NEW ITEM</p><h2>비품 등록</h2></div><form id="item-create" class="grid-form"><label>비품 코드<input name="code" required pattern="[A-Za-z0-9-]{3,30}"></label><label>비품명<input name="name" required minlength="2"></label><label>카테고리<input name="category" required></label><label>총수량<input type="number" name="totalQuantity" min="0" required></label><label>최소재고<input type="number" name="minQuantity" min="0" value="0" required></label><button class="primary">등록</button></form></section>` : ''}`;
+    <section class="panel catalogue-table"><div class="table-wrap"><table><thead><tr><th>코드</th><th>비품명</th><th>카테고리</th><th>위치</th><th>가용</th><th>총수량</th><th>상태</th><th>관리</th></tr></thead><tbody>${rows || '<tr><td colspan="8" class="empty-cell">검색 결과가 없습니다.</td></tr>'}</tbody></table></div></section>
+    ${isManager() ? `<section class="panel form-panel"><div><p class="eyebrow">NEW ITEM</p><h2>비품 등록</h2></div><form id="item-create" class="grid-form"><label>비품 코드<input name="code" required pattern="[A-Za-z0-9-]{3,30}"></label><label>비품명<input name="name" required minlength="2"></label><label>카테고리<input name="category" required></label><label>위치<input name="location" maxlength="100"></label><label>총수량<input type="number" name="totalQuantity" min="0" required></label><label>최소재고<input type="number" name="minQuantity" min="0" value="0" required></label><button class="primary">등록</button></form></section>` : ''}`;
   $('#item-search').addEventListener('submit', event => { event.preventDefault(); renderItems(new FormData(event.target).get('q')); });
   $('#item-create')?.addEventListener('submit', createItem);
+  document.querySelectorAll('.item-detail-button').forEach(button => button.addEventListener('click', () => renderItemDetail(button.dataset.id)));
 }
 
 async function createItem(event) {
@@ -102,6 +103,42 @@ async function createItem(event) {
     showMessage('비품을 등록했습니다.');
     await renderItems();
   } catch (error) { showMessage(error.message, 'error'); }
+}
+
+async function renderItemDetail(itemId) {
+  try {
+    const data = await request(`/api/items/${itemId}`);
+    const item = data.item;
+    const unavailable = Number(item.total_quantity) - Number(item.available_quantity);
+    const activeLoaned = data.loans.filter(loan => !loan.returned_at).reduce((sum, loan) => sum + Number(loan.quantity), 0);
+    const history = data.loans.map(loan => `<tr><td>${date(loan.loaned_at)}</td><td>${escapeHtml(loan.borrower_name)}</td><td>${loan.quantity}</td><td>${date(loan.due_at)}</td><td><span class="badge ${loan.returned_at ? 'good' : 'neutral'}">${loan.returned_at ? '반납 완료' : '대여 중'}</span></td></tr>`).join('');
+    $('#view-root').innerHTML = `
+      <div class="page-heading"><div><p class="eyebrow">ASSET SPECIFICATION / ${escapeHtml(item.code)}</p><h1>${escapeHtml(item.name)}</h1><p class="muted">현재 수량과 최근 인계 이력을 확인하고 관리 정보를 수정합니다.</p></div><button class="secondary" id="item-back">목록으로</button></div>
+      <section class="asset-detail-shell"><aside class="asset-blueprint"><span class="mono">${escapeHtml(item.code)}</span><strong>${item.available_quantity}</strong><small>AVAILABLE / TOTAL ${item.total_quantity}</small></aside><div class="asset-facts"><dl><dt>카테고리</dt><dd>${escapeHtml(item.category)}</dd><dt>위치</dt><dd>${escapeHtml(item.location || '-')}</dd><dt>활성 대여</dt><dd>${activeLoaned}</dd><dt>가용 제외</dt><dd>${unavailable}</dd><dt>최소재고</dt><dd>${item.min_quantity}</dd><dt>상태</dt><dd>${escapeHtml(item.status)}</dd></dl></div></section>
+      ${isManager() && item.status === 'ACTIVE' ? `<section class="panel form-panel"><div><p class="eyebrow">EDIT ITEM</p><h2>관리정보 수정</h2><p class="muted">총수량은 현재 가용 제외 수량 ${unavailable}개보다 작게 변경할 수 없습니다.</p></div><form id="item-update" class="grid-form"><label>비품명<input name="name" value="${escapeHtml(item.name)}" required minlength="2" maxlength="100"></label><label>카테고리<input name="category" value="${escapeHtml(item.category)}" required maxlength="50"></label><label>위치<input name="location" value="${escapeHtml(item.location || '')}" maxlength="100"></label><label>총수량<input type="number" name="totalQuantity" value="${item.total_quantity}" min="${unavailable}" required></label><label>최소재고<input type="number" name="minQuantity" value="${item.min_quantity}" min="0" required></label><button class="primary">수정 저장</button><button type="button" class="danger-button" id="item-deactivate">비품 비활성화</button></form></section>` : ''}
+      <section class="panel"><div class="panel-head"><h2>최근 대여 이력</h2><span>${data.loans.length} RECORDS</span></div><div class="table-wrap"><table><thead><tr><th>대여일</th><th>대여자</th><th>수량</th><th>반납 예정</th><th>상태</th></tr></thead><tbody>${history || '<tr><td colspan="5" class="empty-cell">대여 이력이 없습니다.</td></tr>'}</tbody></table></div></section>`;
+    $('#item-back').addEventListener('click', () => renderItems());
+    $('#item-update')?.addEventListener('submit', async event => {
+      event.preventDefault();
+      try {
+        await request(`/api/items/${itemId}`, { method: 'PATCH', body: Object.fromEntries(new FormData(event.target)) });
+        showMessage('비품 정보를 수정했습니다.');
+        await renderItemDetail(itemId);
+      } catch (error) { showMessage(error.message, 'error'); }
+    });
+    $('#item-deactivate')?.addEventListener('click', async () => {
+      if (!window.confirm('이 비품을 목록에서 비활성화하시겠습니까?')) return;
+      try {
+        await request(`/api/items/${itemId}`, { method: 'DELETE', body: {} });
+        showMessage('비품을 비활성화했습니다.');
+        await renderItems();
+      } catch (error) { showMessage(error.message, 'error'); }
+    });
+    $('#main').focus();
+  } catch (error) {
+    showMessage(error.message, 'error');
+    await renderItems();
+  }
 }
 
 async function renderLoans() {
