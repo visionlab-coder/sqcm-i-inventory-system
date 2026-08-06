@@ -1,0 +1,9 @@
+node_modules/
+.env
+coverage/
+dist/
+*.log
+.DS_Store
+.idea/
+.vscode/
+postgres-data/

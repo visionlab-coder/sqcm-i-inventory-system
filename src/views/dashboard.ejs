@@ -1,0 +1,23 @@
+<%- include('partials/header') %>
+<div class="page-heading">
+  <div><p class="eyebrow">TODAY'S OVERVIEW</p><h1>대시보드</h1><p class="muted">비품과 대여 현황을 한눈에 확인하세요.</p></div>
+  <% if (['MANAGER','ADMIN'].includes(currentUser.role)) { %><div class="actions"><a class="button secondary" href="/items#new">비품 등록</a><a class="button primary" href="/loans#checkout">대여 처리</a></div><% } %>
+</div>
+<section class="stats" aria-label="핵심 지표">
+  <article><span>전체 비품</span><strong><%= stats.total_items %></strong><small>등록 품목</small></article>
+  <article><span>대여 중</span><strong><%= stats.loaned %></strong><small>수량</small></article>
+  <article class="warning"><span>반납 지연</span><strong><%= stats.overdue %></strong><small>건</small></article>
+  <article class="danger"><span>재고 부족</span><strong><%= stats.low_stock %></strong><small>품목</small></article>
+</section>
+<div class="dashboard-grid">
+  <section class="panel"><div class="panel-head"><h2>비품 현황</h2><a href="/items">전체 보기</a></div>
+    <div class="table-wrap"><table><thead><tr><th>코드</th><th>비품명</th><th>카테고리</th><th>가용/총수량</th><th>상태</th></tr></thead><tbody>
+    <% items.forEach(item => { const low = item.available_quantity <= item.min_quantity; %><tr><td class="mono"><%= item.code %></td><td><strong><%= item.name %></strong></td><td><%= item.category %></td><td><%= item.available_quantity %> / <%= item.total_quantity %></td><td><span class="badge <%= low ? 'bad' : 'good' %>"><%= low ? '재고 부족' : '정상' %></span></td></tr><% }) %>
+    </tbody></table></div>
+  </section>
+  <section class="panel"><div class="panel-head"><h2>반납 예정</h2><a href="/loans">전체 보기</a></div><ul class="activity-list">
+    <% if (!loans.length) { %><li class="empty">진행 중인 대여가 없습니다.</li><% } %>
+    <% loans.forEach(loan => { const overdue = new Date(loan.due_at) < new Date(); %><li><div><strong><%= loan.item_name %></strong><span><%= loan.borrower_name %> · <%= loan.quantity %>개</span></div><span class="badge <%= overdue ? 'bad' : 'neutral' %>"><%= new Date(loan.due_at).toLocaleDateString('ko-KR') %></span></li><% }) %>
+  </ul></section>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> | 서원토건 비품관리</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">본문으로 건너뛰기</a>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="주 메뉴">
+      <a class="brand" href="/"><span class="brand-mark">▰</span><span>서원토건<br><small>비품관리</small></span></a>
+      <nav>
+        <a class="<%= path === '/' ? 'active' : '' %>" href="/">대시보드</a>
+        <a class="<%= path === '/items' ? 'active' : '' %>" href="/items">비품 관리</a>
+        <a class="<%= path === '/loans' ? 'active' : '' %>" href="/loans">대여·반납</a>
+        <% if (currentUser?.role === 'ADMIN') { %><a class="<%= path === '/audit' ? 'active' : '' %>" href="/audit">감사 로그</a><% } %>
+      </nav>
+      <div class="sidebar-user">
+        <strong><%= currentUser?.displayName %></strong>
+        <span><%= currentUser?.role %></span>
+        <form action="/logout" method="post">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="link-button" type="submit">로그아웃</button>
+        </form>
+      </div>
+    </aside>
+    <div class="content-wrap">
+      <header class="topbar">
+        <span class="mobile-brand">서원토건 비품관리</span>
+        <span><%= currentUser?.displayName %>님</span>
+      </header>
+      <main id="main" class="main-content">
+        <% if (flash) { %><div class="flash <%= flash.type %>" role="status"><%= flash.message %></div><% } %>

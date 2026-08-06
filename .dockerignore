@@ -1,0 +1,10 @@
+node_modules
+.git
+.env
+docs
+mock
+test
+client docs
+develop docs
+agent docs
+*.log

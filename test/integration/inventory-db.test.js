@@ -1,0 +1,36 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { createPool } = require('../../src/db');
+const { createItem, checkoutItem, returnItem } = require('../../src/services/inventory-service');
+
+const databaseUrl = process.env.INTEGRATION_DATABASE_URL;
+
+test('PostgreSQL에서 등록 → 대여 → 반납 왕복이 수량 무결성을 유지한다', { skip: !databaseUrl }, async () => {
+  const pool = createPool(databaseUrl);
+  const marker = Date.now().toString().slice(-9);
+  let itemId;
+  let loanId;
+  try {
+    const manager = await pool.query("SELECT id, email FROM users WHERE role='MANAGER' AND status='ACTIVE' LIMIT 1");
+    assert.equal(manager.rowCount, 1);
+    const actor = manager.rows[0];
+    const item = await createItem(pool, actor.id, { code: `TS-${marker}`, name: '통합테스트 비품', category: '테스트', totalQuantity: 5, minQuantity: 1 });
+    itemId = item.id;
+    const loan = await checkoutItem(pool, actor.id, { itemId, borrowerEmail: actor.email, quantity: 2, dueAt: new Date(Date.now() + 86_400_000).toISOString() });
+    loanId = loan.id;
+    let quantity = await pool.query('SELECT available_quantity FROM items WHERE id=$1', [itemId]);
+    assert.equal(quantity.rows[0].available_quantity, 3);
+    await returnItem(pool, actor.id, loanId, { condition: 'GOOD', note: '자동 테스트' });
+    quantity = await pool.query('SELECT available_quantity FROM items WHERE id=$1', [itemId]);
+    assert.equal(quantity.rows[0].available_quantity, 5);
+    const audit = await pool.query("SELECT count(*)::int AS count FROM audit_logs WHERE entity_id IN ($1,$2)", [String(itemId), String(loanId)]);
+    assert.ok(audit.rows[0].count >= 3);
+  } finally {
+    if (loanId || itemId) {
+      await pool.query("DELETE FROM audit_logs WHERE entity_id = ANY($1::text[])", [[String(itemId || ''), String(loanId || '')]]);
+      if (loanId) await pool.query('DELETE FROM loans WHERE id=$1', [loanId]);
+      if (itemId) await pool.query('DELETE FROM items WHERE id=$1', [itemId]);
+    }
+    await pool.end();
+  }
+});

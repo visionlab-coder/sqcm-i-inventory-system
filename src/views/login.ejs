@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>로그인 | 서원토건 비품관리</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="login-page">
+  <main class="login-card">
+    <div class="login-identity"><span class="brand-mark large">▰</span><p>SEOWON CONSTRUCTION</p></div>
+    <section>
+      <p class="eyebrow">ASSET CONTROL</p>
+      <h1>서원토건 비품관리</h1>
+      <p class="muted">안전한 현장 운영을 위한 통합 비품관리 시스템</p>
+      <% if (flash) { %><div class="flash error" role="alert"><%= flash.message %></div><% } %>
+      <% if (reason === 'required') { %><div class="flash info" role="status">로그인이 필요한 서비스입니다.</div><% } %>
+      <form class="stack-form" action="/login" method="post">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="returnTo" value="<%= returnTo %>">
+        <label>이메일<input type="email" name="email" autocomplete="username" required placeholder="name@seowon.local"></label>
+        <label>비밀번호<input type="password" name="password" autocomplete="current-password" required minlength="10"></label>
+        <button class="primary full" type="submit">로그인</button>
+      </form>
+      <p class="login-help">접근 권한은 비품관리 담당자에게 문의하세요.</p>
+    </section>
+  </main>
+</body>
+</html>
