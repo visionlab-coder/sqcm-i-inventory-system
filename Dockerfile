@@ -11,5 +11,5 @@ COPY package*.json ./
 COPY src ./src
 COPY db ./db
 USER node
-EXPOSE 3000
+EXPOSE 8080
 CMD ["node", "src/server.js"]

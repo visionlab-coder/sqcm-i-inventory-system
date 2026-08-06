@@ -1,4 +1,7 @@
 services:
-  postgres:
+  database:
     ports:
       - "55432:5432"
+  backend:
+    ports:
+      - "58080:8080"

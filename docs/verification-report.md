@@ -6,35 +6,36 @@
 |---|---|
 | JavaScript 구문 검사 | 통과 |
 | 단위 테스트 | 8/8 통과 |
-| PostgreSQL 등록→대여→반납 | 1/1 통과 |
-| HTTP health→로그인→대시보드 | 1/1 통과 |
-| Docker app health | healthy |
-| Docker postgres health | healthy |
-| npm high 이상 취약점 | 0건 |
-| 브라우저 내용/오류 오버레이 | HAS_CONTENT / OK |
-| 브라우저 로그인/대시보드 | DASHBOARD_OK |
+| PostgreSQL 등록·대여·반납 통합 테스트 | 1/1 통과 |
+| 프론트 health·API 프록시·로그인·대시보드 통합 테스트 | 1/1 통과 |
+| Docker `frontend` health | healthy |
+| Docker `backend` health | healthy |
+| Docker `database` health | healthy |
+| 브라우저 로그인·대시보드 | 통과 |
 
 ## 실행 명령
 
 ```powershell
 npm.cmd run check
+docker compose -f compose.yaml -f compose.test.yaml up -d --build
 $env:INTEGRATION_DATABASE_URL='postgres://seowon:change-me@localhost:55432/seowon_inventory'
 $env:INTEGRATION_BASE_URL='http://localhost:3000'
+$env:SEED_MANAGER_PASSWORD='Manager1234!'
 npm.cmd run test:integration
 docker compose -f compose.yaml -f compose.test.yaml ps
 ```
 
 ## 브라우저 증거
 
-- `mock/screenshots/login-browser.png`
-- `mock/screenshots/dashboard-browser.png`
+- `mock/screenshots/three-tier-login.png`
+- `mock/screenshots/three-tier-dashboard.png`
 
-로그인 화면은 제목·이메일·비밀번호·로그인 버튼을 노출했고 오류 오버레이가 없었다. 담당자 계정 로그인 후 대시보드, 비품 현황, KPI 카드가 렌더링됐다.
+로그인 화면의 이메일·비밀번호·로그인 요소를 확인했고, 담당자 계정 로그인 후 대시보드 제목, 메뉴, 비품 현황 데이터가 렌더링됨을 확인했다. 빈 화면과 애플리케이션 오류 오버레이는 없었다.
 
 ## 개선 루프
 
-통합 테스트용 PostgreSQL 컨테이너를 재생성할 때 기존 앱의 유휴 연결이 `57P01`로 종료되며 프로세스가 한 번 재시작됐다. `pg.Pool` 오류 리스너를 추가해 유휴 연결 종료가 처리되지 않은 이벤트로 앱을 중단시키지 않도록 보완하고 이미지 재빌드, 전체 테스트, health를 다시 통과했다.
+초기 `frontend` healthcheck가 Nginx 안에서 `localhost` 해석 문제로 실패했으나 외부 화면과 API는 정상이었다. 헬스 대상 주소를 `127.0.0.1`로 명시하고 프론트엔드를 재빌드해 세 컨테이너 모두 `healthy`가 됨을 재검증했다.
 
 ## 판정
 
-로컬 검토 배포 준비 완료. 외부 GitHub 공유와 클라우드 배포는 원격 저장소 주소 및 협업자 GitHub 사용자명 확인 후 진행한다.
+프론트엔드·백엔드·데이터베이스를 분리한 로컬 3계층 배포와 핵심 기능 검증이 완료됐다. 운영 배포 전에는 기본 비밀 변경, HTTPS, 백업·복구 훈련이 필요하다.

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>서원토건 비품관리</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">본문으로 건너뛰기</a>
+  <section id="login-page" class="login-page">
+    <div class="login-visual">
+      <div class="brand-mark">▰</div>
+      <h1>서원토건 비품관리</h1>
+      <p>안전한 현장 운영을 위한 통합 비품관리 시스템</p>
+    </div>
+    <div class="login-panel">
+      <form id="login-form" class="login-form">
+        <p class="eyebrow">ASSET CONTROL</p>
+        <h2>로그인</h2>
+        <p class="muted">등록된 계정으로 업무를 시작하세요.</p>
+        <div id="login-error" class="alert error hidden" role="alert"></div>
+        <label>이메일<input type="email" name="email" autocomplete="username" required placeholder="name@seowon.local"></label>
+        <label>비밀번호<input type="password" name="password" autocomplete="current-password" minlength="10" required></label>
+        <button class="primary full" type="submit">로그인</button>
+      </form>
+    </div>
+  </section>
+
+  <div id="app-shell" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="brand"><span>▰</span><strong>서원토건<br><small>비품관리</small></strong></div>
+      <nav aria-label="주 메뉴">
+        <button data-view="dashboard" class="active">대시보드</button>
+        <button data-view="items">비품 관리</button>
+        <button data-view="loans">대여·반납</button>
+        <button data-view="audit" id="audit-nav">감사 로그</button>
+      </nav>
+      <div class="user-box"><strong id="user-name"></strong><span id="user-role"></span><button id="logout-button">로그아웃</button></div>
+    </aside>
+    <div class="content-wrap">
+      <header class="topbar"><span class="mobile-title">서원토건 비품관리</span><span id="top-user"></span></header>
+      <main id="main" class="main-content" tabindex="-1">
+        <div id="global-message" class="alert hidden" role="status"></div>
+        <div id="view-root" aria-live="polite"></div>
+      </main>
+    </div>
+  </div>
+  <script src="/app.js" defer></script>
+</body>
+</html>

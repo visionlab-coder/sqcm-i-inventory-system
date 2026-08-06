@@ -1,28 +1,49 @@
 # SQCM-i 서원토건 비품관리 시스템
 
-서원토건 임직원이 비품의 입고, 재고, 대여, 반납과 감사 이력을 한곳에서 관리하는 교육용 웹 애플리케이션입니다.
+서원토건 구성원이 비품의 입고, 재고, 대여, 반납과 감사 이력을 한 곳에서 관리하는 교육용 웹 애플리케이션입니다.
 
 ## 핵심 범위
 
 - 세션 기반 로그인과 `ADMIN`/`MANAGER`/`USER` 권한
-- 비품 등록·수정·검색, 재고 부족 표시
+- 비품 등록·검색, 재고 부족 표시
 - 비품 대여·반납과 연체 상태
-- 대시보드 지표와 감사 로그
-- PostgreSQL 영속화, Docker Compose 실행
+- 대시보드와 감사 로그
+- PostgreSQL 영속화와 Docker Compose 3계층 실행
+
+## Docker 3계층 구성
+
+| 서비스 | 역할 | 컨테이너 포트 | 호스트 공개 |
+|---|---|---:|---:|
+| `frontend` | Nginx 정적 SPA 및 `/api` 리버스 프록시 | 80 | 3000 |
+| `backend` | Express JSON API, 인증·권한·업무 규칙 | 8080 | 비공개 |
+| `database` | PostgreSQL 16 데이터 저장 | 5432 | 비공개 |
+
+브라우저 요청은 `frontend → backend → database` 순으로 전달됩니다. 운영 Compose에서는 프론트엔드만 호스트에 공개합니다.
 
 ## 빠른 실행
 
-```bash
-copy .env.example .env
-docker compose up --build
+```powershell
+Copy-Item .env.example .env
+docker compose up -d --build
+docker compose ps
 ```
 
-브라우저에서 `http://localhost:3000` 접속 후 개발 시드 계정으로 로그인합니다.
+브라우저에서 `http://localhost:3000`에 접속합니다.
 
 - 관리자: `admin@seowon.local` / `Admin1234!`
 - 담당자: `manager@seowon.local` / `Manager1234!`
 
-> 시드 암호는 로컬 실습 전용입니다. 운영 환경에서는 `SEED_ADMIN_PASSWORD`, `SEED_MANAGER_PASSWORD`를 반드시 변경합니다.
+> 시드 비밀번호는 로컬 실습 전용입니다. 운영에서는 `POSTGRES_PASSWORD`, `SESSION_SECRET`, `SEED_ADMIN_PASSWORD`, `SEED_MANAGER_PASSWORD`를 반드시 안전한 값으로 변경해야 합니다.
+
+## 검증
+
+```powershell
+npm.cmd run check
+docker compose -f compose.yaml -f compose.test.yaml up -d --build
+$env:INTEGRATION_DATABASE_URL='postgres://seowon:change-me@localhost:55432/seowon_inventory'
+$env:INTEGRATION_BASE_URL='http://localhost:3000'
+npm.cmd run test:integration
+```
 
 ## 문서
 
@@ -30,10 +51,8 @@ docker compose up --build
 - 개발 문서: [`develop docs`](./develop%20docs)
 - 에이전트 문서: [`agent docs`](./agent%20docs)
 - 단계별 보고서: [`docs/phase-reports`](./docs/phase-reports)
+- 검증 보고서: [`docs/verification-report.md`](./docs/verification-report.md)
 - 화면 목업: [`mock/html/index.html`](./mock/html/index.html)
-- 11개 페이지 컨셉아트: [`mock/concept/pages/index.html`](./mock/concept/pages/index.html)
-- 첨부 명령 비교 체크리스트: [`develop docs/07_첨부명령_비교체크리스트.md`](./develop%20docs/07_첨부명령_비교체크리스트.md)
+- 페이지별 콘셉트 아트: [`mock/concept/pages/index.html`](./mock/concept/pages/index.html)
 
-## 상태
-
-1~10단계와 Docker 로컬 배포 검증을 완료했습니다. 11단계의 외부 배포와 GitHub 협업자 초대는 정확한 GitHub 사용자명이 확인되면 수행합니다. 상세 결과는 [`docs/verification-report.md`](./docs/verification-report.md)를 확인하세요.
+현재 로컬 Docker 3계층 구성과 핵심 기능 검증을 완료했습니다. 외부 배포와 GitHub 협업자 초대는 별도 배포 정보 및 정확한 GitHub 사용자명 확인 후 진행합니다.

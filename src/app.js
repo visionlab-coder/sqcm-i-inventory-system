@@ -31,6 +31,7 @@ function createApp({ pool, config }) {
   app.set('views', path.join(process.cwd(), 'src', 'views'));
   app.disable('x-powered-by');
   app.use(helmet({ contentSecurityPolicy: false }));
+  app.use(express.json({ limit: '50kb' }));
   app.use(express.urlencoded({ extended: false, limit: '50kb' }));
   app.use(express.static(path.join(process.cwd(), 'src', 'public'), { maxAge: config.env === 'production' ? '1d' : 0 }));
   app.use(session({
@@ -74,6 +75,136 @@ function createApp({ pool, config }) {
     } catch (_error) {
       res.status(503).json({ status: 'error', database: 'down' });
     }
+  });
+
+  // ------------------------------------------------------------------
+  // JSON API: frontend 컨테이너가 같은 출처의 /api 경로로 호출한다.
+  // 인증 쿠키는 HttpOnly로 유지하고 모든 변경 요청은 세션 CSRF 토큰을 검사한다.
+  // ------------------------------------------------------------------
+  const apiAuth = (req, res, next) => req.user
+    ? next()
+    : res.status(401).json({ code: 'AUTH_REQUIRED', message: '로그인이 필요합니다.' });
+  const apiRole = (...roles) => (req, res, next) => {
+    if (!req.user) return res.status(401).json({ code: 'AUTH_REQUIRED', message: '로그인이 필요합니다.' });
+    if (!roles.includes(req.user.role)) return res.status(403).json({ code: 'FORBIDDEN', message: '권한이 없습니다.' });
+    next();
+  };
+
+  app.get('/api/health', async (_req, res) => {
+    try {
+      await pool.query('SELECT 1');
+      res.json({ status: 'ok', service: 'backend', database: 'up' });
+    } catch (_error) {
+      res.status(503).json({ status: 'error', service: 'backend', database: 'down' });
+    }
+  });
+
+  app.get('/api/auth/csrf', (req, res) => res.json({ csrfToken: csrfToken(req) }));
+  app.get('/api/auth/me', apiAuth, (req, res) => res.json({ user: req.user, csrfToken: csrfToken(req) }));
+
+  app.post('/api/auth/login', async (req, res) => {
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const password = String(req.body.password || '');
+    const result = await pool.query('SELECT * FROM users WHERE lower(email) = $1', [email]);
+    const user = result.rows[0];
+    const locked = user?.locked_until && new Date(user.locked_until) > new Date();
+    const valid = await bcrypt.compare(password, user?.password_hash || DUMMY_HASH);
+
+    if (!user || !valid || locked || user.status !== 'ACTIVE') {
+      if (user && !locked) {
+        await pool.query(
+          `UPDATE users SET failed_login_count = failed_login_count + 1,
+           locked_until = CASE WHEN failed_login_count + 1 >= 5 THEN now() + interval '15 minutes' ELSE locked_until END
+           WHERE id = $1`,
+          [user.id]
+        );
+      }
+      await writeAudit(pool, user?.id, 'LOGIN_FAILED', 'AUTH', user?.id, { reason: locked ? 'locked' : 'invalid' });
+      return res.status(401).json({ code: 'INVALID_CREDENTIALS', message: '이메일 또는 비밀번호를 확인하세요.' });
+    }
+
+    await new Promise((resolve, reject) => req.session.regenerate(error => error ? reject(error) : resolve()));
+    req.session.userId = user.id;
+    req.session.csrfToken = require('node:crypto').randomBytes(32).toString('hex');
+    await pool.query('UPDATE users SET failed_login_count = 0, locked_until = NULL, last_login_at = now() WHERE id = $1', [user.id]);
+    await writeAudit(pool, user.id, 'LOGIN_SUCCEEDED', 'AUTH', user.id);
+    res.json({ user: sanitizeUser(user), csrfToken: req.session.csrfToken });
+  });
+
+  app.post('/api/auth/logout', apiAuth, async (req, res, next) => {
+    const userId = req.user.id;
+    try {
+      await writeAudit(pool, userId, 'LOGOUT', 'AUTH', userId);
+      req.session.destroy(error => error ? next(error) : res.status(204).end());
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get('/api/dashboard', apiAuth, async (_req, res) => {
+    const [counts, items, loans] = await Promise.all([
+      pool.query(`SELECT
+        (SELECT count(*) FROM items WHERE status = 'ACTIVE')::int AS total_items,
+        (SELECT COALESCE(sum(quantity), 0) FROM loans WHERE returned_at IS NULL)::int AS loaned,
+        (SELECT count(*) FROM loans WHERE returned_at IS NULL AND due_at < now())::int AS overdue,
+        (SELECT count(*) FROM items WHERE status = 'ACTIVE' AND available_quantity <= min_quantity)::int AS low_stock`),
+      pool.query("SELECT * FROM items WHERE status = 'ACTIVE' ORDER BY (available_quantity <= min_quantity) DESC, updated_at DESC LIMIT 8"),
+      pool.query(`SELECT l.*, i.code, i.name AS item_name, u.display_name AS borrower_name
+                  FROM loans l JOIN items i ON i.id=l.item_id JOIN users u ON u.id=l.user_id
+                  WHERE l.returned_at IS NULL ORDER BY l.due_at ASC LIMIT 8`)
+    ]);
+    res.json({ stats: counts.rows[0], items: items.rows, loans: loans.rows });
+  });
+
+  app.get('/api/items', apiAuth, async (req, res) => {
+    const query = String(req.query.q || '').trim();
+    const status = String(req.query.status || 'ALL');
+    const values = [];
+    const where = ["status = 'ACTIVE'"];
+    if (query) {
+      values.push(`%${query}%`);
+      where.push(`(code ILIKE $${values.length} OR name ILIKE $${values.length} OR category ILIKE $${values.length})`);
+    }
+    if (status === 'LOW') where.push('available_quantity <= min_quantity');
+    if (status === 'AVAILABLE') where.push('available_quantity > 0');
+    const result = await pool.query(`SELECT * FROM items WHERE ${where.join(' AND ')} ORDER BY name LIMIT 50`, values);
+    res.json({ items: result.rows });
+  });
+
+  app.post('/api/items', apiRole('MANAGER', 'ADMIN'), async (req, res) => {
+    const item = await createItem(pool, req.user.id, req.body);
+    res.status(201).json({ item });
+  });
+
+  app.get('/api/loans', apiAuth, async (req, res) => {
+    const manager = ['MANAGER', 'ADMIN'].includes(req.user.role);
+    const params = manager ? [] : [req.user.id];
+    const scope = manager ? '' : 'WHERE l.user_id = $1';
+    const [loans, items, users] = await Promise.all([
+      pool.query(`SELECT l.*, i.code, i.name AS item_name, u.email, u.display_name AS borrower_name,
+                         (l.returned_at IS NULL AND l.due_at < now()) AS overdue
+                  FROM loans l JOIN items i ON i.id=l.item_id JOIN users u ON u.id=l.user_id
+                  ${scope} ORDER BY (l.returned_at IS NULL) DESC, l.due_at DESC LIMIT 100`, params),
+      pool.query("SELECT id, code, name, available_quantity FROM items WHERE status='ACTIVE' AND available_quantity > 0 ORDER BY name"),
+      manager ? pool.query("SELECT email, display_name FROM users WHERE status='ACTIVE' ORDER BY display_name") : Promise.resolve({ rows: [] })
+    ]);
+    res.json({ loans: loans.rows, items: items.rows, users: users.rows, manager });
+  });
+
+  app.post('/api/loans', apiRole('MANAGER', 'ADMIN'), async (req, res) => {
+    const loan = await checkoutItem(pool, req.user.id, req.body);
+    res.status(201).json({ loan });
+  });
+
+  app.post('/api/loans/:id/return', apiRole('MANAGER', 'ADMIN'), async (req, res) => {
+    await returnItem(pool, req.user.id, req.params.id, req.body);
+    res.status(204).end();
+  });
+
+  app.get('/api/audit', apiRole('ADMIN'), async (_req, res) => {
+    const result = await pool.query(`SELECT a.*, u.display_name, u.email FROM audit_logs a
+      LEFT JOIN users u ON u.id=a.actor_user_id ORDER BY a.created_at DESC LIMIT 200`);
+    res.json({ logs: result.rows });
   });
 
   app.get('/login', (req, res) => {
@@ -192,10 +323,15 @@ function createApp({ pool, config }) {
     res.render('audit', { title: '감사 로그', logs: result.rows });
   });
 
+  app.use('/api', (_req, res) => res.status(404).json({ code: 'NOT_FOUND', message: 'API 경로를 찾을 수 없습니다.' }));
   app.use((req, res) => res.status(404).render('error', { title: '페이지 없음', status: 404, message: '요청한 페이지를 찾을 수 없습니다.' }));
   app.use((error, req, res, _next) => {
     const status = error.status || 500;
     if (status >= 500) console.error(error);
+    if (req.path.startsWith('/api/')) return res.status(status).json({
+      code: status >= 500 ? 'INTERNAL_ERROR' : (error.name === 'DomainError' ? 'DOMAIN_ERROR' : 'REQUEST_ERROR'),
+      message: status >= 500 ? '처리 중 오류가 발생했습니다.' : error.message
+    });
     if (req.accepts('html')) return res.status(status).render('error', { title: '오류', status, message: status >= 500 ? '처리 중 오류가 발생했습니다.' : error.message });
     res.status(status).json({ error: status >= 500 ? 'internal_error' : error.message });
   });
