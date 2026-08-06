@@ -6,8 +6,9 @@
 |---|---|
 | JavaScript 구문 검사 | 통과 |
 | 단위 테스트 | 17/17 통과 |
-| 전체 자동 테스트 | 19/19 통과 / 실패·skip 0건 |
+| 전체 자동 테스트 | 20/20 통과 / 실패·skip 0건 |
 | PostgreSQL 등록·대여·반납 통합 테스트 | 1/1 통과 |
+| Docker HTTP CSRF·RBAC·CRUD 통합 테스트 | 1/1 통과 |
 | 비품 수정·비활성화 수량 무결성 | 통과 |
 | 프론트 health·API 프록시·로그인·대시보드 통합 테스트 | 1/1 통과 |
 | Docker `frontend` health | healthy |
@@ -45,6 +46,7 @@ docker compose -f compose.yaml -f compose.test.yaml ps
 - `mock/screenshots/official-logo-login.png`
 - `mock/screenshots/official-logo-dashboard.png`
 - `mock/screenshots/phase8-item-detail.png`
+- `mock/screenshots/phase10-integration-audit.png`
 - `mock/screenshots/reference-v2-login.png`
 - `mock/screenshots/reference-v2-dashboard.png`
 - `mock/screenshots/reference-v2-catalogue.png`
@@ -60,6 +62,8 @@ Canva·Figma 레퍼런스 기반 개편 후 로그인 에디토리얼 히어로,
 Phase 8에서는 관리자 비품 상세 화면의 현재 수량·위치·활성 대여·가용 제외 수량·수정 폼·비활성화 버튼을 확인했다. 수정 요청 성공 메시지가 표시됐으며 가용 제외 수량보다 총수량을 낮추는 변경과 활성 대여 비품의 비활성화는 DB 통합 테스트에서 409로 거부됨을 검증했다.
 
 Phase 9에서는 서비스 계층 단위 테스트 9개를 추가했다. 등록·수정·비활성화의 커밋과 감사 로그, 중복 코드·수량 축소·활성 대여·재고 초과·중복 반납의 409와 롤백, 분실 반납의 재고 미복원을 검증했다. 단위 17/17과 통합 2/2를 합친 전체 19/19가 통과했다.
+
+Phase 10에서는 실제 Nginx `/api` 프록시를 통해 익명 401, CSRF 누락 403, MANAGER·ADMIN RBAC, 비품 CRUD, 대여·반납, 409 경계조건과 감사 로그를 연결했다. 통합 3/3과 단위 17/17을 합친 전체 20/20이 통과했다. 브라우저에서는 비품 상세와 감사 로그 20행을 확인했고 오류는 없었다.
 
 ## 개선 루프
 
