@@ -74,6 +74,15 @@ Phase 10에서는 실제 Nginx `/api` 프록시를 통해 익명 401, CSRF 누�
 - production 구성은 frontend 포트만 게시하고 로그 순환과 no-new-privileges 적용
 - 프런트 health JSON 계약과 로고 실제 경로 불일치를 첫 실행에서 발견하고 검사기를 수정한 뒤 재검증
 
+## Phase 12 유지보수 검증
+
+- 읽기 전용 상태 점검: frontend/API 200, 필수 테이블 5/5
+- PostgreSQL custom-format 백업: 108,129 bytes 및 SHA-256 기록
+- 격리 복구: users 2, items 8, loans 0, audit_logs 29, 필수 테이블 5개 일치
+- 복구 훈련용 고유 임시 DB 제거 완료, 운영 DB 무변경
+- 운영 의존성 audit: 알려진 취약점 0건
+- 로컬 검증 백업은 `artifacts/backups`에 보관하고 Git에서 제외
+
 ## 개선 루프
 
 초기 `frontend` healthcheck가 Nginx 안에서 `localhost` 해석 문제로 실패했으나 외부 화면과 API는 정상이었다. 헬스 대상 주소를 `127.0.0.1`로 명시하고 프론트엔드를 재빌드해 세 컨테이너 모두 `healthy`가 됨을 재검증했다.

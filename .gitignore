@@ -10,3 +10,4 @@ dist/
 .idea/
 .vscode/
 postgres-data/
+artifacts/backups/

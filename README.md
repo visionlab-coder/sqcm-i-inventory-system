@@ -58,6 +58,18 @@ $env:INTEGRATION_BASE_URL='http://localhost:3000'
 npm.cmd run test:integration
 ```
 
+## 유지보수
+
+```powershell
+$env:MAINTENANCE_BASE_URL='http://localhost:3000'
+$env:MAINTENANCE_DATABASE_URL='비밀저장소에서_주입'
+npm.cmd run maintenance:check
+npm.cmd run db:backup
+npm.cmd run db:restore-drill -- "artifacts/backups/백업파일.dump"
+```
+
+운영 점검 주기와 안전한 복구 절차는 [`develop docs/13_유지보수_런북.md`](./develop%20docs/13_유지보수_런북.md)를 따릅니다. 백업 파일은 Git 추적에서 제외됩니다.
+
 ## 문서
 
 - 고객 문서: [`client docs`](./client%20docs)
