@@ -1,0 +1,6 @@
+.official-logo { display: block; object-fit: contain; }
+.login-logo { width: min(330px, 80%); height: auto; margin-bottom: 1rem; }
+.sidebar-logo { width: 150px; height: auto; }
+.brand { align-items: flex-start; flex-direction: column; gap: .35rem; }
+.brand strong { color: #dbe7f4; font-size: .9rem; letter-spacing: .08em; }
+.login-visual .official-logo { position: relative; z-index: 1; }

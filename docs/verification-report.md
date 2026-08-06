@@ -12,6 +12,9 @@
 | Docker `backend` health | healthy |
 | Docker `database` health | healthy |
 | 브라우저 로그인·대시보드 | 통과 |
+| 공식 로고 로그인·사이드바 렌더링 | 통과 |
+| 임시 로고 잔존 검사 | 0건 |
+| 콘셉트 페이지 공식 로고 적용 | 11/11 |
 
 ## 실행 명령
 
@@ -29,8 +32,12 @@ docker compose -f compose.yaml -f compose.test.yaml ps
 
 - `mock/screenshots/three-tier-login.png`
 - `mock/screenshots/three-tier-dashboard.png`
+- `mock/screenshots/official-logo-login.png`
+- `mock/screenshots/official-logo-dashboard.png`
 
 로그인 화면의 이메일·비밀번호·로그인 요소를 확인했고, 담당자 계정 로그인 후 대시보드 제목, 메뉴, 비품 현황 데이터가 렌더링됨을 확인했다. 빈 화면과 애플리케이션 오류 오버레이는 없었다.
+
+공식 로고 변경 후 로그인 화면과 대시보드 사이드바에서 `SEOWON Since 1991` 자산이 로드되고 올바른 비율로 표시됨을 시각 검증했다.
 
 ## 개선 루프
 
