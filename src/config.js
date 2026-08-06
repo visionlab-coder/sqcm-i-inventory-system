@@ -29,7 +29,8 @@ function getConfig(overrides = {}) {
     loginRateLimitMax: boundedInteger(env.LOGIN_RATE_LIMIT_MAX, 10, 'LOGIN_RATE_LIMIT_MAX', 1, 1000),
     loginRateLimitWindowMs: boundedInteger(env.LOGIN_RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000, 'LOGIN_RATE_LIMIT_WINDOW_MS', 1000, 86_400_000),
     seedAdminPassword: env.SEED_ADMIN_PASSWORD || 'Admin1234!',
-    seedManagerPassword: env.SEED_MANAGER_PASSWORD || 'Manager1234!'
+    seedManagerPassword: env.SEED_MANAGER_PASSWORD || 'Manager1234!',
+    seedUserPassword: env.SEED_USER_PASSWORD || 'Employee1234!'
   };
 }
 

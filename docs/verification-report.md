@@ -110,3 +110,20 @@ Phase 10에서는 실제 Nginx `/api` 프록시를 통해 익명 401, CSRF 누�
 | 유지보수 점검 | 통과 | frontend/API 200, 필수 테이블 6/6 |
 
 최신 상세 판정은 `develop docs/14_전역지침_1대1_보완체크리스트.md`와 `docs/phase-reports/13_최우선_보완.md`를 따른다.
+
+## 2026-08-07 기업형 확장 최종 검증
+
+| 검증 | 결과 |
+|---|---|
+| JavaScript 구문 | 27개 통과 |
+| 단위 테스트 | 27/27 통과, 실패·skip 0 |
+| Docker 통합 | 5/5 통과, 실패·skip 0 |
+| 기업 승인 원자성 | 배정·상태·감사·Outbox 일괄 반영 통과 |
+| 3계층 상태 | frontend/backend/database 모두 healthy |
+| 실제 SPA | 로그인 + 업무 10페이지, 기업 메뉴 9개 순회 통과 |
+| 브라우저 | 콘텐츠 있음, 오류 overlay 0, console 경고·오류 0 |
+| 유지보수 | 필수 테이블 28/28 |
+| 백업 | 181,612 bytes, SHA-256 `df0afd8614f2f1f6df680aa6df725b8572f9f9c5d8af3ceb24253c6b0c121880` |
+| 격리 복구 | 28/28 테이블, 3/3 migration, 주요 데이터 수 일치 |
+
+상세 변경 및 실패 개선 루프는 `docs/phase-reports/14_기업형_확장_보완.md`, FR별 판정은 `develop docs/15_기업형_FR_구현대조표.md`를 따른다.

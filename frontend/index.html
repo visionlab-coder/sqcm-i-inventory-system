@@ -34,8 +34,14 @@
       <div class="brand"><img class="official-logo sidebar-logo" src="/assets/seowon-official-logo-reversed.png" alt="SEOWON Since 1991"><strong>비품관리</strong></div>
       <nav aria-label="주 메뉴">
         <button data-view="dashboard" class="active">대시보드</button>
-        <button data-view="items">비품 관리</button>
-        <button data-view="loans">대여·반납</button>
+        <button data-view="assets">자산 목록</button>
+        <button data-view="asset-register" data-manager-only>자산 등록</button>
+        <button data-view="assignments">배정·반납</button>
+        <button data-view="requests">요청함</button>
+        <button data-view="stocktakes" data-manager-only>재물조사</button>
+        <button data-view="repairs">수리 관리</button>
+        <button data-view="reports" data-manager-only>보고서</button>
+        <button data-view="admin" data-admin-only>관리자</button>
         <button data-view="audit" id="audit-nav">감사 로그</button>
       </nav>
       <div class="user-box"><strong id="user-name"></strong><span id="user-role"></span><button id="logout-button">로그아웃</button></div>
@@ -48,6 +54,6 @@
       </main>
     </div>
   </div>
-  <script src="/app.js?v=20260807-p1" defer></script>
+  <script src="/app.js?v=20260807-p2" defer></script>
 </body>
 </html>

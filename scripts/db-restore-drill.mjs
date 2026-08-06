@@ -39,7 +39,12 @@ async function counts(database) {
     'items',(SELECT count(*) FROM items),
     'loans',(SELECT count(*) FROM loans),
     'audit_logs',(SELECT count(*) FROM audit_logs),
-    'required_tables',(SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('users','items','loans','audit_logs','user_sessions','schema_migrations')),
+    'assets',(SELECT count(*) FROM assets),
+    'workflow_requests',(SELECT count(*) FROM workflow_requests),
+    'service_tickets',(SELECT count(*) FROM service_tickets),
+    'stocktakes',(SELECT count(*) FROM stocktakes),
+    'outbox_events',(SELECT count(*) FROM outbox_events),
+    'required_tables',(SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('asset_assignments','asset_files','asset_status_histories','assets','audit_logs','departments','disposal_requests','file_records','inspections','item_categories','item_models','items','loans','locations','organizations','outbox_events','password_reset_tokens','purchase_orders','receipts','schema_migrations','service_tickets','stocktake_items','stocktakes','user_role_scopes','user_sessions','users','vendors','workflow_requests')),
     'migrations',(SELECT count(*) FROM schema_migrations)
   );`;
   return JSON.parse(await runDocker(["psql", "-U", "seowon", "-d", database, "-At", "-c", sql]));
@@ -52,7 +57,7 @@ try {
   created = true;
   await runDocker(["pg_restore", "-U", "seowon", "-d", drillDatabase, "--no-owner", "--no-privileges"], backupPath);
   const restoredCounts = await counts(drillDatabase);
-  if (restoredCounts.required_tables !== 6 || JSON.stringify(sourceCounts) !== JSON.stringify(restoredCounts)) {
+  if (restoredCounts.required_tables !== 28 || JSON.stringify(sourceCounts) !== JSON.stringify(restoredCounts)) {
     throw new Error(`restore validation mismatch: source=${JSON.stringify(sourceCounts)} restored=${JSON.stringify(restoredCounts)}`);
   }
   console.log(JSON.stringify({ backupPath, drillDatabase, sourceCounts, restoredCounts }, null, 2));

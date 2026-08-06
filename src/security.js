@@ -39,7 +39,11 @@ function requireRole(...roles) {
 
 function sanitizeUser(row) {
   if (!row) return null;
-  return { id: row.id, email: row.email, displayName: row.display_name, role: row.role, status: row.status };
+  return {
+    id: row.id, email: row.email, displayName: row.display_name, role: row.role, status: row.status,
+    organizationId: row.organization_id || null, departmentId: row.department_id || null,
+    employeeNo: row.employee_no || null, mfaEnabled: Boolean(row.mfa_enabled), passwordResetRequired: Boolean(row.password_reset_required)
+  };
 }
 
 module.exports = { DUMMY_HASH, csrfToken, csrfProtection, requireAuth, requireRole, sanitizeUser };

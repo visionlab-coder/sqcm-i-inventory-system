@@ -1,4 +1,4 @@
-const state = { user: null, csrfToken: null, view: 'dashboard' };
+const state = { user: null, csrfToken: null, view: 'dashboard', reference: null };
 const $ = selector => document.querySelector(selector);
 const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
 const date = value => value ? new Date(value).toLocaleDateString('ko-KR') : '-';
@@ -42,6 +42,8 @@ function showApp() {
   $('#user-role').textContent = state.user.role;
   $('#top-user').textContent = `${state.user.displayName}님`;
   $('#audit-nav').classList.toggle('hidden', state.user.role !== 'ADMIN');
+  document.querySelectorAll('[data-manager-only]').forEach(element => element.classList.toggle('hidden', !isManager()));
+  document.querySelectorAll('[data-admin-only]').forEach(element => element.classList.toggle('hidden', state.user.role !== 'ADMIN'));
   navigate('dashboard');
 }
 
@@ -64,6 +66,14 @@ async function navigate(view) {
   $('#view-root').innerHTML = '<div class="loading">데이터를 불러오는 중입니다…</div>';
   try {
     if (view === 'dashboard') await renderDashboard();
+    if (view === 'assets') await renderAssets();
+    if (view === 'asset-register') await renderAssetRegister();
+    if (view === 'assignments') await renderAssignments();
+    if (view === 'requests') await renderRequests();
+    if (view === 'stocktakes') await renderStocktakes();
+    if (view === 'repairs') await renderRepairs();
+    if (view === 'reports') await renderReports();
+    if (view === 'admin') await renderAdmin();
     if (view === 'items') await renderItems();
     if (view === 'loans') await renderLoans();
     if (view === 'audit') await renderAudit();
@@ -151,6 +161,87 @@ async function renderLoans() {
     <section class="panel workflow-ledger"><div class="panel-head"><h2>이동 원장</h2><span>${data.loans.length} RECORDS</span></div><div class="table-wrap"><table><thead><tr><th>비품</th><th>대여자</th><th>수량</th><th>반납 예정</th><th>상태</th>${data.manager ? '<th>처리</th>' : ''}</tr></thead><tbody>${rows || '<tr><td colspan="6" class="empty-cell">대여 이력이 없습니다.</td></tr>'}</tbody></table></div></section></div>`;
   $('#loan-create')?.addEventListener('submit', async event => { event.preventDefault(); try { await request('/api/loans', { method:'POST', body:Object.fromEntries(new FormData(event.target)) }); showMessage('대여 처리를 완료했습니다.'); renderLoans(); } catch(error){ showMessage(error.message,'error'); } });
   document.querySelectorAll('.return-button').forEach(button => button.addEventListener('click', async () => { try { await request(`/api/loans/${button.dataset.id}/return`, { method:'POST', body:{ condition:'GOOD' } }); showMessage('반납 처리를 완료했습니다.'); renderLoans(); } catch(error){ showMessage(error.message,'error'); } }));
+}
+
+async function reference() {
+  if (!state.reference) state.reference = await request('/api/enterprise/reference');
+  return state.reference;
+}
+
+const options = (rows, label, selected = '') => rows.map(row => `<option value="${row.id}" ${String(row.id) === String(selected) ? 'selected' : ''}>${escapeHtml(label(row))}</option>`).join('');
+const statusBadge = value => `<span class="badge ${['AVAILABLE','APPROVED','MATCH','ACTIVE','RESOLVED'].includes(value) ? 'good' : ['LOST','REJECTED','MISSING','DAMAGED'].includes(value) ? 'bad' : 'neutral'}">${escapeHtml(value)}</span>`;
+
+async function renderAssets(query = '') {
+  const data = await request(`/api/enterprise/assets?q=${encodeURIComponent(query)}`);
+  const rows = data.assets.map(asset => `<tr><td class="mono">${escapeHtml(asset.asset_tag)}</td><td><strong>${escapeHtml(asset.name)}</strong><br><small>${escapeHtml(asset.serial_no || '-')}</small></td><td>${escapeHtml(asset.category_name || '-')}</td><td>${escapeHtml(asset.location_name || '-')}</td><td>${statusBadge(asset.status_code)}</td><td><button class="small enterprise-asset-detail" data-id="${asset.id}">상세</button></td></tr>`).join('');
+  $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">ASSET REGISTER / INDIVIDUAL CONTROL</p><h1>기업 자산<br>통합 원장</h1><p class="muted">개별 자산번호, 일련번호, 위치와 전체 상태 이력을 한곳에서 조회합니다.</p></div>${isManager() ? '<button class="primary" data-go="asset-register">+ 자산 등록</button>' : ''}</div>
+  <section class="panel"><form id="asset-search" class="search-panel"><input type="search" name="q" value="${escapeHtml(query)}" placeholder="자산번호 · 자산명 · 일련번호"><button class="secondary">검색</button></form><div class="table-wrap"><table><thead><tr><th>자산번호</th><th>자산</th><th>분류</th><th>위치</th><th>상태</th><th>관리</th></tr></thead><tbody>${rows || '<tr><td colspan="6" class="empty-cell">조건에 맞는 자산이 없습니다.</td></tr>'}</tbody></table></div></section>`;
+  $('#asset-search').addEventListener('submit', event => { event.preventDefault(); renderAssets(new FormData(event.target).get('q')); });
+  document.querySelectorAll('.enterprise-asset-detail').forEach(button => button.addEventListener('click', () => renderAssetDetail(button.dataset.id)));
+}
+
+async function renderAssetDetail(id) {
+  const data = await request(`/api/enterprise/assets/${id}`); const asset = data.asset;
+  const history = data.history.map(row => `<tr><td>${date(row.created_at)}</td><td>${escapeHtml(row.from_status || '신규')}</td><td>${statusBadge(row.to_status)}</td><td>${escapeHtml(row.reason)}</td></tr>`).join('');
+  const assignments = data.assignments.map(row => `<tr><td>${escapeHtml(row.display_name || '-')}</td><td>${date(row.started_at)}</td><td>${date(row.ended_at)}</td><td>${statusBadge(row.status)}</td></tr>`).join('');
+  $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">ASSET / ${escapeHtml(asset.asset_tag)}</p><h1>${escapeHtml(asset.name)}</h1><p class="muted">일련번호 ${escapeHtml(asset.serial_no || '-')} · 취득일 ${date(asset.acquired_at)}</p></div><button id="assets-back" class="secondary">목록</button></div>
+  <section class="asset-detail-shell"><aside class="asset-blueprint"><span class="mono">${escapeHtml(asset.asset_tag)}</span><strong>${escapeHtml(asset.status_code)}</strong><small>CURRENT STATE</small></aside><div class="asset-facts"><dl><dt>취득가</dt><dd>${Number(asset.acquisition_cost || 0).toLocaleString()}원</dd><dt>부서 ID</dt><dd>${asset.department_id || '-'}</dd><dt>위치 ID</dt><dd>${asset.location_id || '-'}</dd><dt>등록일</dt><dd>${date(asset.created_at)}</dd></dl></div></section>
+  ${isManager() ? `<section class="panel form-panel"><div><p class="eyebrow">STATE COMMAND</p><h2>상태 전환</h2></div><form id="asset-status" class="grid-form"><label>다음 상태<select name="toStatus" required><option>AVAILABLE</option><option>IN_USE</option><option>REPAIR</option><option>LOST</option><option>FOUND</option><option>DISPOSE_PENDING</option></select></label><label>변경 사유<input name="reason" required minlength="2"></label><button class="primary">상태 변경</button></form></section>` : ''}
+  <section class="two-column"><article class="panel"><div class="panel-head"><h2>상태 이력</h2></div><div class="table-wrap"><table><thead><tr><th>일자</th><th>이전</th><th>이후</th><th>사유</th></tr></thead><tbody>${history || '<tr><td colspan="4">이력이 없습니다.</td></tr>'}</tbody></table></div></article><article class="panel"><div class="panel-head"><h2>배정 이력</h2></div><div class="table-wrap"><table><thead><tr><th>사용자</th><th>시작</th><th>종료</th><th>상태</th></tr></thead><tbody>${assignments || '<tr><td colspan="4">이력이 없습니다.</td></tr>'}</tbody></table></div></article></section>`;
+  $('#assets-back').addEventListener('click', () => renderAssets());
+  $('#asset-status')?.addEventListener('submit', async event => { event.preventDefault(); try { await request(`/api/enterprise/assets/${id}/status`, { method:'POST', body:Object.fromEntries(new FormData(event.target)) }); showMessage('자산 상태를 변경했습니다.'); renderAssetDetail(id); } catch (error) { showMessage(error.message, 'error'); } });
+}
+
+async function renderAssetRegister() {
+  if (!isManager()) throw new Error('자산 등록 권한이 없습니다.'); const ref = await reference();
+  $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">FIVE STEP ONBOARDING</p><h1>신규 자산<br>등록</h1><p class="muted">식별·분류·배치·취득·검토 순서로 누락 없이 등록합니다.</p></div></div><section class="panel step-panel"><div class="step-line"><span>01 식별</span><span>02 분류</span><span>03 배치</span><span>04 취득</span><span>05 검토</span></div><form id="asset-create" class="grid-form enterprise-form"><label>자산번호<input name="assetTag" required pattern="[A-Z0-9-]{3,50}" placeholder="IT-2026-004"></label><label>자산명<input name="name" required minlength="2"></label><label>일련번호<input name="serialNo"></label><label>분류<select name="categoryId"><option value="">선택</option>${options(ref.categories, row => `${row.code} · ${row.name}`)}</select></label><label>모델<select name="modelId"><option value="">선택</option>${options(ref.models, row => `${row.brand || ''} ${row.model_name}`)}</select></label><label>부서<select name="departmentId"><option value="">선택</option>${options(ref.departments, row => row.name)}</select></label><label>위치<select name="locationId"><option value="">선택</option>${options(ref.locations, row => row.name)}</select></label><label>취득일<input type="date" name="acquiredAt"></label><label>취득가<input type="number" name="acquisitionCost" min="0"></label><label>초기 상태<select name="statusCode"><option>AVAILABLE</option><option>DRAFT</option><option>RECEIVED</option></select></label><button class="primary full">자산 등록 완료</button></form></section>`;
+  $('#asset-create').addEventListener('submit', async event => { event.preventDefault(); const body = Object.fromEntries(new FormData(event.target)); body.organizationId = state.user.organizationId; try { await request('/api/enterprise/assets', { method:'POST', body }); showMessage('신규 자산을 등록했습니다.'); navigate('assets'); } catch(error) { showMessage(error.message, 'error'); } });
+}
+
+async function renderAssignments() {
+  const [ref, data] = await Promise.all([reference(), request('/api/enterprise/requests')]);
+  const relevant = data.requests.filter(row => ['ASSIGN','RETURN','TRANSFER'].includes(row.request_type));
+  const rows = relevant.map(row => `<tr><td>#${row.id}</td><td>${escapeHtml(row.request_type)}</td><td>${escapeHtml(row.asset_tag || '-')}</td><td>${escapeHtml(row.requester_name)}</td><td>${statusBadge(row.status)}</td><td>${row.status === 'DRAFT' ? `<button class="small request-action" data-id="${row.id}" data-action="SUBMIT">제출</button>` : ''}</td></tr>`).join('');
+  $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">HANDOVER / RETURN / TRANSFER</p><h1>배정과 반납<br>워크플로</h1><p class="muted">요청과 승인 결과가 자산 상태·배정 이력에 하나의 트랜잭션으로 반영됩니다.</p></div></div><section class="workflow-shell"><article class="panel form-panel"><div><p class="eyebrow">NEW REQUEST</p><h2>인수인계 요청</h2></div><form id="assignment-request" class="grid-form"><label>유형<select name="requestType"><option>ASSIGN</option><option>RETURN</option><option>TRANSFER</option></select></label><label>자산<select name="assetId" required><option value="">선택</option>${options((await request('/api/enterprise/assets?size=100')).assets, row => `${row.asset_tag} · ${row.name}`)}</select></label><label>요청 제목<input name="title" value="자산 인수인계" required></label><label>사유<input name="reason" required minlength="2"></label><label>대상 사용자<select name="assigneeUserId"><option value="">요청자 본인</option>${options(ref.users, row => `${row.display_name} · ${row.role}`)}</select></label><button class="primary">초안 생성</button></form></article><article class="panel"><div class="panel-head"><h2>배정 요청 원장</h2></div><div class="table-wrap"><table><thead><tr><th>번호</th><th>유형</th><th>자산</th><th>요청자</th><th>상태</th><th>처리</th></tr></thead><tbody>${rows || '<tr><td colspan="6">요청이 없습니다.</td></tr>'}</tbody></table></div></article></section>`;
+  $('#assignment-request').addEventListener('submit', event => createWorkflowRequest(event)); bindRequestActions(renderAssignments);
+}
+
+async function createWorkflowRequest(event) {
+  event.preventDefault(); const values = Object.fromEntries(new FormData(event.target));
+  const payload = {}; if (values.assigneeUserId) payload.assigneeUserId = Number(values.assigneeUserId); delete values.assigneeUserId;
+  values.organizationId = state.user.organizationId; values.payload = payload;
+  try { await request('/api/enterprise/requests', { method:'POST', body:values }); showMessage('요청 초안을 만들었습니다.'); await renderAssignments(); } catch(error) { showMessage(error.message,'error'); }
+}
+
+function bindRequestActions(refresh) { document.querySelectorAll('.request-action').forEach(button => button.addEventListener('click', async () => { try { await request(`/api/enterprise/requests/${button.dataset.id}/action`, { method:'POST', body:{ action:button.dataset.action, reviewReason: button.dataset.action === 'REJECT' ? '요건 보완 필요' : '검토 완료' } }); showMessage('요청 상태를 변경했습니다.'); refresh(); } catch(error) { showMessage(error.message,'error'); } })); }
+
+async function renderRequests() {
+  const data = await request('/api/enterprise/requests');
+  const rows = data.requests.map(row => `<tr><td>#${row.id}</td><td>${escapeHtml(row.request_type)}</td><td><strong>${escapeHtml(row.title)}</strong><br><small>${escapeHtml(row.reason)}</small></td><td>${escapeHtml(row.requester_name)}</td><td>${statusBadge(row.status)}</td><td>${row.status === 'DRAFT' && row.requester_id === state.user.id ? `<button class="small request-action" data-id="${row.id}" data-action="SUBMIT">제출</button>` : ''}${isManager() && row.status === 'SUBMITTED' && row.requester_id !== state.user.id ? `<button class="small request-action" data-id="${row.id}" data-action="APPROVE">승인</button><button class="small danger-button request-action" data-id="${row.id}" data-action="REJECT">반려</button>` : ''}</td></tr>`).join('');
+  $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">APPROVAL INBOX / SEGREGATION OF DUTIES</p><h1>요청·승인<br>통합함</h1><p class="muted">본인 승인 금지와 조직 범위 권한을 적용한 승인 큐입니다.</p></div></div><section class="panel"><div class="table-wrap"><table><thead><tr><th>번호</th><th>유형</th><th>요청</th><th>요청자</th><th>상태</th><th>처리</th></tr></thead><tbody>${rows || '<tr><td colspan="6">요청이 없습니다.</td></tr>'}</tbody></table></div></section>`; bindRequestActions(renderRequests);
+}
+
+async function renderStocktakes() {
+  if (!isManager()) throw new Error('재물조사 권한이 없습니다.'); const [ref, data] = await Promise.all([reference(), request('/api/enterprise/stocktakes')]);
+  const rows = data.stocktakes.map(row => `<tr><td><strong>${escapeHtml(row.name)}</strong></td><td>${escapeHtml(row.location_name || '전체')}</td><td>${date(row.planned_at)}</td><td>${row.item_count}</td><td>${row.mismatch_count}</td><td>${statusBadge(row.status)}</td><td><button class="small stocktake-open" data-id="${row.id}">조사</button></td></tr>`).join('');
+  $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">PHYSICAL INVENTORY</p><h1>재물조사<br>대조 보드</h1><p class="muted">시스템 원장과 현장 실물을 대조하고 불일치를 확정합니다.</p></div></div><section class="panel form-panel"><div><h2>조사 계획</h2></div><form id="stocktake-create" class="grid-form"><label>조사명<input name="name" required minlength="2"></label><label>예정일<input type="datetime-local" name="plannedAt" required></label><label>위치<select name="locationId"><option value="">전체</option>${options(ref.locations, row => row.name)}</select></label><button class="primary">조사 생성</button></form></section><section class="panel"><div class="table-wrap"><table><thead><tr><th>조사</th><th>위치</th><th>예정일</th><th>대상</th><th>불일치</th><th>상태</th><th>실행</th></tr></thead><tbody>${rows || '<tr><td colspan="7">조사 계획이 없습니다.</td></tr>'}</tbody></table></div></section>`;
+  $('#stocktake-create').addEventListener('submit', async event => { event.preventDefault(); const body=Object.fromEntries(new FormData(event.target)); body.organizationId=state.user.organizationId; try { await request('/api/enterprise/stocktakes',{method:'POST',body}); showMessage('재물조사를 생성했습니다.'); renderStocktakes(); } catch(error){ showMessage(error.message,'error'); } }); document.querySelectorAll('.stocktake-open').forEach(button=>button.addEventListener('click',()=>renderStocktakeDetail(button.dataset.id)));
+}
+
+async function renderStocktakeDetail(id) {
+  const data=await request(`/api/enterprise/stocktakes/${id}`); const rows=data.items.map(row=>`<tr><td class="mono">${escapeHtml(row.asset_tag)}</td><td>${escapeHtml(row.name)}</td><td>${statusBadge(row.result)}</td><td><select class="stock-result" data-asset="${row.asset_id}"><option>MATCH</option><option>MISSING</option><option>LOCATION_MISMATCH</option><option>DAMAGED</option></select><button class="small stock-save" data-asset="${row.asset_id}">저장</button></td></tr>`).join(''); $('#view-root').innerHTML=`<div class="page-heading"><div><p class="eyebrow">STOCKTAKE #${id}</p><h1>${escapeHtml(data.stocktake.name)}</h1></div><button class="secondary" data-go="stocktakes">목록</button></div><section class="panel"><div class="table-wrap"><table><thead><tr><th>자산번호</th><th>자산명</th><th>결과</th><th>확인</th></tr></thead><tbody>${rows}</tbody></table></div><button id="stock-confirm" class="primary">조사 확정</button></section>`; document.querySelectorAll('.stock-save').forEach(button=>button.addEventListener('click',async()=>{const result=document.querySelector(`.stock-result[data-asset="${button.dataset.asset}"]`).value;try{await request(`/api/enterprise/stocktakes/${id}/items/${button.dataset.asset}`,{method:'POST',body:{result}});showMessage('조사 결과를 저장했습니다.');renderStocktakeDetail(id);}catch(error){showMessage(error.message,'error');}})); $('#stock-confirm').addEventListener('click',async()=>{try{await request(`/api/enterprise/stocktakes/${id}/confirm`,{method:'POST',body:{}});showMessage('재물조사를 확정했습니다.');renderStocktakes();}catch(error){showMessage(error.message,'error');}});
+}
+
+async function renderRepairs() {
+  const [assets,data]=await Promise.all([request('/api/enterprise/assets?size=100'),request('/api/enterprise/repairs')]); const rows=data.repairs.map(row=>`<tr><td>#${row.id}</td><td>${escapeHtml(row.asset_tag)} · ${escapeHtml(row.asset_name)}</td><td>${escapeHtml(row.symptom)}</td><td>${statusBadge(row.status)}</td><td>${isManager()?`<button class="small repair-progress" data-id="${row.id}">진행</button>`:''}</td></tr>`).join(''); $('#view-root').innerHTML=`<div class="page-heading"><div><p class="eyebrow">SERVICE DESK</p><h1>수리·장애<br>서비스 보드</h1><p class="muted">고장 접수부터 해결과 비용까지 추적합니다.</p></div></div><section class="panel form-panel"><div><h2>고장 접수</h2></div><form id="repair-create" class="grid-form"><label>자산<select name="assetId" required><option value="">선택</option>${options(assets.assets,row=>`${row.asset_tag} · ${row.name}`)}</select></label><label>우선순위<select name="priority"><option>NORMAL</option><option>HIGH</option><option>CRITICAL</option><option>LOW</option></select></label><label>증상<input name="symptom" required minlength="2"></label><button class="primary">접수</button></form></section><section class="panel"><div class="table-wrap"><table><thead><tr><th>번호</th><th>자산</th><th>증상</th><th>상태</th><th>처리</th></tr></thead><tbody>${rows||'<tr><td colspan="5">수리 건이 없습니다.</td></tr>'}</tbody></table></div></section>`; $('#repair-create').addEventListener('submit',async event=>{event.preventDefault();try{await request('/api/enterprise/repairs',{method:'POST',body:Object.fromEntries(new FormData(event.target))});showMessage('수리 건을 접수했습니다.');renderRepairs();}catch(error){showMessage(error.message,'error');}}); document.querySelectorAll('.repair-progress').forEach(button=>button.addEventListener('click',async()=>{try{await request(`/api/enterprise/repairs/${button.dataset.id}/status`,{method:'POST',body:{status:'IN_PROGRESS',organizationId:state.user.organizationId}});showMessage('수리 상태를 변경했습니다.');renderRepairs();}catch(error){showMessage(error.message,'error');}}));
+}
+
+async function renderReports() {
+  if(!isManager()) throw new Error('보고서 권한이 없습니다.'); const data=await request('/api/enterprise/reports/summary'); const s=data.summary; $('#view-root').innerHTML=`<div class="page-heading"><div><p class="eyebrow">MANAGEMENT REPORT</p><h1>자산 운영<br>보고서</h1><p class="muted">보유·가용·수리·분실·요청 지표를 한눈에 확인합니다.</p></div><a class="primary button-link" href="/api/enterprise/reports/assets.csv">CSV 내보내기</a></div><section class="metric-strip"><article class="metric-feature"><span>전체 자산</span><strong>${s.assets}</strong></article><article><span>가용</span><strong>${s.available}</strong></article><article><span>사용 중</span><strong>${s.in_use}</strong></article><article class="metric-risk"><span>수리 / 분실</span><strong>${Number(s.repair)+Number(s.lost)}</strong></article></section><section class="panel report-amount"><p class="eyebrow">ACQUISITION VALUE</p><h2>${Number(s.total_cost||0).toLocaleString()}원</h2><p>승인 대기 요청 ${s.pending_requests}건</p></section>`;
+}
+
+async function renderAdmin() {
+  if(state.user.role!=='ADMIN') throw new Error('관리자 권한이 없습니다.'); const data=await request('/api/enterprise/admin'); const users=data.users.map(user=>`<tr><td>${escapeHtml(user.display_name)}</td><td>${escapeHtml(user.email)}</td><td>${statusBadge(user.role)}</td><td>${statusBadge(user.status)}</td><td>${user.mfa_enabled?'사용':'미사용'}</td></tr>`).join(''); const events=data.outbox.map(row=>`<tr><td>${date(row.created_at)}</td><td>${escapeHtml(row.aggregate_type)} #${escapeHtml(row.aggregate_id)}</td><td>${escapeHtml(row.event_type)}</td><td>${row.published_at?'발행':'대기'}</td></tr>`).join(''); $('#view-root').innerHTML=`<div class="page-heading"><div><p class="eyebrow">ORGANIZATION / ACCESS / OUTBOX</p><h1>시스템<br>관리 콘솔</h1><p class="muted">조직·사용자 권한과 이벤트 발행 상태를 관리합니다.</p></div></div><section class="two-column"><article class="panel"><div class="panel-head"><h2>사용자 접근</h2></div><div class="table-wrap"><table><thead><tr><th>이름</th><th>이메일</th><th>역할</th><th>상태</th><th>MFA</th></tr></thead><tbody>${users}</tbody></table></div></article><article class="panel"><div class="panel-head"><h2>이벤트 Outbox</h2></div><div class="table-wrap"><table><thead><tr><th>일자</th><th>대상</th><th>이벤트</th><th>상태</th></tr></thead><tbody>${events||'<tr><td colspan="4">이벤트가 없습니다.</td></tr>'}</tbody></table></div></article></section>`;
 }
 
 async function renderAudit() {

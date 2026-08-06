@@ -1,5 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const bcrypt = require('bcryptjs');
 const { createPool } = require('../../src/db');
 
 const baseUrl = process.env.INTEGRATION_BASE_URL;
@@ -170,5 +171,47 @@ test('Docker HTTP에서 CSRF·RBAC·비품 CRUD·대여·반납·감사 로그�
     }
     await removeTestSessions(pool, [manager, admin]);
     await pool.end();
+  }
+});
+
+test('기업 자산 요청은 직원 제출과 관리자 승인 후 배정·감사·outbox를 원자적으로 기록한다', { skip: !baseUrl || !databaseUrl }, async () => {
+  const pool = createPool(databaseUrl); const marker=Date.now().toString().slice(-9); let assetId; let requestId; let employee; let admin;
+  try {
+    employee=await login('employee@seowon.local',process.env.SEED_USER_PASSWORD||'Employee1234!');
+    admin=await login('admin@seowon.local',process.env.SEED_ADMIN_PASSWORD||'Admin1234!');
+    const refResponse=await api('/api/enterprise/reference',admin); assert.equal(refResponse.status,200); const ref=await refResponse.json();
+    const created=await api('/api/enterprise/assets',admin,{method:'POST',body:{organizationId:admin.user.organizationId,assetTag:`EA-${marker}`,name:'기업 통합 테스트 자산',categoryId:ref.categories[0]?.id,locationId:ref.locations[0]?.id,departmentId:ref.departments[0]?.id,statusCode:'AVAILABLE'}});
+    assert.equal(created.status,201); assetId=(await created.json()).asset.id;
+    const forbidden=await api('/api/enterprise/assets',employee,{method:'POST',body:{organizationId:employee.user.organizationId,assetTag:`NO-${marker}`,name:'권한 거부'}}); assert.equal(forbidden.status,403);
+    const drafted=await api('/api/enterprise/requests',employee,{method:'POST',body:{organizationId:employee.user.organizationId,requestType:'ASSIGN',assetId,title:'현장 장비 배정',reason:'현장 업무 사용',payload:{assigneeUserId:employee.user.id}}});
+    assert.equal(drafted.status,201); requestId=(await drafted.json()).request.id;
+    assert.equal((await api(`/api/enterprise/requests/${requestId}/action`,employee,{method:'POST',body:{action:'SUBMIT'}})).status,200);
+    assert.equal((await api(`/api/enterprise/requests/${requestId}/action`,admin,{method:'POST',body:{action:'APPROVE',reviewReason:'업무 필요 확인'}})).status,200);
+    const asset=await pool.query('SELECT status_code FROM assets WHERE id=$1',[assetId]); assert.equal(asset.rows[0].status_code,'ASSIGNED');
+    const assignment=await pool.query('SELECT user_id,status FROM asset_assignments WHERE asset_id=$1',[assetId]); assert.deepEqual(assignment.rows[0],{user_id:employee.user.id,status:'ACTIVE'});
+    const proof=await pool.query("SELECT (SELECT count(*) FROM audit_logs WHERE entity_type='REQUEST' AND entity_id=$1)::int audits,(SELECT count(*) FROM outbox_events WHERE aggregate_type='REQUEST' AND aggregate_id=$1)::int events",[String(requestId)]); assert.ok(proof.rows[0].audits>=2); assert.ok(proof.rows[0].events>=2);
+  } finally {
+    if(requestId) await pool.query("DELETE FROM outbox_events WHERE aggregate_id IN ($1,$2)",[String(requestId),String(assetId||'')]);
+    if(requestId) await pool.query("DELETE FROM audit_logs WHERE entity_id IN ($1,$2)",[String(requestId),String(assetId||'')]);
+    if(assetId) await pool.query('DELETE FROM asset_status_histories WHERE asset_id=$1',[assetId]);
+    if(assetId) await pool.query('DELETE FROM asset_assignments WHERE asset_id=$1',[assetId]);
+    if(requestId) await pool.query('DELETE FROM workflow_requests WHERE id=$1',[requestId]);
+    if(assetId) await pool.query('DELETE FROM assets WHERE id=$1',[assetId]);
+    await removeTestSessions(pool,[employee,admin]); await pool.end();
+  }
+});
+
+test('비밀번호 재설정 토큰은 단회 사용되고 기존 세션을 폐기한다', { skip: !baseUrl || !databaseUrl }, async () => {
+  const pool=createPool(databaseUrl); const marker=Date.now().toString().slice(-9); const email=`reset-${marker}@seowon.local`; let userId; let loggedIn;
+  try {
+    const organization=await pool.query("SELECT id FROM organizations WHERE code='SEOWON'"); const hash=await bcrypt.hash('BeforeReset123!',12);
+    const inserted=await pool.query("INSERT INTO users(email,display_name,password_hash,role,status,organization_id) VALUES($1,'재설정 테스트',$2,'USER','ACTIVE',$3) RETURNING id",[email,hash,organization.rows[0].id]); userId=inserted.rows[0].id;
+    const csrfResponse=await fetch(`${baseUrl}/api/auth/csrf`); const cookie=cookieFrom(csrfResponse); const csrfToken=(await csrfResponse.json()).csrfToken;
+    const requested=await fetch(`${baseUrl}/api/auth/password-reset/request`,{method:'POST',headers:{cookie,'content-type':'application/json'},body:JSON.stringify({_csrf:csrfToken,email})}); assert.equal(requested.status,200); const token=(await requested.json()).developmentToken; assert.ok(token);
+    const confirmed=await fetch(`${baseUrl}/api/auth/password-reset/confirm`,{method:'POST',headers:{cookie,'content-type':'application/json'},body:JSON.stringify({_csrf:csrfToken,token,newPassword:'AfterReset123!@'})}); assert.equal(confirmed.status,204);
+    const reused=await fetch(`${baseUrl}/api/auth/password-reset/confirm`,{method:'POST',headers:{cookie,'content-type':'application/json'},body:JSON.stringify({_csrf:csrfToken,token,newPassword:'AfterReset123!@'})}); assert.equal(reused.status,400);
+    loggedIn=await login(email,'AfterReset123!@'); assert.equal(loggedIn.user.id,userId);
+  } finally {
+    await removeTestSessions(pool,[loggedIn]); if(userId){await pool.query('DELETE FROM password_reset_tokens WHERE user_id=$1',[userId]);await pool.query("DELETE FROM audit_logs WHERE actor_user_id=$1",[userId]);await pool.query('DELETE FROM users WHERE id=$1',[userId]);} await pool.end();
   }
 });

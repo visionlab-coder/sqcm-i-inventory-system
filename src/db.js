@@ -50,15 +50,16 @@ async function runMigrations(pool) {
 async function ensureSeedUsers(pool, config) {
   const users = [
     ['admin@seowon.local', '관리자', 'ADMIN', config.seedAdminPassword],
-    ['manager@seowon.local', '비품 담당자', 'MANAGER', config.seedManagerPassword]
+    ['manager@seowon.local', '비품 담당자', 'MANAGER', config.seedManagerPassword],
+    ['employee@seowon.local', '현장 직원', 'USER', config.seedUserPassword]
   ];
 
   for (const [email, displayName, role, password] of users) {
     const hash = await bcrypt.hash(password, 12);
     await pool.query(
-      `INSERT INTO users (email, display_name, password_hash, role, status)
-       VALUES ($1, $2, $3, $4, 'ACTIVE')
-       ON CONFLICT (email) DO NOTHING`,
+      `INSERT INTO users (email, display_name, password_hash, role, status, organization_id, department_id)
+       VALUES ($1, $2, $3, $4, 'ACTIVE', (SELECT id FROM organizations WHERE code='SEOWON'), (SELECT id FROM departments WHERE code='HQ' LIMIT 1))
+       ON CONFLICT (email) DO UPDATE SET organization_id=COALESCE(users.organization_id,EXCLUDED.organization_id),department_id=COALESCE(users.department_id,EXCLUDED.department_id)`,
       [email, displayName, hash, role]
     );
   }
@@ -66,8 +67,10 @@ async function ensureSeedUsers(pool, config) {
 
 async function initializeDatabase(pool, config) {
   await runMigrations(pool);
-  await runSqlFile(pool, 'db/seeds/001_items.sql');
   await ensureSeedUsers(pool, config);
+  const seedDir = path.join(process.cwd(), 'db', 'seeds');
+  const seedFiles = (await fs.readdir(seedDir)).filter(file => /^\d+.*\.sql$/.test(file)).sort();
+  for (const file of seedFiles) await runSqlFile(pool, path.join('db', 'seeds', file));
 }
 
 async function runSqlFile(pool, relativePath) {

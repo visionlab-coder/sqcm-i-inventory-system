@@ -33,7 +33,11 @@ docker compose ps
 - 관리자: `admin@seowon.local` / `Admin1234!`
 - 담당자: `manager@seowon.local` / `Manager1234!`
 
-> 시드 비밀번호는 로컬 실습 전용입니다. 운영에서는 `POSTGRES_PASSWORD`, `SESSION_SECRET`, `SEED_ADMIN_PASSWORD`, `SEED_MANAGER_PASSWORD`를 반드시 안전한 값으로 변경해야 합니다.
+> 시드 비밀번호는 로컬 실습 전용입니다. 운영에서는 `POSTGRES_PASSWORD`, `SESSION_SECRET`, `SEED_ADMIN_PASSWORD`, `SEED_MANAGER_PASSWORD`, `SEED_USER_PASSWORD`를 반드시 서로 다른 안전한 값으로 변경해야 합니다.
+
+- 관리자: `admin@seowon.local` / `Admin1234!`
+- 비품 담당자: `manager@seowon.local` / `Manager1234!`
+- 현장 직원: `employee@seowon.local` / `Employee1234!`
 
 ## 운영 배포
 
@@ -83,6 +87,8 @@ npm.cmd run db:restore-drill -- "artifacts/backups/백업파일.dump"
 - 검증 보고서: [`docs/verification-report.md`](./docs/verification-report.md)
 - 화면 목업: [`mock/html/index.html`](./mock/html/index.html)
 - 페이지별 콘셉트 아트: [`mock/concept/pages/index.html`](./mock/concept/pages/index.html)
+- 기업형 FR 구현 대조표: [`develop docs/15_기업형_FR_구현대조표.md`](./develop%20docs/15_기업형_FR_구현대조표.md)
+- 기업형 확장 보고서: [`docs/phase-reports/14_기업형_확장_보완.md`](./docs/phase-reports/14_기업형_확장_보완.md)
 - 공식 로고 지침: [`develop docs/08_브랜드_로고_지침.md`](./develop%20docs/08_브랜드_로고_지침.md)
 - Canva·Figma UI 개편: [`develop docs/09_Canva_Figma_레퍼런스_개편.md`](./develop%20docs/09_Canva_Figma_레퍼런스_개편.md)
 - 전체 프롬프트 아카이브: [`agent docs/03_전체_프롬프트_아카이브.md`](./agent%20docs/03_전체_프롬프트_아카이브.md)

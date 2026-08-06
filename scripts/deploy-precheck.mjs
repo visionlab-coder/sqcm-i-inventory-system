@@ -27,6 +27,7 @@ rejectPlaceholder("POSTGRES_PASSWORD", 16);
 rejectPlaceholder("SESSION_SECRET", 32);
 rejectPlaceholder("SEED_ADMIN_PASSWORD", 12);
 rejectPlaceholder("SEED_MANAGER_PASSWORD", 12);
+rejectPlaceholder("SEED_USER_PASSWORD", 12);
 
 if (value("SEED_ADMIN_PASSWORD") === value("SEED_MANAGER_PASSWORD")) {
   failures.push("관리자와 담당자 초기 비밀번호는 서로 달라야 합니다.");

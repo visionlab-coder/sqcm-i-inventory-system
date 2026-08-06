@@ -37,6 +37,11 @@ try {
       (SELECT count(*)::int FROM items) AS items,
       (SELECT count(*)::int FROM loans) AS loans,
       (SELECT count(*)::int FROM audit_logs) AS audit_logs,
+      (SELECT count(*)::int FROM assets) AS assets,
+      (SELECT count(*)::int FROM workflow_requests) AS workflow_requests,
+      (SELECT count(*)::int FROM service_tickets) AS service_tickets,
+      (SELECT count(*)::int FROM stocktakes) AS stocktakes,
+      (SELECT count(*)::int FROM outbox_events WHERE published_at IS NULL) AS pending_outbox,
       (SELECT count(*)::int FROM loans WHERE returned_at IS NULL AND due_at < now()) AS overdue_loans,
       (SELECT count(*)::int FROM items WHERE status = 'ACTIVE' AND available_quantity <= min_quantity) AS low_stock_items,
       (SELECT count(*)::int FROM user_sessions WHERE expire < now()) AS expired_sessions,
@@ -49,9 +54,9 @@ try {
      WHERE table_schema = 'public'
        AND table_name = ANY($1::text[])
      ORDER BY table_name
-  `, [["audit_logs", "items", "loans", "schema_migrations", "user_sessions", "users"]]);
+  `, [["asset_assignments","asset_files","asset_status_histories","assets","audit_logs","departments","disposal_requests","file_records","inspections","item_categories","item_models","items","loans","locations","organizations","outbox_events","password_reset_tokens","purchase_orders","receipts","schema_migrations","service_tickets","stocktake_items","stocktakes","user_role_scopes","user_sessions","users","vendors","workflow_requests"]]);
 
-  if (tableRows.length !== 6) throw new Error(`required table count mismatch: ${tableRows.length}/6`);
+  if (tableRows.length !== 28) throw new Error(`required table count mismatch: ${tableRows.length}/28`);
 
   console.log(JSON.stringify({
     checkedAt: new Date().toISOString(),

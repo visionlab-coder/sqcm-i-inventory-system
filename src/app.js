@@ -4,10 +4,12 @@ const session = require('express-session');
 const connectPgSimple = require('connect-pg-simple');
 const helmet = require('helmet');
 const bcrypt = require('bcryptjs');
+const crypto = require('node:crypto');
 const { DUMMY_HASH, csrfToken, csrfProtection, requireAuth, requireRole, sanitizeUser } = require('./security');
 const { createItem, updateItem, deactivateItem, checkoutItem, returnItem } = require('./services/inventory-service');
 const { requestContext, requestLogger, auditTrace } = require('./observability');
 const { createLoginRateLimiter } = require('./login-rate-limit');
+const { createEnterpriseRouter } = require('./enterprise-routes');
 
 function safeReturnPath(value) {
   return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : '/';
@@ -61,7 +63,7 @@ function createApp({ pool, config }) {
       req.user = null;
       if (req.session.userId) {
         const result = await pool.query(
-          "SELECT id, email, display_name, role, status FROM users WHERE id = $1 AND status = 'ACTIVE'",
+          "SELECT id,email,display_name,role,status,organization_id,department_id,employee_no,mfa_enabled,password_reset_required FROM users WHERE id = $1 AND status = 'ACTIVE'",
           [req.session.userId]
         );
         req.user = sanitizeUser(result.rows[0]);
@@ -101,6 +103,16 @@ function createApp({ pool, config }) {
     if (!roles.includes(req.user.role)) return apiError(req, res, 403, 'FORBIDDEN', '권한이 없습니다.');
     next();
   };
+
+  const requireRecentReauth = (req, res, next) => {
+    const reauthenticatedAt = Number(req.session.reauthenticatedAt || 0);
+    if (!reauthenticatedAt || Date.now() - reauthenticatedAt > 10 * 60 * 1000) {
+      return apiError(req, res, 403, 'REAUTH_REQUIRED', '민감한 관리자 작업 전에 비밀번호를 다시 확인하세요.');
+    }
+    next();
+  };
+
+  app.use('/api/enterprise', createEnterpriseRouter({ pool, apiAuth, requireRecentReauth }));
 
   app.get('/api/health', async (_req, res) => {
     try {
@@ -152,6 +164,53 @@ function createApp({ pool, config }) {
     } catch (error) {
       next(error);
     }
+  });
+
+  app.post('/api/auth/reauth', apiAuth, async (req, res) => {
+    const result = await pool.query('SELECT password_hash FROM users WHERE id=$1', [req.user.id]);
+    const valid = await bcrypt.compare(String(req.body.password || ''), result.rows[0]?.password_hash || DUMMY_HASH);
+    if (!valid) {
+      await writeAudit(pool, req.user.id, 'REAUTH_FAILED', 'AUTH', req.user.id, {}, auditTrace(req));
+      return apiError(req, res, 401, 'INVALID_CREDENTIALS', '비밀번호를 확인하세요.');
+    }
+    req.session.reauthenticatedAt = Date.now();
+    await writeAudit(pool, req.user.id, 'REAUTH_SUCCEEDED', 'AUTH', req.user.id, {}, auditTrace(req));
+    res.status(204).end();
+  });
+
+  app.post('/api/auth/password-reset/request', async (req, res) => {
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const found = await pool.query("SELECT id FROM users WHERE lower(email)=$1 AND status='ACTIVE'", [email]);
+    let developmentToken;
+    if (found.rowCount) {
+      const raw = crypto.randomBytes(32).toString('hex');
+      const hash = crypto.createHash('sha256').update(raw).digest('hex');
+      await pool.query('UPDATE password_reset_tokens SET used_at=now() WHERE user_id=$1 AND used_at IS NULL', [found.rows[0].id]);
+      await pool.query("INSERT INTO password_reset_tokens(user_id,token_hash,expires_at) VALUES($1,$2,now()+interval '30 minutes')", [found.rows[0].id, hash]);
+      await writeAudit(pool, found.rows[0].id, 'PASSWORD_RESET_REQUESTED', 'AUTH', found.rows[0].id, {}, auditTrace(req));
+      if (config.env !== 'production') developmentToken = raw;
+    }
+    res.json({ message: '계정이 존재하면 비밀번호 재설정 안내가 발급됩니다.', ...(developmentToken ? { developmentToken } : {}) });
+  });
+
+  app.post('/api/auth/password-reset/confirm', async (req, res) => {
+    const tokenHash = crypto.createHash('sha256').update(String(req.body.token || '')).digest('hex');
+    const password = String(req.body.newPassword || '');
+    if (password.length < 12 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+      return apiError(req, res, 400, 'VALIDATION_ERROR', '비밀번호는 12자 이상이며 대문자·소문자·숫자·특수문자를 포함해야 합니다.', [{ field: 'newPassword' }]);
+    }
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const found = await client.query('SELECT * FROM password_reset_tokens WHERE token_hash=$1 AND used_at IS NULL AND expires_at>now() FOR UPDATE', [tokenHash]);
+      if (!found.rowCount) { await client.query('ROLLBACK'); return apiError(req, res, 400, 'INVALID_TOKEN', '유효하지 않거나 만료된 재설정 토큰입니다.'); }
+      const userId = found.rows[0].user_id; const passwordHash = await bcrypt.hash(password, 12);
+      await client.query('UPDATE users SET password_hash=$1,password_reset_required=false,failed_login_count=0,locked_until=NULL,updated_at=now() WHERE id=$2', [passwordHash, userId]);
+      await client.query('UPDATE password_reset_tokens SET used_at=now() WHERE id=$1', [found.rows[0].id]);
+      await client.query("DELETE FROM user_sessions WHERE (sess->>'userId')::bigint=$1", [userId]);
+      await client.query(`INSERT INTO audit_logs(actor_user_id,action,entity_type,entity_id,metadata,request_id,ip_address) VALUES($1,'PASSWORD_RESET_COMPLETED','AUTH',$2,'{}'::jsonb,$3,$4)`, [userId, String(userId), req.id, req.ip]);
+      await client.query('COMMIT'); res.status(204).end();
+    } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
   });
 
   app.get('/api/dashboard', apiAuth, async (_req, res) => {
@@ -238,9 +297,15 @@ function createApp({ pool, config }) {
     res.status(204).end();
   });
 
-  app.get('/api/audit', apiRole('ADMIN'), async (_req, res) => {
+  app.get('/api/audit', apiRole('ADMIN'), async (req, res) => {
+    const values=[]; const where=[];
+    if(req.query.action){values.push(String(req.query.action).trim());where.push(`a.action=$${values.length}`);}
+    if(req.query.entityType){values.push(String(req.query.entityType).trim());where.push(`a.entity_type=$${values.length}`);}
+    if(req.query.actorId){values.push(Number(req.query.actorId));where.push(`a.actor_user_id=$${values.length}`);}
+    if(req.query.from){values.push(req.query.from);where.push(`a.created_at >= $${values.length}::timestamptz`);}
+    if(req.query.to){values.push(req.query.to);where.push(`a.created_at <= $${values.length}::timestamptz`);}
     const result = await pool.query(`SELECT a.*, u.display_name, u.email FROM audit_logs a
-      LEFT JOIN users u ON u.id=a.actor_user_id ORDER BY a.created_at DESC LIMIT 200`);
+      LEFT JOIN users u ON u.id=a.actor_user_id ${where.length?`WHERE ${where.join(' AND ')}`:''} ORDER BY a.created_at DESC LIMIT 200`,values);
     res.json({ logs: result.rows });
   });
 
