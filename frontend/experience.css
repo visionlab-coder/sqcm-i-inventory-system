@@ -1,0 +1,79 @@
+:root {
+  --site-ink: #102132;
+  --site-paper: #f2f0ea;
+  --site-blue: #063b86;
+  --site-deep: #041f3d;
+  --site-orange: #ff5100;
+  --site-cyan: #7dd8e6;
+  --site-lime: #c8db5a;
+  --site-grid: rgba(16,33,50,.06);
+}
+
+body { background: var(--site-paper); }
+body::before { content:""; position:fixed; inset:0; pointer-events:none; opacity:.4; background-image:linear-gradient(var(--site-grid) 1px,transparent 1px),linear-gradient(90deg,var(--site-grid) 1px,transparent 1px); background-size:32px 32px; }
+
+.login-page { grid-template-columns:minmax(0,1.3fr) minmax(420px,.7fr); background:#f4f1eb; }
+.login-visual { justify-content:flex-end; padding:7vw; isolation:isolate; background:linear-gradient(120deg,rgba(4,31,61,.93),rgba(6,59,134,.76)),linear-gradient(30deg,#041f3d,#0b5aa9); }
+.login-visual::before { content:"91"; position:absolute; top:-8vw; right:-1vw; color:rgba(255,255,255,.06); font:900 36vw/.8 Arial,sans-serif; letter-spacing:-.08em; z-index:-1; }
+.login-visual::after { inset:auto 0 0; height:18px; background:linear-gradient(90deg,var(--site-orange) 0 24%,var(--site-cyan) 24% 58%,var(--site-lime) 58%); }
+.login-visual h1 { max-width:650px; margin:.8rem 0; font-size:clamp(2.7rem,5vw,5.7rem); line-height:.95; letter-spacing:-.07em; }
+.login-visual p { max-width:440px; font-size:1.05rem; }
+.login-panel { position:relative; }
+.login-panel::before { content:"FIELD OPERATIONS / ASSET DESK"; position:absolute; top:2rem; left:2rem; font-size:.66rem; font-weight:900; letter-spacing:.18em; color:var(--site-blue); }
+.login-form { border:1px solid rgba(16,33,50,.1); border-radius:0; box-shadow:18px 18px 0 #dfe7e9; }
+.login-form h2 { font-size:2.5rem; letter-spacing:-.05em; }
+
+.app-shell { grid-template-columns:220px 1fr; }
+.sidebar { background:#041f3d; padding:1.6rem 1rem; border-right:1px solid rgba(125,216,230,.2); }
+.sidebar::after { content:"SITE 01\A SEOUL HQ"; white-space:pre; margin-top:1rem; padding:.9rem; border:1px solid rgba(255,255,255,.15); color:#7dd8e6; font:700 .64rem/1.6 ui-monospace,monospace; }
+.sidebar nav { margin-top:.6rem; }
+.sidebar nav button { border-radius:0; border-bottom:1px solid rgba(255,255,255,.08); padding:1rem .75rem; }
+.sidebar nav button:hover,.sidebar nav button.active { background:var(--site-orange); border-left:0; color:white; transform:translateX(4px); }
+.topbar { height:52px; background:rgba(242,240,234,.9); border-bottom:1px solid #cbd0ce; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; }
+.main-content { max-width:1500px; padding:2rem 2.4rem 4rem; }
+.page-heading { align-items:flex-start; border-top:5px solid var(--site-ink); padding-top:1.1rem; }
+.page-heading h1 { font-size:clamp(2.4rem,4vw,4.6rem); line-height:.92; letter-spacing:-.07em; }
+.eyebrow { color:var(--site-orange); }
+.primary,.secondary,.small { border-radius:0; }
+.primary { background:var(--site-orange); }
+.panel { border-radius:0; border-color:#cbd0ce; box-shadow:none; }
+
+.command-hero { display:grid; grid-template-columns:1.3fr .7fr; min-height:240px; margin-bottom:1rem; background:var(--site-deep); color:#fff; overflow:hidden; }
+.command-copy { padding:2rem; display:flex; flex-direction:column; justify-content:space-between; }
+.command-copy strong { font-size:clamp(3.8rem,8vw,8.5rem); line-height:.8; letter-spacing:-.08em; color:var(--site-cyan); }
+.command-copy span { font-size:.75rem; letter-spacing:.16em; color:#bfd0df; }
+.command-signal { display:grid; place-items:center; background:var(--site-orange); color:white; text-align:center; clip-path:polygon(16% 0,100% 0,100% 100%,0 100%); }
+.command-signal strong { font-size:4rem; line-height:1; }
+.command-signal span { display:block; font-size:.72rem; letter-spacing:.12em; }
+.metric-strip { display:grid; grid-template-columns:1.4fr repeat(3,1fr); border:1px solid #cbd0ce; margin-bottom:1rem; background:#fff; }
+.metric-strip article { min-height:130px; padding:1.2rem; border-right:1px solid #cbd0ce; }
+.metric-strip article:last-child { border-right:0; }
+.metric-strip span,.metric-strip small { display:block; color:#63707b; }
+.metric-strip strong { display:block; margin:.4rem 0; font-size:2.4rem; line-height:1; color:var(--site-blue); }
+.metric-strip .metric-feature { background:#c8db5a; }
+.metric-strip .metric-feature strong { color:var(--site-ink); font-size:3.6rem; }
+.metric-strip .metric-risk strong { color:#d63c21; }
+
+.catalogue-head { display:grid; grid-template-columns:1fr minmax(360px,.7fr); gap:1rem; align-items:end; margin-bottom:1rem; }
+.catalogue-search { background:var(--site-blue); color:white; padding:1.4rem; }
+.catalogue-search input { border:0; border-bottom:2px solid white; border-radius:0; background:transparent; color:white; font-size:1.1rem; }
+.catalogue-search input::placeholder { color:#b9d0ea; }
+.catalogue-search .secondary { border-color:white; background:white; }
+.catalogue-table thead th { background:var(--site-ink); color:white; }
+.catalogue-table tbody tr:nth-child(3n+1) td:first-child { border-left:5px solid var(--site-cyan); }
+
+.workflow-shell { display:grid; grid-template-columns:minmax(320px,.72fr) 1.28fr; gap:1rem; align-items:start; }
+.workflow-shell .form-panel { display:block; padding:0; }
+.workflow-intro { padding:1.5rem; background:var(--site-orange); color:white; }
+.workflow-intro h2 { font-size:2rem; }
+.workflow-shell .grid-form { grid-template-columns:1fr; padding:1.5rem; }
+.workflow-ledger .panel-head { background:var(--site-cyan); }
+.workflow-ledger tbody tr { background:linear-gradient(90deg,rgba(125,216,230,.1),transparent 35%); }
+
+.audit-ledger { border-top:10px solid var(--site-orange); }
+.audit-ledger table { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; }
+.audit-ledger th { background:#101f2d; color:#fff; }
+.audit-ledger td { border-bottom:1px dashed #aeb8bc; }
+
+@media(max-width:900px){.login-page{grid-template-columns:1fr}.login-visual{min-height:42vh}.command-hero,.catalogue-head,.workflow-shell{grid-template-columns:1fr}.metric-strip{grid-template-columns:1fr 1fr}.metric-strip article:nth-child(2){border-right:0}.app-shell{grid-template-columns:190px 1fr}}
+@media(max-width:720px){.app-shell{display:block}.sidebar::after{display:none}.metric-strip{grid-template-columns:1fr}.metric-strip article{border-right:0;border-bottom:1px solid #cbd0ce}.main-content{padding:1rem}.login-visual{display:flex;padding:4rem 2rem}.login-visual h1{font-size:3rem}}
