@@ -26,6 +26,8 @@ services:
       SESSION_SECRET: ${SESSION_SECRET:-local-compose-secret-change-before-production}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-Admin1234!}
       SEED_MANAGER_PASSWORD: ${SEED_MANAGER_PASSWORD:-Manager1234!}
+      LOGIN_RATE_LIMIT_MAX: ${LOGIN_RATE_LIMIT_MAX:-10}
+      LOGIN_RATE_LIMIT_WINDOW_MS: ${LOGIN_RATE_LIMIT_WINDOW_MS:-900000}
     expose:
       - "8080"
     depends_on:

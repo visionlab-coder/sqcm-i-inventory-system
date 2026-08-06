@@ -37,6 +37,16 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
   failures.push("FRONTEND_PORT: 1~65535 범위의 정수여야 합니다.");
 }
 
+const rateLimitMax = Number(value("LOGIN_RATE_LIMIT_MAX") || "10");
+if (!Number.isInteger(rateLimitMax) || rateLimitMax < 1 || rateLimitMax > 1000) {
+  failures.push("LOGIN_RATE_LIMIT_MAX: 1~1000 범위의 정수여야 합니다.");
+}
+
+const rateLimitWindow = Number(value("LOGIN_RATE_LIMIT_WINDOW_MS") || "900000");
+if (!Number.isInteger(rateLimitWindow) || rateLimitWindow < 1000 || rateLimitWindow > 86400000) {
+  failures.push("LOGIN_RATE_LIMIT_WINDOW_MS: 1000~86400000 범위의 정수여야 합니다.");
+}
+
 if (!/^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$/.test(value("RELEASE_TAG"))) {
   failures.push("RELEASE_TAG: Git SHA 또는 안전한 릴리스 태그를 지정해야 합니다.");
 }

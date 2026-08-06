@@ -155,8 +155,8 @@ async function renderLoans() {
 
 async function renderAudit() {
   const data = await request('/api/audit');
-  const rows = data.logs.map(log => `<tr><td>${new Date(log.created_at).toLocaleString('ko-KR')}</td><td>${escapeHtml(log.display_name || '시스템')}</td><td><span class="badge neutral">${escapeHtml(log.action)}</span></td><td>${escapeHtml(log.entity_type)} ${escapeHtml(log.entity_id || '')}</td><td class="mono details">${escapeHtml(JSON.stringify(log.metadata))}</td></tr>`).join('');
-  $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">TRACE / GOVERNANCE / IMMUTABLE</p><h1>변경<br>원장</h1><p class="muted">누가, 언제, 무엇을 바꿨는지 시간 순서로 추적합니다.</p></div></div><section class="panel audit-ledger"><div class="panel-head"><h2>AUDIT TRAIL</h2><span class="mono">${data.logs.length} EVENTS</span></div><div class="table-wrap"><table><thead><tr><th>시각</th><th>작업자</th><th>작업</th><th>대상</th><th>세부정보</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+  const rows = data.logs.map(log => `<tr><td>${new Date(log.created_at).toLocaleString('ko-KR')}</td><td>${escapeHtml(log.display_name || '시스템')}</td><td><span class="badge neutral">${escapeHtml(log.action)}</span></td><td>${escapeHtml(log.entity_type)} ${escapeHtml(log.entity_id || '')}</td><td class="mono details">${escapeHtml(log.request_id || '-')}<br>${escapeHtml(log.ip_address || '-')}</td><td class="mono details">${escapeHtml(JSON.stringify(log.metadata))}</td></tr>`).join('');
+  $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">TRACE / GOVERNANCE / IMMUTABLE</p><h1>변경<br>원장</h1><p class="muted">누가, 언제, 무엇을 바꿨는지 시간 순서로 추적합니다.</p></div></div><section class="panel audit-ledger"><div class="panel-head"><h2>AUDIT TRAIL</h2><span class="mono">${data.logs.length} EVENTS</span></div><div class="table-wrap"><table><thead><tr><th>시각</th><th>작업자</th><th>작업</th><th>대상</th><th>요청 추적</th><th>세부정보</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
 }
 
 $('#login-form').addEventListener('submit', async event => {

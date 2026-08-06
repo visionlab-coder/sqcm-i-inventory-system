@@ -6,6 +6,11 @@ const baseUrl = process.env.INTEGRATION_BASE_URL;
 const databaseUrl = process.env.INTEGRATION_DATABASE_URL;
 
 const cookieFrom = response => response.headers.get('set-cookie')?.split(';')[0];
+const sessionIdFromCookie = cookie => {
+  const encoded = String(cookie || '').split('=', 2)[1] || '';
+  const value = decodeURIComponent(encoded).replace(/^s:/, '');
+  return value.split('.')[0] || null;
+};
 
 async function login(email, password) {
   const csrfResponse = await fetch(`${baseUrl}/api/auth/csrf`, { redirect: 'manual' });
@@ -22,7 +27,13 @@ async function login(email, password) {
   });
   assert.equal(response.status, 200);
   const data = await response.json();
-  return { cookie: cookieFrom(response), csrfToken: data.csrfToken, user: data.user };
+  const cookie = cookieFrom(response);
+  return { cookie, sessionId: sessionIdFromCookie(cookie), csrfToken: data.csrfToken, user: data.user };
+}
+
+async function removeTestSessions(pool, sessions) {
+  const ids = sessions.map(session => session?.sessionId).filter(Boolean);
+  if (ids.length) await pool.query('DELETE FROM user_sessions WHERE sid = ANY($1::text[])', [ids]);
 }
 
 async function api(path, session, { method = 'GET', body, includeCsrf = true } = {}) {
@@ -36,24 +47,36 @@ async function api(path, session, { method = 'GET', body, includeCsrf = true } =
 }
 
 test('3계층 Docker 앱 health와 API 로그인 세션 흐름이 동작한다', { skip: !baseUrl }, async () => {
+  const pool = createPool(databaseUrl);
+  let manager;
+  try {
   const frontendHealth = await fetch(`${baseUrl}/health`);
   assert.equal(frontendHealth.status, 200);
   assert.deepEqual(await frontendHealth.json(), { status: 'ok', service: 'frontend' });
 
   const health = await fetch(`${baseUrl}/api/health`);
   assert.equal(health.status, 200);
+  assert.ok(health.headers.get('x-request-id'));
   assert.deepEqual(await health.json(), { status: 'ok', service: 'backend', database: 'up' });
 
   const anonymousItems = await fetch(`${baseUrl}/api/items`);
   assert.equal(anonymousItems.status, 401);
+  const anonymousError = await anonymousItems.json();
+  assert.equal(anonymousError.code, 'AUTH_REQUIRED');
+  assert.ok(anonymousError.requestId);
+  assert.deepEqual(anonymousError.fieldErrors, []);
 
-  const manager = await login('manager@seowon.local', process.env.SEED_MANAGER_PASSWORD || 'Manager1234!');
+  manager = await login('manager@seowon.local', process.env.SEED_MANAGER_PASSWORD || 'Manager1234!');
   assert.equal(manager.user.role, 'MANAGER');
   const dashboard = await api('/api/dashboard', manager);
   assert.equal(dashboard.status, 200);
   const dashboardData = await dashboard.json();
   assert.equal(typeof dashboardData.stats.total_items, 'number');
   assert.ok(Array.isArray(dashboardData.items));
+  } finally {
+    await removeTestSessions(pool, [manager]);
+    await pool.end();
+  }
 });
 
 test('Docker HTTP에서 CSRF·RBAC·비품 CRUD·대여·반납·감사 로그가 연결된다', { skip: !baseUrl || !databaseUrl }, async () => {
@@ -62,9 +85,11 @@ test('Docker HTTP에서 CSRF·RBAC·비품 CRUD·대여·반납·감사 로그�
   const code = `HT-${marker}`;
   let itemId;
   let loanId;
+  let manager;
+  let admin;
 
   try {
-    const manager = await login('manager@seowon.local', process.env.SEED_MANAGER_PASSWORD || 'Manager1234!');
+    manager = await login('manager@seowon.local', process.env.SEED_MANAGER_PASSWORD || 'Manager1234!');
 
     const noCsrf = await api('/api/items', manager, {
       method: 'POST', includeCsrf: false,
@@ -128,19 +153,22 @@ test('Docker HTTP에서 CSRF·RBAC·비품 CRUD·대여·반납·감사 로그�
     assert.equal(list.status, 200);
     assert.equal((await list.json()).items.length, 0);
 
-    const admin = await login('admin@seowon.local', process.env.SEED_ADMIN_PASSWORD || 'Admin1234!');
+    admin = await login('admin@seowon.local', process.env.SEED_ADMIN_PASSWORD || 'Admin1234!');
     const audit = await api('/api/audit', admin);
     assert.equal(audit.status, 200);
-    const actions = (await audit.json()).logs.filter(log => String(log.entity_id) === String(itemId)).map(log => log.action);
+    const itemLogs = (await audit.json()).logs.filter(log => String(log.entity_id) === String(itemId));
+    const actions = itemLogs.map(log => log.action);
     assert.ok(actions.includes('ITEM_CREATED'));
     assert.ok(actions.includes('ITEM_UPDATED'));
     assert.ok(actions.includes('ITEM_DEACTIVATED'));
+    assert.ok(itemLogs.every(log => log.request_id && log.ip_address));
   } finally {
     if (loanId || itemId) {
       await pool.query('DELETE FROM audit_logs WHERE entity_id = ANY($1::text[])', [[String(itemId || ''), String(loanId || '')]]);
       if (loanId) await pool.query('DELETE FROM loans WHERE id=$1', [loanId]);
       if (itemId) await pool.query('DELETE FROM items WHERE id=$1', [itemId]);
     }
+    await removeTestSessions(pool, [manager, admin]);
     await pool.end();
   }
 });

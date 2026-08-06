@@ -1,5 +1,6 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 
@@ -7,13 +8,43 @@ function createPool(connectionString) {
   const pool = new Pool({ connectionString, max: 10, idleTimeoutMillis: 30_000 });
   // DB 재시작으로 유휴 연결이 종료되더라도 Node의 unhandled error로 앱 전체가
   // 즉시 종료되지 않게 한다. 신규 요청은 pool의 새 연결을 사용하고 /health가 상태를 알린다.
-  pool.on('error', error => console.error('PostgreSQL 유휴 연결 오류:', error.code || error.message));
+  pool.on('error', error => console.error(JSON.stringify({ event: 'database_pool_error', code: error.code || null, message: error.message })));
   return pool;
 }
 
-async function runSqlFile(pool, relativePath) {
-  const sql = await fs.readFile(path.join(process.cwd(), relativePath), 'utf8');
-  await pool.query(sql);
+async function runMigrations(pool) {
+  const client = await pool.connect();
+  try {
+    await client.query('SELECT pg_advisory_lock($1)', [9142026]);
+    await client.query(`CREATE TABLE IF NOT EXISTS schema_migrations (
+      version VARCHAR(100) PRIMARY KEY,
+      checksum VARCHAR(64) NOT NULL,
+      applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`);
+    const migrationDir = path.join(process.cwd(), 'db', 'migrations');
+    const files = (await fs.readdir(migrationDir)).filter(file => /^\d+.*\.sql$/.test(file)).sort();
+    for (const file of files) {
+      const sql = await fs.readFile(path.join(migrationDir, file), 'utf8');
+      const checksum = crypto.createHash('sha256').update(sql).digest('hex');
+      const applied = await client.query('SELECT checksum FROM schema_migrations WHERE version=$1', [file]);
+      if (applied.rowCount) {
+        if (applied.rows[0].checksum !== checksum) throw new Error(`적용된 migration이 변경되었습니다: ${file}`);
+        continue;
+      }
+      await client.query('BEGIN');
+      try {
+        await client.query(sql);
+        await client.query('INSERT INTO schema_migrations (version, checksum) VALUES ($1, $2)', [file, checksum]);
+        await client.query('COMMIT');
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      }
+    }
+  } finally {
+    await client.query('SELECT pg_advisory_unlock($1)', [9142026]).catch(() => {});
+    client.release();
+  }
 }
 
 async function ensureSeedUsers(pool, config) {
@@ -34,9 +65,14 @@ async function ensureSeedUsers(pool, config) {
 }
 
 async function initializeDatabase(pool, config) {
-  await runSqlFile(pool, 'db/migrations/001_init.sql');
+  await runMigrations(pool);
   await runSqlFile(pool, 'db/seeds/001_items.sql');
   await ensureSeedUsers(pool, config);
 }
 
-module.exports = { createPool, initializeDatabase };
+async function runSqlFile(pool, relativePath) {
+  const sql = await fs.readFile(path.join(process.cwd(), relativePath), 'utf8');
+  await pool.query(sql);
+}
+
+module.exports = { createPool, initializeDatabase, runMigrations };

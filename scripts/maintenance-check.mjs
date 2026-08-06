@@ -49,9 +49,9 @@ try {
      WHERE table_schema = 'public'
        AND table_name = ANY($1::text[])
      ORDER BY table_name
-  `, [["audit_logs", "items", "loans", "user_sessions", "users"]]);
+  `, [["audit_logs", "items", "loans", "schema_migrations", "user_sessions", "users"]]);
 
-  if (tableRows.length !== 5) throw new Error(`required table count mismatch: ${tableRows.length}/5`);
+  if (tableRows.length !== 6) throw new Error(`required table count mismatch: ${tableRows.length}/6`);
 
   console.log(JSON.stringify({
     checkedAt: new Date().toISOString(),

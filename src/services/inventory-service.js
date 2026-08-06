@@ -18,15 +18,15 @@ function nonNegativeInteger(value, field) {
   return parsed;
 }
 
-async function audit(client, actorId, action, entityType, entityId, metadata = {}) {
+async function audit(client, actorId, action, entityType, entityId, metadata = {}, trace = {}) {
   await client.query(
-    `INSERT INTO audit_logs (actor_user_id, action, entity_type, entity_id, metadata)
-     VALUES ($1, $2, $3, $4, $5::jsonb)`,
-    [actorId || null, action, entityType, entityId ? String(entityId) : null, JSON.stringify(metadata)]
+    `INSERT INTO audit_logs (actor_user_id, action, entity_type, entity_id, metadata, request_id, ip_address)
+     VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7)`,
+    [actorId || null, action, entityType, entityId ? String(entityId) : null, JSON.stringify(metadata), trace.requestId || null, trace.ip || null]
   );
 }
 
-async function createItem(pool, actorId, input) {
+async function createItem(pool, actorId, input, trace = {}) {
   const code = String(input.code || '').trim().toUpperCase();
   const name = String(input.name || '').trim();
   const category = String(input.category || '').trim();
@@ -45,7 +45,7 @@ async function createItem(pool, actorId, input) {
        VALUES ($1, $2, $3, $4, $4, $5, NULLIF($6, '')) RETURNING *`,
       [code, name, category, total, minimum, location]
     );
-    await audit(client, actorId, 'ITEM_CREATED', 'ITEM', result.rows[0].id, { code, name, total });
+    await audit(client, actorId, 'ITEM_CREATED', 'ITEM', result.rows[0].id, { code, name, total }, trace);
     await client.query('COMMIT');
     return result.rows[0];
   } catch (error) {
@@ -57,7 +57,7 @@ async function createItem(pool, actorId, input) {
   }
 }
 
-async function updateItem(pool, actorId, itemId, input) {
+async function updateItem(pool, actorId, itemId, input, trace = {}) {
   const id = positiveInteger(itemId, '비품번호');
   const name = String(input.name || '').trim();
   const category = String(input.category || '').trim();
@@ -85,7 +85,7 @@ async function updateItem(pool, actorId, itemId, input) {
     await audit(client, actorId, 'ITEM_UPDATED', 'ITEM', id, {
       before: { name: current.name, category: current.category, totalQuantity: current.total_quantity, minQuantity: current.min_quantity, location: current.location },
       after: { name, category, totalQuantity: total, minQuantity: minimum, location: location || null }
-    });
+    }, trace);
     await client.query('COMMIT');
     return result.rows[0];
   } catch (error) {
@@ -96,7 +96,7 @@ async function updateItem(pool, actorId, itemId, input) {
   }
 }
 
-async function deactivateItem(pool, actorId, itemId) {
+async function deactivateItem(pool, actorId, itemId, trace = {}) {
   const id = positiveInteger(itemId, '비품번호');
   const client = await pool.connect();
   try {
@@ -106,7 +106,7 @@ async function deactivateItem(pool, actorId, itemId) {
     const activeLoans = await client.query('SELECT count(*)::int AS count FROM loans WHERE item_id=$1 AND returned_at IS NULL', [id]);
     if (activeLoans.rows[0].count > 0) throw new DomainError('대여 중인 비품은 비활성화할 수 없습니다.', 409);
     const result = await client.query("UPDATE items SET status='INACTIVE', updated_at=now() WHERE id=$1 RETURNING *", [id]);
-    await audit(client, actorId, 'ITEM_DEACTIVATED', 'ITEM', id, { code: currentResult.rows[0].code });
+    await audit(client, actorId, 'ITEM_DEACTIVATED', 'ITEM', id, { code: currentResult.rows[0].code }, trace);
     await client.query('COMMIT');
     return result.rows[0];
   } catch (error) {
@@ -117,7 +117,7 @@ async function deactivateItem(pool, actorId, itemId) {
   }
 }
 
-async function checkoutItem(pool, actorId, input) {
+async function checkoutItem(pool, actorId, input, trace = {}) {
   const itemId = positiveInteger(input.itemId, '비품');
   const quantity = positiveInteger(input.quantity, '대여수량');
   const borrowerEmail = String(input.borrowerEmail || '').trim().toLowerCase();
@@ -141,7 +141,7 @@ async function checkoutItem(pool, actorId, input) {
       [userResult.rows[0].id, itemId, quantity, dueAt, actorId]
     );
     await client.query('UPDATE items SET available_quantity = available_quantity - $1, updated_at = now() WHERE id = $2', [quantity, itemId]);
-    await audit(client, actorId, 'ITEM_CHECKED_OUT', 'LOAN', loanResult.rows[0].id, { itemId, quantity, borrowerEmail });
+    await audit(client, actorId, 'ITEM_CHECKED_OUT', 'LOAN', loanResult.rows[0].id, { itemId, quantity, borrowerEmail }, trace);
     await client.query('COMMIT');
     return loanResult.rows[0];
   } catch (error) {
@@ -152,7 +152,7 @@ async function checkoutItem(pool, actorId, input) {
   }
 }
 
-async function returnItem(pool, actorId, loanId, input = {}) {
+async function returnItem(pool, actorId, loanId, input = {}, trace = {}) {
   const id = positiveInteger(loanId, '대여번호');
   const condition = String(input.condition || 'GOOD').toUpperCase();
   if (!['GOOD', 'DAMAGED', 'LOST'].includes(condition)) throw new DomainError('올바른 반납 상태가 아닙니다.');
@@ -170,7 +170,7 @@ async function returnItem(pool, actorId, loanId, input = {}) {
     );
     const restored = condition === 'LOST' ? 0 : loan.quantity;
     if (restored) await client.query('UPDATE items SET available_quantity = available_quantity + $1, updated_at = now() WHERE id = $2', [restored, loan.item_id]);
-    await audit(client, actorId, 'ITEM_RETURNED', 'LOAN', id, { condition, restored });
+    await audit(client, actorId, 'ITEM_RETURNED', 'LOAN', id, { condition, restored }, trace);
     await client.query('COMMIT');
   } catch (error) {
     await client.query('ROLLBACK');

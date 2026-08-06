@@ -39,7 +39,8 @@ async function counts(database) {
     'items',(SELECT count(*) FROM items),
     'loans',(SELECT count(*) FROM loans),
     'audit_logs',(SELECT count(*) FROM audit_logs),
-    'required_tables',(SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('users','items','loans','audit_logs','user_sessions'))
+    'required_tables',(SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('users','items','loans','audit_logs','user_sessions','schema_migrations')),
+    'migrations',(SELECT count(*) FROM schema_migrations)
   );`;
   return JSON.parse(await runDocker(["psql", "-U", "seowon", "-d", database, "-At", "-c", sql]));
 }
@@ -51,7 +52,7 @@ try {
   created = true;
   await runDocker(["pg_restore", "-U", "seowon", "-d", drillDatabase, "--no-owner", "--no-privileges"], backupPath);
   const restoredCounts = await counts(drillDatabase);
-  if (restoredCounts.required_tables !== 5 || JSON.stringify(sourceCounts) !== JSON.stringify(restoredCounts)) {
+  if (restoredCounts.required_tables !== 6 || JSON.stringify(sourceCounts) !== JSON.stringify(restoredCounts)) {
     throw new Error(`restore validation mismatch: source=${JSON.stringify(sourceCounts)} restored=${JSON.stringify(restoredCounts)}`);
   }
   console.log(JSON.stringify({ backupPath, drillDatabase, sourceCounts, restoredCounts }, null, 2));

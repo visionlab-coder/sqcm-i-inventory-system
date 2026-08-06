@@ -35,6 +35,8 @@ test('PostgreSQL에서 등록 → 대여 → 반납 왕복이 수량 무결성�
     assert.equal(deactivated.status, 'INACTIVE');
     const audit = await pool.query("SELECT count(*)::int AS count FROM audit_logs WHERE entity_id IN ($1,$2)", [String(itemId), String(loanId)]);
     assert.ok(audit.rows[0].count >= 5);
+    const migrations = await pool.query("SELECT version FROM schema_migrations ORDER BY version");
+    assert.deepEqual(migrations.rows.map(row => row.version), ['001_init.sql', '002_audit_trace.sql']);
   } finally {
     if (loanId || itemId) {
       await pool.query("DELETE FROM audit_logs WHERE entity_id = ANY($1::text[])", [[String(itemId || ''), String(loanId || '')]]);
