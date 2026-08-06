@@ -1,0 +1,34 @@
+services:
+  database:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backend:
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://seowon:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@database:5432/seowon_inventory
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?SEED_ADMIN_PASSWORD is required}
+      SEED_MANAGER_PASSWORD: ${SEED_MANAGER_PASSWORD:?SEED_MANAGER_PASSWORD is required}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  frontend:
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

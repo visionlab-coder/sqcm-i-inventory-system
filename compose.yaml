@@ -15,11 +15,12 @@ services:
     restart: unless-stopped
 
   backend:
+    image: seowon-inventory-backend:${RELEASE_TAG:-local}
     build:
       context: .
       dockerfile: Dockerfile
     environment:
-      NODE_ENV: production
+      NODE_ENV: ${NODE_ENV:-development}
       PORT: 8080
       DATABASE_URL: postgres://seowon:${POSTGRES_PASSWORD:-change-me}@database:5432/seowon_inventory
       SESSION_SECRET: ${SESSION_SECRET:-local-compose-secret-change-before-production}
@@ -38,11 +39,12 @@ services:
     restart: unless-stopped
 
   frontend:
+    image: seowon-inventory-frontend:${RELEASE_TAG:-local}
     build:
       context: .
       dockerfile: frontend/Dockerfile
     ports:
-      - "3000:80"
+      - "${FRONTEND_PORT:-3000}:80"
     depends_on:
       backend:
         condition: service_healthy

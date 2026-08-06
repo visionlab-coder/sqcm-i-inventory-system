@@ -65,6 +65,15 @@ Phase 9에서는 서비스 계층 단위 테스트 9개를 추가했다. 등록�
 
 Phase 10에서는 실제 Nginx `/api` 프록시를 통해 익명 401, CSRF 누락 403, MANAGER·ADMIN RBAC, 비품 CRUD, 대여·반납, 409 경계조건과 감사 로그를 연결했다. 통합 3/3과 단위 17/17을 합친 전체 20/20이 통과했다. 브라우저에서는 비품 상세와 감사 로그 20행을 확인했고 오류는 없었다.
 
+## Phase 11 배포 검증
+
+- 약한 값과 누락 값은 사전검사에서 배포 전에 차단됨
+- 강한 임시값으로 운영 Compose 렌더링 통과
+- 배포 스모크 4/4 통과: frontend health, backend health, 익명 401, 공식 반전 로고
+- 실행 중 frontend, backend, database 모두 healthy
+- production 구성은 frontend 포트만 게시하고 로그 순환과 no-new-privileges 적용
+- 프런트 health JSON 계약과 로고 실제 경로 불일치를 첫 실행에서 발견하고 검사기를 수정한 뒤 재검증
+
 ## 개선 루프
 
 초기 `frontend` healthcheck가 Nginx 안에서 `localhost` 해석 문제로 실패했으나 외부 화면과 API는 정상이었다. 헬스 대상 주소를 `127.0.0.1`로 명시하고 프론트엔드를 재빌드해 세 컨테이너 모두 `healthy`가 됨을 재검증했다.

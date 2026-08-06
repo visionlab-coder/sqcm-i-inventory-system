@@ -35,6 +35,19 @@ docker compose ps
 
 > 시드 비밀번호는 로컬 실습 전용입니다. 운영에서는 `POSTGRES_PASSWORD`, `SESSION_SECRET`, `SEED_ADMIN_PASSWORD`, `SEED_MANAGER_PASSWORD`를 반드시 안전한 값으로 변경해야 합니다.
 
+## 운영 배포
+
+운영에서는 로컬 기본값을 사용하지 않고 별도 환경 파일과 production override를 적용합니다.
+
+```powershell
+Copy-Item .env.production.example .env.production
+# .env.production의 예시값을 안전한 실제 값으로 교체
+powershell -ExecutionPolicy Bypass -File scripts/deploy.ps1 `
+  -EnvFile .env.production -ProjectName seowon-inventory
+```
+
+상세한 사전검사·상태확인·롤백 절차는 [`develop docs/12_배포_런북.md`](./develop%20docs/12_배포_런북.md)를 따릅니다.
+
 ## 검증
 
 ```powershell
