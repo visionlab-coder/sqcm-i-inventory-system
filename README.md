@@ -56,5 +56,6 @@ npm.cmd run test:integration
 - 페이지별 콘셉트 아트: [`mock/concept/pages/index.html`](./mock/concept/pages/index.html)
 - 공식 로고 지침: [`develop docs/08_브랜드_로고_지침.md`](./develop%20docs/08_브랜드_로고_지침.md)
 - Canva·Figma UI 개편: [`develop docs/09_Canva_Figma_레퍼런스_개편.md`](./develop%20docs/09_Canva_Figma_레퍼런스_개편.md)
+- 전체 프롬프트 아카이브: [`agent docs/03_전체_프롬프트_아카이브.md`](./agent%20docs/03_전체_프롬프트_아카이브.md)
 
 현재 로컬 Docker 3계층 구성과 핵심 기능 검증을 완료했습니다. 외부 배포와 GitHub 협업자 초대는 별도 배포 정보 및 정확한 GitHub 사용자명 확인 후 진행합니다.
