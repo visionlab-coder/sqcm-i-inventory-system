@@ -31,6 +31,8 @@ docker compose up --build
 - 에이전트 문서: [`agent docs`](./agent%20docs)
 - 단계별 보고서: [`docs/phase-reports`](./docs/phase-reports)
 - 화면 목업: [`mock/html/index.html`](./mock/html/index.html)
+- 11개 페이지 컨셉아트: [`mock/concept/pages/index.html`](./mock/concept/pages/index.html)
+- 첨부 명령 비교 체크리스트: [`develop docs/07_첨부명령_비교체크리스트.md`](./develop%20docs/07_첨부명령_비교체크리스트.md)
 
 ## 상태
 
