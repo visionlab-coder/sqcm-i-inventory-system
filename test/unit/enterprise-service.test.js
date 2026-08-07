@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { can, requirePermission, requireOrganization, assertTransition, normalizePurchasePayload } = require('../../src/services/enterprise-service');
+const { can, requirePermission, requireOrganization, assertTransition, normalizePurchasePayload, normalizePurchaseOrderInput, normalizeInspectionResult } = require('../../src/services/enterprise-service');
 
 test('역할별 최소 권한과 관리자 전체 권한을 적용한다', () => {
   assert.equal(can({ role: 'USER' }, 'request.create'), true);
@@ -46,4 +46,18 @@ test('구매 요청의 비용센터와 실제 달력 날짜를 검증한다', ()
   const base = { itemName: '안전모', quantity: 2, estimatedAmount: '50000', costCenter: 'SAFETY-01', neededAt: '2026-09-30' };
   assert.throws(() => normalizePurchasePayload({ ...base, costCenter: '!' }), error => error.fieldErrors[0].field === 'costCenter');
   assert.throws(() => normalizePurchasePayload({ ...base, neededAt: '2026-02-30' }), error => error.fieldErrors[0].field === 'neededAt');
+});
+
+test('발주 입력은 표준 발주번호와 정밀한 금액으로 정규화한다', () => {
+  assert.deepEqual(normalizePurchaseOrderInput({ requestId: '7', orderNo: ' po-2026_01 ', totalAmount: '1,250,000.5' }), {
+    requestId: 7, orderNo: 'PO-2026_01', totalAmount: '1250000.50'
+  });
+  assert.throws(() => normalizePurchaseOrderInput({ requestId: 7, orderNo: '!', totalAmount: 1 }), error => error.status === 400);
+  assert.throws(() => normalizePurchaseOrderInput({ requestId: 7, orderNo: 'PO-1', totalAmount: 0 }), error => error.status === 400);
+});
+
+test('검수 결과는 허용값만 대문자로 정규화한다', () => {
+  assert.equal(normalizeInspectionResult(' pass '), 'PASS');
+  assert.equal(normalizeInspectionResult('conditional'), 'CONDITIONAL');
+  assert.throws(() => normalizeInspectionResult('pending'), error => error.status === 400);
 });

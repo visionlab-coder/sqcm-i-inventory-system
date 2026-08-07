@@ -5,8 +5,8 @@
 | 검증 | 결과 |
 |---|---|
 | JavaScript 구문 검사 | 통과 |
-| 단위 테스트 | 30/30 통과 / 실패·skip 0건 |
-| Docker 통합 테스트 | 6/6 통과 / 실패·skip 0건 |
+| 단위 테스트 | 32/32 통과 / 실패·skip 0건 |
+| Docker 통합 테스트 | 7/7 통과 / 실패·skip 0건 |
 | PostgreSQL 등록·대여·반납 통합 테스트 | 1/1 통과 |
 | Docker HTTP CSRF·RBAC·CRUD 통합 테스트 | 1/1 통과 |
 | 비품 수정·비활성화 수량 무결성 | 통과 |
@@ -149,3 +149,18 @@ Phase 10에서는 실제 Nginx `/api` 프록시를 통해 익명 401, CSRF 누�
 | 자동 브라우저 | 브라우저 도구 커널 자산 경로 오류로 미실행; 인수 대기 |
 
 FR-025는 자동 브라우저에서 직원 로그인 → 요청함 → 구매 초안 생성 → 구매 요약 표시를 확인한 뒤 완료로 판정한다.
+
+## Phase 17 FR-026/027 부분 입고·검수 검증
+
+| 검증 | 결과 |
+|---|---|
+| 발주 입력 단위 | 발주번호·금액 정규화 및 오류 거부 통과 |
+| 검수 입력 단위 | PASS/FAIL/CONDITIONAL 정규화, 그 외 거부 통과 |
+| 전체 단위/통합 | 32/32, 7/7, 실패·skip 0 |
+| 부분 입고 | 2/3 `PARTIAL_RECEIVED`, 잔여 입고 후 `RECEIVED` |
+| 역조건 | 누적수량 초과 409, 검수 전 자산 0, 중복 검수 409 |
+| 자산화 | PASS 2개 AVAILABLE 자산·이력·연결 생성, FAIL 추가 자산 0 |
+| PostgreSQL | 필수 테이블 29/29, migration 4/4 |
+| Docker | frontend/backend/database 모두 healthy |
+| 백업·격리 복구 | 304,042 bytes, SHA-256 `2520f1f49f531af719f9b11fac95a44bf9b599e33897a3af49b55c704a532715`, 전후 건수 일치 |
+| 브라우저 | Codex 런타임 `failed to write kernel assets` 외부 오류로 미실행; FR-025 인수와 함께 잔여 추적 |

@@ -69,6 +69,21 @@ function normalizePurchasePayload(input = {}) {
   return { itemName, quantity, estimatedAmount, costCenter, neededAt };
 }
 
+function normalizePurchaseOrderInput(input = {}) {
+  const requestId = positiveInteger(input.requestId, '구매요청');
+  const orderNo = String(input.orderNo || '').trim().toUpperCase();
+  if (!/^[A-Z0-9][A-Z0-9_-]{2,49}$/.test(orderNo)) throw new DomainError('발주번호는 영문·숫자·하이픈·밑줄 3~50자로 입력하세요.');
+  const amountText = String(input.totalAmount ?? '').trim().replaceAll(',', '');
+  if (!/^(0|[1-9]\d{0,12})(\.\d{1,2})?$/.test(amountText) || Number(amountText) <= 0) throw new DomainError('발주금액은 0보다 크고 소수 둘째 자리까지 입력하세요.');
+  return { requestId, orderNo, totalAmount: Number(amountText).toFixed(2) };
+}
+
+function normalizeInspectionResult(value) {
+  const result = String(value || '').trim().toUpperCase();
+  if (!['PASS', 'FAIL', 'CONDITIONAL'].includes(result)) throw new DomainError('올바른 검수 결과가 아닙니다.');
+  return result;
+}
+
 async function enterpriseAudit(client, user, action, type, id, metadata, trace) {
   await client.query(`INSERT INTO audit_logs(actor_user_id,action,entity_type,entity_id,metadata,request_id,ip_address)
     VALUES($1,$2,$3,$4,$5::jsonb,$6,$7)`, [user.id, action, type, String(id), JSON.stringify(metadata || {}), trace?.requestId || null, trace?.ip || null]);
@@ -254,4 +269,128 @@ async function transitionRequest(pool, user, requestId, input, trace = {}) {
   } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
 }
 
-module.exports = { ROLE_PERMISSIONS, STATUS_TRANSITIONS, can, requirePermission, requireOrganization, assertTransition, normalizePurchasePayload, createAsset, changeAssetStatus, createRequest, transitionRequest };
+async function createPurchaseOrder(pool, user, input, trace = {}) {
+  requirePermission(user, 'request.review');
+  const organizationId = requireOrganization(user, input.organizationId || user.organizationId);
+  const normalized = normalizePurchaseOrderInput(input);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const requestResult = await client.query("SELECT * FROM workflow_requests WHERE id=$1 FOR UPDATE", [normalized.requestId]);
+    if (!requestResult.rowCount) throw new DomainError('구매요청을 찾을 수 없습니다.', 404);
+    const request = requestResult.rows[0];
+    requireOrganization(user, request.organization_id);
+    if (Number(request.organization_id) !== organizationId || request.request_type !== 'PURCHASE' || request.status !== 'APPROVED') {
+      throw new DomainError('같은 조직의 승인된 구매요청이 필요합니다.', 409);
+    }
+    if (input.vendorId) {
+      const vendor = await client.query('SELECT id FROM vendors WHERE id=$1 AND organization_id=$2 AND is_active', [positiveInteger(input.vendorId, '공급사'), organizationId]);
+      if (!vendor.rowCount) throw new DomainError('같은 조직의 활성 공급사가 필요합니다.', 409);
+    }
+    const created = await client.query(`INSERT INTO purchase_orders(organization_id,request_id,vendor_id,order_no,total_amount)
+      VALUES($1,$2,$3,$4,$5) RETURNING *`, [organizationId, normalized.requestId, input.vendorId || null, normalized.orderNo, normalized.totalAmount]);
+    const order = created.rows[0];
+    await enterpriseAudit(client, user, 'PURCHASE_ORDER_CREATED', 'PURCHASE_ORDER', order.id, { requestId: request.id, orderNo: order.order_no }, trace);
+    await outbox(client, 'PURCHASE_ORDER', order.id, 'PURCHASE_ORDER_CREATED', { requestId: request.id }, trace.idempotencyKey);
+    await client.query('COMMIT');
+    return order;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    if (error.code === '23505') throw new DomainError('이미 발주된 구매요청이거나 중복 발주번호입니다.', 409);
+    throw error;
+  } finally { client.release(); }
+}
+
+async function createReceipt(pool, user, input, trace = {}) {
+  requirePermission(user, 'request.review');
+  const orderId = positiveInteger(input.purchaseOrderId, '발주번호');
+  const quantity = positiveInteger(input.quantity, '입고수량');
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const orderResult = await client.query(`SELECT po.*,wr.payload,wr.status request_status
+      FROM purchase_orders po JOIN workflow_requests wr ON wr.id=po.request_id WHERE po.id=$1 FOR UPDATE OF po,wr`, [orderId]);
+    if (!orderResult.rowCount) throw new DomainError('발주를 찾을 수 없습니다.', 404);
+    const order = orderResult.rows[0];
+    requireOrganization(user, order.organization_id);
+    if (order.status === 'CANCELLED') throw new DomainError('취소된 발주에는 입고할 수 없습니다.', 409);
+    const requestedQuantity = Number(order.payload?.quantity);
+    const receivedResult = await client.query('SELECT COALESCE(sum(quantity),0)::int received FROM receipts WHERE purchase_order_id=$1', [orderId]);
+    const cumulativeQuantity = receivedResult.rows[0].received + quantity;
+    if (!Number.isInteger(requestedQuantity) || cumulativeQuantity > requestedQuantity) {
+      throw new DomainError(`누적 입고수량은 요청수량 ${requestedQuantity}개를 초과할 수 없습니다.`, 409);
+    }
+    const created = await client.query(`INSERT INTO receipts(purchase_order_id,quantity,status,received_by)
+      VALUES($1,$2,'INSPECTION_PENDING',$3) RETURNING *`, [orderId, quantity, user.id]);
+    const orderStatus = cumulativeQuantity === requestedQuantity ? 'RECEIVED' : 'PARTIAL_RECEIVED';
+    await client.query('UPDATE purchase_orders SET status=$1 WHERE id=$2', [orderStatus, orderId]);
+    const receipt = created.rows[0];
+    await enterpriseAudit(client, user, 'RECEIPT_CREATED', 'RECEIPT', receipt.id, { orderId, quantity, cumulativeQuantity, requestedQuantity, orderStatus }, trace);
+    await outbox(client, 'RECEIPT', receipt.id, 'RECEIPT_CREATED', { orderId, quantity, orderStatus }, trace.idempotencyKey);
+    await client.query('COMMIT');
+    return { ...receipt, orderStatus, cumulativeQuantity, requestedQuantity };
+  } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
+}
+
+async function inspectReceipt(pool, user, input, trace = {}) {
+  requirePermission(user, 'request.review');
+  const receiptId = positiveInteger(input.receiptId, '입고번호');
+  const result = normalizeInspectionResult(input.result);
+  const note = String(input.note || '').trim().slice(0, 500) || null;
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const receiptResult = await client.query(`SELECT r.*,po.organization_id,po.request_id,po.order_no,po.total_amount,
+      wr.payload,wr.requester_id,u.department_id requester_department_id
+      FROM receipts r JOIN purchase_orders po ON po.id=r.purchase_order_id
+      JOIN workflow_requests wr ON wr.id=po.request_id JOIN users u ON u.id=wr.requester_id
+      WHERE r.id=$1 FOR UPDATE OF r,po,wr`, [receiptId]);
+    if (!receiptResult.rowCount) throw new DomainError('입고를 찾을 수 없습니다.', 404);
+    const receipt = receiptResult.rows[0];
+    requireOrganization(user, receipt.organization_id);
+    if (receipt.status !== 'INSPECTION_PENDING') throw new DomainError('검수 대기 중인 입고만 검수할 수 있습니다.', 409);
+    const inspectionResult = await client.query(`INSERT INTO inspections(receipt_id,result,note,inspected_by)
+      VALUES($1,$2,$3,$4) RETURNING *`, [receiptId, result, note, user.id]);
+    const inspection = inspectionResult.rows[0];
+    let assets = [];
+    if (result === 'PASS') {
+      const requestedQuantity = Number(receipt.payload?.quantity);
+      const itemName = String(receipt.payload?.itemName || '').trim();
+      if (!Number.isInteger(requestedQuantity) || requestedQuantity <= 0 || itemName.length < 2) throw new DomainError('구매요청 자산 정보가 올바르지 않습니다.', 409);
+      await client.query(`INSERT INTO assets(organization_id,asset_tag,name,status_code,department_id,acquired_at,acquisition_cost,attributes,created_by)
+        SELECT $1,upper(format('PO-%s-R%s-%s',$2::bigint,$3::bigint,unit_no)),$4,'AVAILABLE',$5,current_date,
+          round($6::numeric / $7::numeric,2),jsonb_build_object('purchaseRequestId',$8::bigint,'purchaseOrderId',$2::bigint,'receiptId',$3::bigint,'costCenter',$9::text),$10
+        FROM generate_series(1,$11::int) unit_no`, [receipt.organization_id, receipt.purchase_order_id, receipt.id, itemName,
+        receipt.requester_department_id, receipt.total_amount, requestedQuantity, receipt.request_id, receipt.payload?.costCenter || null, user.id, receipt.quantity]);
+      await client.query(`INSERT INTO inspection_assets(inspection_id,asset_id,unit_no)
+        SELECT $1,a.id,gs.unit_no FROM generate_series(1,$2::int) gs(unit_no)
+        JOIN assets a ON a.organization_id=$3 AND a.asset_tag=upper(format('PO-%s-R%s-%s',$4::bigint,$5::bigint,gs.unit_no))`,
+      [inspection.id, receipt.quantity, receipt.organization_id, receipt.purchase_order_id, receipt.id]);
+      await client.query(`INSERT INTO asset_status_histories(asset_id,from_status,to_status,reason,changed_by,request_id)
+        SELECT ia.asset_id,NULL,'AVAILABLE',$1,$2,$3 FROM inspection_assets ia WHERE ia.inspection_id=$4`,
+      [`검수 #${inspection.id} 합격으로 자동 생성`, user.id, trace.requestId || null, inspection.id]);
+      const assetsResult = await client.query(`SELECT a.* FROM inspection_assets ia JOIN assets a ON a.id=ia.asset_id
+        WHERE ia.inspection_id=$1 ORDER BY ia.unit_no`, [inspection.id]);
+      assets = assetsResult.rows;
+      await client.query('UPDATE inspections SET asset_id=$1 WHERE id=$2', [assets[0].id, inspection.id]);
+      const eventKeyBase = String(trace.idempotencyKey || trace.requestId || inspection.id).slice(0, 70);
+      await client.query(`INSERT INTO outbox_events(aggregate_type,aggregate_id,event_type,payload,idempotency_key)
+        SELECT 'ASSET',a.id::text,'ASSET_CREATED_FROM_INSPECTION',jsonb_build_object('inspectionId',$1::bigint,'receiptId',$2::bigint),
+          concat($3::text,':asset:',a.id) FROM inspection_assets ia JOIN assets a ON a.id=ia.asset_id
+        WHERE ia.inspection_id=$1 ON CONFLICT(idempotency_key) DO NOTHING`, [inspection.id, receiptId, eventKeyBase]);
+    }
+    const receiptStatus = result === 'PASS' ? 'ACCEPTED' : 'REJECTED';
+    await client.query('UPDATE receipts SET status=$1 WHERE id=$2', [receiptStatus, receiptId]);
+    await enterpriseAudit(client, user, 'INSPECTION_COMPLETED', 'INSPECTION', inspection.id, { receiptId, result, receiptStatus, createdAssetIds: assets.map(asset => asset.id) }, trace);
+    const inspectionEventKey = `${String(trace.idempotencyKey || trace.requestId || inspection.id).slice(0, 70)}:inspection`;
+    await outbox(client, 'INSPECTION', inspection.id, 'INSPECTION_COMPLETED', { receiptId, result, createdAssetCount: assets.length }, inspectionEventKey);
+    await client.query('COMMIT');
+    return { inspection: { ...inspection, asset_id: assets[0]?.id || null }, assets };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    if (error.code === '23505') throw new DomainError('이미 검수되었거나 자산이 생성된 입고입니다.', 409);
+    throw error;
+  } finally { client.release(); }
+}
+
+module.exports = { ROLE_PERMISSIONS, STATUS_TRANSITIONS, can, requirePermission, requireOrganization, assertTransition, normalizePurchasePayload, normalizePurchaseOrderInput, normalizeInspectionResult, createAsset, changeAssetStatus, createRequest, transitionRequest, createPurchaseOrder, createReceipt, inspectReceipt };

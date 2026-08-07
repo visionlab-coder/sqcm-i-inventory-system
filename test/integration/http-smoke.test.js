@@ -233,6 +233,64 @@ test('구매 요청은 필수정보를 검증하고 정규화된 payload와 감�
   }
 });
 
+test('부분 입고는 검수 전 배정을 차단하고 PASS 검수에서만 개별 자산을 생성한다', { skip: !baseUrl || !databaseUrl }, async () => {
+  const pool = createPool(databaseUrl); const marker = Date.now().toString().slice(-9);
+  let employee; let admin; let requestId; let orderId; const receiptIds = []; const inspectionIds = []; const assetIds = [];
+  try {
+    employee = await login('employee@seowon.local', integrationConfig.seedUserPassword);
+    admin = await login('admin@seowon.local', integrationConfig.seedAdminPassword);
+    const drafted = await api('/api/enterprise/requests', employee, { method: 'POST', body: {
+      organizationId: employee.user.organizationId, requestType: 'PURCHASE', title: `부분입고 검수 ${marker}`, reason: '검수 자동 자산화 검증',
+      payload: { itemName: '검수용 레이저 레벨기', quantity: 3, estimatedAmount: '300000', costCenter: 'HQ-001', neededAt: '2026-09-30' }
+    } });
+    assert.equal(drafted.status, 201); requestId = (await drafted.json()).request.id;
+    assert.equal((await api(`/api/enterprise/requests/${requestId}/action`, employee, { method: 'POST', body: { action: 'SUBMIT' } })).status, 200);
+    assert.equal((await api(`/api/enterprise/requests/${requestId}/action`, admin, { method: 'POST', body: { action: 'APPROVE', reviewReason: '구매 필요 확인' } })).status, 200);
+
+    const ordered = await api('/api/enterprise/procurement/orders', admin, { method: 'POST', body: {
+      organizationId: admin.user.organizationId, requestId, orderNo: `PO-${marker}`, totalAmount: '300000'
+    } });
+    assert.equal(ordered.status, 201); orderId = (await ordered.json()).order.id;
+
+    const firstReceiptResponse = await api('/api/enterprise/procurement/receipts', admin, { method: 'POST', body: { purchaseOrderId: orderId, quantity: 2 } });
+    assert.equal(firstReceiptResponse.status, 201); const firstReceipt = (await firstReceiptResponse.json()).receipt; receiptIds.push(firstReceipt.id);
+    assert.equal(firstReceipt.orderStatus, 'PARTIAL_RECEIVED');
+    const beforeInspection = await pool.query("SELECT id FROM assets WHERE attributes->>'receiptId'=$1", [String(firstReceipt.id)]);
+    assert.equal(beforeInspection.rowCount, 0, '검수 전에는 배정 가능한 자산 행이 없어야 한다');
+    const overReceipt = await api('/api/enterprise/procurement/receipts', admin, { method: 'POST', body: { purchaseOrderId: orderId, quantity: 2 } });
+    assert.equal(overReceipt.status, 409);
+
+    const passed = await api('/api/enterprise/procurement/inspections', admin, { method: 'POST', body: { receiptId: firstReceipt.id, result: 'PASS', note: '외관·작동 정상' } });
+    assert.equal(passed.status, 201); const passData = await passed.json(); inspectionIds.push(passData.inspection.id);
+    assert.equal(passData.assets.length, 2); assetIds.push(...passData.assets.map(asset => asset.id));
+    assert.ok(passData.assets.every(asset => asset.status_code === 'AVAILABLE'));
+    const links = await pool.query('SELECT unit_no FROM inspection_assets WHERE inspection_id=$1 ORDER BY unit_no', [passData.inspection.id]);
+    assert.deepEqual(links.rows.map(row => row.unit_no), [1, 2]);
+    const repeated = await api('/api/enterprise/procurement/inspections', admin, { method: 'POST', body: { receiptId: firstReceipt.id, result: 'PASS' } });
+    assert.equal(repeated.status, 409);
+
+    const finalReceiptResponse = await api('/api/enterprise/procurement/receipts', admin, { method: 'POST', body: { purchaseOrderId: orderId, quantity: 1 } });
+    assert.equal(finalReceiptResponse.status, 201); const finalReceipt = (await finalReceiptResponse.json()).receipt; receiptIds.push(finalReceipt.id);
+    assert.equal(finalReceipt.orderStatus, 'RECEIVED');
+    const failed = await api('/api/enterprise/procurement/inspections', admin, { method: 'POST', body: { receiptId: finalReceipt.id, result: 'FAIL', note: '작동 불량' } });
+    assert.equal(failed.status, 201); const failData = await failed.json(); inspectionIds.push(failData.inspection.id);
+    assert.equal(failData.assets.length, 0);
+    const finalAssetCount = await pool.query("SELECT count(*)::int count FROM assets WHERE attributes->>'purchaseRequestId'=$1", [String(requestId)]);
+    assert.equal(finalAssetCount.rows[0].count, 2);
+  } finally {
+    if (inspectionIds.length) await pool.query('DELETE FROM inspection_assets WHERE inspection_id=ANY($1::bigint[])', [inspectionIds]);
+    if (assetIds.length) await pool.query('DELETE FROM asset_status_histories WHERE asset_id=ANY($1::bigint[])', [assetIds]);
+    if (inspectionIds.length) await pool.query('DELETE FROM inspections WHERE id=ANY($1::bigint[])', [inspectionIds]);
+    if (assetIds.length) await pool.query('DELETE FROM assets WHERE id=ANY($1::bigint[])', [assetIds]);
+    if (receiptIds.length) await pool.query('DELETE FROM receipts WHERE id=ANY($1::bigint[])', [receiptIds]);
+    const entityIds = [requestId, orderId, ...receiptIds, ...inspectionIds, ...assetIds].filter(Boolean).map(String);
+    if (entityIds.length) { await pool.query('DELETE FROM audit_logs WHERE entity_id=ANY($1::text[])', [entityIds]); await pool.query('DELETE FROM outbox_events WHERE aggregate_id=ANY($1::text[])', [entityIds]); }
+    if (orderId) await pool.query('DELETE FROM purchase_orders WHERE id=$1', [orderId]);
+    if (requestId) await pool.query('DELETE FROM workflow_requests WHERE id=$1', [requestId]);
+    await removeTestSessions(pool, [employee, admin]); await pool.end();
+  }
+});
+
 test('비밀번호 재설정 토큰은 단회 사용되고 기존 세션을 폐기한다', { skip: !baseUrl || !databaseUrl }, async () => {
   const pool=createPool(databaseUrl); const marker=Date.now().toString().slice(-9); const email=`reset-${marker}@seowon.local`; let userId; let loggedIn;
   try {

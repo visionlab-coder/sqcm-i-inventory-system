@@ -1,6 +1,6 @@
 const express = require('express');
 const { DomainError, positiveInteger } = require('./services/inventory-service');
-const { requirePermission, requireOrganization, createAsset, changeAssetStatus, createRequest, transitionRequest } = require('./services/enterprise-service');
+const { requirePermission, requireOrganization, createAsset, changeAssetStatus, createRequest, transitionRequest, createPurchaseOrder, createReceipt, inspectReceipt } = require('./services/enterprise-service');
 const { auditTrace } = require('./observability');
 
 const page = req => ({ size: Math.min(100, Math.max(1, Number(req.query.size) || 25)), offset: Math.max(0, Number(req.query.page) || 0) * Math.min(100, Math.max(1, Number(req.query.size) || 25)) });
@@ -18,21 +18,6 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth }) {
   router.use(apiAuth);
   router.use((req, res, next) => {
     if (req.path.startsWith('/admin/') && req.method !== 'GET') return requireRecentReauth(req, res, next);
-    next();
-  });
-  router.use('/procurement', async (req, _res, next) => {
-    if (req.method === 'POST' && req.path === '/receipts') {
-      const orderId = positiveInteger(req.body.purchaseOrderId, '발주번호');
-      const found = await pool.query('SELECT organization_id FROM purchase_orders WHERE id=$1', [orderId]);
-      if (!found.rowCount) throw new DomainError('발주를 찾을 수 없습니다.', 404);
-      requireOrganization(req.user, found.rows[0].organization_id);
-    }
-    if (req.method === 'POST' && req.path === '/inspections') {
-      const receiptId = positiveInteger(req.body.receiptId, '입고번호');
-      const found = await pool.query('SELECT po.organization_id FROM receipts r JOIN purchase_orders po ON po.id=r.purchase_order_id WHERE r.id=$1', [receiptId]);
-      if (!found.rowCount) throw new DomainError('입고를 찾을 수 없습니다.', 404);
-      requireOrganization(req.user, found.rows[0].organization_id);
-    }
     next();
   });
 
@@ -120,9 +105,9 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth }) {
   router.post('/stocktakes/:id/confirm', async(req,res)=>{ requirePermission(req.user,'stocktake.manage'); const id=positiveInteger(req.params.id,'실사번호'); const organizationId=orgId(req,req.body.organizationId); const pending=await pool.query(`SELECT count(*)::int count FROM stocktake_items si JOIN stocktakes s ON s.id=si.stocktake_id WHERE si.stocktake_id=$1 AND s.organization_id=$2 AND si.result='PENDING'`,[id,organizationId]); if(pending.rows[0].count) throw new DomainError(`미확인 자산 ${pending.rows[0].count}건이 있습니다.`,409); const result=await pool.query(`UPDATE stocktakes SET status='CONFIRMED',confirmed_by=$1,confirmed_at=now() WHERE id=$2 AND organization_id=$3 RETURNING *`,[req.user.id,id,organizationId]); if(!result.rowCount) throw new DomainError('실사를 찾을 수 없습니다.',404); await audit(pool,req,'STOCKTAKE_CONFIRMED','STOCKTAKE',id); res.json({stocktake:result.rows[0]}); });
 
   router.get('/procurement', async(req,res)=>{ requirePermission(req.user,'request.review'); const organizationId=orgId(req,req.query.organizationId); const [requests,orders,receipts]=await Promise.all([pool.query("SELECT * FROM workflow_requests WHERE organization_id=$1 AND request_type='PURCHASE' ORDER BY created_at DESC",[organizationId]),pool.query('SELECT po.*,v.name vendor_name FROM purchase_orders po LEFT JOIN vendors v ON v.id=po.vendor_id WHERE po.organization_id=$1 ORDER BY po.ordered_at DESC',[organizationId]),pool.query('SELECT r.* FROM receipts r JOIN purchase_orders po ON po.id=r.purchase_order_id WHERE po.organization_id=$1 ORDER BY r.received_at DESC',[organizationId])]); res.json({requests:requests.rows,orders:orders.rows,receipts:receipts.rows}); });
-  router.post('/procurement/orders', async(req,res)=>{ requirePermission(req.user,'request.review'); const organizationId=orgId(req,req.body.organizationId); const requestId=positiveInteger(req.body.requestId,'구매요청'); const approved=await pool.query("SELECT id FROM workflow_requests WHERE id=$1 AND organization_id=$2 AND request_type='PURCHASE' AND status='APPROVED'",[requestId,organizationId]); if(!approved.rowCount) throw new DomainError('승인된 구매요청이 필요합니다.',409); const result=await pool.query(`INSERT INTO purchase_orders(organization_id,request_id,vendor_id,order_no,total_amount) VALUES($1,$2,$3,$4,$5) RETURNING *`,[organizationId,requestId,req.body.vendorId||null,String(req.body.orderNo||'').trim(),Number(req.body.totalAmount||0)]); await audit(pool,req,'PURCHASE_ORDER_CREATED','PURCHASE_ORDER',result.rows[0].id); res.status(201).json({order:result.rows[0]}); });
-  router.post('/procurement/receipts', async(req,res)=>{ requirePermission(req.user,'request.review'); const orderId=positiveInteger(req.body.purchaseOrderId,'발주번호'); const result=await pool.query(`INSERT INTO receipts(purchase_order_id,quantity,status,received_by) VALUES($1,$2,'INSPECTION_PENDING',$3) RETURNING *`,[orderId,positiveInteger(req.body.quantity,'입고수량'),req.user.id]); await audit(pool,req,'RECEIPT_CREATED','RECEIPT',result.rows[0].id); res.status(201).json({receipt:result.rows[0]}); });
-  router.post('/procurement/inspections', async(req,res)=>{ requirePermission(req.user,'request.review'); const resultCode=String(req.body.result||'').toUpperCase(); if(!['PASS','FAIL','CONDITIONAL'].includes(resultCode)) throw new DomainError('올바른 검수 결과가 아닙니다.'); const result=await pool.query(`INSERT INTO inspections(receipt_id,asset_id,result,note,inspected_by) VALUES($1,$2,$3,$4,$5) RETURNING *`,[positiveInteger(req.body.receiptId,'입고번호'),req.body.assetId||null,resultCode,String(req.body.note||'').slice(0,500)||null,req.user.id]); await pool.query(`UPDATE receipts SET status=$1 WHERE id=$2`,[resultCode==='PASS'?'ACCEPTED':'REJECTED',req.body.receiptId]); await audit(pool,req,'INSPECTION_COMPLETED','INSPECTION',result.rows[0].id,{result:resultCode}); res.status(201).json({inspection:result.rows[0]}); });
+  router.post('/procurement/orders', async(req,res)=>res.status(201).json({order:await createPurchaseOrder(pool,req.user,req.body,trace(req))}));
+  router.post('/procurement/receipts', async(req,res)=>res.status(201).json({receipt:await createReceipt(pool,req.user,req.body,trace(req))}));
+  router.post('/procurement/inspections', async(req,res)=>res.status(201).json(await inspectReceipt(pool,req.user,req.body,trace(req))));
 
   router.get('/reports/summary', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.query.organizationId); const result=await pool.query(`SELECT (SELECT count(*) FROM assets WHERE organization_id=$1)::int assets,(SELECT count(*) FROM assets WHERE organization_id=$1 AND status_code='AVAILABLE')::int available,(SELECT count(*) FROM assets WHERE organization_id=$1 AND status_code IN ('ASSIGNED','IN_USE'))::int in_use,(SELECT count(*) FROM assets WHERE organization_id=$1 AND status_code='REPAIR')::int repair,(SELECT count(*) FROM assets WHERE organization_id=$1 AND status_code='LOST')::int lost,(SELECT count(*) FROM workflow_requests WHERE organization_id=$1 AND status='SUBMITTED')::int pending_requests,(SELECT coalesce(sum(acquisition_cost),0) FROM assets WHERE organization_id=$1) total_cost`,[organizationId]); res.json({summary:result.rows[0]}); });
   router.get('/reports/assets.csv', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.query.organizationId); const result=await pool.query('SELECT asset_tag,name,serial_no,status_code,acquired_at,acquisition_cost FROM assets WHERE organization_id=$1 ORDER BY asset_tag',[organizationId]); const esc=value=>`"${String(value??'').replaceAll('"','""')}"`; const csv=['asset_tag,name,serial_no,status,acquired_at,acquisition_cost',...result.rows.map(row=>[row.asset_tag,row.name,row.serial_no,row.status_code,row.acquired_at?.toISOString?.().slice(0,10)||row.acquired_at,row.acquisition_cost].map(esc).join(','))].join('\r\n'); await audit(pool,req,'REPORT_EXPORTED','REPORT',organizationId,{format:'csv',rows:result.rowCount}); res.set({'content-type':'text/csv; charset=utf-8','content-disposition':'attachment; filename="seowon-assets.csv"'}).send('\ufeff'+csv); });
