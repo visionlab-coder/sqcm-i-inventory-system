@@ -3,6 +3,7 @@ const { DomainError, positiveInteger } = require('./services/inventory-service')
 const { requirePermission, requireOrganization, createAsset, changeAssetStatus, createRequest, transitionRequest, createPurchaseOrder, createReceipt, inspectReceipt } = require('./services/enterprise-service');
 const { getAssetReport, getReportAssets } = require('./services/reporting-service');
 const { createOrganizationUnit, createInvitation, revokeInvitation } = require('./services/organization-service');
+const { getOperationalReferences, getAdminReferences, createReference, updateReference } = require('./services/reference-service');
 const { auditTrace } = require('./observability');
 
 const page = req => ({ size: Math.min(100, Math.max(1, Number(req.query.size) || 25)), offset: Math.max(0, Number(req.query.page) || 0) * Math.min(100, Math.max(1, Number(req.query.size) || 25)) });
@@ -24,17 +25,7 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
   });
 
   router.get('/reference', async (req, res) => {
-    const organizationId = orgId(req, req.query.organizationId);
-    const [organizations, departments, locations, categories, models, vendors, users] = await Promise.all([
-      pool.query('SELECT id,code,name,status FROM organizations WHERE id=$1', [organizationId]),
-      pool.query("SELECT id,code,name,cost_center FROM departments WHERE organization_id=$1 AND status='ACTIVE' ORDER BY name", [organizationId]),
-      pool.query("SELECT id,code,name,location_type FROM locations WHERE organization_id=$1 AND status='ACTIVE' ORDER BY name", [organizationId]),
-      pool.query('SELECT id,code,name FROM item_categories WHERE organization_id=$1 AND is_active ORDER BY name', [organizationId]),
-      pool.query('SELECT m.id,m.brand,m.model_name,m.category_id FROM item_models m JOIN item_categories c ON c.id=m.category_id WHERE c.organization_id=$1 ORDER BY m.model_name', [organizationId]),
-      pool.query('SELECT id,code,name FROM vendors WHERE organization_id=$1 AND is_active ORDER BY name', [organizationId]),
-      pool.query("SELECT id,email,display_name,role,department_id FROM users WHERE organization_id=$1 AND status='ACTIVE' ORDER BY display_name", [organizationId])
-    ]);
-    res.json({ organizations: organizations.rows, departments: departments.rows, locations: locations.rows, categories: categories.rows, models: models.rows, vendors: vendors.rows, users: users.rows });
+    res.json(await getOperationalReferences(pool,req.user,req.query.organizationId));
   });
 
   router.get('/assets', async (req, res) => {
@@ -120,6 +111,9 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
   router.post('/admin/departments', async(req,res)=>{ const department=await createOrganizationUnit(pool,req.user,req.body.organizationId,req.body,trace(req)); res.status(201).json({department}); });
   router.post('/admin/invitations', async(req,res)=>{ const created=await createInvitation(pool,req.user,req.body.organizationId,req.body,trace(req)); res.status(201).json({invitation:created.invitation,...(!isProduction?{developmentToken:created.rawToken}:{})}); });
   router.post('/admin/invitations/:id/revoke', async(req,res)=>res.json({invitation:await revokeInvitation(pool,req.user,req.params.id,trace(req))}));
+  router.get('/admin/references', async(req,res)=>res.json({references:await getAdminReferences(pool,req.user,req.query.organizationId)}));
+  router.post('/admin/references/:kind', async(req,res)=>res.status(201).json({reference:await createReference(pool,req.user,req.params.kind,req.body.organizationId,req.body,trace(req))}));
+  router.patch('/admin/references/:kind/:id', async(req,res)=>res.json({reference:await updateReference(pool,req.user,req.params.kind,req.params.id,req.body.organizationId,req.body,trace(req))}));
   router.patch('/admin/users/:id', async(req,res)=>{ requirePermission(req.user,'admin.manage'); const id=positiveInteger(req.params.id,'사용자번호'); const role=String(req.body.role||'').toUpperCase(); const status=String(req.body.status||'').toUpperCase(); if(!['USER','MANAGER','ADMIN'].includes(role)||!['ACTIVE','INACTIVE','LOCKED'].includes(status)) throw new DomainError('올바른 역할과 상태가 필요합니다.'); const result=await pool.query(`UPDATE users SET role=$1,status=$2,department_id=$3,mfa_enabled=$4,updated_at=now() WHERE id=$5 RETURNING id,email,display_name,role,status,department_id,mfa_enabled`,[role,status,req.body.departmentId||null,Boolean(req.body.mfaEnabled),id]); if(!result.rowCount) throw new DomainError('사용자를 찾을 수 없습니다.',404); await audit(pool,req,'USER_ACCESS_CHANGED','USER',id,{role,status}); res.json({user:result.rows[0]}); });
 
   return router;

@@ -348,6 +348,34 @@ test('관리자는 조직 팀을 만들고 해시 저장된 초대로 사용자�
   }
 });
 
+test('기준정보 4종은 관리자 생명주기를 따르고 비활성 후 기존 자산 참조를 보존한다', { skip: !baseUrl || !databaseUrl }, async () => {
+  const pool=createPool(databaseUrl); const marker=Date.now().toString().slice(-9); let admin; let employee; let categoryId; let modelId; let vendorId; let locationId; let assetId;
+  try {
+    admin=await login('admin@seowon.local',integrationConfig.seedAdminPassword); employee=await login('employee@seowon.local',integrationConfig.seedUserPassword);
+    const forbidden=await api('/api/enterprise/admin/references',employee); assert.equal(forbidden.status,403);
+    const reauth=await api('/api/auth/reauth',admin,{method:'POST',body:{password:integrationConfig.seedAdminPassword}}); assert.equal(reauth.status,204);
+    const create=async(kind,body)=>{const response=await api(`/api/enterprise/admin/references/${kind}`,admin,{method:'POST',body:{organizationId:admin.user.organizationId,...body}});assert.equal(response.status,201);return (await response.json()).reference;};
+    const category=await create('categories',{code:`RC-${marker}`,name:'통합 기준 유형'}); categoryId=category.id;
+    const duplicate=await api('/api/enterprise/admin/references/categories',admin,{method:'POST',body:{organizationId:admin.user.organizationId,code:`RC-${marker}`,name:'중복 유형'}}); assert.equal(duplicate.status,409);
+    const invalidModel=await api('/api/enterprise/admin/references/models',admin,{method:'POST',body:{organizationId:admin.user.organizationId,categoryId:999999999,brand:'TEST',name:'잘못된 모델',specification:{}}}); assert.equal(invalidModel.status,409);
+    const model=await create('models',{categoryId,brand:'TEST',name:'통합 기준 모델',specification:{standard:'T1'}}); modelId=model.id;
+    const vendor=await create('vendors',{code:`RV-${marker}`,name:'통합 공급업체',contactEmail:'reference@example.invalid'}); vendorId=vendor.id;
+    const location=await create('locations',{code:`RL-${marker}`,name:'통합 시험 위치',locationType:'WAREHOUSE'}); locationId=location.id;
+    const assetResponse=await api('/api/enterprise/assets',admin,{method:'POST',body:{organizationId:admin.user.organizationId,assetTag:`RA-${marker}`,name:'기준정보 보존 자산',categoryId,modelId,locationId,statusCode:'AVAILABLE'}}); assert.equal(assetResponse.status,201); assetId=(await assetResponse.json()).asset.id;
+    for(const [kind,id,name] of [['categories',categoryId,'통합 기준 유형 수정'],['models',modelId,'통합 기준 모델 수정'],['vendors',vendorId,'통합 공급업체 수정'],['locations',locationId,'통합 시험 위치 수정']]){
+      const updated=await api(`/api/enterprise/admin/references/${kind}/${id}`,admin,{method:'PATCH',body:{organizationId:admin.user.organizationId,name,isActive:false}}); assert.equal(updated.status,200); assert.equal((await updated.json()).reference.is_active,false);
+    }
+    const operational=await api('/api/enterprise/reference',admin); assert.equal(operational.status,200); const operationalData=await operational.json(); assert.equal(operationalData.categories.some(row=>row.id===categoryId),false); assert.equal(operationalData.models.some(row=>row.id===modelId),false); assert.equal(operationalData.vendors.some(row=>row.id===vendorId),false); assert.equal(operationalData.locations.some(row=>row.id===locationId),false);
+    const managed=await api('/api/enterprise/admin/references',admin); const managedData=(await managed.json()).references; assert.equal(managedData.categories.find(row=>row.id===categoryId).name,'통합 기준 유형 수정'); assert.equal(managedData.categories.find(row=>row.id===categoryId).is_active,false);
+    const retained=await pool.query('SELECT category_id,model_id,location_id FROM assets WHERE id=$1',[assetId]); assert.deepEqual(retained.rows[0],{category_id:String(categoryId),model_id:String(modelId),location_id:String(locationId)});
+  } finally {
+    await removeTestSessions(pool,[admin,employee]);
+    if(assetId){await pool.query('DELETE FROM outbox_events WHERE aggregate_type=$1 AND aggregate_id=$2',['ASSET',String(assetId)]);await pool.query("DELETE FROM audit_logs WHERE entity_type='ASSET' AND entity_id=$1",[String(assetId)]);await pool.query('DELETE FROM asset_status_histories WHERE asset_id=$1',[assetId]);await pool.query('DELETE FROM assets WHERE id=$1',[assetId]);}
+    for(const [type,id] of [['MODELS',modelId],['CATEGORIES',categoryId],['VENDORS',vendorId],['LOCATIONS',locationId]]) if(id) await pool.query('DELETE FROM audit_logs WHERE entity_type=$1 AND entity_id=$2',[type,String(id)]);
+    if(modelId)await pool.query('DELETE FROM item_models WHERE id=$1',[modelId]); if(categoryId)await pool.query('DELETE FROM item_categories WHERE id=$1',[categoryId]); if(vendorId)await pool.query('DELETE FROM vendors WHERE id=$1',[vendorId]); if(locationId)await pool.query('DELETE FROM locations WHERE id=$1',[locationId]); await pool.end();
+  }
+});
+
 test('비밀번호 재설정 토큰은 단회 사용되고 기존 세션을 폐기한다', { skip: !baseUrl || !databaseUrl }, async () => {
   const pool=createPool(databaseUrl); const marker=Date.now().toString().slice(-9); const email=`reset-${marker}@seowon.local`; let userId; let loggedIn;
   try {
