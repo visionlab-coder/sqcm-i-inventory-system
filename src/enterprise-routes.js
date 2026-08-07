@@ -5,6 +5,7 @@ const { getAssetReport, getReportAssets } = require('./services/reporting-servic
 const { createOrganizationUnit, createInvitation, revokeInvitation } = require('./services/organization-service');
 const { getOperationalReferences, getAdminReferences, createReference, updateReference } = require('./services/reference-service');
 const { auditTrace } = require('./observability');
+const { uploadAssetFile, getAssetFile, deactivateAssetFile } = require('./services/file-service');
 
 const page = req => ({ size: Math.min(100, Math.max(1, Number(req.query.size) || 25)), offset: Math.max(0, Number(req.query.page) || 0) * Math.min(100, Math.max(1, Number(req.query.size) || 25)) });
 const trace = req => ({ ...auditTrace(req), idempotencyKey: String(req.get('idempotency-key') || '').slice(0, 100) || null });
@@ -16,7 +17,7 @@ async function audit(pool, req, action, type, id, metadata = {}) {
     VALUES($1,$2,$3,$4,$5::jsonb,$6,$7)`, [req.user.id, action, type, String(id), JSON.stringify(metadata), current.requestId, current.ip]);
 }
 
-function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProduction = false }) {
+function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProduction = false, fileStore, fileMaxBytes = 5 * 1024 * 1024 }) {
   const router = express.Router();
   router.use(apiAuth);
   router.use((req, res, next) => {
@@ -48,6 +49,23 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
   });
 
   router.post('/assets', async (req, res) => res.status(201).json({ asset: await createAsset(pool, req.user, req.body, trace(req)) }));
+  const rawEvidence = express.raw({ type: ['image/jpeg','image/png','application/pdf'], limit: fileMaxBytes });
+  router.post('/assets/:id/files', rawEvidence, async (req,res) => {
+    const file = await uploadAssetFile({ pool,fileStore,maxBytes:fileMaxBytes,user:req.user,assetId:req.params.id,
+      input:{ content:req.body,contentType:req.get('content-type'),originalName:req.get('x-file-name'),fileType:req.get('x-file-type') },trace:auditTrace(req) });
+    res.status(201).json({ file:{ id:file.id,originalName:file.original_name,contentType:file.content_type,checksum:file.checksum,sizeBytes:Number(file.size_bytes),status:file.status } });
+  });
+  router.get('/assets/:assetId/files/:fileId/download', async(req,res,next) => {
+    try {
+      const result = await getAssetFile({ pool,fileStore,user:req.user,assetId:req.params.assetId,fileId:req.params.fileId,trace:auditTrace(req) });
+      res.type(result.file.content_type);
+      res.download(result.filePath,result.file.original_name,error=>error&&next(error));
+    } catch(error) { next(error); }
+  });
+  router.post('/assets/:assetId/files/:fileId/deactivate', async(req,res) => {
+    await deactivateAssetFile({ pool,user:req.user,assetId:req.params.assetId,fileId:req.params.fileId,trace:auditTrace(req) });
+    res.status(204).end();
+  });
   router.get('/assets/:id', async (req, res) => {
     requirePermission(req.user, 'asset.read'); const id = positiveInteger(req.params.id, '자산번호');
     const asset = await pool.query('SELECT * FROM assets WHERE id=$1', [id]);
@@ -56,7 +74,7 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
     const [history, assignments, files] = await Promise.all([
       pool.query('SELECT * FROM asset_status_histories WHERE asset_id=$1 ORDER BY created_at DESC', [id]),
       pool.query('SELECT aa.*,u.display_name,d.name department_name,l.name location_name FROM asset_assignments aa LEFT JOIN users u ON u.id=aa.user_id LEFT JOIN departments d ON d.id=aa.department_id LEFT JOIN locations l ON l.id=aa.location_id WHERE aa.asset_id=$1 ORDER BY aa.started_at DESC', [id]),
-      pool.query('SELECT f.id,f.original_name,f.content_type,f.checksum,af.file_type FROM asset_files af JOIN file_records f ON f.id=af.file_id WHERE af.asset_id=$1', [id])
+      pool.query("SELECT f.id,f.original_name,f.content_type,f.checksum,f.size_bytes,f.created_at,af.file_type FROM asset_files af JOIN file_records f ON f.id=af.file_id WHERE af.asset_id=$1 AND f.status='ACTIVE' ORDER BY f.created_at DESC", [id])
     ]);
     res.json({ asset: asset.rows[0], history: history.rows, assignments: assignments.rows, files: files.rows });
   });

@@ -20,6 +20,10 @@ function getConfig(overrides = {}) {
     throw new Error('운영 환경에서는 COOKIE_SECURE=true가 필요합니다.');
   }
 
+  const fileStorageDriver = String(env.FILE_STORAGE_DRIVER || 'local').toLowerCase();
+  if (env.NODE_ENV === 'production' && fileStorageDriver === 'local') throw new Error('Production requires an external file storage provider.');
+  if (!['local', 'external'].includes(fileStorageDriver)) throw new Error('FILE_STORAGE_DRIVER must be local or external.');
+
   return {
     env: env.NODE_ENV || 'development',
     port: boundedInteger(env.PORT, 3000, 'PORT', 1, 65535),
@@ -28,6 +32,9 @@ function getConfig(overrides = {}) {
     cookieSecure: env.COOKIE_SECURE === 'true',
     loginRateLimitMax: boundedInteger(env.LOGIN_RATE_LIMIT_MAX, 10, 'LOGIN_RATE_LIMIT_MAX', 1, 1000),
     loginRateLimitWindowMs: boundedInteger(env.LOGIN_RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000, 'LOGIN_RATE_LIMIT_WINDOW_MS', 1000, 86_400_000),
+    fileStorageDriver,
+    fileStorageRoot: env.FILE_STORAGE_ROOT || path.join(process.cwd(), 'artifacts', 'uploads'),
+    fileMaxBytes: boundedInteger(env.FILE_MAX_BYTES, 5 * 1024 * 1024, 'FILE_MAX_BYTES', 1024, 5 * 1024 * 1024),
     seedAdminPassword: env.SEED_ADMIN_PASSWORD || 'Admin1234!',
     seedManagerPassword: env.SEED_MANAGER_PASSWORD || 'Manager1234!',
     seedUserPassword: env.SEED_USER_PASSWORD || 'Employee1234!'

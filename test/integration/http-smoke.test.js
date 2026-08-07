@@ -420,3 +420,34 @@ test('비밀번호 재설정 토큰은 단회 사용되고 기존 세션을 폐�
     await removeTestSessions(pool,[loggedIn]); if(userId){await pool.query('DELETE FROM password_reset_tokens WHERE user_id=$1',[userId]);await pool.query("DELETE FROM audit_logs WHERE actor_user_id=$1",[userId]);await pool.query('DELETE FROM users WHERE id=$1',[userId]);} await pool.end();
   }
 });
+
+test('자산 증빙파일은 검증·권한·감사·보존 수명주기를 지킨다', { skip: !baseUrl || !databaseUrl }, async () => {
+  const pool=createPool(databaseUrl); const marker=Date.now().toString().slice(-9); let manager; let employee; let assetId; let fileId;
+  const png=Buffer.from([137,80,78,71,13,10,26,10,0]);
+  const upload=(session,content,type='image/png',name='site.png',fileType='PHOTO')=>fetch(`${baseUrl}/api/enterprise/assets/${assetId}/files`,{method:'POST',headers:{cookie:session.cookie,'content-type':type,'x-file-name':encodeURIComponent(name),'x-file-type':fileType,'x-csrf-token':session.csrfToken},body:content});
+  try {
+    manager=await login('manager@seowon.local',integrationConfig.seedManagerPassword);
+    employee=await login('employee@seowon.local',integrationConfig.seedUserPassword);
+    const created=await api('/api/enterprise/assets',manager,{method:'POST',body:{organizationId:manager.user.organizationId,assetTag:`EV-${marker}`,name:'증빙 수명주기 자산',statusCode:'AVAILABLE'}});
+    assert.equal(created.status,201); assetId=(await created.json()).asset.id;
+    assert.equal((await upload(employee,png)).status,403);
+    assert.equal((await upload(manager,Buffer.from('not-png'))).status,400);
+    assert.equal((await upload(manager,png,'application/octet-stream')).status,415);
+    assert.equal((await upload(manager,Buffer.alloc(5*1024*1024+1))).status,413);
+    const uploaded=await upload(manager,png); assert.equal(uploaded.status,201); const file=(await uploaded.json()).file; fileId=file.id;
+    assert.equal(file.sizeBytes,png.length); assert.match(file.checksum,/^[a-f0-9]{64}$/);
+    const detail=await api(`/api/enterprise/assets/${assetId}`,employee); assert.equal(detail.status,200); assert.equal((await detail.json()).files[0].id,fileId);
+    const downloaded=await api(`/api/enterprise/assets/${assetId}/files/${fileId}/download`,employee); assert.equal(downloaded.status,200); assert.deepEqual(Buffer.from(await downloaded.arrayBuffer()),png); assert.match(downloaded.headers.get('content-disposition'),/site\.png/);
+    assert.equal((await api(`/api/enterprise/assets/${assetId}/files/${fileId}/deactivate`,employee,{method:'POST',body:{}})).status,403);
+    assert.equal((await api(`/api/enterprise/assets/${assetId}/files/${fileId}/deactivate`,manager,{method:'POST',body:{}})).status,204);
+    assert.equal((await api(`/api/enterprise/assets/${assetId}/files/${fileId}/download`,employee)).status,404);
+    const retained=await pool.query('SELECT status,storage_key FROM file_records WHERE id=$1',[fileId]); assert.equal(retained.rows[0].status,'INACTIVE'); assert.ok(retained.rows[0].storage_key);
+    const actions=await pool.query("SELECT action FROM audit_logs WHERE entity_type='FILE' AND entity_id=$1 ORDER BY id",[String(fileId)]);
+    assert.deepEqual(actions.rows.map(row=>row.action),['FILE_UPLOADED','FILE_DOWNLOADED','FILE_DEACTIVATED']);
+  } finally {
+    await removeTestSessions(pool,[manager,employee]);
+    if(fileId){await pool.query("DELETE FROM audit_logs WHERE entity_type='FILE' AND entity_id=$1",[String(fileId)]);await pool.query('DELETE FROM asset_files WHERE file_id=$1',[fileId]);await pool.query('DELETE FROM file_records WHERE id=$1',[fileId]);}
+    if(assetId){await pool.query('DELETE FROM outbox_events WHERE aggregate_type=$1 AND aggregate_id=$2',['ASSET',String(assetId)]);await pool.query("DELETE FROM audit_logs WHERE entity_type='ASSET' AND entity_id=$1",[String(assetId)]);await pool.query('DELETE FROM asset_status_histories WHERE asset_id=$1',[assetId]);await pool.query('DELETE FROM assets WHERE id=$1',[assetId]);}
+    await pool.end();
+  }
+});

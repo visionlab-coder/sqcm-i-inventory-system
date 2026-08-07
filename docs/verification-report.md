@@ -214,3 +214,16 @@ FR-025는 자동 브라우저에서 직원 로그인 → 요청함 → 구매 �
 | PostgreSQL | 16.13, 필수 테이블 30/30, migration 7/7, 만료 세션 0 |
 | 백업·복구 | 380,955 bytes, SHA-256 `b8c2212547640b140a717f595ddb908cfeb67ba60474d42bdf8052b6344237cd`, 격리 복구 건수 일치 |
 | 브라우저 | 관리자 기준정보 6종·자산 상세 상태/사유·390px 단일 열·공식 로고·콘솔 오류 0 |
+
+## Phase 22 FR-013 자산 증빙파일 검증
+
+| 검증 | 결과 |
+|---|---|
+| 정적·단위 | JavaScript 37개, 단위 49/49 통과 |
+| Docker 통합 | HTTP/DB 12/12, 실패·skip 0 |
+| 파일 역조건 | USER 변경 403, 위장 400, 미지원 415, 5 MiB 초과 413, 비활성 다운로드 404 |
+| 저장·감사 | 무작위 키·SHA-256, 업로드/다운로드/비활성 감사, DB·바이너리 보존 |
+| PostgreSQL | 16.13, 필수 테이블 30개, migration 8개, 신규 인덱스 4개 |
+| Docker | frontend/backend/database 3/3 healthy, backend 영속 파일 볼륨 쓰기 가능 |
+| 브라우저 | desktop·375px 자산 상세 증빙 UI, body=viewport 375px, 공식 반전 로고, 콘솔 오류 0 |
+| 백업·복구 | 394,006 bytes, SHA-256 `29fcab58b2ed1ca78dbce75d9fe3795ec6bb858964990aa1b35d583a91f28e0e`, 건수 일치 |

@@ -19,6 +19,12 @@ test('csrfProtection은 일치하는 토큰만 허용한다', () => {
   assert.equal(passed, true);
 });
 
+test('csrfProtection은 바이너리 업로드의 CSRF 헤더를 허용한다', () => {
+  const token='b'.repeat(64); let passed=false;
+  csrfProtection({method:'POST',session:{csrfToken:token},body:Buffer.from('x'),get:name=>name==='x-csrf-token'?token:''},{},error=>{assert.equal(error,undefined);passed=true;});
+  assert.equal(passed,true);
+});
+
 test('csrfProtection은 누락 토큰을 403으로 거부한다', () => {
   csrfProtection({ method: 'POST', session: {}, body: {} }, {}, error => assert.equal(error.status, 403));
 });

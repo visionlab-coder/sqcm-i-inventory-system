@@ -53,6 +53,9 @@ if (!/^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$/.test(value("RELEASE_TAG"))) {
 }
 
 const target = value("DEPLOY_TARGET") || "production";
+if (target !== "local" && (value("FILE_STORAGE_DRIVER") || "local").toLowerCase() === "local") {
+  failures.push("External deployments require FILE_STORAGE_DRIVER=external.");
+}
 if (target !== "local" && value("COOKIE_SECURE").toLowerCase() !== "true") {
   failures.push("외부 배포에서는 COOKIE_SECURE=true여야 합니다.");
 }

@@ -11,7 +11,7 @@ function csrfToken(req) {
 function csrfProtection(req, res, next) {
   if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) return next();
   const expected = Buffer.from(req.session.csrfToken || '', 'utf8');
-  const received = Buffer.from(String(req.body?._csrf || ''), 'utf8');
+  const received = Buffer.from(String(req.body?._csrf || req.get?.('x-csrf-token') || ''), 'utf8');
   if (expected.length === 0 || expected.length !== received.length || !crypto.timingSafeEqual(expected, received)) {
     const error = new Error('요청 검증에 실패했습니다. 페이지를 새로고침해 주세요.');
     error.status = 403;

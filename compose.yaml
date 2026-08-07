@@ -29,6 +29,11 @@ services:
       SEED_USER_PASSWORD: ${SEED_USER_PASSWORD:-Employee1234!}
       LOGIN_RATE_LIMIT_MAX: ${LOGIN_RATE_LIMIT_MAX:-10}
       LOGIN_RATE_LIMIT_WINDOW_MS: ${LOGIN_RATE_LIMIT_WINDOW_MS:-900000}
+      FILE_STORAGE_DRIVER: ${FILE_STORAGE_DRIVER:-local}
+      FILE_STORAGE_ROOT: /app/data/uploads
+      FILE_MAX_BYTES: ${FILE_MAX_BYTES:-5242880}
+    volumes:
+      - file-data:/app/data/uploads
     expose:
       - "8080"
     depends_on:
@@ -60,3 +65,4 @@ services:
 
 volumes:
   postgres-data:
+  file-data:

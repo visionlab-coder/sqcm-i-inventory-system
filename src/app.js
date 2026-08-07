@@ -12,6 +12,7 @@ const { createLoginRateLimiter } = require('./login-rate-limit');
 const { createEnterpriseRouter } = require('./enterprise-routes');
 const { getAuditLogs } = require('./services/reporting-service');
 const { acceptInvitation } = require('./services/organization-service');
+const { LocalFileStore } = require('./storage/local-file-store');
 
 function safeReturnPath(value) {
   return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : '/';
@@ -33,7 +34,9 @@ function apiError(req, res, status, code, message, fieldErrors = []) {
   return res.status(status).json({ code, message, fieldErrors, requestId: req.id });
 }
 
-function createApp({ pool, config }) {
+function createApp({ pool, config, fileStore }) {
+  if (!fileStore && config.fileStorageDriver !== 'local') throw new Error('External file storage provider must be injected before startup.');
+  fileStore ||= new LocalFileStore(config.fileStorageRoot);
   const app = express();
   const PgSession = connectPgSimple(session);
   const loginRateLimit = createLoginRateLimiter({
@@ -114,7 +117,7 @@ function createApp({ pool, config }) {
     next();
   };
 
-  app.use('/api/enterprise', createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProduction: config.env === 'production' }));
+  app.use('/api/enterprise', createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProduction: config.env === 'production', fileStore, fileMaxBytes: config.fileMaxBytes }));
 
   app.get('/api/health', async (_req, res) => {
     try {
