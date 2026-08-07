@@ -291,6 +291,29 @@ test('부분 입고는 검수 전 배정을 차단하고 PASS 검수에서만 �
   }
 });
 
+test('다차원 보고서와 CSV·감사 검색은 같은 필터와 권한을 적용한다', { skip: !baseUrl || !databaseUrl }, async () => {
+  const pool=createPool(databaseUrl); const marker=Date.now().toString().slice(-9); let admin; let employee; let assetId; let departmentId;
+  try {
+    admin=await login('admin@seowon.local',integrationConfig.seedAdminPassword);
+    employee=await login('employee@seowon.local',integrationConfig.seedUserPassword);
+    assert.equal((await api('/api/enterprise/reports/assets',employee)).status,403);
+    const refResponse=await api('/api/enterprise/reference',admin); assert.equal(refResponse.status,200); const ref=await refResponse.json();
+    departmentId=ref.departments[0].id; const categoryId=ref.categories[0].id; const locationId=ref.locations[0].id;
+    const created=await api('/api/enterprise/assets',admin,{method:'POST',body:{organizationId:admin.user.organizationId,assetTag:`RP-${marker}`,name:'보고서 필터 검증 자산',departmentId,categoryId,locationId,statusCode:'AVAILABLE',acquiredAt:'2026-08-07',acquisitionCost:'123456'}});
+    assert.equal(created.status,201); assetId=(await created.json()).asset.id;
+    const params=new URLSearchParams({departmentId:String(departmentId),locationId:String(locationId),categoryId:String(categoryId),status:'AVAILABLE',from:'2026-08-01',to:'2026-08-31'}).toString();
+    const reportResponse=await api(`/api/enterprise/reports/assets?${params}`,admin); assert.equal(reportResponse.status,200); const report=await reportResponse.json();
+    assert.ok(report.summary.assets>=1); assert.ok(report.breakdowns.departments.some(row=>row.count>=1)); assert.ok(report.breakdowns.locations.some(row=>row.count>=1)); assert.ok(report.breakdowns.categories.some(row=>row.count>=1)); assert.deepEqual(report.breakdowns.statuses.map(row=>row.label),['AVAILABLE']);
+    const csvResponse=await api(`/api/enterprise/reports/assets.csv?${params}`,admin); assert.equal(csvResponse.status,200); assert.match(csvResponse.headers.get('content-type'),/text\/csv/); assert.match(await csvResponse.text(),new RegExp(`RP-${marker}`));
+    const auditResponse=await api(`/api/audit?action=REPORT_EXPORTED&q=${encodeURIComponent(String(departmentId))}`,admin); assert.equal(auditResponse.status,200); const logs=(await auditResponse.json()).logs;
+    assert.ok(logs.some(log=>Number(log.metadata?.filters?.departmentId)===Number(departmentId)));
+  } finally {
+    if(departmentId&&admin) await pool.query("DELETE FROM audit_logs WHERE actor_user_id=$1 AND action='REPORT_EXPORTED' AND metadata->'filters'->>'departmentId'=$2",[admin.user.id,String(departmentId)]);
+    if(assetId){await pool.query('DELETE FROM outbox_events WHERE aggregate_type=$1 AND aggregate_id=$2',['ASSET',String(assetId)]);await pool.query("DELETE FROM audit_logs WHERE entity_type='ASSET' AND entity_id=$1",[String(assetId)]);await pool.query('DELETE FROM asset_status_histories WHERE asset_id=$1',[assetId]);await pool.query('DELETE FROM assets WHERE id=$1',[assetId]);}
+    await removeTestSessions(pool,[admin,employee]); await pool.end();
+  }
+});
+
 test('비밀번호 재설정 토큰은 단회 사용되고 기존 세션을 폐기한다', { skip: !baseUrl || !databaseUrl }, async () => {
   const pool=createPool(databaseUrl); const marker=Date.now().toString().slice(-9); const email=`reset-${marker}@seowon.local`; let userId; let loggedIn;
   try {

@@ -10,6 +10,7 @@ const { createItem, updateItem, deactivateItem, checkoutItem, returnItem } = req
 const { requestContext, requestLogger, auditTrace } = require('./observability');
 const { createLoginRateLimiter } = require('./login-rate-limit');
 const { createEnterpriseRouter } = require('./enterprise-routes');
+const { getAuditLogs } = require('./services/reporting-service');
 
 function safeReturnPath(value) {
   return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : '/';
@@ -298,15 +299,7 @@ function createApp({ pool, config }) {
   });
 
   app.get('/api/audit', apiRole('ADMIN'), async (req, res) => {
-    const values=[]; const where=[];
-    if(req.query.action){values.push(String(req.query.action).trim());where.push(`a.action=$${values.length}`);}
-    if(req.query.entityType){values.push(String(req.query.entityType).trim());where.push(`a.entity_type=$${values.length}`);}
-    if(req.query.actorId){values.push(Number(req.query.actorId));where.push(`a.actor_user_id=$${values.length}`);}
-    if(req.query.from){values.push(req.query.from);where.push(`a.created_at >= $${values.length}::timestamptz`);}
-    if(req.query.to){values.push(req.query.to);where.push(`a.created_at <= $${values.length}::timestamptz`);}
-    const result = await pool.query(`SELECT a.*, u.display_name, u.email FROM audit_logs a
-      LEFT JOIN users u ON u.id=a.actor_user_id ${where.length?`WHERE ${where.join(' AND ')}`:''} ORDER BY a.created_at DESC LIMIT 200`,values);
-    res.json({ logs: result.rows });
+    res.json(await getAuditLogs(pool, req.query));
   });
 
   app.get('/login', (req, res) => {
