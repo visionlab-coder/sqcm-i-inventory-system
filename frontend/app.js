@@ -35,6 +35,13 @@ function showLogin() {
   $('#login-page').classList.remove('hidden');
 }
 
+function showInvitation(token) {
+  showLogin();
+  $('#login-form').classList.add('hidden');
+  $('#invitation-form').classList.remove('hidden');
+  $('#invitation-form').elements.token.value = token;
+}
+
 function showApp() {
   $('#login-page').classList.add('hidden');
   $('#app-shell').classList.remove('hidden');
@@ -51,6 +58,8 @@ async function boot() {
   try {
     const csrf = await request('/api/auth/csrf');
     state.csrfToken = csrf.csrfToken;
+    const invitationToken = location.hash.startsWith('#invitation=') ? decodeURIComponent(location.hash.slice('#invitation='.length)) : '';
+    if (invitationToken) return showInvitation(invitationToken);
     const me = await request('/api/auth/me');
     state.user = me.user;
     state.csrfToken = me.csrfToken;
@@ -262,7 +271,22 @@ async function renderReports(filters = {}) {
 }
 
 async function renderAdmin() {
-  if(state.user.role!=='ADMIN') throw new Error('관리자 권한이 없습니다.'); const data=await request('/api/enterprise/admin'); const users=data.users.map(user=>`<tr><td>${escapeHtml(user.display_name)}</td><td>${escapeHtml(user.email)}</td><td>${statusBadge(user.role)}</td><td>${statusBadge(user.status)}</td><td>${user.mfa_enabled?'사용':'미사용'}</td></tr>`).join(''); const events=data.outbox.map(row=>`<tr><td>${date(row.created_at)}</td><td>${escapeHtml(row.aggregate_type)} #${escapeHtml(row.aggregate_id)}</td><td>${escapeHtml(row.event_type)}</td><td>${row.published_at?'발행':'대기'}</td></tr>`).join(''); $('#view-root').innerHTML=`<div class="page-heading"><div><p class="eyebrow">ORGANIZATION / ACCESS / OUTBOX</p><h1>시스템<br>관리 콘솔</h1><p class="muted">조직·사용자 권한과 이벤트 발행 상태를 관리합니다.</p></div></div><section class="two-column"><article class="panel"><div class="panel-head"><h2>사용자 접근</h2></div><div class="table-wrap"><table><thead><tr><th>이름</th><th>이메일</th><th>역할</th><th>상태</th><th>MFA</th></tr></thead><tbody>${users}</tbody></table></div></article><article class="panel"><div class="panel-head"><h2>이벤트 Outbox</h2></div><div class="table-wrap"><table><thead><tr><th>일자</th><th>대상</th><th>이벤트</th><th>상태</th></tr></thead><tbody>${events||'<tr><td colspan="4">이벤트가 없습니다.</td></tr>'}</tbody></table></div></article></section>`;
+  if(state.user.role!=='ADMIN') throw new Error('관리자 권한이 없습니다.');
+  const data=await request('/api/enterprise/admin');
+  const departments=data.departments.filter(row=>Number(row.organization_id)===Number(state.user.organizationId));
+  const users=data.users.map(user=>`<tr><td>${escapeHtml(user.display_name)}</td><td>${escapeHtml(user.email)}</td><td>${statusBadge(user.role)}</td><td>${statusBadge(user.status)}</td><td>${user.mfa_enabled?'사용':'미사용'}</td></tr>`).join('');
+  const units=departments.map(row=>`<tr><td>${statusBadge(row.unit_type)}</td><td>${escapeHtml(row.code)}</td><td>${escapeHtml(row.name)}</td><td>${escapeHtml(row.cost_center||'-')}</td></tr>`).join('');
+  const invitations=data.invitations.filter(row=>Number(row.organization_id)===Number(state.user.organizationId)).map(row=>{const status=row.accepted_at?'수락':row.revoked_at?'취소':new Date(row.expires_at)<new Date()?'만료':'대기';return `<tr><td>${escapeHtml(row.display_name)}<br><small>${escapeHtml(row.email)}</small></td><td>${statusBadge(row.role)}</td><td>${escapeHtml(row.department_name||'조직 전체')}</td><td>${statusBadge(status)}</td></tr>`;}).join('');
+  const events=data.outbox.map(row=>`<tr><td>${date(row.created_at)}</td><td>${escapeHtml(row.aggregate_type)} #${escapeHtml(row.aggregate_id)}</td><td>${escapeHtml(row.event_type)}</td><td>${row.published_at?'발행':'대기'}</td></tr>`).join('');
+  const parentOptions=options(departments,row=>`${row.unit_type} · ${row.name}`);
+  $('#view-root').innerHTML=`<div class="page-heading"><div><p class="eyebrow">ORGANIZATION / ACCESS / OUTBOX</p><h1>시스템<br>관리 콘솔</h1><p class="muted">조직 계층·사용자 초대와 이벤트 발행 상태를 관리합니다.</p></div></div>
+  <section class="two-column"><article class="panel form-panel"><div><h2>조직 단위 추가</h2><p class="muted">법인 아래 본부·부서·팀 계층을 구성합니다.</p></div><form id="unit-create" class="grid-form"><label>유형<select name="unitType"><option>HEADQUARTERS</option><option>DEPARTMENT</option><option>TEAM</option><option>CORPORATE</option></select></label><label>상위 조직<select name="parentId"><option value="">법인만 비움</option>${parentOptions}</select></label><label>코드<input name="code" required></label><label>이름<input name="name" required></label><label>비용센터<input name="costCenter"></label><label>관리자 비밀번호<input type="password" name="currentPassword" autocomplete="current-password" required></label><button class="primary full">조직 단위 생성</button></form></article>
+  <article class="panel form-panel"><div><h2>사용자 초대</h2><p class="muted">초대 링크는 개발 환경에서 한 번만 표시됩니다.</p></div><form id="invite-create" class="grid-form"><label>이메일<input type="email" name="email" required></label><label>이름<input name="displayName" required></label><label>역할<select name="role"><option>USER</option><option>MANAGER</option></select></label><label>데이터 범위<select name="scopeType"><option>DEPARTMENT</option><option>ORGANIZATION</option></select></label><label>소속 조직<select name="departmentId"><option value="">조직 전체</option>${parentOptions}</select></label><label>관리자 비밀번호<input type="password" name="currentPassword" autocomplete="current-password" required></label><button class="primary full">초대 발급</button></form><p id="invite-result" class="mono details"></p></article></section>
+  <section class="two-column"><article class="panel"><div class="panel-head"><h2>조직 계층</h2></div><div class="table-wrap"><table><thead><tr><th>유형</th><th>코드</th><th>이름</th><th>비용센터</th></tr></thead><tbody>${units}</tbody></table></div></article><article class="panel"><div class="panel-head"><h2>초대 현황</h2></div><div class="table-wrap"><table><thead><tr><th>사용자</th><th>역할</th><th>범위</th><th>상태</th></tr></thead><tbody>${invitations||'<tr><td colspan="4">초대가 없습니다.</td></tr>'}</tbody></table></div></article></section>
+  <section class="two-column"><article class="panel"><div class="panel-head"><h2>사용자 접근</h2></div><div class="table-wrap"><table><thead><tr><th>이름</th><th>이메일</th><th>역할</th><th>상태</th><th>MFA</th></tr></thead><tbody>${users}</tbody></table></div></article><article class="panel"><div class="panel-head"><h2>이벤트 Outbox</h2></div><div class="table-wrap"><table><thead><tr><th>일자</th><th>대상</th><th>이벤트</th><th>상태</th></tr></thead><tbody>${events||'<tr><td colspan="4">이벤트가 없습니다.</td></tr>'}</tbody></table></div></article></section>`;
+  const submitAdmin=async(event,path)=>{event.preventDefault();const body=Object.fromEntries(new FormData(event.target));const currentPassword=body.currentPassword;delete body.currentPassword;body.organizationId=state.user.organizationId;await request('/api/auth/reauth',{method:'POST',body:{password:currentPassword}});return request(path,{method:'POST',body});};
+  $('#unit-create').addEventListener('submit',async event=>{try{await submitAdmin(event,'/api/enterprise/admin/departments');showMessage('조직 단위를 생성했습니다.');renderAdmin();}catch(error){showMessage(error.message,'error');}});
+  $('#invite-create').addEventListener('submit',async event=>{try{const result=await submitAdmin(event,'/api/enterprise/admin/invitations');if(result.developmentToken){const url=`${location.origin}/#invitation=${encodeURIComponent(result.developmentToken)}`;$('#invite-result').innerHTML=`초대 링크: <a href="${escapeHtml(url)}">${escapeHtml(url)}</a>`;}else{$('#invite-result').textContent='초대가 등록되었습니다. 운영 알림 발송기에 연결하세요.';}showMessage('사용자 초대를 발급했습니다.');}catch(error){showMessage(error.message,'error');}});
 }
 
 async function renderAudit(filters = {}) {
@@ -288,6 +312,16 @@ $('#login-form').addEventListener('submit', async event => {
     errorBox.classList.remove('hidden');
   }
 });
+
+$('#invitation-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const values=Object.fromEntries(new FormData(event.target));
+  const errorBox=$('#invitation-error'); errorBox.classList.add('hidden');
+  if(values.newPassword!==values.passwordConfirm){errorBox.textContent='비밀번호 확인이 일치하지 않습니다.';return errorBox.classList.remove('hidden');}
+  try{await request('/api/auth/invitations/accept',{method:'POST',body:{token:values.token,newPassword:values.newPassword}});history.replaceState({},'',location.pathname);event.target.reset();$('#invitation-form').classList.add('hidden');$('#login-form').classList.remove('hidden');showMessage('계정을 활성화했습니다. 로그인하세요.');}
+  catch(error){errorBox.textContent=error.message;errorBox.classList.remove('hidden');}
+});
+$('#invitation-back').addEventListener('click',()=>{history.replaceState({},'',location.pathname);$('#invitation-form').classList.add('hidden');$('#login-form').classList.remove('hidden');});
 
 document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => navigate(button.dataset.view)));
 document.addEventListener('click', event => { const target = event.target.closest('[data-go]'); if (target) navigate(target.dataset.go); });

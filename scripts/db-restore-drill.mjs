@@ -36,6 +36,7 @@ function runDocker(args, inputFile) {
 async function counts(database) {
   const sql = `SELECT json_build_object(
     'users',(SELECT count(*) FROM users),
+    'user_invitations',(SELECT count(*) FROM user_invitations),
     'items',(SELECT count(*) FROM items),
     'loans',(SELECT count(*) FROM loans),
     'audit_logs',(SELECT count(*) FROM audit_logs),
@@ -44,7 +45,7 @@ async function counts(database) {
     'service_tickets',(SELECT count(*) FROM service_tickets),
     'stocktakes',(SELECT count(*) FROM stocktakes),
     'outbox_events',(SELECT count(*) FROM outbox_events),
-    'required_tables',(SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('asset_assignments','asset_files','asset_status_histories','assets','audit_logs','departments','disposal_requests','file_records','inspection_assets','inspections','item_categories','item_models','items','loans','locations','organizations','outbox_events','password_reset_tokens','purchase_orders','receipts','schema_migrations','service_tickets','stocktake_items','stocktakes','user_role_scopes','user_sessions','users','vendors','workflow_requests')),
+    'required_tables',(SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('asset_assignments','asset_files','asset_status_histories','assets','audit_logs','departments','disposal_requests','file_records','inspection_assets','inspections','item_categories','item_models','items','loans','locations','organizations','outbox_events','password_reset_tokens','purchase_orders','receipts','schema_migrations','service_tickets','stocktake_items','stocktakes','user_invitations','user_role_scopes','user_sessions','users','vendors','workflow_requests')),
     'migrations',(SELECT count(*) FROM schema_migrations)
   );`;
   return JSON.parse(await runDocker(["psql", "-U", "seowon", "-d", database, "-At", "-c", sql]));
@@ -57,7 +58,7 @@ try {
   created = true;
   await runDocker(["pg_restore", "-U", "seowon", "-d", drillDatabase, "--no-owner", "--no-privileges"], backupPath);
   const restoredCounts = await counts(drillDatabase);
-  if (restoredCounts.required_tables !== 29 || JSON.stringify(sourceCounts) !== JSON.stringify(restoredCounts)) {
+  if (restoredCounts.required_tables !== 30 || JSON.stringify(sourceCounts) !== JSON.stringify(restoredCounts)) {
     throw new Error(`restore validation mismatch: source=${JSON.stringify(sourceCounts)} restored=${JSON.stringify(restoredCounts)}`);
   }
   console.log(JSON.stringify({ backupPath, drillDatabase, sourceCounts, restoredCounts }, null, 2));

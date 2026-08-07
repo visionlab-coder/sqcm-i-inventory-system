@@ -26,6 +26,17 @@
         <label>비밀번호<input type="password" name="password" autocomplete="current-password" minlength="10" required></label>
         <button class="primary full" type="submit">로그인</button>
       </form>
+      <form id="invitation-form" class="login-form hidden">
+        <p class="eyebrow">ACCOUNT ACTIVATION</p>
+        <h2>초대 계정 활성화</h2>
+        <p class="muted">12자 이상이며 대문자·소문자·숫자·특수문자를 포함한 비밀번호를 설정하세요.</p>
+        <div id="invitation-error" class="alert error hidden" role="alert"></div>
+        <input type="hidden" name="token">
+        <label>새 비밀번호<input type="password" name="newPassword" autocomplete="new-password" minlength="12" required></label>
+        <label>비밀번호 확인<input type="password" name="passwordConfirm" autocomplete="new-password" minlength="12" required></label>
+        <button class="primary full" type="submit">계정 활성화</button>
+        <button class="link full" id="invitation-back" type="button">로그인으로 돌아가기</button>
+      </form>
     </div>
   </section>
 

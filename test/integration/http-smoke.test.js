@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const bcrypt = require('bcryptjs');
+const crypto = require('node:crypto');
 const { createPool } = require('../../src/db');
 const { getConfig } = require('../../src/config');
 
@@ -311,6 +312,39 @@ test('다차원 보고서와 CSV·감사 검색은 같은 필터와 권한을 �
     if(departmentId&&admin) await pool.query("DELETE FROM audit_logs WHERE actor_user_id=$1 AND action='REPORT_EXPORTED' AND metadata->'filters'->>'departmentId'=$2",[admin.user.id,String(departmentId)]);
     if(assetId){await pool.query('DELETE FROM outbox_events WHERE aggregate_type=$1 AND aggregate_id=$2',['ASSET',String(assetId)]);await pool.query("DELETE FROM audit_logs WHERE entity_type='ASSET' AND entity_id=$1",[String(assetId)]);await pool.query('DELETE FROM asset_status_histories WHERE asset_id=$1',[assetId]);await pool.query('DELETE FROM assets WHERE id=$1',[assetId]);}
     await removeTestSessions(pool,[admin,employee]); await pool.end();
+  }
+});
+
+test('관리자는 조직 팀을 만들고 해시 저장된 초대로 사용자를 단회 활성화한다', { skip: !baseUrl || !databaseUrl }, async () => {
+  const pool=createPool(databaseUrl); const marker=Date.now().toString().slice(-9); const email=`invite-${marker}@seowon.local`;
+  let admin; let employee; let invited; let unitId; let invitationId; let userId;
+  try {
+    admin=await login('admin@seowon.local',integrationConfig.seedAdminPassword);
+    employee=await login('employee@seowon.local',integrationConfig.seedUserPassword);
+    const forbidden=await api('/api/enterprise/admin/invitations',employee,{method:'POST',body:{email,displayName:'초대 사용자',role:'USER',scopeType:'ORGANIZATION'}});
+    assert.equal(forbidden.status,403);
+    const reauth=await api('/api/auth/reauth',admin,{method:'POST',body:{password:integrationConfig.seedAdminPassword}});
+    assert.equal(reauth.status,204);
+    const hq=await pool.query("SELECT id FROM departments WHERE organization_id=$1 AND code='HQ'",[admin.user.organizationId]);
+    const unitResponse=await api('/api/enterprise/admin/departments',admin,{method:'POST',body:{organizationId:admin.user.organizationId,parentId:hq.rows[0].id,code:`TEAM-${marker}`,name:'통합 테스트 팀',unitType:'TEAM',costCenter:`TC-${marker}`}});
+    assert.equal(unitResponse.status,201); const unit=(await unitResponse.json()).department; unitId=unit.id; assert.equal(unit.unit_type,'TEAM');
+    const invitationResponse=await api('/api/enterprise/admin/invitations',admin,{method:'POST',body:{organizationId:admin.user.organizationId,departmentId:unitId,email,displayName:'초대 사용자',role:'USER',scopeType:'DEPARTMENT'}});
+    assert.equal(invitationResponse.status,201); const invitationData=await invitationResponse.json(); invitationId=invitationData.invitation.id; const token=invitationData.developmentToken; assert.ok(token);
+    const stored=await pool.query('SELECT token_hash FROM user_invitations WHERE id=$1',[invitationId]);
+    assert.notEqual(stored.rows[0].token_hash,token); assert.equal(stored.rows[0].token_hash,crypto.createHash('sha256').update(token).digest('hex'));
+    const csrfResponse=await fetch(`${baseUrl}/api/auth/csrf`); const cookie=cookieFrom(csrfResponse); const csrfToken=(await csrfResponse.json()).csrfToken;
+    const accepted=await fetch(`${baseUrl}/api/auth/invitations/accept`,{method:'POST',headers:{cookie,'content-type':'application/json'},body:JSON.stringify({_csrf:csrfToken,token,newPassword:'InvitedUser123!@'})});
+    assert.equal(accepted.status,201); userId=(await accepted.json()).user.id;
+    const reused=await fetch(`${baseUrl}/api/auth/invitations/accept`,{method:'POST',headers:{cookie,'content-type':'application/json'},body:JSON.stringify({_csrf:csrfToken,token,newPassword:'InvitedUser123!@'})}); assert.equal(reused.status,400);
+    const scope=await pool.query('SELECT role_code,scope_type,department_id FROM user_role_scopes WHERE user_id=$1',[userId]); assert.deepEqual(scope.rows[0],{role_code:'USER',scope_type:'DEPARTMENT',department_id:String(unitId)});
+    invited=await login(email,'InvitedUser123!@'); assert.equal(invited.user.departmentId,unitId);
+  } finally {
+    await removeTestSessions(pool,[admin,employee,invited]);
+    if(userId) await pool.query('DELETE FROM audit_logs WHERE actor_user_id=$1 OR (entity_type=\'USER\' AND entity_id=$2)',[userId,String(userId)]);
+    if(invitationId) {await pool.query("DELETE FROM audit_logs WHERE entity_type='USER_INVITATION' AND entity_id=$1",[String(invitationId)]);await pool.query('DELETE FROM user_invitations WHERE id=$1',[invitationId]);}
+    if(userId) await pool.query('DELETE FROM users WHERE id=$1',[userId]);
+    if(unitId) {await pool.query("DELETE FROM audit_logs WHERE entity_type='DEPARTMENT' AND entity_id=$1",[String(unitId)]);await pool.query('DELETE FROM departments WHERE id=$1',[unitId]);}
+    await pool.end();
   }
 });
 

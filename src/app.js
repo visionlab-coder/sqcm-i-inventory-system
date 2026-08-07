@@ -11,6 +11,7 @@ const { requestContext, requestLogger, auditTrace } = require('./observability')
 const { createLoginRateLimiter } = require('./login-rate-limit');
 const { createEnterpriseRouter } = require('./enterprise-routes');
 const { getAuditLogs } = require('./services/reporting-service');
+const { acceptInvitation } = require('./services/organization-service');
 
 function safeReturnPath(value) {
   return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : '/';
@@ -113,7 +114,7 @@ function createApp({ pool, config }) {
     next();
   };
 
-  app.use('/api/enterprise', createEnterpriseRouter({ pool, apiAuth, requireRecentReauth }));
+  app.use('/api/enterprise', createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProduction: config.env === 'production' }));
 
   app.get('/api/health', async (_req, res) => {
     try {
@@ -212,6 +213,11 @@ function createApp({ pool, config }) {
       await client.query(`INSERT INTO audit_logs(actor_user_id,action,entity_type,entity_id,metadata,request_id,ip_address) VALUES($1,'PASSWORD_RESET_COMPLETED','AUTH',$2,'{}'::jsonb,$3,$4)`, [userId, String(userId), req.id, req.ip]);
       await client.query('COMMIT'); res.status(204).end();
     } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
+  });
+
+  app.post('/api/auth/invitations/accept', loginRateLimit, async (req, res) => {
+    const user = await acceptInvitation(pool, req.body.token, req.body.newPassword, auditTrace(req));
+    res.status(201).json({ user: sanitizeUser(user), message: '계정 활성화를 완료했습니다. 로그인하세요.' });
   });
 
   app.get('/api/dashboard', apiAuth, async (_req, res) => {
