@@ -2,9 +2,11 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const bcrypt = require('bcryptjs');
 const { createPool } = require('../../src/db');
+const { getConfig } = require('../../src/config');
 
 const baseUrl = process.env.INTEGRATION_BASE_URL;
 const databaseUrl = process.env.INTEGRATION_DATABASE_URL;
+const integrationConfig = getConfig();
 
 const cookieFrom = response => response.headers.get('set-cookie')?.split(';')[0];
 const sessionIdFromCookie = cookie => {
@@ -67,7 +69,7 @@ test('3계층 Docker 앱 health와 API 로그인 세션 흐름이 동작한다',
   assert.ok(anonymousError.requestId);
   assert.deepEqual(anonymousError.fieldErrors, []);
 
-  manager = await login('manager@seowon.local', process.env.SEED_MANAGER_PASSWORD || 'Manager1234!');
+  manager = await login('manager@seowon.local', integrationConfig.seedManagerPassword);
   assert.equal(manager.user.role, 'MANAGER');
   const dashboard = await api('/api/dashboard', manager);
   assert.equal(dashboard.status, 200);
@@ -90,7 +92,7 @@ test('Docker HTTP에서 CSRF·RBAC·비품 CRUD·대여·반납·감사 로그�
   let admin;
 
   try {
-    manager = await login('manager@seowon.local', process.env.SEED_MANAGER_PASSWORD || 'Manager1234!');
+    manager = await login('manager@seowon.local', integrationConfig.seedManagerPassword);
 
     const noCsrf = await api('/api/items', manager, {
       method: 'POST', includeCsrf: false,
@@ -154,7 +156,7 @@ test('Docker HTTP에서 CSRF·RBAC·비품 CRUD·대여·반납·감사 로그�
     assert.equal(list.status, 200);
     assert.equal((await list.json()).items.length, 0);
 
-    admin = await login('admin@seowon.local', process.env.SEED_ADMIN_PASSWORD || 'Admin1234!');
+    admin = await login('admin@seowon.local', integrationConfig.seedAdminPassword);
     const audit = await api('/api/audit', admin);
     assert.equal(audit.status, 200);
     const itemLogs = (await audit.json()).logs.filter(log => String(log.entity_id) === String(itemId));
@@ -177,8 +179,8 @@ test('Docker HTTP에서 CSRF·RBAC·비품 CRUD·대여·반납·감사 로그�
 test('기업 자산 요청은 직원 제출과 관리자 승인 후 배정·감사·outbox를 원자적으로 기록한다', { skip: !baseUrl || !databaseUrl }, async () => {
   const pool = createPool(databaseUrl); const marker=Date.now().toString().slice(-9); let assetId; let requestId; let employee; let admin;
   try {
-    employee=await login('employee@seowon.local',process.env.SEED_USER_PASSWORD||'Employee1234!');
-    admin=await login('admin@seowon.local',process.env.SEED_ADMIN_PASSWORD||'Admin1234!');
+    employee=await login('employee@seowon.local',integrationConfig.seedUserPassword);
+    admin=await login('admin@seowon.local',integrationConfig.seedAdminPassword);
     const refResponse=await api('/api/enterprise/reference',admin); assert.equal(refResponse.status,200); const ref=await refResponse.json();
     const created=await api('/api/enterprise/assets',admin,{method:'POST',body:{organizationId:admin.user.organizationId,assetTag:`EA-${marker}`,name:'기업 통합 테스트 자산',categoryId:ref.categories[0]?.id,locationId:ref.locations[0]?.id,departmentId:ref.departments[0]?.id,statusCode:'AVAILABLE'}});
     assert.equal(created.status,201); assetId=(await created.json()).asset.id;
@@ -198,6 +200,36 @@ test('기업 자산 요청은 직원 제출과 관리자 승인 후 배정·감�
     if(requestId) await pool.query('DELETE FROM workflow_requests WHERE id=$1',[requestId]);
     if(assetId) await pool.query('DELETE FROM assets WHERE id=$1',[assetId]);
     await removeTestSessions(pool,[employee,admin]); await pool.end();
+  }
+});
+
+test('구매 요청은 필수정보를 검증하고 정규화된 payload와 감사를 저장한다', { skip: !baseUrl || !databaseUrl }, async () => {
+  const pool = createPool(databaseUrl); let employee; let requestId;
+  try {
+    employee = await login('employee@seowon.local', integrationConfig.seedUserPassword);
+    const missing = await api('/api/enterprise/requests', employee, { method: 'POST', body: {
+      organizationId: employee.user.organizationId, requestType: 'PURCHASE', title: '현장 장비 구매', reason: '신규 현장 투입', payload: { itemName: '레이저 레벨기' }
+    } });
+    assert.equal(missing.status, 400); const missingError = await missing.json();
+    assert.equal(missingError.code, 'VALIDATION_ERROR'); assert.equal(missingError.fieldErrors[0].field, 'quantity');
+
+    const forbidden = await api('/api/enterprise/requests', employee, { method: 'POST', body: {
+      organizationId: Number(employee.user.organizationId) + 999, requestType: 'PURCHASE', title: '타 조직 구매', reason: '권한 역조건',
+      payload: { itemName: '레이저 레벨기', quantity: 2, estimatedAmount: '300000', costCenter: 'HQ-001', neededAt: '2026-09-30' }
+    } });
+    assert.equal(forbidden.status, 403);
+
+    const created = await api('/api/enterprise/requests', employee, { method: 'POST', body: {
+      organizationId: employee.user.organizationId, requestType: 'PURCHASE', title: '현장 장비 구매', reason: '신규 현장 투입',
+      payload: { itemName: '  레이저 레벨기 ', quantity: '2', estimatedAmount: '300000', costCenter: 'hq-001', neededAt: '2026-09-30' }
+    } });
+    assert.equal(created.status, 201); const request = (await created.json()).request; requestId = request.id;
+    assert.deepEqual(request.payload, { itemName: '레이저 레벨기', quantity: 2, estimatedAmount: '300000.00', costCenter: 'HQ-001', neededAt: '2026-09-30' });
+    const audit = await pool.query("SELECT metadata FROM audit_logs WHERE entity_type='REQUEST' AND entity_id=$1 AND action='REQUEST_CREATED'", [String(requestId)]);
+    assert.equal(audit.rowCount, 1); assert.equal(audit.rows[0].metadata.purchase.costCenter, 'HQ-001');
+  } finally {
+    if (requestId) { await pool.query("DELETE FROM audit_logs WHERE entity_type='REQUEST' AND entity_id=$1", [String(requestId)]); await pool.query('DELETE FROM workflow_requests WHERE id=$1', [requestId]); }
+    await removeTestSessions(pool, [employee]); await pool.end();
   }
 });
 

@@ -36,6 +36,39 @@ function assertTransition(from, to) {
   if (!(STATUS_TRANSITIONS[from] || []).includes(to)) throw new DomainError(`${from}에서 ${to}(으)로 변경할 수 없습니다.`, 409);
 }
 
+function purchaseFieldError(field, message) {
+  const error = new DomainError(message);
+  error.code = 'VALIDATION_ERROR';
+  error.fieldErrors = [{ field, message }];
+  throw error;
+}
+
+function normalizePurchasePayload(input = {}) {
+  const itemName = String(input.itemName || '').trim();
+  if (itemName.length < 2 || itemName.length > 150) purchaseFieldError('itemName', '품목은 2~150자로 입력하세요.');
+
+  const quantity = Number(input.quantity);
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100000) purchaseFieldError('quantity', '수량은 1~100,000의 정수로 입력하세요.');
+
+  const amountText = String(input.estimatedAmount ?? '').trim().replaceAll(',', '');
+  if (!/^(0|[1-9]\d{0,12})(\.\d{1,2})?$/.test(amountText) || Number(amountText) <= 0) {
+    purchaseFieldError('estimatedAmount', '예상금액은 0보다 크고 소수 둘째 자리까지 입력하세요.');
+  }
+  const [whole, fraction = ''] = amountText.split('.');
+  const estimatedAmount = `${whole}.${fraction.padEnd(2, '0')}`;
+
+  const costCenter = String(input.costCenter || '').trim().toUpperCase();
+  if (!/^[A-Z0-9][A-Z0-9_-]{1,49}$/.test(costCenter)) purchaseFieldError('costCenter', '비용센터는 영문·숫자·하이픈·밑줄 2~50자로 입력하세요.');
+
+  const neededAt = String(input.neededAt || '').trim();
+  const parsedDate = /^\d{4}-\d{2}-\d{2}$/.test(neededAt) ? new Date(`${neededAt}T00:00:00.000Z`) : null;
+  if (!parsedDate || Number.isNaN(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== neededAt) {
+    purchaseFieldError('neededAt', '필요일은 YYYY-MM-DD 형식의 실제 날짜여야 합니다.');
+  }
+
+  return { itemName, quantity, estimatedAmount, costCenter, neededAt };
+}
+
 async function enterpriseAudit(client, user, action, type, id, metadata, trace) {
   await client.query(`INSERT INTO audit_logs(actor_user_id,action,entity_type,entity_id,metadata,request_id,ip_address)
     VALUES($1,$2,$3,$4,$5::jsonb,$6,$7)`, [user.id, action, type, String(id), JSON.stringify(metadata || {}), trace?.requestId || null, trace?.ip || null]);
@@ -115,9 +148,10 @@ async function createRequest(pool, user, input, trace = {}) {
       if (!asset.rowCount) throw new DomainError('요청 자산을 찾을 수 없습니다.', 404);
       requireOrganization(user, asset.rows[0].organization_id);
     }
+    const payload = type === 'PURCHASE' ? normalizePurchasePayload(input.payload) : (input.payload || {});
     const result = await client.query(`INSERT INTO workflow_requests(organization_id,request_type,requester_id,asset_id,status,title,reason,payload)
-      VALUES($1,$2,$3,$4,'DRAFT',$5,$6,$7::jsonb) RETURNING *`, [organizationId, type, user.id, input.assetId || null, title, reason, JSON.stringify(input.payload || {})]);
-    await enterpriseAudit(client, user, 'REQUEST_CREATED', 'REQUEST', result.rows[0].id, { type, title }, trace);
+      VALUES($1,$2,$3,$4,'DRAFT',$5,$6,$7::jsonb) RETURNING *`, [organizationId, type, user.id, input.assetId || null, title, reason, JSON.stringify(payload)]);
+    await enterpriseAudit(client, user, 'REQUEST_CREATED', 'REQUEST', result.rows[0].id, { type, title, ...(type === 'PURCHASE' ? { purchase: payload } : {}) }, trace);
     await client.query('COMMIT'); return result.rows[0];
   } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
 }
@@ -220,4 +254,4 @@ async function transitionRequest(pool, user, requestId, input, trace = {}) {
   } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
 }
 
-module.exports = { ROLE_PERMISSIONS, STATUS_TRANSITIONS, can, requirePermission, requireOrganization, assertTransition, createAsset, changeAssetStatus, createRequest, transitionRequest };
+module.exports = { ROLE_PERMISSIONS, STATUS_TRANSITIONS, can, requirePermission, requireOrganization, assertTransition, normalizePurchasePayload, createAsset, changeAssetStatus, createRequest, transitionRequest };
