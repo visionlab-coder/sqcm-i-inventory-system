@@ -1,4 +1,5 @@
 const { DomainError, positiveInteger } = require('./inventory-service');
+const referenceRepository = require('../repositories/reference-repository');
 
 const ROLE_PERMISSIONS = {
   USER: new Set(['asset.read', 'request.create', 'request.read.self', 'repair.create']),
@@ -128,8 +129,10 @@ async function changeAssetStatus(pool, user, assetId, input, trace = {}) {
   requirePermission(user, 'asset.update');
   const id = positiveInteger(assetId, '자산번호');
   const toStatus = String(input.toStatus || '').toUpperCase();
-  const reason = String(input.reason || '').trim();
-  if (reason.length < 2) throw new DomainError('상태 변경 사유가 필요합니다.');
+  const reasonCode = String(input.reasonCode || '').trim().toUpperCase();
+  const reasonDetail = String(input.reasonDetail || '').trim();
+  if (!reasonCode) throw new DomainError('상태 변경 사유 코드를 선택하세요.');
+  if (reasonDetail.length > 500) throw new DomainError('상태 변경 추가 설명은 500자 이하여야 합니다.');
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -138,10 +141,17 @@ async function changeAssetStatus(pool, user, assetId, input, trace = {}) {
     const asset = current.rows[0];
     requireOrganization(user, asset.organization_id);
     assertTransition(asset.status_code, toStatus);
+    const statusPolicy = await referenceRepository.findActiveStatusPolicy(client,asset.organization_id,toStatus);
+    if(!statusPolicy) throw new DomainError('비활성 또는 등록되지 않은 자산 상태입니다.',409);
+    const reasonPolicy = await referenceRepository.findActiveReasonPolicy(client,asset.organization_id,reasonCode);
+    if(!reasonPolicy) throw new DomainError('비활성 또는 등록되지 않은 상태 변경 사유입니다.',409);
+    if(reasonPolicy.applies_to_status&&reasonPolicy.applies_to_status!==toStatus) throw new DomainError('선택한 상태에 적용할 수 없는 변경 사유입니다.',409);
+    if(reasonPolicy.requires_detail&&reasonDetail.length<2) throw new DomainError('이 변경 사유에는 2자 이상의 추가 설명이 필요합니다.');
+    const reason = reasonDetail ? `${reasonPolicy.name}: ${reasonDetail}` : reasonPolicy.name;
     if (toStatus === 'DISPOSED' && (!input.approverId || !input.evidenceReference)) throw new DomainError('폐기 완료에는 승인자와 증빙이 필요합니다.', 409);
-    const updated = await client.query('UPDATE assets SET status_code=$1,updated_at=now(),deactivated_at=CASE WHEN $1 IN (\'DISPOSED\',\'CANCELLED\') THEN now() ELSE deactivated_at END WHERE id=$2 RETURNING *', [toStatus, id]);
-    await client.query(`INSERT INTO asset_status_histories(asset_id,from_status,to_status,reason,changed_by,request_id) VALUES($1,$2,$3,$4,$5,$6)`, [id, asset.status_code, toStatus, reason, user.id, trace.requestId || null]);
-    await enterpriseAudit(client, user, 'ASSET_STATUS_CHANGED', 'ASSET', id, { before: asset.status_code, after: toStatus, reason }, trace);
+    const updated = await client.query('UPDATE assets SET status_code=$1::varchar,updated_at=now(),deactivated_at=CASE WHEN $1::varchar IN (\'DISPOSED\',\'CANCELLED\') THEN now() ELSE deactivated_at END WHERE id=$2 RETURNING *', [toStatus, id]);
+    await client.query(`INSERT INTO asset_status_histories(asset_id,from_status,to_status,reason,reason_definition_id,reason_detail,changed_by,request_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8)`, [id, asset.status_code, toStatus, reason, reasonPolicy.id,reasonDetail||null,user.id, trace.requestId || null]);
+    await enterpriseAudit(client, user, 'ASSET_STATUS_CHANGED', 'ASSET', id, { before: asset.status_code, after: toStatus, reasonCode,reasonDetail:reasonDetail||null }, trace);
     await outbox(client, 'ASSET', id, 'ASSET_STATUS_CHANGED', { from: asset.status_code, to: toStatus }, trace.idempotencyKey);
     await client.query('COMMIT');
     return updated.rows[0];

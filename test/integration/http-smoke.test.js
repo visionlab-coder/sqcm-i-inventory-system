@@ -376,6 +376,36 @@ test('기준정보 4종은 관리자 생명주기를 따르고 비활성 후 기
   }
 });
 
+test('상태·사유 정책은 수동 상태 변경과 이력에 강제된다', { skip: !baseUrl || !databaseUrl }, async () => {
+  const pool=createPool(databaseUrl); const marker=Date.now().toString().slice(-9); let admin; let employee; let assetId; let secondAssetId; let reasonId; let statusOriginal;
+  try {
+    admin=await login('admin@seowon.local',integrationConfig.seedAdminPassword); employee=await login('employee@seowon.local',integrationConfig.seedUserPassword);
+    assert.equal((await api('/api/enterprise/admin/references',employee)).status,403);
+    assert.equal((await api('/api/auth/reauth',admin,{method:'POST',body:{password:integrationConfig.seedAdminPassword}})).status,204);
+    const managed=await api('/api/enterprise/admin/references',admin); const refs=(await managed.json()).references; const repair=refs.statuses.find(row=>row.code==='REPAIR'); statusOriginal={name:repair.name,description:repair.description,sortOrder:repair.sort_order,isActive:repair.is_active};
+    const invalidStatus=await api('/api/enterprise/admin/references/statuses',admin,{method:'POST',body:{organizationId:admin.user.organizationId,code:'CUSTOM',name:'임의 상태',sortOrder:1}}); assert.equal(invalidStatus.status,400);
+    const reasonResponse=await api('/api/enterprise/admin/references/reasons',admin,{method:'POST',body:{organizationId:admin.user.organizationId,code:`RR-${marker}`,name:'통합 파손 사유',appliesToStatus:'REPAIR',requiresDetail:true}}); assert.equal(reasonResponse.status,201); reasonId=(await reasonResponse.json()).reference.id;
+    const duplicate=await api('/api/enterprise/admin/references/reasons',admin,{method:'POST',body:{organizationId:admin.user.organizationId,code:`RR-${marker}`,name:'중복 사유',appliesToStatus:'REPAIR',requiresDetail:false}}); assert.equal(duplicate.status,409);
+    const createAssetForTest=async(prefix)=>{const response=await api('/api/enterprise/assets',admin,{method:'POST',body:{organizationId:admin.user.organizationId,assetTag:`${prefix}-${marker}`,name:'상태 정책 검증 자산',statusCode:'AVAILABLE'}});assert.equal(response.status,201);return (await response.json()).asset.id;};
+    assetId=await createAssetForTest('SP');
+    const missingDetail=await api(`/api/enterprise/assets/${assetId}/status`,admin,{method:'POST',body:{toStatus:'REPAIR',reasonCode:`RR-${marker}`,reasonDetail:''}}); assert.equal(missingDetail.status,400);
+    const wrongReason=await api(`/api/enterprise/assets/${assetId}/status`,admin,{method:'POST',body:{toStatus:'REPAIR',reasonCode:'LOSS',reasonDetail:'적용 상태 불일치'}}); assert.equal(wrongReason.status,409);
+    const changed=await api(`/api/enterprise/assets/${assetId}/status`,admin,{method:'POST',body:{toStatus:'REPAIR',reasonCode:`RR-${marker}`,reasonDetail:'모터 손상 확인'}}); assert.equal(changed.status,200); assert.equal((await changed.json()).asset.status_code,'REPAIR');
+    const history=await pool.query('SELECT reason_definition_id,reason_detail,reason FROM asset_status_histories WHERE asset_id=$1 AND to_status=$2 ORDER BY id DESC LIMIT 1',[assetId,'REPAIR']); assert.equal(history.rows[0].reason_definition_id,String(reasonId)); assert.equal(history.rows[0].reason_detail,'모터 손상 확인'); assert.match(history.rows[0].reason,/통합 파손 사유/);
+    assert.equal((await api(`/api/enterprise/admin/references/reasons/${reasonId}`,admin,{method:'PATCH',body:{organizationId:admin.user.organizationId,name:'통합 파손 사유',isActive:false,appliesToStatus:'REPAIR',requiresDetail:true}})).status,200);
+    assert.equal((await api(`/api/enterprise/admin/references/statuses/${repair.id}`,admin,{method:'PATCH',body:{organizationId:admin.user.organizationId,name:repair.name,isActive:false,description:repair.description||'',sortOrder:repair.sort_order}})).status,200);
+    const operational=await api('/api/enterprise/reference',admin); const active=await operational.json(); assert.equal(active.reasons.some(row=>row.id===reasonId),false); assert.equal(active.statuses.some(row=>row.code==='REPAIR'),false);
+    secondAssetId=await createAssetForTest('SQ'); const inactiveStatus=await api(`/api/enterprise/assets/${secondAssetId}/status`,admin,{method:'POST',body:{toStatus:'REPAIR',reasonCode:'GENERAL'}}); assert.equal(inactiveStatus.status,409);
+    const retained=await pool.query('SELECT status_code FROM assets WHERE id=$1',[assetId]); assert.equal(retained.rows[0].status_code,'REPAIR');
+  } finally {
+    await removeTestSessions(pool,[admin,employee]);
+    for(const id of [assetId,secondAssetId].filter(Boolean)){await pool.query('DELETE FROM outbox_events WHERE aggregate_type=$1 AND aggregate_id=$2',['ASSET',String(id)]);await pool.query("DELETE FROM audit_logs WHERE entity_type='ASSET' AND entity_id=$1",[String(id)]);await pool.query('DELETE FROM asset_status_histories WHERE asset_id=$1',[id]);await pool.query('DELETE FROM assets WHERE id=$1',[id]);}
+    if(reasonId){await pool.query("DELETE FROM audit_logs WHERE entity_type='REASONS' AND entity_id=$1",[String(reasonId)]);await pool.query('DELETE FROM asset_reason_definitions WHERE id=$1',[reasonId]);}
+    if(statusOriginal&&admin){await pool.query('UPDATE asset_status_definitions SET name=$1,description=$2,sort_order=$3,is_active=$4,updated_at=now() WHERE organization_id=$5 AND code=$6',[statusOriginal.name,statusOriginal.description,statusOriginal.sortOrder,statusOriginal.isActive,admin.user.organizationId,'REPAIR']);await pool.query("DELETE FROM audit_logs WHERE entity_type='STATUSES' AND entity_id=(SELECT id::text FROM asset_status_definitions WHERE organization_id=$1 AND code='REPAIR')",[admin.user.organizationId]);}
+    await pool.end();
+  }
+});
+
 test('비밀번호 재설정 토큰은 단회 사용되고 기존 세션을 폐기한다', { skip: !baseUrl || !databaseUrl }, async () => {
   const pool=createPool(databaseUrl); const marker=Date.now().toString().slice(-9); const email=`reset-${marker}@seowon.local`; let userId; let loggedIn;
   try {
