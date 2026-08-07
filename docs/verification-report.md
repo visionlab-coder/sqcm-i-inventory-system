@@ -227,3 +227,16 @@ FR-025는 자동 브라우저에서 직원 로그인 → 요청함 → 구매 �
 | Docker | frontend/backend/database 3/3 healthy, backend 영속 파일 볼륨 쓰기 가능 |
 | 브라우저 | desktop·375px 자산 상세 증빙 UI, body=viewport 375px, 공식 반전 로고, 콘솔 오류 0 |
 | 백업·복구 | 394,006 bytes, SHA-256 `29fcab58b2ed1ca78dbce75d9fe3795ec6bb858964990aa1b35d583a91f28e0e`, 건수 일치 |
+
+## Phase 23 FR-025 구매 요청 브라우저 인수
+
+| 검증 | 결과 |
+|---|---|
+| 브라우저 흐름 | 직원 로그인 → 요청함 → 6개 필드 입력 → 생성 성공 → 구매 요약 재표시 통과 |
+| desktop | 1280px, 공식 반전 로고, 요청 #58 `PURCHASE/DRAFT` 표시 |
+| mobile | viewport·body 375px 일치, 수평 넘침 없음, 공식 반전 로고 |
+| PostgreSQL | 품목·수량·금액·비용센터·필요일 payload와 요청자·사유 일치 |
+| 감사 | `REQUEST_CREATED`, `REQUEST/58`, 요청 ID와 구매 metadata 연결 |
+| 정리 | 검증된 테스트 요청 1건·감사 1건만 트랜잭션 삭제, 사후 `0|0` |
+| 회귀 | JavaScript 37개, 단위 49/49, 통합 12/12, Docker 3/3 healthy, 안정 구간 신규 오류 0 |
+| 판정 | FR-025 완료, 기업형 완료 31·부분 완료 4 |
