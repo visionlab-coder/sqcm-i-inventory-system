@@ -479,3 +479,36 @@ test('부서 범위 관리자는 기준 부서와 하위 부서 자산만 조회
     await pool.end();
   }
 });
+
+test('2단계 승인 정책은 중간 승인에서 업무를 보류하고 최종 단계에서만 자산을 배정한다', { skip: !baseUrl || !databaseUrl }, async () => {
+  const pool=createPool(databaseUrl); const marker=Date.now().toString().slice(-9); let admin; let manager; let employee; let policyId; let requestId; let rejectedRequestId; let assetId;
+  try {
+    [admin,manager,employee]=await Promise.all([login('admin@seowon.local',integrationConfig.seedAdminPassword),login('manager@seowon.local',integrationConfig.seedManagerPassword),login('employee@seowon.local',integrationConfig.seedUserPassword)]);
+    assert.equal((await api('/api/auth/reauth',admin,{method:'POST',body:{password:integrationConfig.seedAdminPassword}})).status,204);
+    const policyResponse=await api('/api/enterprise/admin/approval-policies',admin,{method:'POST',body:{organizationId:admin.user.organizationId,name:`2단계 배정 ${marker}`,requestType:'ASSIGN',priority:100,steps:[{name:'부서 관리자 승인',approverRole:'MANAGER',departmentScope:'REQUEST_DEPARTMENT'},{name:'최종 관리자 승인',approverRole:'ADMIN',departmentScope:'ORGANIZATION'}]}}); assert.equal(policyResponse.status,201); policyId=(await policyResponse.json()).policy.id;
+    const asset=await pool.query(`INSERT INTO assets(organization_id,asset_tag,name,status_code,department_id,created_by) VALUES($1,$2,$3,'AVAILABLE',$4,$5) RETURNING id`,[employee.user.organizationId,`AP-${marker}`,`다단계 승인 자산 ${marker}`,employee.user.departmentId,admin.user.id]); assetId=asset.rows[0].id;
+    const created=await api('/api/enterprise/requests',employee,{method:'POST',body:{organizationId:employee.user.organizationId,requestType:'ASSIGN',assetId,title:'자산 배정 요청',reason:'다단계 승인 검증',payload:{assigneeUserId:employee.user.id}}}); assert.equal(created.status,201); requestId=(await created.json()).request.id;
+    assert.equal((await api(`/api/enterprise/requests/${requestId}/action`,employee,{method:'POST',body:{action:'SUBMIT'}})).status,200);
+    let stored=await pool.query('SELECT status,current_approval_step,approval_step_count FROM workflow_requests WHERE id=$1',[requestId]); assert.deepEqual(stored.rows[0],{status:'SUBMITTED',current_approval_step:1,approval_step_count:2});
+    assert.equal((await api(`/api/enterprise/requests/${requestId}/action`,manager,{method:'POST',body:{action:'APPROVE',reviewReason:'1단계 승인'}})).status,200);
+    stored=await pool.query('SELECT status,current_approval_step FROM workflow_requests WHERE id=$1',[requestId]); assert.deepEqual(stored.rows[0],{status:'SUBMITTED',current_approval_step:2});
+    assert.equal((await pool.query('SELECT status_code FROM assets WHERE id=$1',[assetId])).rows[0].status_code,'AVAILABLE');
+    assert.equal((await api(`/api/enterprise/requests/${requestId}/action`,manager,{method:'POST',body:{action:'APPROVE',reviewReason:'단계 건너뛰기 시도'}})).status,403);
+    assert.equal((await api(`/api/enterprise/requests/${requestId}/action`,admin,{method:'POST',body:{action:'APPROVE',reviewReason:'최종 승인'}})).status,200);
+    stored=await pool.query('SELECT status,current_approval_step FROM workflow_requests WHERE id=$1',[requestId]); assert.deepEqual(stored.rows[0],{status:'APPROVED',current_approval_step:null});
+    assert.equal((await pool.query('SELECT status_code FROM assets WHERE id=$1',[assetId])).rows[0].status_code,'ASSIGNED');
+    const approvals=await api(`/api/enterprise/requests/${requestId}/approvals`,employee); assert.equal(approvals.status,200); assert.deepEqual((await approvals.json()).approvals.map(row=>row.status),['APPROVED','APPROVED']);
+    const rejected=await api('/api/enterprise/requests',employee,{method:'POST',body:{organizationId:employee.user.organizationId,requestType:'ASSIGN',assetId,title:'반려 경로 요청',reason:'후속 단계 종료 검증',payload:{assigneeUserId:employee.user.id}}}); rejectedRequestId=(await rejected.json()).request.id;
+    await api(`/api/enterprise/requests/${rejectedRequestId}/action`,employee,{method:'POST',body:{action:'SUBMIT'}});
+    assert.equal((await api(`/api/enterprise/requests/${rejectedRequestId}/action`,manager,{method:'POST',body:{action:'REJECT',reviewReason:'요건 미충족'}})).status,200);
+    const rejectedApprovals=await pool.query('SELECT status FROM workflow_request_approvals WHERE request_id=$1 ORDER BY step_order',[rejectedRequestId]); assert.deepEqual(rejectedApprovals.rows.map(row=>row.status),['REJECTED','SKIPPED']);
+  } finally {
+    await removeTestSessions(pool,[admin,manager,employee]);
+    for(const id of [requestId,rejectedRequestId].filter(Boolean)){await pool.query("DELETE FROM outbox_events WHERE aggregate_type='REQUEST' AND aggregate_id=$1",[String(id)]);await pool.query("DELETE FROM audit_logs WHERE entity_type='REQUEST' AND entity_id=$1",[String(id)]);}
+    if(assetId){await pool.query('DELETE FROM asset_assignments WHERE asset_id=$1',[assetId]);await pool.query('DELETE FROM asset_status_histories WHERE asset_id=$1',[assetId]);await pool.query("DELETE FROM outbox_events WHERE aggregate_type='ASSET' AND aggregate_id=$1",[String(assetId)]);}
+    if(requestId||rejectedRequestId) await pool.query('DELETE FROM workflow_requests WHERE id=ANY($1::bigint[])',[[requestId,rejectedRequestId].filter(Boolean)]);
+    if(assetId) await pool.query('DELETE FROM assets WHERE id=$1',[assetId]);
+    if(policyId){await pool.query("DELETE FROM audit_logs WHERE entity_type='APPROVAL_POLICY' AND entity_id=$1",[String(policyId)]);await pool.query('DELETE FROM approval_policies WHERE id=$1',[policyId]);}
+    await pool.end();
+  }
+});

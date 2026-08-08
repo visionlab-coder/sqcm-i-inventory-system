@@ -1,6 +1,7 @@
 const { DomainError, positiveInteger } = require('./inventory-service');
 const referenceRepository = require('../repositories/reference-repository');
 const { requireDepartmentAccess } = require('./scope-service');
+const { initializeApprovalPlan, getCurrentApproval, requireStepRole } = require('./approval-service');
 
 const ROLE_PERMISSIONS = {
   USER: new Set(['asset.read', 'request.create', 'request.read.self', 'repair.create']),
@@ -258,13 +259,18 @@ async function transitionRequest(pool, user, requestId, input, trace = {}) {
     const found = await client.query('SELECT * FROM workflow_requests WHERE id=$1 FOR UPDATE', [id]);
     if (!found.rowCount) throw new DomainError('요청을 찾을 수 없습니다.', 404);
     const request = found.rows[0]; requireOrganization(user, request.organization_id);
-    let status;
+    let status; let auditAction; let auditMetadata = { before: request.status };
     if (action === 'SUBMIT') {
       if (request.requester_id !== user.id || request.status !== 'DRAFT') throw new DomainError('제출할 수 없는 요청입니다.', 409);
+      const plan = await initializeApprovalPlan(client,request,user.id);
       status = 'SUBMITTED';
+      auditAction = 'REQUEST_SUBMITTED';
+      auditMetadata = { ...auditMetadata, after:status, policyId:plan.policy.id, stepCount:plan.steps.length };
     } else if (action === 'CANCEL') {
       if (request.requester_id !== user.id || !['DRAFT','SUBMITTED'].includes(request.status)) throw new DomainError('취소할 수 없는 요청입니다.', 409);
       status = 'CANCELLED';
+      await client.query("UPDATE workflow_request_approvals SET status='SKIPPED' WHERE request_id=$1 AND status='PENDING'", [id]);
+      auditAction = 'REQUEST_CANCELLED'; auditMetadata = { ...auditMetadata, after:status };
     } else {
       requirePermission(user, 'request.review');
       const targetDepartment = request.asset_id
@@ -274,16 +280,36 @@ async function transitionRequest(pool, user, requestId, input, trace = {}) {
       if (request.requester_id === user.id) throw new DomainError('자신이 만든 요청을 승인할 수 없습니다.', 409);
       if (request.status !== 'SUBMITTED') throw new DomainError('검토 대기 요청만 처리할 수 있습니다.', 409);
       if (!['APPROVE','REJECT'].includes(action)) throw new DomainError('올바른 검토 작업이 아닙니다.');
-      status = action === 'APPROVE' ? 'APPROVED' : 'REJECTED';
-      if (status === 'REJECTED' && String(input.reviewReason || '').trim().length < 2) throw new DomainError('반려 사유가 필요합니다.');
-      if (status === 'APPROVED') await applyApprovedRequest(client, request, user, trace);
+      const approval = await getCurrentApproval(client,id);
+      if (!approval || Number(approval.step_order) !== Number(request.current_approval_step)) throw new DomainError('현재 처리할 승인 단계가 없습니다.', 409);
+      requireStepRole(user,approval);
+      const reviewReason = String(input.reviewReason || '').trim();
+      if (action === 'REJECT' && reviewReason.length < 2) throw new DomainError('반려 사유가 필요합니다.');
+      if (action === 'REJECT') {
+        await client.query("UPDATE workflow_request_approvals SET status='REJECTED',acted_by=$1,reason=$2,acted_at=now() WHERE id=$3 AND status='PENDING'", [user.id,reviewReason,approval.id]);
+        await client.query("UPDATE workflow_request_approvals SET status='SKIPPED' WHERE request_id=$1 AND step_order>$2 AND status='PENDING'", [id,approval.step_order]);
+        status = 'REJECTED'; auditAction = 'REQUEST_REJECTED';
+      } else {
+        const acted = await client.query("UPDATE workflow_request_approvals SET status='APPROVED',acted_by=$1,reason=$2,acted_at=now() WHERE id=$3 AND status='PENDING' RETURNING id", [user.id,reviewReason||null,approval.id]);
+        if (!acted.rowCount) throw new DomainError('이미 처리된 승인 단계입니다.',409);
+        const next = await client.query("SELECT step_order FROM workflow_request_approvals WHERE request_id=$1 AND status='PENDING' ORDER BY step_order LIMIT 1", [id]);
+        if (next.rowCount) {
+          status = 'SUBMITTED'; auditAction = 'REQUEST_STEP_APPROVED';
+          await client.query('UPDATE workflow_requests SET current_approval_step=$1,updated_at=now() WHERE id=$2', [next.rows[0].step_order,id]);
+        } else {
+          status = 'APPROVED'; auditAction = 'REQUEST_APPROVED';
+          await applyApprovedRequest(client, request, user, trace);
+        }
+      }
+      auditMetadata = { ...auditMetadata, after:status, stepOrder:Number(approval.step_order), stepCount:Number(request.approval_step_count), stepName:approval.step_name };
     }
-    const updated = await client.query(`UPDATE workflow_requests SET status=$1::varchar,submitted_at=CASE WHEN $1::varchar='SUBMITTED' THEN now() ELSE submitted_at END,
+    const updated = await client.query(`UPDATE workflow_requests SET status=$1::varchar,submitted_at=CASE WHEN $1::varchar='SUBMITTED' AND submitted_at IS NULL THEN now() ELSE submitted_at END,
       reviewer_id=CASE WHEN $1::varchar IN ('APPROVED','REJECTED') THEN $2::bigint ELSE reviewer_id END,review_reason=CASE WHEN $1::varchar IN ('APPROVED','REJECTED') THEN $3::varchar ELSE review_reason END,
-      reviewed_at=CASE WHEN $1::varchar IN ('APPROVED','REJECTED') THEN now() ELSE reviewed_at END,updated_at=now() WHERE id=$4 RETURNING *`,
+      reviewed_at=CASE WHEN $1::varchar IN ('APPROVED','REJECTED') THEN now() ELSE reviewed_at END,current_approval_step=CASE WHEN $1::varchar IN ('APPROVED','REJECTED','CANCELLED') THEN NULL ELSE current_approval_step END,updated_at=now() WHERE id=$4 RETURNING *`,
     [status, user.id, String(input.reviewReason || '').trim() || null, id]);
-    await enterpriseAudit(client, user, `REQUEST_${status}`, 'REQUEST', id, { before: request.status, after: status }, trace);
-    await outbox(client, 'REQUEST', id, `REQUEST_${status}`, { requestType: request.request_type }, trace.idempotencyKey);
+    await enterpriseAudit(client, user, auditAction || `REQUEST_${status}`, 'REQUEST', id, auditMetadata, trace);
+    const workflowEvent = auditAction || `REQUEST_${status}`;
+    await outbox(client, 'REQUEST', id, workflowEvent, { requestType: request.request_type,stepOrder:auditMetadata.stepOrder||null }, `${trace.idempotencyKey || trace.requestId || id}:${workflowEvent}:${auditMetadata.stepOrder || 0}`);
     await client.query('COMMIT'); return updated.rows[0];
   } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
 }
