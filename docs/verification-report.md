@@ -276,7 +276,7 @@ FR-025는 자동 브라우저에서 직원 로그인 → 요청함 → 구매 �
 | 검증 | 최신 결과 |
 |---|---|
 | 후속 추적성 | CI·공급자·DNS/TLS·Secret·전환·UAT·GitHub 공유 게이트 1:1 분리 |
-| CI 런타임 | checkout/setup-node v5(Node 24), 운영 계약 검사 job 연결 |
+| CI 런타임 | checkout/setup-node v5(Node 24), 운영 계약 검사 연결, run 31260802672 두 job 성공·annotation 0 |
 | 구문·단위·통합 | JavaScript 55개, 단위 69/69, 통합 16/16, 실패·skip 0 |
 | 운영 계약 | manifest·Secret 참조·callback·RPO/RTO 템플릿 검사 통과 |
 | 역조건 | 평문 Secret·외부 callback·template preflight·template cutover 승인 차단 |
