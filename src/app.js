@@ -14,6 +14,8 @@ const { getAuditLogs } = require('./services/reporting-service');
 const { acceptInvitation } = require('./services/organization-service');
 const { LocalFileStore } = require('./storage/local-file-store');
 const { startMfaSetup, enableMfa, verifyMfaLogin, disableMfa } = require('./services/mfa-service');
+const { MockMalwareScanner } = require('./adapters/mock-malware-scanner');
+const { validateOperationalAdapters } = require('./adapters/contracts');
 
 function safeReturnPath(value) {
   return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : '/';
@@ -45,9 +47,10 @@ function apiError(req, res, status, code, message, fieldErrors = []) {
   return res.status(status).json({ code, message, fieldErrors, requestId: req.id });
 }
 
-function createApp({ pool, config, fileStore }) {
-  if (!fileStore && config.fileStorageDriver !== 'local') throw new Error('External file storage provider must be injected before startup.');
+function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
   fileStore ||= new LocalFileStore(config.fileStorageRoot);
+  malwareScanner ||= config.malwareScanDriver === 'mock' ? new MockMalwareScanner() : null;
+  validateOperationalAdapters(config,{ fileStore,malwareScanner,oidcProvider });
   const app = express();
   const PgSession = connectPgSimple(session);
   const loginRateLimit = createLoginRateLimiter({
@@ -130,7 +133,7 @@ function createApp({ pool, config, fileStore }) {
     next();
   };
 
-  app.use('/api/enterprise', createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProduction: config.env === 'production', fileStore, fileMaxBytes: config.fileMaxBytes }));
+  app.use('/api/enterprise', createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProduction: config.env === 'production', fileStore, malwareScanner, fileMaxBytes: config.fileMaxBytes }));
 
   app.get('/api/health', async (_req, res) => {
     try {
@@ -141,10 +144,50 @@ function createApp({ pool, config, fileStore }) {
     }
   });
 
+  app.get('/api/readiness', async (_req,res)=>{
+    try{
+      await pool.query('SELECT 1');
+      const dependencies={ storage:await fileStore.healthCheck(),malware:await malwareScanner.healthCheck() };
+      if(oidcProvider) dependencies.oidc=await oidcProvider.healthCheck();
+      if(Object.values(dependencies).some(item=>item?.status!=='ok')) throw new Error('dependency not ready');
+      res.json({status:'ok',service:'backend',database:'up',dependencies});
+    }catch(_error){res.status(503).json({status:'error',service:'backend'});}
+  });
+
   app.get('/api/auth/csrf', (req, res) => res.json({ csrfToken: csrfToken(req) }));
+  app.get('/api/auth/config', (_req,res)=>res.json({ authProvider:config.authProvider }));
   app.get('/api/auth/me', apiAuth, (req, res) => res.json({ user: req.user, csrfToken: csrfToken(req) }));
 
+  app.get('/api/auth/oidc/start', async (req,res) => {
+    if(config.authProvider !== 'oidc') return apiError(req,res,404,'OIDC_DISABLED','SSO 로그인이 활성화되지 않았습니다.');
+    const state=crypto.randomBytes(32).toString('hex'); const nonce=crypto.randomBytes(32).toString('hex');
+    req.session.oidc={ state,nonce,issuedAt:Date.now(),returnTo:safeReturnPath(req.query.returnTo) };
+    res.redirect(await oidcProvider.authorizationUrl({state,nonce,redirectUri:config.oidcRedirectUri}));
+  });
+
+  app.get('/api/auth/oidc/callback', async (req,res) => {
+    const pending=req.session.oidc; delete req.session.oidc;
+    if(config.authProvider !== 'oidc'||!pending||pending.state!==req.query.state||Date.now()-pending.issuedAt>5*60*1000) {
+      return apiError(req,res,401,'OIDC_STATE_INVALID','SSO 인증 상태가 유효하지 않습니다.');
+    }
+    const claims=await oidcProvider.exchangeCode({code:String(req.query.code||''),nonce:pending.nonce,redirectUri:config.oidcRedirectUri});
+    if(!claims?.issuer||!claims?.subject||!claims?.email||claims.emailVerified!==true) return apiError(req,res,401,'OIDC_CLAIMS_INVALID','SSO 사용자 정보가 유효하지 않습니다.');
+    let found=await pool.query(`SELECT u.* FROM user_oidc_identities i JOIN users u ON u.id=i.user_id WHERE i.issuer=$1 AND i.subject=$2`,[claims.issuer,claims.subject]);
+    if(!found.rowCount&&config.oidcAllowEmailLinking){
+      const client=await pool.connect();
+      try{await client.query('BEGIN');found=await client.query("SELECT * FROM users WHERE lower(email)=lower($1) AND status='ACTIVE' FOR UPDATE",[claims.email]);if(found.rowCount){const linked=await client.query('INSERT INTO user_oidc_identities(user_id,issuer,subject) VALUES($1,$2,$3) ON CONFLICT DO NOTHING RETURNING user_id',[found.rows[0].id,claims.issuer,claims.subject]);if(!linked.rowCount)throw new Error('OIDC identity linking conflict.');}await client.query('COMMIT');}catch(error){await client.query('ROLLBACK');throw error;}finally{client.release();}
+    }
+    const user=found.rows[0]; if(!user||user.status!=='ACTIVE') return apiError(req,res,403,'OIDC_USER_NOT_PROVISIONED','등록된 활성 SSO 사용자가 아닙니다.');
+    await new Promise((resolve,reject)=>req.session.regenerate(error=>error?reject(error):resolve()));
+    req.session.csrfToken=crypto.randomBytes(32).toString('hex');
+    if(user.mfa_enabled){req.session.pendingMfaUserId=user.id;req.session.pendingMfaIssuedAt=Date.now();await writeAudit(pool,user.id,'MFA_CHALLENGE_ISSUED','AUTH',user.id,{source:'oidc'},auditTrace(req));return res.redirect('/?mfa=required');}
+    req.session.userId=user.id; req.session.reauthenticatedAt=Date.now(); await pool.query('UPDATE users SET last_login_at=now() WHERE id=$1',[user.id]);
+    await writeAudit(pool,user.id,'OIDC_LOGIN_SUCCEEDED','AUTH',user.id,{issuer:claims.issuer},auditTrace(req));
+    res.redirect(pending.returnTo);
+  });
+
   app.post('/api/auth/login', loginRateLimit, async (req, res) => {
+    if(config.authProvider==='oidc') return apiError(req,res,403,'LOCAL_LOGIN_DISABLED','회사 SSO로 로그인하세요.');
     const email = String(req.body.email || '').trim().toLowerCase();
     const password = String(req.body.password || '');
     const result = await pool.query('SELECT * FROM users WHERE lower(email) = $1', [email]);
@@ -365,6 +408,7 @@ function createApp({ pool, config, fileStore }) {
   });
 
   app.post('/login', loginRateLimit, async (req, res) => {
+    if(config.authProvider==='oidc') return res.redirect('/api/auth/oidc/start');
     const email = String(req.body.email || '').trim().toLowerCase();
     const password = String(req.body.password || '');
     const result = await pool.query('SELECT * FROM users WHERE lower(email) = $1', [email]);

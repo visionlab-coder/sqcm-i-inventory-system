@@ -27,6 +27,18 @@ function getConfig(overrides = {}) {
   if (env.NODE_ENV === 'production' && fileStorageDriver === 'local') throw new Error('Production requires an external file storage provider.');
   if (!['local', 'external'].includes(fileStorageDriver)) throw new Error('FILE_STORAGE_DRIVER must be local or external.');
 
+  const authProvider = String(env.AUTH_PROVIDER || 'local').toLowerCase();
+  const malwareScanDriver = String(env.MALWARE_SCAN_DRIVER || 'mock').toLowerCase();
+  const operationalAdapterModule = String(env.OPERATIONAL_ADAPTER_MODULE || '').trim();
+  if (!['local', 'oidc'].includes(authProvider)) throw new Error('AUTH_PROVIDER must be local or oidc.');
+  if (!['mock', 'external'].includes(malwareScanDriver)) throw new Error('MALWARE_SCAN_DRIVER must be mock or external.');
+  if (env.NODE_ENV === 'production') {
+    if (authProvider !== 'oidc') throw new Error('Production requires AUTH_PROVIDER=oidc.');
+    if (malwareScanDriver !== 'external') throw new Error('Production requires MALWARE_SCAN_DRIVER=external.');
+    if (!operationalAdapterModule) throw new Error('Production requires OPERATIONAL_ADAPTER_MODULE.');
+    if (!/^https:\/\//i.test(String(env.OIDC_REDIRECT_URI || ''))) throw new Error('Production requires an HTTPS OIDC_REDIRECT_URI.');
+  }
+
   const mfaEncryptionKey = env.MFA_ENCRYPTION_KEY || require('node:crypto').createHash('sha256').update(`development-mfa:${sessionSecret}`).digest('base64');
   if (Buffer.from(mfaEncryptionKey, 'base64').length !== 32) throw new Error('MFA_ENCRYPTION_KEY는 base64 32-byte 값이어야 합니다.');
 
@@ -41,6 +53,11 @@ function getConfig(overrides = {}) {
     fileStorageDriver,
     fileStorageRoot: env.FILE_STORAGE_ROOT || path.join(process.cwd(), 'artifacts', 'uploads'),
     fileMaxBytes: boundedInteger(env.FILE_MAX_BYTES, 5 * 1024 * 1024, 'FILE_MAX_BYTES', 1024, 5 * 1024 * 1024),
+    authProvider,
+    malwareScanDriver,
+    operationalAdapterModule,
+    oidcRedirectUri: String(env.OIDC_REDIRECT_URI || '').trim(),
+    oidcAllowEmailLinking: env.OIDC_ALLOW_EMAIL_LINKING === 'true',
     mfaEncryptionKey,
     seedAdminPassword: env.SEED_ADMIN_PASSWORD || 'Admin1234!',
     seedManagerPassword: env.SEED_MANAGER_PASSWORD || 'Manager1234!',

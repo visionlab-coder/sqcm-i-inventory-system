@@ -4,6 +4,7 @@ const path = require('node:path');
 class LocalFileStore {
   constructor(root) {
     this.root = path.resolve(root);
+    this.driver = 'LOCAL';
   }
 
   resolve(storageKey) {
@@ -26,8 +27,18 @@ class LocalFileStore {
     return target;
   }
 
+  async read(storageKey) {
+    return fs.readFile(this.resolve(storageKey));
+  }
+
   async removeNew(storageKey) {
     await fs.unlink(this.resolve(storageKey));
+  }
+
+  async healthCheck() {
+    await fs.mkdir(this.root, { recursive: true });
+    await fs.access(this.root);
+    return { status: 'ok', driver: this.driver };
   }
 }
 

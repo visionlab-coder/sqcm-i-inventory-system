@@ -25,6 +25,10 @@ const rejectPlaceholder = (name, minimum) => {
 
 rejectPlaceholder("POSTGRES_PASSWORD", 16);
 rejectPlaceholder("SESSION_SECRET", 32);
+rejectPlaceholder("MFA_ENCRYPTION_KEY", 40);
+if (Buffer.from(value("MFA_ENCRYPTION_KEY"), "base64").length !== 32) {
+  failures.push("MFA_ENCRYPTION_KEY: base64 32-byte 값이어야 합니다.");
+}
 rejectPlaceholder("SEED_ADMIN_PASSWORD", 12);
 rejectPlaceholder("SEED_MANAGER_PASSWORD", 12);
 rejectPlaceholder("SEED_USER_PASSWORD", 12);
@@ -55,6 +59,18 @@ if (!/^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$/.test(value("RELEASE_TAG"))) {
 const target = value("DEPLOY_TARGET") || "production";
 if (target !== "local" && (value("FILE_STORAGE_DRIVER") || "local").toLowerCase() === "local") {
   failures.push("External deployments require FILE_STORAGE_DRIVER=external.");
+}
+if (target !== "local" && value("MALWARE_SCAN_DRIVER").toLowerCase() !== "external") {
+  failures.push("External deployments require MALWARE_SCAN_DRIVER=external.");
+}
+if (target !== "local" && value("AUTH_PROVIDER").toLowerCase() !== "oidc") {
+  failures.push("External deployments require AUTH_PROVIDER=oidc.");
+}
+if (target !== "local" && !value("OPERATIONAL_ADAPTER_MODULE")) {
+  failures.push("External deployments require OPERATIONAL_ADAPTER_MODULE.");
+}
+if (target !== "local" && !/^https:\/\//i.test(value("OIDC_REDIRECT_URI"))) {
+  failures.push("External deployments require an HTTPS OIDC_REDIRECT_URI.");
 }
 if (target !== "local" && value("COOKIE_SECURE").toLowerCase() !== "true") {
   failures.push("외부 배포에서는 COOKIE_SECURE=true여야 합니다.");

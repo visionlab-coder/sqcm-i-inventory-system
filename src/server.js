@@ -1,12 +1,14 @@
 const { getConfig } = require('./config');
 const { createPool, initializeDatabase } = require('./db');
 const { createApp } = require('./app');
+const { loadOperationalAdapters } = require('./adapters/loader');
 
 async function main() {
   const config = getConfig();
   const pool = createPool(config.databaseUrl);
   await initializeDatabase(pool, config);
-  const app = createApp({ pool, config });
+  const adapters = await loadOperationalAdapters(config);
+  const app = createApp({ pool, config, ...adapters });
   const server = app.listen(config.port, () => console.log(JSON.stringify({ event: 'server_started', port: config.port, env: config.env })));
 
   const shutdown = signal => {

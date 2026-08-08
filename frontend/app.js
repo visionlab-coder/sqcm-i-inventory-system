@@ -35,6 +35,10 @@ function showLogin() {
   $('#login-page').classList.remove('hidden');
   $('#mfa-login-form').classList.add('hidden');
   $('#login-form').classList.remove('hidden');
+  if (new URLSearchParams(location.search).get('mfa') === 'required') {
+    $('#login-form').classList.add('hidden');
+    $('#mfa-login-form').classList.remove('hidden');
+  }
 }
 
 function showInvitation(token) {
@@ -58,6 +62,8 @@ function showApp() {
 
 async function boot() {
   try {
+    const authConfig = await request('/api/auth/config');
+    $('#sso-login').classList.toggle('hidden', authConfig.authProvider !== 'oidc');
     const csrf = await request('/api/auth/csrf');
     state.csrfToken = csrf.csrfToken;
     const invitationToken = location.hash.startsWith('#invitation=') ? decodeURIComponent(location.hash.slice('#invitation='.length)) : '';

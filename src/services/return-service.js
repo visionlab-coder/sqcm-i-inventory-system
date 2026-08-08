@@ -18,7 +18,7 @@ function normalizeReturnPayload(input = {}) {
   return { conditionCode, note:note || null, accessories };
 }
 
-async function uploadReturnPhoto({ pool,fileStore,maxBytes,user,requestId,input,trace }) {
+async function uploadReturnPhoto({ pool,fileStore,malwareScanner,maxBytes,user,requestId,input,trace }) {
   const id = positiveInteger(requestId,'반납 요청번호');
   const found = await pool.query(`SELECT r.id,r.organization_id,r.requester_id,r.asset_id,r.request_type,r.status,a.department_id
     FROM workflow_requests r JOIN assets a ON a.id=r.asset_id WHERE r.id=$1`, [id]);
@@ -29,11 +29,13 @@ async function uploadReturnPhoto({ pool,fileStore,maxBytes,user,requestId,input,
   if (Number(request.organization_id) !== Number(user.organizationId) && user.role !== 'ADMIN') throw new DomainError('다른 조직 요청에 접근할 수 없습니다.',403);
   await requireDepartmentAccess(pool,user,request.department_id);
   const normalized = normalizeUpload({ ...input,fileType:'RETURN' },maxBytes);
+  const scan = await malwareScanner.scan(input.content,{ contentType:normalized.contentType,originalName:normalized.originalName });
+  if(scan?.status !== 'clean') throw new DomainError('악성코드 검사에서 안전하지 않은 파일로 판정되었습니다.',422);
   const key = storageKey(request.organization_id,normalized.media.ext);
   const checksum = crypto.createHash('sha256').update(input.content).digest('hex');
   await fileStore.write(key,input.content);
   try {
-    return await repository.createReturnEvidence(pool,{organizationId:request.organization_id,requestId:id,assetId:request.asset_id,storageKey:key,originalName:normalized.originalName,contentType:normalized.contentType,checksum,sizeBytes:input.content.length,storageDriver:'LOCAL',userId:user.id},trace);
+    return await repository.createReturnEvidence(pool,{organizationId:request.organization_id,requestId:id,assetId:request.asset_id,storageKey:key,originalName:normalized.originalName,contentType:normalized.contentType,checksum,sizeBytes:input.content.length,storageDriver:fileStore.driver||'EXTERNAL',userId:user.id},trace);
   } catch(error) { await fileStore.removeNew(key).catch(()=>{}); throw error; }
 }
 

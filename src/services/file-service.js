@@ -34,7 +34,7 @@ function storageKey(organizationId, extension, now = new Date()) {
   return `${organizationId}/${now.getUTCFullYear()}/${String(now.getUTCMonth()+1).padStart(2,'0')}/${crypto.randomBytes(20).toString('hex')}.${extension}`;
 }
 
-async function uploadAssetFile({ pool, fileStore, maxBytes, user, assetId, input, trace }) {
+async function uploadAssetFile({ pool, fileStore, malwareScanner, maxBytes, user, assetId, input, trace }) {
   requirePermission(user, 'asset.update');
   const id = positiveInteger(assetId, '자산번호');
   const asset = await repository.findAsset(pool,id);
@@ -42,13 +42,15 @@ async function uploadAssetFile({ pool, fileStore, maxBytes, user, assetId, input
   requireOrganization(user,asset.organization_id);
   await requireDepartmentAccess(pool,user,asset.department_id);
   const normalized = normalizeUpload(input,maxBytes);
+  const scan = await malwareScanner.scan(input.content,{ contentType:normalized.contentType,originalName:normalized.originalName });
+  if (scan?.status !== 'clean') throw new DomainError('악성코드 검사에서 안전하지 않은 파일로 판정되었습니다.',422);
   const key = storageKey(asset.organization_id,normalized.media.ext);
   const checksum = crypto.createHash('sha256').update(input.content).digest('hex');
   await fileStore.write(key,input.content);
   try {
     return await repository.createAssetFile(pool,{ organizationId:asset.organization_id,assetId:id,storageKey:key,
       originalName:normalized.originalName,contentType:normalized.contentType,checksum,sizeBytes:input.content.length,
-      storageDriver:'LOCAL',userId:user.id,fileType:normalized.fileType },trace);
+      storageDriver:fileStore.driver || 'EXTERNAL',userId:user.id,fileType:normalized.fileType },trace);
   } catch (error) {
     await fileStore.removeNew(key).catch(()=>{});
     throw error;
@@ -61,9 +63,9 @@ async function getAssetFile({ pool, fileStore, user, assetId, fileId, trace }) {
   if (!file) throw new DomainError('파일을 찾을 수 없습니다.',404);
   requireOrganization(user,file.asset_organization_id);
   await requireDepartmentAccess(pool,user,file.asset_department_id);
-  const filePath = await fileStore.readPath(file.storage_key).catch(()=>{ throw new DomainError('파일 저장소에서 파일을 찾을 수 없습니다.',404); });
+  const content = await fileStore.read(file.storage_key).catch(()=>{ throw new DomainError('파일 저장소에서 파일을 찾을 수 없습니다.',404); });
   await repository.recordDownload(pool,user.id,file,trace);
-  return { file,filePath };
+  return { file,content };
 }
 
 async function deactivateAssetFile({ pool, user, assetId, fileId, trace }) {
