@@ -270,3 +270,21 @@ FR-025는 자동 브라우저에서 직원 로그인 → 요청함 → 구매 �
 | 판정 | 저장소 Phase 완료, 실제 공급자·운영 배포·실사용자 UAT 승인 대기 |
 
 상세 1:1 대조와 실패 개선 기록은 `develop docs/28_Phase29_최종_1대1_체크리스트.md` 및 `docs/phase-reports/29_최종_완료_감사.md`를 따른다.
+
+## 2026-08-08 Phase 30~33 후속 운영 준비 검증
+
+| 검증 | 최신 결과 |
+|---|---|
+| 후속 추적성 | CI·공급자·DNS/TLS·Secret·전환·UAT·GitHub 공유 게이트 1:1 분리 |
+| CI 런타임 | checkout/setup-node v5(Node 24), 운영 계약 검사 job 연결 |
+| 구문·단위·통합 | JavaScript 55개, 단위 69/69, 통합 16/16, 실패·skip 0 |
+| 운영 계약 | manifest·Secret 참조·callback·RPO/RTO 템플릿 검사 통과 |
+| 역조건 | 평문 Secret·외부 callback·template preflight·template cutover 승인 차단 |
+| 전환 게이트 | 9개 증거와 업무·보안·운영 3개 승인 필수 |
+| Docker·스모크 | 3/3 healthy, health·readiness·익명 401·공식 반전 로고 통과 |
+| DB | PostgreSQL 16.13, migration 13개, 필수 테이블 31개, 만료 세션 0 |
+| 프롬프트 | 메타프롬프트 25개, 4,000자 초과 0 |
+| 비밀 검사 | 일반 토큰·개인키 패턴 0 |
+| 판정 | 저장소 후속 실행 패키지 완료, 실제 공급자·운영 전환·UAT 서명은 외부 게이트 |
+
+후속 체인과 실행 책임은 `develop docs/29_Phase30_33_후속체인.md`, `docs/production-handoff.md`를 따른다.

@@ -16,6 +16,9 @@
     "deploy:check": "node scripts/deploy-precheck.mjs",
     "deploy:smoke": "node scripts/deploy-smoke.mjs",
     "maintenance:check": "node scripts/maintenance-check.mjs",
+    "operations:contracts": "node scripts/operations-contract-check.mjs",
+    "operations:preflight": "node scripts/operations-preflight.mjs",
+    "operations:cutover-gate": "node scripts/cutover-gate.mjs",
     "db:backup": "node scripts/db-backup.mjs",
     "db:restore-drill": "node scripts/db-restore-drill.mjs"
   },
