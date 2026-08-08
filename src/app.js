@@ -13,6 +13,7 @@ const { createEnterpriseRouter } = require('./enterprise-routes');
 const { getAuditLogs } = require('./services/reporting-service');
 const { acceptInvitation } = require('./services/organization-service');
 const { LocalFileStore } = require('./storage/local-file-store');
+const { startMfaSetup, enableMfa, verifyMfaLogin, disableMfa } = require('./services/mfa-service');
 
 function safeReturnPath(value) {
   return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : '/';
@@ -114,6 +115,12 @@ function createApp({ pool, config, fileStore }) {
     if (!reauthenticatedAt || Date.now() - reauthenticatedAt > 10 * 60 * 1000) {
       return apiError(req, res, 403, 'REAUTH_REQUIRED', '민감한 관리자 작업 전에 비밀번호를 다시 확인하세요.');
     }
+    if (req.user?.mfaEnabled) {
+      const verifiedAt = Number(req.session.mfaVerifiedAt || 0);
+      if (!verifiedAt || Date.now() - verifiedAt > 10 * 60 * 1000) {
+        return apiError(req, res, 403, 'MFA_REAUTH_REQUIRED', '민감한 관리자 작업 전에 MFA를 다시 확인하세요.');
+      }
+    }
     next();
   };
 
@@ -153,12 +160,47 @@ function createApp({ pool, config, fileStore }) {
     }
 
     await new Promise((resolve, reject) => req.session.regenerate(error => error ? reject(error) : resolve()));
-    req.session.userId = user.id;
     req.session.csrfToken = require('node:crypto').randomBytes(32).toString('hex');
-    loginRateLimit.clear(req);
+    if (user.mfa_enabled) {
+      req.session.pendingMfaUserId = user.id;
+      req.session.pendingMfaIssuedAt = Date.now();
+      await writeAudit(pool, user.id, 'MFA_CHALLENGE_ISSUED', 'AUTH', user.id, {}, auditTrace(req));
+      return res.status(202).json({ code: 'MFA_REQUIRED', mfaRequired: true, csrfToken: req.session.csrfToken });
+    }
+    req.session.userId = user.id; loginRateLimit.clear(req);
     await pool.query('UPDATE users SET failed_login_count = 0, locked_until = NULL, last_login_at = now() WHERE id = $1', [user.id]);
-    await writeAudit(pool, user.id, 'LOGIN_SUCCEEDED', 'AUTH', user.id, {}, auditTrace(req));
+    await writeAudit(pool, user.id, 'LOGIN_SUCCEEDED', 'AUTH', user.id, { mfa: false }, auditTrace(req));
     res.json({ user: sanitizeUser(user), csrfToken: req.session.csrfToken });
+  });
+
+  app.post('/api/auth/mfa/verify', async (req, res) => {
+    const pendingUserId = Number(req.session.pendingMfaUserId || 0);
+    const issuedAt = Number(req.session.pendingMfaIssuedAt || 0);
+    if (!pendingUserId || !issuedAt || Date.now() - issuedAt > 5 * 60 * 1000) {
+      delete req.session.pendingMfaUserId; delete req.session.pendingMfaIssuedAt;
+      return apiError(req, res, 401, 'MFA_CHALLENGE_EXPIRED', 'MFA 인증 시간이 만료되었습니다. 다시 로그인하세요.');
+    }
+    const user = await verifyMfaLogin(pool, pendingUserId, req.body.code, config.mfaEncryptionKey, auditTrace(req));
+    if (!user) return apiError(req, res, 401, 'INVALID_MFA_CODE', '인증 코드가 올바르지 않습니다.');
+    await new Promise((resolve, reject) => req.session.regenerate(error => error ? reject(error) : resolve()));
+    req.session.userId = user.id; req.session.mfaVerifiedAt = Date.now(); req.session.csrfToken = crypto.randomBytes(32).toString('hex');
+    await pool.query('UPDATE users SET failed_login_count=0,locked_until=NULL,last_login_at=now() WHERE id=$1', [user.id]);
+    await writeAudit(pool, user.id, 'LOGIN_SUCCEEDED', 'AUTH', user.id, { mfa: true }, auditTrace(req));
+    res.json({ user: sanitizeUser(user), csrfToken: req.session.csrfToken });
+  });
+
+  app.post('/api/auth/mfa/setup', apiAuth, requireRecentReauth, async (req, res) => {
+    res.json(await startMfaSetup(pool, req.user, config.mfaEncryptionKey, auditTrace(req)));
+  });
+
+  app.post('/api/auth/mfa/enable', apiAuth, async (req, res) => {
+    const result = await enableMfa(pool, req.user, req.body.code, config.mfaEncryptionKey, auditTrace(req));
+    req.session.mfaVerifiedAt = Date.now(); res.json(result);
+  });
+
+  app.post('/api/auth/mfa/disable', apiAuth, requireRecentReauth, async (req, res) => {
+    await disableMfa(pool, req.user, req.body.code, config.mfaEncryptionKey, auditTrace(req));
+    delete req.session.mfaVerifiedAt; res.status(204).end();
   });
 
   app.post('/api/auth/logout', apiAuth, async (req, res, next) => {
@@ -337,6 +379,14 @@ function createApp({ pool, config, fileStore }) {
       return res.status(401).render('login', {
         title: '로그인', reason: 'invalid', returnTo: safeReturnPath(req.body.returnTo),
         flash: { type: 'error', message: '이메일 또는 비밀번호를 확인하세요.' }
+      });
+    }
+
+    if (user.mfa_enabled) {
+      await writeAudit(pool, user.id, 'MFA_HTML_LOGIN_BLOCKED', 'AUTH', user.id, {}, auditTrace(req));
+      return res.status(409).render('login', {
+        title: '로그인', reason: 'mfa_required', returnTo: safeReturnPath(req.body.returnTo),
+        flash: { type: 'error', message: 'MFA가 활성화된 계정은 메인 비품관리 로그인 화면을 사용하세요.' }
       });
     }
 

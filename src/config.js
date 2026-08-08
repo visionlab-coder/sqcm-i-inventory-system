@@ -19,10 +19,16 @@ function getConfig(overrides = {}) {
   if (env.NODE_ENV === 'production' && env.COOKIE_SECURE !== 'true') {
     throw new Error('운영 환경에서는 COOKIE_SECURE=true가 필요합니다.');
   }
+  if (env.NODE_ENV === 'production' && Buffer.from(String(env.MFA_ENCRYPTION_KEY || ''), 'base64').length !== 32) {
+    throw new Error('운영 환경의 MFA_ENCRYPTION_KEY는 base64 32-byte 값이어야 합니다.');
+  }
 
   const fileStorageDriver = String(env.FILE_STORAGE_DRIVER || 'local').toLowerCase();
   if (env.NODE_ENV === 'production' && fileStorageDriver === 'local') throw new Error('Production requires an external file storage provider.');
   if (!['local', 'external'].includes(fileStorageDriver)) throw new Error('FILE_STORAGE_DRIVER must be local or external.');
+
+  const mfaEncryptionKey = env.MFA_ENCRYPTION_KEY || require('node:crypto').createHash('sha256').update(`development-mfa:${sessionSecret}`).digest('base64');
+  if (Buffer.from(mfaEncryptionKey, 'base64').length !== 32) throw new Error('MFA_ENCRYPTION_KEY는 base64 32-byte 값이어야 합니다.');
 
   return {
     env: env.NODE_ENV || 'development',
@@ -35,6 +41,7 @@ function getConfig(overrides = {}) {
     fileStorageDriver,
     fileStorageRoot: env.FILE_STORAGE_ROOT || path.join(process.cwd(), 'artifacts', 'uploads'),
     fileMaxBytes: boundedInteger(env.FILE_MAX_BYTES, 5 * 1024 * 1024, 'FILE_MAX_BYTES', 1024, 5 * 1024 * 1024),
+    mfaEncryptionKey,
     seedAdminPassword: env.SEED_ADMIN_PASSWORD || 'Admin1234!',
     seedManagerPassword: env.SEED_MANAGER_PASSWORD || 'Manager1234!',
     seedUserPassword: env.SEED_USER_PASSWORD || 'Employee1234!'

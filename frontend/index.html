@@ -27,6 +27,15 @@
         <label>비밀번호<input type="password" name="password" autocomplete="current-password" minlength="10" required></label>
         <button class="primary full" type="submit">로그인</button>
       </form>
+      <form id="mfa-login-form" class="login-form hidden">
+        <p class="eyebrow">SECOND FACTOR</p>
+        <h2>MFA 인증</h2>
+        <p class="muted">인증 앱의 6자리 코드 또는 복구코드를 입력하세요.</p>
+        <div id="mfa-login-error" class="alert error hidden" role="alert"></div>
+        <label>인증 코드<input name="code" inputmode="numeric" autocomplete="one-time-code" required></label>
+        <button class="primary full" type="submit">인증 완료</button>
+        <button class="link full" id="mfa-login-back" type="button">로그인으로 돌아가기</button>
+      </form>
       <form id="invitation-form" class="login-form hidden">
         <p class="eyebrow">ACCOUNT ACTIVATION</p>
         <h2>초대 계정 활성화</h2>
@@ -55,6 +64,7 @@
         <button data-view="reports" data-manager-only>보고서</button>
         <button data-view="admin" data-admin-only>관리자</button>
         <button data-view="audit" id="audit-nav">감사 로그</button>
+        <button data-view="security">보안 설정</button>
       </nav>
       <div class="user-box"><strong id="user-name"></strong><span id="user-role"></span><button id="logout-button">로그아웃</button></div>
     </aside>

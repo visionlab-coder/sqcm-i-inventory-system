@@ -16,7 +16,7 @@ async function request(path, options = {}) {
   if (response.status === 204) return null;
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    if (response.status === 401 && path !== '/api/auth/login') showLogin();
+    if (response.status === 401 && !['/api/auth/login','/api/auth/mfa/verify'].includes(path)) showLogin();
     throw new Error(data.message || '요청을 처리하지 못했습니다.');
   }
   return data;
@@ -33,6 +33,8 @@ function showLogin() {
   state.user = null;
   $('#app-shell').classList.add('hidden');
   $('#login-page').classList.remove('hidden');
+  $('#mfa-login-form').classList.add('hidden');
+  $('#login-form').classList.remove('hidden');
 }
 
 function showInvitation(token) {
@@ -86,6 +88,7 @@ async function navigate(view) {
     if (view === 'items') await renderItems();
     if (view === 'loans') await renderLoans();
     if (view === 'audit') await renderAudit();
+    if (view === 'security') await renderSecurity();
     $('#main').focus();
   } catch (error) {
     $('#view-root').innerHTML = `<div class="empty"><h2>화면을 불러오지 못했습니다.</h2><p>${escapeHtml(error.message)}</p><button class="secondary" onclick="navigate('${view}')">다시 시도</button></div>`;
@@ -321,12 +324,29 @@ async function renderAudit(filters = {}) {
   $('#audit-filter').addEventListener('submit',event=>{event.preventDefault();renderAudit(Object.fromEntries(new FormData(event.target)));});
 }
 
+async function renderSecurity() {
+  const enabled = Boolean(state.user.mfaEnabled);
+  $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">ACCOUNT SECURITY</p><h1>보안<br>설정</h1><p class="muted">비밀번호 외에 인증 앱 코드를 추가해 계정을 보호합니다.</p></div></div>
+  <section class="panel form-panel"><div><h2>TOTP MFA</h2><p class="muted">현재 상태: <span id="mfa-status">${enabled ? '사용 중' : '미사용'}</span></p></div>
+  ${enabled ? `<form id="mfa-disable" class="grid-form"><label>현재 비밀번호<input type="password" name="password" autocomplete="current-password" required></label><label>인증 또는 복구코드<input name="code" autocomplete="one-time-code" required></label><button class="danger-button">MFA 해제</button></form>` : `<form id="mfa-setup" class="grid-form"><label>현재 비밀번호<input type="password" name="password" autocomplete="current-password" required></label><button class="primary">MFA 등록 시작</button></form><div id="mfa-setup-result" class="details"></div>`}
+  </section>`;
+  $('#mfa-setup')?.addEventListener('submit', async event => { event.preventDefault(); const button=event.submitter; button.disabled=true; try { const password=new FormData(event.target).get('password'); await request('/api/auth/reauth',{method:'POST',body:{password}}); const setup=await request('/api/auth/mfa/setup',{method:'POST',body:{}}); $('#mfa-setup-result').innerHTML=`<p>인증 앱에 아래 비밀키를 등록한 뒤 현재 코드를 입력하세요.</p><p class="mono">${escapeHtml(setup.secret)}</p><form id="mfa-enable" class="grid-form"><label>6자리 코드<input name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" required></label><button class="primary">MFA 활성화</button></form>`; $('#mfa-enable').addEventListener('submit',enableMfaFromForm); } catch(error){showMessage(error.message,'error');} finally {button.disabled=false;} });
+  $('#mfa-disable')?.addEventListener('submit', async event => { event.preventDefault(); const values=Object.fromEntries(new FormData(event.target)); try { await request('/api/auth/reauth',{method:'POST',body:{password:values.password}}); await request('/api/auth/mfa/disable',{method:'POST',body:{code:values.code}}); state.user.mfaEnabled=false; showMessage('MFA를 해제했습니다.'); renderSecurity(); } catch(error){showMessage(error.message,'error');} });
+}
+
+async function enableMfaFromForm(event) {
+  event.preventDefault(); const button=event.submitter; button.disabled=true;
+  try { const result=await request('/api/auth/mfa/enable',{method:'POST',body:{code:new FormData(event.target).get('code')}}); state.user.mfaEnabled=true; $('#mfa-status').textContent='사용 중'; $('#mfa-setup-result').innerHTML=`<div class="alert success"><strong>복구코드는 지금 한 번만 표시됩니다.</strong><p class="mono">${result.recoveryCodes.map(escapeHtml).join('<br>')}</p></div>`; showMessage('MFA를 활성화했습니다.'); }
+  catch(error){showMessage(error.message,'error');} finally {button.disabled=false;}
+}
+
 $('#login-form').addEventListener('submit', async event => {
   event.preventDefault();
   const errorBox = $('#login-error');
   errorBox.classList.add('hidden');
   try {
     const data = await request('/api/auth/login', { method: 'POST', body: Object.fromEntries(new FormData(event.target)) });
+    if (data.mfaRequired) { state.csrfToken=data.csrfToken; event.target.reset(); event.target.classList.add('hidden'); $('#mfa-login-form').classList.remove('hidden'); return; }
     state.user = data.user;
     state.csrfToken = data.csrfToken;
     event.target.reset();
@@ -336,6 +356,13 @@ $('#login-form').addEventListener('submit', async event => {
     errorBox.classList.remove('hidden');
   }
 });
+
+$('#mfa-login-form').addEventListener('submit', async event => {
+  event.preventDefault(); const errorBox=$('#mfa-login-error'); errorBox.classList.add('hidden');
+  try { const data=await request('/api/auth/mfa/verify',{method:'POST',body:{code:new FormData(event.target).get('code')}}); state.user=data.user; state.csrfToken=data.csrfToken; event.target.reset(); showApp(); }
+  catch(error){errorBox.textContent=error.message;errorBox.classList.remove('hidden');}
+});
+$('#mfa-login-back').addEventListener('click',async()=>{const csrf=await request('/api/auth/csrf');state.csrfToken=csrf.csrfToken;$('#mfa-login-form').classList.add('hidden');$('#login-form').classList.remove('hidden');});
 
 $('#invitation-form').addEventListener('submit', async event => {
   event.preventDefault();
