@@ -1,5 +1,6 @@
 const { DomainError, positiveInteger } = require('./inventory-service');
 const referenceRepository = require('../repositories/reference-repository');
+const { requireDepartmentAccess } = require('./scope-service');
 
 const ROLE_PERMISSIONS = {
   USER: new Set(['asset.read', 'request.create', 'request.read.self', 'repair.create']),
@@ -99,6 +100,7 @@ async function outbox(client, type, id, eventType, payload, idempotencyKey) {
 async function createAsset(pool, user, input, trace = {}) {
   requirePermission(user, 'asset.create');
   const organizationId = requireOrganization(user, input.organizationId || user.organizationId);
+  if (input.departmentId) await requireDepartmentAccess(pool, user, input.departmentId);
   const tag = String(input.assetTag || '').trim().toUpperCase();
   const name = String(input.name || '').trim();
   if (!/^[A-Z0-9-]{3,50}$/.test(tag)) throw new DomainError('자산번호는 영문 대문자·숫자·하이픈 3~50자로 입력하세요.');
@@ -140,6 +142,7 @@ async function changeAssetStatus(pool, user, assetId, input, trace = {}) {
     if (!current.rowCount) throw new DomainError('자산을 찾을 수 없습니다.', 404);
     const asset = current.rows[0];
     requireOrganization(user, asset.organization_id);
+    await requireDepartmentAccess(client, user, asset.department_id);
     assertTransition(asset.status_code, toStatus);
     const statusPolicy = await referenceRepository.findActiveStatusPolicy(client,asset.organization_id,toStatus);
     if(!statusPolicy) throw new DomainError('비활성 또는 등록되지 않은 자산 상태입니다.',409);
@@ -169,9 +172,10 @@ async function createRequest(pool, user, input, trace = {}) {
   try {
     await client.query('BEGIN');
     if (input.assetId) {
-      const asset = await client.query('SELECT organization_id FROM assets WHERE id=$1', [input.assetId]);
+      const asset = await client.query('SELECT organization_id,department_id FROM assets WHERE id=$1', [input.assetId]);
       if (!asset.rowCount) throw new DomainError('요청 자산을 찾을 수 없습니다.', 404);
       requireOrganization(user, asset.rows[0].organization_id);
+      await requireDepartmentAccess(client, user, asset.rows[0].department_id);
     }
     const payload = type === 'PURCHASE' ? normalizePurchasePayload(input.payload) : (input.payload || {});
     const result = await client.query(`INSERT INTO workflow_requests(organization_id,request_type,requester_id,asset_id,status,title,reason,payload)
@@ -190,6 +194,7 @@ async function applyApprovedRequest(client, request, reviewer, trace) {
   if (!found.rowCount) throw new DomainError('요청 자산을 찾을 수 없습니다.', 404);
   const asset = found.rows[0];
   requireOrganization(reviewer, asset.organization_id);
+  await requireDepartmentAccess(client, reviewer, asset.department_id);
   let toStatus = asset.status_code;
 
   if (request.request_type === 'ASSIGN') {
@@ -262,6 +267,10 @@ async function transitionRequest(pool, user, requestId, input, trace = {}) {
       status = 'CANCELLED';
     } else {
       requirePermission(user, 'request.review');
+      const targetDepartment = request.asset_id
+        ? (await client.query('SELECT department_id FROM assets WHERE id=$1', [request.asset_id])).rows[0]?.department_id
+        : (await client.query('SELECT department_id FROM users WHERE id=$1', [request.requester_id])).rows[0]?.department_id;
+      await requireDepartmentAccess(client, user, targetDepartment);
       if (request.requester_id === user.id) throw new DomainError('자신이 만든 요청을 승인할 수 없습니다.', 409);
       if (request.status !== 'SUBMITTED') throw new DomainError('검토 대기 요청만 처리할 수 있습니다.', 409);
       if (!['APPROVE','REJECT'].includes(action)) throw new DomainError('올바른 검토 작업이 아닙니다.');

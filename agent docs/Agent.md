@@ -33,9 +33,9 @@
 
 다음 작업에 단계별 결정 기록, 마이그레이션, 테스트 결과와 미완료 배포 항목을 남긴다. 임시 토큰, 테스트 세션, 개인·생계 데이터가 포함된 로그는 남기지 않는다.
 
-## 현재 상태 — Phase 24
+## 현재 상태 — Phase 25
 
-- FR-006 TOTP MFA와 FR-008 민감 작업 MFA/재인증 경계 완료, 기업형 판정 완료 32·부분 완료 3
-- migration `009_mfa_credentials.sql`, 단위 52/52, 통합 13/13
-- Docker 3서비스와 PostgreSQL 16 healthy, MFA desktop·375px 브라우저 인수 완료
-- Phase 25 부서 범위 → Phase 26 다단계 승인 → Phase 27 반납 사진 → Phase 28~29 운영·최종검증 체인 진행 중
+- FR-007 기준 부서와 활성 하위 부서 데이터 범위를 자산·요청·보고서·파일·수리·재물조사에 강제, 기업형 판정 완료 33·부분 완료 2
+- migration `010_department_scope_backfill.sql`, 단위 56/56, 통합 14/14
+- Docker frontend/backend/database 3서비스와 PostgreSQL 16 healthy
+- Phase 26 다단계 승인 → Phase 27 반납 사진 → Phase 28~29 운영·최종검증 체인 진행 중

@@ -1,6 +1,14 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { normalizeReportFilters, normalizeAuditFilters } = require('../../src/services/reporting-service');
+const { normalizeReportFilters, normalizeAuditFilters, assetFilterSql } = require('../../src/services/reporting-service');
+
+test('부서 범위는 보고서 SQL과 사용자가 요청한 부서 필터 양쪽에 적용된다', () => {
+  const scoped = assetFilterSql(1, { departmentId:'11' }, { departmentIds:[10,11,12] });
+  assert.match(scoped.where, /department_id=ANY\(\$2::bigint\[\]\)/);
+  assert.match(scoped.where, /department_id=\$3/);
+  assert.deepEqual(scoped.values, [1,[10,11,12],11]);
+  assert.throws(() => assetFilterSql(1, { departmentId:'99' }, { departmentIds:[10,11,12] }), error => error.status === 403);
+});
 
 test('자산 보고 필터는 차원 ID·상태·날짜를 정규화한다', () => {
   assert.deepEqual(normalizeReportFilters({ departmentId:'2', locationId:'3', categoryId:'4', status:' available ', from:'2026-01-01', to:'2026-12-31' }), {

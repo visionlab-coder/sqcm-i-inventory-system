@@ -428,7 +428,7 @@ test('자산 증빙파일은 검증·권한·감사·보존 수명주기를 지�
   try {
     manager=await login('manager@seowon.local',integrationConfig.seedManagerPassword);
     employee=await login('employee@seowon.local',integrationConfig.seedUserPassword);
-    const created=await api('/api/enterprise/assets',manager,{method:'POST',body:{organizationId:manager.user.organizationId,assetTag:`EV-${marker}`,name:'증빙 수명주기 자산',statusCode:'AVAILABLE'}});
+    const created=await api('/api/enterprise/assets',manager,{method:'POST',body:{organizationId:manager.user.organizationId,assetTag:`EV-${marker}`,name:'증빙 수명주기 자산',departmentId:employee.user.departmentId,statusCode:'AVAILABLE'}});
     assert.equal(created.status,201); assetId=(await created.json()).asset.id;
     assert.equal((await upload(employee,png)).status,403);
     assert.equal((await upload(manager,Buffer.from('not-png'))).status,400);
@@ -448,6 +448,34 @@ test('자산 증빙파일은 검증·권한·감사·보존 수명주기를 지�
     await removeTestSessions(pool,[manager,employee]);
     if(fileId){await pool.query("DELETE FROM audit_logs WHERE entity_type='FILE' AND entity_id=$1",[String(fileId)]);await pool.query('DELETE FROM asset_files WHERE file_id=$1',[fileId]);await pool.query('DELETE FROM file_records WHERE id=$1',[fileId]);}
     if(assetId){await pool.query('DELETE FROM outbox_events WHERE aggregate_type=$1 AND aggregate_id=$2',['ASSET',String(assetId)]);await pool.query("DELETE FROM audit_logs WHERE entity_type='ASSET' AND entity_id=$1",[String(assetId)]);await pool.query('DELETE FROM asset_status_histories WHERE asset_id=$1',[assetId]);await pool.query('DELETE FROM assets WHERE id=$1',[assetId]);}
+    await pool.end();
+  }
+});
+
+test('부서 범위 관리자는 기준 부서와 하위 부서 자산만 조회·변경한다', { skip: !baseUrl || !databaseUrl }, async () => {
+  const pool=createPool(databaseUrl); const marker=Date.now().toString().slice(-9); let session; let userId; const departmentIds=[]; const assetIds=[];
+  try {
+    const organization=await pool.query('SELECT id FROM organizations ORDER BY id LIMIT 1'); const organizationId=organization.rows[0].id;
+    const parent=await pool.query(`INSERT INTO departments(organization_id,code,name,unit_type) VALUES($1,$2,$3,'DEPARTMENT') RETURNING id`,[organizationId,`SP-${marker}`,`범위본부-${marker}`]); departmentIds.push(parent.rows[0].id);
+    const child=await pool.query(`INSERT INTO departments(organization_id,parent_id,code,name,unit_type) VALUES($1,$2,$3,$4,'TEAM') RETURNING id`,[organizationId,parent.rows[0].id,`SC-${marker}`,`하위팀-${marker}`]); departmentIds.push(child.rows[0].id);
+    const outside=await pool.query(`INSERT INTO departments(organization_id,code,name,unit_type) VALUES($1,$2,$3,'DEPARTMENT') RETURNING id`,[organizationId,`SX-${marker}`,`외부본부-${marker}`]); departmentIds.push(outside.rows[0].id);
+    const email=`scope-${marker}@seowon.local`; const password='ScopeManager123!';
+    const user=await pool.query(`INSERT INTO users(email,display_name,password_hash,role,status,organization_id,department_id) VALUES($1,$2,$3,'MANAGER','ACTIVE',$4,$5) RETURNING id`,[email,`범위 관리자 ${marker}`,await bcrypt.hash(password,12),organizationId,parent.rows[0].id]); userId=user.rows[0].id;
+    await pool.query(`INSERT INTO user_role_scopes(user_id,role_code,organization_id,department_id,scope_type) VALUES($1,'MANAGER',$2,$3,'DEPARTMENT')`,[userId,organizationId,parent.rows[0].id]);
+    for(const [tag,departmentId] of [[`SC-P-${marker}`,parent.rows[0].id],[`SC-C-${marker}`,child.rows[0].id],[`SC-X-${marker}`,outside.rows[0].id]]){const asset=await pool.query(`INSERT INTO assets(organization_id,asset_tag,name,status_code,department_id,created_by) VALUES($1,$2,$3,'AVAILABLE',$4,$5) RETURNING id`,[organizationId,tag,tag,departmentId,userId]);assetIds.push(asset.rows[0].id);}
+    session=await login(email,password);
+    assert.equal(session.user.scopeType,'DEPARTMENT');
+    const list=await api('/api/enterprise/assets?size=100',session); assert.equal(list.status,200); const listed=(await list.json()).assets.map(row=>Number(row.id)); assert.ok(listed.includes(Number(assetIds[0]))&&listed.includes(Number(assetIds[1])),`expected ${assetIds.slice(0,2)} in ${listed}`); assert.ok(!listed.includes(Number(assetIds[2])));
+    assert.equal((await api(`/api/enterprise/assets/${assetIds[2]}`,session)).status,403);
+    const report=await api('/api/enterprise/reports/assets',session); assert.equal(report.status,200); assert.equal((await report.json()).summary.assets,2);
+    const denied=await api('/api/enterprise/assets',session,{method:'POST',body:{organizationId,assetTag:`SC-D-${marker}`,name:'범위 외 생성',departmentId:outside.rows[0].id,statusCode:'AVAILABLE'}}); assert.equal(denied.status,403);
+    const reference=await api('/api/enterprise/reference',session); assert.equal(reference.status,200); const visible=(await reference.json()).departments.map(row=>Number(row.id)); assert.ok(visible.includes(Number(parent.rows[0].id))&&visible.includes(Number(child.rows[0].id))); assert.ok(!visible.includes(Number(outside.rows[0].id)));
+  } finally {
+    await removeTestSessions(pool,[session]);
+    if(userId) await pool.query('DELETE FROM audit_logs WHERE actor_user_id=$1',[userId]);
+    if(assetIds.length) await pool.query('DELETE FROM assets WHERE id=ANY($1::bigint[])',[assetIds]);
+    if(userId){await pool.query('DELETE FROM user_role_scopes WHERE user_id=$1',[userId]);await pool.query('DELETE FROM users WHERE id=$1',[userId]);}
+    for(const id of departmentIds.slice().reverse()) await pool.query('DELETE FROM departments WHERE id=$1',[id]);
     await pool.end();
   }
 });

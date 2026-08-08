@@ -28,10 +28,17 @@ function normalizeReportFilters(input = {}) {
   return filters;
 }
 
-function assetFilterSql(organizationId, input) {
+function assetFilterSql(organizationId, input, scope = {}) {
   const filters = normalizeReportFilters(input);
   const values = [organizationId];
   const where = ['a.organization_id=$1'];
+  if (scope.departmentIds) {
+    if (filters.departmentId && !scope.departmentIds.includes(Number(filters.departmentId))) {
+      throw new DomainError('허용된 부서 범위를 벗어났습니다.', 403);
+    }
+    values.push(scope.departmentIds);
+    where.push(`a.department_id=ANY($${values.length}::bigint[])`);
+  }
   for (const [key, column] of [['departmentId','a.department_id'],['locationId','a.location_id'],['categoryId','a.category_id']]) {
     if (filters[key]) { values.push(filters[key]); where.push(`${column}=$${values.length}`); }
   }
@@ -41,8 +48,8 @@ function assetFilterSql(organizationId, input) {
   return { filters, values, where: where.join(' AND ') };
 }
 
-async function getAssetReport(pool, organizationId, input = {}) {
-  const query = assetFilterSql(organizationId, input);
+async function getAssetReport(pool, organizationId, input = {}, scope = {}) {
+  const query = assetFilterSql(organizationId, input, scope);
   const from = `FROM assets a LEFT JOIN departments d ON d.id=a.department_id LEFT JOIN locations l ON l.id=a.location_id LEFT JOIN item_categories c ON c.id=a.category_id WHERE ${query.where}`;
   const [summary, departments, locations, categories, statuses] = await Promise.all([
     pool.query(`SELECT count(*)::int assets,count(*) FILTER(WHERE a.status_code='AVAILABLE')::int available,
@@ -57,8 +64,8 @@ async function getAssetReport(pool, organizationId, input = {}) {
   return { filters: query.filters, summary: summary.rows[0], breakdowns: { departments: departments.rows, locations: locations.rows, categories: categories.rows, statuses: statuses.rows } };
 }
 
-async function getReportAssets(pool, organizationId, input = {}) {
-  const query = assetFilterSql(organizationId, input);
+async function getReportAssets(pool, organizationId, input = {}, scope = {}) {
+  const query = assetFilterSql(organizationId, input, scope);
   const result = await pool.query(`SELECT a.asset_tag,a.name,a.serial_no,a.status_code,d.name department_name,l.name location_name,c.name category_name,a.acquired_at,a.acquisition_cost
     FROM assets a LEFT JOIN departments d ON d.id=a.department_id LEFT JOIN locations l ON l.id=a.location_id LEFT JOIN item_categories c ON c.id=a.category_id
     WHERE ${query.where} ORDER BY a.asset_tag`, query.values);
@@ -95,4 +102,4 @@ async function getAuditLogs(pool, input = {}) {
   return { filters, logs: result.rows };
 }
 
-module.exports = { normalizeReportFilters, normalizeAuditFilters, getAssetReport, getReportAssets, getAuditLogs };
+module.exports = { normalizeReportFilters, normalizeAuditFilters, assetFilterSql, getAssetReport, getReportAssets, getAuditLogs };

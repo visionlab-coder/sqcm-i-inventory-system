@@ -27,6 +27,16 @@ async function writeAudit(pool, actorId, action, entityType = 'AUTH', entityId =
   );
 }
 
+async function loadScopedUser(pool, userId) {
+  const result = await pool.query(`SELECT u.id,u.email,u.display_name,u.role,u.status,u.organization_id,u.department_id,u.employee_no,u.mfa_enabled,u.password_reset_required,
+    s.scope_type,s.department_id scope_department_id
+    FROM users u LEFT JOIN LATERAL (
+      SELECT scope_type,department_id FROM user_role_scopes WHERE user_id=u.id AND role_code=u.role
+      ORDER BY CASE scope_type WHEN 'ALL' THEN 4 WHEN 'ORGANIZATION' THEN 3 WHEN 'DEPARTMENT' THEN 2 ELSE 1 END DESC,created_at LIMIT 1
+    ) s ON true WHERE u.id=$1 AND u.status='ACTIVE'`, [userId]);
+  return result.rows[0] || null;
+}
+
 function setFlash(req, type, message) {
   req.session.flash = { type, message };
 }
@@ -68,11 +78,7 @@ function createApp({ pool, config, fileStore }) {
     try {
       req.user = null;
       if (req.session.userId) {
-        const result = await pool.query(
-          "SELECT id,email,display_name,role,status,organization_id,department_id,employee_no,mfa_enabled,password_reset_required FROM users WHERE id = $1 AND status = 'ACTIVE'",
-          [req.session.userId]
-        );
-        req.user = sanitizeUser(result.rows[0]);
+        req.user = sanitizeUser(await loadScopedUser(pool, req.session.userId));
         if (!req.user) delete req.session.userId;
       }
       const flash = req.session.flash;
@@ -170,7 +176,7 @@ function createApp({ pool, config, fileStore }) {
     req.session.userId = user.id; loginRateLimit.clear(req);
     await pool.query('UPDATE users SET failed_login_count = 0, locked_until = NULL, last_login_at = now() WHERE id = $1', [user.id]);
     await writeAudit(pool, user.id, 'LOGIN_SUCCEEDED', 'AUTH', user.id, { mfa: false }, auditTrace(req));
-    res.json({ user: sanitizeUser(user), csrfToken: req.session.csrfToken });
+    res.json({ user: sanitizeUser(await loadScopedUser(pool, user.id)), csrfToken: req.session.csrfToken });
   });
 
   app.post('/api/auth/mfa/verify', async (req, res) => {
@@ -186,7 +192,7 @@ function createApp({ pool, config, fileStore }) {
     req.session.userId = user.id; req.session.mfaVerifiedAt = Date.now(); req.session.csrfToken = crypto.randomBytes(32).toString('hex');
     await pool.query('UPDATE users SET failed_login_count=0,locked_until=NULL,last_login_at=now() WHERE id=$1', [user.id]);
     await writeAudit(pool, user.id, 'LOGIN_SUCCEEDED', 'AUTH', user.id, { mfa: true }, auditTrace(req));
-    res.json({ user: sanitizeUser(user), csrfToken: req.session.csrfToken });
+    res.json({ user: sanitizeUser(await loadScopedUser(pool, user.id)), csrfToken: req.session.csrfToken });
   });
 
   app.post('/api/auth/mfa/setup', apiAuth, requireRecentReauth, async (req, res) => {

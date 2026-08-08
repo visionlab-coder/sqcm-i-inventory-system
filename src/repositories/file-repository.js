@@ -1,5 +1,5 @@
 async function findAsset(pool, assetId) {
-  const result = await pool.query('SELECT id,organization_id FROM assets WHERE id=$1', [assetId]);
+  const result = await pool.query('SELECT id,organization_id,department_id FROM assets WHERE id=$1', [assetId]);
   return result.rows[0] || null;
 }
 
@@ -24,7 +24,7 @@ async function createAssetFile(pool, input, trace) {
 }
 
 async function findActiveAssetFile(pool, assetId, fileId) {
-  const result = await pool.query(`SELECT f.*,af.asset_id,af.file_type,a.organization_id asset_organization_id
+  const result = await pool.query(`SELECT f.*,af.asset_id,af.file_type,a.organization_id asset_organization_id,a.department_id asset_department_id
     FROM asset_files af JOIN file_records f ON f.id=af.file_id JOIN assets a ON a.id=af.asset_id
     WHERE af.asset_id=$1 AND af.file_id=$2 AND f.status='ACTIVE'`, [assetId,fileId]);
   return result.rows[0] || null;

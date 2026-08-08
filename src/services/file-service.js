@@ -2,6 +2,7 @@ const crypto = require('node:crypto');
 const path = require('node:path');
 const { DomainError, positiveInteger } = require('./inventory-service');
 const { requirePermission, requireOrganization } = require('./enterprise-service');
+const { requireDepartmentAccess } = require('./scope-service');
 const repository = require('../repositories/file-repository');
 
 const TYPES = new Set(['PHOTO','RECEIPT','INSPECTION','DISPOSAL']);
@@ -38,6 +39,7 @@ async function uploadAssetFile({ pool, fileStore, maxBytes, user, assetId, input
   const asset = await repository.findAsset(pool,id);
   if (!asset) throw new DomainError('자산을 찾을 수 없습니다.',404);
   requireOrganization(user,asset.organization_id);
+  await requireDepartmentAccess(pool,user,asset.department_id);
   const normalized = normalizeUpload(input,maxBytes);
   const key = storageKey(asset.organization_id,normalized.media.ext);
   const checksum = crypto.createHash('sha256').update(input.content).digest('hex');
@@ -57,6 +59,7 @@ async function getAssetFile({ pool, fileStore, user, assetId, fileId, trace }) {
   const file = await repository.findActiveAssetFile(pool,positiveInteger(assetId,'자산번호'),positiveInteger(fileId,'파일번호'));
   if (!file) throw new DomainError('파일을 찾을 수 없습니다.',404);
   requireOrganization(user,file.asset_organization_id);
+  await requireDepartmentAccess(pool,user,file.asset_department_id);
   const filePath = await fileStore.readPath(file.storage_key).catch(()=>{ throw new DomainError('파일 저장소에서 파일을 찾을 수 없습니다.',404); });
   await repository.recordDownload(pool,user.id,file,trace);
   return { file,filePath };
@@ -67,6 +70,7 @@ async function deactivateAssetFile({ pool, user, assetId, fileId, trace }) {
   const file = await repository.findActiveAssetFile(pool,positiveInteger(assetId,'자산번호'),positiveInteger(fileId,'파일번호'));
   if (!file) throw new DomainError('파일을 찾을 수 없습니다.',404);
   requireOrganization(user,file.asset_organization_id);
+  await requireDepartmentAccess(pool,user,file.asset_department_id);
   return repository.deactivate(pool,user.id,file,trace);
 }
 
