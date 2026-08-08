@@ -178,7 +178,13 @@ async function createRequest(pool, user, input, trace = {}) {
       requireOrganization(user, asset.rows[0].organization_id);
       await requireDepartmentAccess(client, user, asset.rows[0].department_id);
     }
-    const payload = type === 'PURCHASE' ? normalizePurchasePayload(input.payload) : (input.payload || {});
+    let payload;
+    if (type === 'PURCHASE') payload = normalizePurchasePayload(input.payload);
+    else if (type === 'RETURN') {
+      payload = require('./return-service').normalizeReturnPayload(input.payload);
+      const active = await client.query("SELECT user_id FROM asset_assignments WHERE asset_id=$1 AND ended_at IS NULL AND status='ACTIVE' ORDER BY started_at DESC LIMIT 1", [input.assetId]);
+      if (!active.rowCount || Number(active.rows[0].user_id) !== Number(user.id)) throw new DomainError('현재 자산을 배정받은 사용자만 반납 요청을 만들 수 있습니다.',409);
+    } else payload = input.payload || {};
     const result = await client.query(`INSERT INTO workflow_requests(organization_id,request_type,requester_id,asset_id,status,title,reason,payload)
       VALUES($1,$2,$3,$4,'DRAFT',$5,$6,$7::jsonb) RETURNING *`, [organizationId, type, user.id, input.assetId || null, title, reason, JSON.stringify(payload)]);
     await enterpriseAudit(client, user, 'REQUEST_CREATED', 'REQUEST', result.rows[0].id, { type, title, ...(type === 'PURCHASE' ? { purchase: payload } : {}) }, trace);
@@ -210,10 +216,16 @@ async function applyApprovedRequest(client, request, reviewer, trace) {
     toStatus = 'ASSIGNED';
   } else if (request.request_type === 'RETURN') {
     if (!['ASSIGNED', 'IN_USE'].includes(asset.status_code)) throw new DomainError('배정 중인 자산만 반납할 수 있습니다.', 409);
-    const closed = await client.query(`UPDATE asset_assignments SET ended_at=now(),status='ENDED',return_condition=$1
-      WHERE id=(SELECT id FROM asset_assignments WHERE asset_id=$2 AND ended_at IS NULL AND status='ACTIVE' ORDER BY started_at DESC LIMIT 1) RETURNING id`,
-    [String(payload.returnCondition || '반납 완료'), asset.id]);
+    const evidence = await client.query(`SELECT f.id FROM workflow_request_files rf JOIN file_records f ON f.id=rf.file_id
+      WHERE rf.request_id=$1 AND rf.purpose='RETURN_PHOTO' AND f.status='ACTIVE' AND f.organization_id=$2 ORDER BY rf.created_at DESC LIMIT 1 FOR SHARE OF f`, [request.id,request.organization_id]);
+    if (!evidence.rowCount) throw new DomainError('활성 반납 사진이 필요합니다.',409);
+    const details = require('./return-service').normalizeReturnPayload(payload);
+    const closed = await client.query(`UPDATE asset_assignments SET ended_at=now(),status='ENDED',return_condition=$1,returned_by=$2,return_checked_by=$3,return_note=$4,accessories=$5::jsonb
+      WHERE id=(SELECT id FROM asset_assignments WHERE asset_id=$6 AND ended_at IS NULL AND status='ACTIVE' ORDER BY started_at DESC LIMIT 1) RETURNING id`,
+    [details.conditionCode,request.requester_id,reviewer.id,details.note,JSON.stringify(details.accessories),asset.id]);
     if (!closed.rowCount) throw new DomainError('활성 배정 이력이 없어 반납할 수 없습니다.', 409);
+    await client.query(`INSERT INTO asset_return_records(request_id,assignment_id,asset_id,returned_by,checked_by,condition_code,note,accessories,photo_file_id)
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9)`, [request.id,closed.rows[0].id,asset.id,request.requester_id,reviewer.id,details.conditionCode,details.note,JSON.stringify(details.accessories),evidence.rows[0].id]);
     toStatus = 'RETURNED';
   } else if (request.request_type === 'TRANSFER') {
     if (!['ASSIGNED', 'IN_USE'].includes(asset.status_code)) throw new DomainError('배정 중인 자산만 이동할 수 있습니다.', 409);
@@ -262,6 +274,11 @@ async function transitionRequest(pool, user, requestId, input, trace = {}) {
     let status; let auditAction; let auditMetadata = { before: request.status };
     if (action === 'SUBMIT') {
       if (request.requester_id !== user.id || request.status !== 'DRAFT') throw new DomainError('제출할 수 없는 요청입니다.', 409);
+      if (request.request_type === 'RETURN') {
+        require('./return-service').normalizeReturnPayload(request.payload);
+        const evidence = await client.query(`SELECT 1 FROM workflow_request_files rf JOIN file_records f ON f.id=rf.file_id WHERE rf.request_id=$1 AND rf.purpose='RETURN_PHOTO' AND f.status='ACTIVE' LIMIT 1`, [id]);
+        if (!evidence.rowCount) throw new DomainError('반납 요청을 제출하려면 JPEG 또는 PNG 사진이 필요합니다.',409);
+      }
       const plan = await initializeApprovalPlan(client,request,user.id);
       status = 'SUBMITTED';
       auditAction = 'REQUEST_SUBMITTED';

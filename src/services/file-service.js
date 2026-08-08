@@ -5,7 +5,7 @@ const { requirePermission, requireOrganization } = require('./enterprise-service
 const { requireDepartmentAccess } = require('./scope-service');
 const repository = require('../repositories/file-repository');
 
-const TYPES = new Set(['PHOTO','RECEIPT','INSPECTION','DISPOSAL']);
+const TYPES = new Set(['PHOTO','RECEIPT','INSPECTION','DISPOSAL','RETURN']);
 const MEDIA = {
   'image/jpeg': { ext:'jpg', matches:b=>b.length>=3&&b[0]===0xff&&b[1]===0xd8&&b[2]===0xff },
   'image/png': { ext:'png', matches:b=>b.length>=8&&b.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])) },
@@ -21,6 +21,7 @@ function normalizeUpload(input, maxBytes) {
   if (!media.matches(input.content)) throw new DomainError('파일 내용과 Content-Type이 일치하지 않습니다.');
   const fileType = String(input.fileType || '').toUpperCase();
   if (!TYPES.has(fileType)) throw new DomainError('올바른 증빙 유형이 필요합니다.');
+  if (fileType === 'RETURN' && !contentType.startsWith('image/')) throw new DomainError('반납 사진은 JPEG 또는 PNG만 허용됩니다.', 415);
   let decodedName;
   try { decodedName = decodeURIComponent(String(input.originalName || '')); } catch { decodedName = String(input.originalName || ''); }
   const rawName = decodedName.replace(/[\u0000-\u001f\u007f]/g,'').trim();

@@ -8,6 +8,7 @@ const { auditTrace } = require('./observability');
 const { uploadAssetFile, getAssetFile, deactivateAssetFile } = require('./services/file-service');
 const { resolveScope, canAccessDepartment } = require('./services/scope-service');
 const { createApprovalPolicy, listApprovalPolicies } = require('./services/approval-service');
+const { uploadReturnPhoto } = require('./services/return-service');
 
 const page = req => ({ size: Math.min(100, Math.max(1, Number(req.query.size) || 25)), offset: Math.max(0, Number(req.query.page) || 0) * Math.min(100, Math.max(1, Number(req.query.size) || 25)) });
 const trace = req => ({ ...auditTrace(req), idempotencyKey: String(req.get('idempotency-key') || '').slice(0, 100) || null });
@@ -97,6 +98,7 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
     res.json({ requests: result.rows });
   });
   router.post('/requests', async (req, res) => res.status(201).json({ request: await createRequest(pool, req.user, req.body, trace(req)) }));
+  router.post('/requests/:id/return-photo', rawEvidence, async(req,res)=>{ const file=await uploadReturnPhoto({pool,fileStore,maxBytes:fileMaxBytes,user:req.user,requestId:req.params.id,input:{content:req.body,contentType:req.get('content-type'),originalName:req.get('x-file-name')},trace:auditTrace(req)}); res.status(201).json({file:{id:file.id,originalName:file.original_name,contentType:file.content_type,checksum:file.checksum,sizeBytes:Number(file.size_bytes)}}); });
   router.post('/requests/:id/action', async (req, res) => res.json({ request: await transitionRequest(pool, req.user, req.params.id, req.body, trace(req)) }));
   router.get('/requests/:id/approvals', async(req,res)=>{ const id=positiveInteger(req.params.id,'요청번호'); const request=await pool.query(`SELECT r.*,a.department_id asset_department_id,u.department_id requester_department_id FROM workflow_requests r JOIN users u ON u.id=r.requester_id LEFT JOIN assets a ON a.id=r.asset_id WHERE r.id=$1`,[id]); if(!request.rowCount) throw new DomainError('요청을 찾을 수 없습니다.',404); const row=request.rows[0]; orgId(req,row.organization_id); if(Number(row.requester_id)!==Number(req.user.id)){requirePermission(req.user,'request.review');const scope=await resolveScope(pool,req.user);if(!canAccessDepartment(scope,row.asset_department_id||row.requester_department_id)) throw new DomainError('허용된 부서 범위를 벗어났습니다.',403);} const approvals=await pool.query(`SELECT a.step_order,a.step_name,a.approver_role,a.department_scope,a.status,a.acted_at,a.reason,u.display_name acted_by_name FROM workflow_request_approvals a LEFT JOIN users u ON u.id=a.acted_by WHERE a.request_id=$1 ORDER BY a.step_order`,[id]); res.json({request:{id:row.id,status:row.status,currentApprovalStep:row.current_approval_step,approvalStepCount:row.approval_step_count},approvals:approvals.rows}); });
 

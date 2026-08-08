@@ -512,3 +512,34 @@ test('2단계 승인 정책은 중간 승인에서 업무를 보류하고 최종
     await pool.end();
   }
 });
+
+test('반납 사진은 제출 전에 검증되고 최종 승인과 반납 원장이 원자적으로 기록된다', { skip: !baseUrl || !databaseUrl }, async () => {
+  const pool=createPool(databaseUrl); const marker=Date.now().toString().slice(-9); let manager; let employee; let assetId; let assignmentId; let requestId; let fileId;
+  const png=Buffer.from([137,80,78,71,13,10,26,10,0]);
+  const upload=(session,content,type,name)=>fetch(`${baseUrl}/api/enterprise/requests/${requestId}/return-photo`,{method:'POST',headers:{cookie:session.cookie,'content-type':type,'x-file-name':encodeURIComponent(name),'x-csrf-token':session.csrfToken},body:content});
+  try {
+    manager=await login('manager@seowon.local',integrationConfig.seedManagerPassword); employee=await login('employee@seowon.local',integrationConfig.seedUserPassword);
+    const asset=await pool.query(`INSERT INTO assets(organization_id,asset_tag,name,status_code,department_id,created_by) VALUES($1,$2,$3,'ASSIGNED',$4,$5) RETURNING id`,[employee.user.organizationId,`RT-${marker}`,`반납 증빙 자산 ${marker}`,employee.user.departmentId,manager.user.id]); assetId=asset.rows[0].id;
+    const assignment=await pool.query(`INSERT INTO asset_assignments(asset_id,user_id,department_id,assigned_by,started_at,status,accessories) VALUES($1,$2,$3,$4,now(),'ACTIVE',$5::jsonb) RETURNING id`,[assetId,employee.user.id,employee.user.departmentId,manager.user.id,JSON.stringify(['충전기','케이스'])]); assignmentId=assignment.rows[0].id;
+    const created=await api('/api/enterprise/requests',employee,{method:'POST',body:{organizationId:employee.user.organizationId,requestType:'RETURN',assetId,title:'현장 반납',reason:'사용 완료',payload:{conditionCode:'DAMAGED',note:'외관 긁힘 확인',accessories:['충전기','케이스']}}}); assert.equal(created.status,201); requestId=(await created.json()).request.id;
+    assert.equal((await api(`/api/enterprise/requests/${requestId}/action`,employee,{method:'POST',body:{action:'SUBMIT'}})).status,409);
+    assert.equal((await upload(employee,Buffer.from('%PDF-x'),'application/pdf','return.pdf')).status,415);
+    assert.equal((await upload(employee,Buffer.from('fake'),'image/png','fake.png')).status,400);
+    assert.equal((await upload(manager,png,'image/png','other.png')).status,403);
+    const uploaded=await upload(employee,png,'image/png','return.png'); assert.equal(uploaded.status,201); fileId=(await uploaded.json()).file.id;
+    assert.equal((await api(`/api/enterprise/requests/${requestId}/action`,employee,{method:'POST',body:{action:'SUBMIT'}})).status,200);
+    assert.equal((await api(`/api/enterprise/requests/${requestId}/action`,manager,{method:'POST',body:{action:'APPROVE',reviewReason:'사진과 상태 확인'}})).status,200);
+    const returned=await pool.query('SELECT returned_by,checked_by,condition_code,note,accessories,photo_file_id FROM asset_return_records WHERE request_id=$1',[requestId]); assert.equal(returned.rowCount,1); assert.deepEqual({...returned.rows[0],returned_by:Number(returned.rows[0].returned_by),checked_by:Number(returned.rows[0].checked_by),photo_file_id:Number(returned.rows[0].photo_file_id)},{returned_by:Number(employee.user.id),checked_by:Number(manager.user.id),condition_code:'DAMAGED',note:'외관 긁힘 확인',accessories:['충전기','케이스'],photo_file_id:Number(fileId)});
+    const ended=await pool.query('SELECT status,return_condition,returned_by,return_checked_by,return_note,accessories FROM asset_assignments WHERE id=$1',[assignmentId]); assert.equal(ended.rows[0].status,'ENDED'); assert.equal(ended.rows[0].return_condition,'DAMAGED'); assert.equal((await pool.query('SELECT status_code FROM assets WHERE id=$1',[assetId])).rows[0].status_code,'RETURNED');
+  } finally {
+    await removeTestSessions(pool,[manager,employee]);
+    if(requestId){await pool.query("DELETE FROM outbox_events WHERE aggregate_type='REQUEST' AND aggregate_id=$1",[String(requestId)]);await pool.query("DELETE FROM audit_logs WHERE entity_type='REQUEST' AND entity_id=$1",[String(requestId)]);}
+    if(assetId){await pool.query("DELETE FROM outbox_events WHERE aggregate_type='ASSET' AND aggregate_id=$1",[String(assetId)]);await pool.query('DELETE FROM asset_status_histories WHERE asset_id=$1',[assetId]);}
+    if(requestId) await pool.query('DELETE FROM asset_return_records WHERE request_id=$1',[requestId]);
+    if(requestId) await pool.query('DELETE FROM workflow_requests WHERE id=$1',[requestId]);
+    if(assignmentId) await pool.query('DELETE FROM asset_assignments WHERE id=$1',[assignmentId]);
+    if(fileId){await pool.query('DELETE FROM asset_files WHERE file_id=$1',[fileId]);await pool.query('DELETE FROM file_records WHERE id=$1',[fileId]);}
+    if(assetId) await pool.query('DELETE FROM assets WHERE id=$1',[assetId]);
+    await pool.end();
+  }
+});

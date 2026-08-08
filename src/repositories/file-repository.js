@@ -54,4 +54,20 @@ async function deactivate(pool, userId, file, trace) {
   } finally { client.release(); }
 }
 
-module.exports = { findAsset, createAssetFile, findActiveAssetFile, recordDownload, deactivate };
+async function createReturnEvidence(pool, input, trace) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const file = await client.query(`INSERT INTO file_records
+      (organization_id,storage_key,original_name,content_type,checksum,size_bytes,storage_driver,uploaded_by)
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+    [input.organizationId,input.storageKey,input.originalName,input.contentType,input.checksum,input.sizeBytes,input.storageDriver,input.userId]);
+    await client.query("INSERT INTO asset_files(asset_id,file_id,file_type) VALUES($1,$2,'RETURN')", [input.assetId,file.rows[0].id]);
+    await client.query("INSERT INTO workflow_request_files(request_id,file_id,purpose) VALUES($1,$2,'RETURN_PHOTO')", [input.requestId,file.rows[0].id]);
+    await client.query(`INSERT INTO audit_logs(actor_user_id,action,entity_type,entity_id,metadata,request_id,ip_address)
+      VALUES($1,'RETURN_PHOTO_UPLOADED','REQUEST',$2,$3::jsonb,$4,$5)`, [input.userId,String(input.requestId),JSON.stringify({fileId:file.rows[0].id,assetId:input.assetId,sizeBytes:input.sizeBytes,checksum:input.checksum}),trace.requestId,trace.ip]);
+    await client.query('COMMIT'); return file.rows[0];
+  } catch(error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
+}
+
+module.exports = { findAsset, createAssetFile, findActiveAssetFile, recordDownload, deactivate, createReturnEvidence };

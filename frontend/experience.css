@@ -78,6 +78,8 @@ body::before { content:""; position:fixed; inset:0; pointer-events:none; opacity
 .workflow-intro { padding:1.5rem; background:var(--site-orange); color:white; }
 .workflow-intro h2 { font-size:2rem; }
 .workflow-shell .grid-form { grid-template-columns:1fr; padding:1.5rem; }
+.return-fields { border:1px solid var(--line); border-radius:.65rem; padding:1rem; display:grid; gap:.8rem; min-width:0; }
+.return-fields legend { color:var(--navy); font-size:.78rem; font-weight:800; padding:0 .35rem; }
 .workflow-ledger .panel-head { background:var(--site-cyan); }
 .workflow-ledger tbody tr { background:linear-gradient(90deg,rgba(125,216,230,.1),transparent 35%); }
 
