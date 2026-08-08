@@ -67,6 +67,24 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
   app.use(express.json({ limit: '50kb' }));
   app.use(express.urlencoded({ extended: false, limit: '50kb' }));
   app.use(express.static(path.join(process.cwd(), 'src', 'public'), { maxAge: config.env === 'production' ? '1d' : 0 }));
+  // 상태 엔드포인트는 세션 미들웨어보다 앞에 두어 health probe가 DB 세션을 만들지 않게 한다.
+  app.get('/health', async (_req, res) => {
+    try { await pool.query('SELECT 1'); res.json({ status: 'ok', database: 'up' }); }
+    catch (_error) { res.status(503).json({ status: 'error', database: 'down' }); }
+  });
+  app.get('/api/health', async (_req, res) => {
+    try { await pool.query('SELECT 1'); res.json({ status: 'ok', service: 'backend', database: 'up' }); }
+    catch (_error) { res.status(503).json({ status: 'error', service: 'backend', database: 'down' }); }
+  });
+  app.get('/api/readiness', async (_req,res)=>{
+    try{
+      await pool.query('SELECT 1');
+      const dependencies={ storage:await fileStore.healthCheck(),malware:await malwareScanner.healthCheck() };
+      if(oidcProvider) dependencies.oidc=await oidcProvider.healthCheck();
+      if(Object.values(dependencies).some(item=>item?.status!=='ok')) throw new Error('dependency not ready');
+      res.json({status:'ok',service:'backend',database:'up',dependencies});
+    }catch(_error){res.status(503).json({status:'error',service:'backend'});}
+  });
   app.use(session({
     store: new PgSession({ pool, tableName: 'user_sessions', createTableIfMissing: false }),
     name: 'seowon.sid',
@@ -87,7 +105,9 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
       const flash = req.session.flash;
       delete req.session.flash;
       res.locals.currentUser = req.user;
-      res.locals.csrfToken = csrfToken(req);
+      // JSON API와 health 요청은 세션이 필요한 엔드포인트에서만 토큰을 만든다.
+      // 공통 미들웨어에서 토큰을 만들면 익명 health 요청마다 세션 행이 누적된다.
+      res.locals.csrfToken = req.path.startsWith('/api/') ? null : csrfToken(req);
       res.locals.flash = flash;
       res.locals.path = req.path;
       next();
@@ -96,15 +116,6 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
     }
   });
   app.use(csrfProtection);
-
-  app.get('/health', async (_req, res) => {
-    try {
-      await pool.query('SELECT 1');
-      res.json({ status: 'ok', database: 'up' });
-    } catch (_error) {
-      res.status(503).json({ status: 'error', database: 'down' });
-    }
-  });
 
   // ------------------------------------------------------------------
   // JSON API: frontend 컨테이너가 같은 출처의 /api 경로로 호출한다.
@@ -134,25 +145,6 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
   };
 
   app.use('/api/enterprise', createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProduction: config.env === 'production', fileStore, malwareScanner, fileMaxBytes: config.fileMaxBytes }));
-
-  app.get('/api/health', async (_req, res) => {
-    try {
-      await pool.query('SELECT 1');
-      res.json({ status: 'ok', service: 'backend', database: 'up' });
-    } catch (_error) {
-      res.status(503).json({ status: 'error', service: 'backend', database: 'down' });
-    }
-  });
-
-  app.get('/api/readiness', async (_req,res)=>{
-    try{
-      await pool.query('SELECT 1');
-      const dependencies={ storage:await fileStore.healthCheck(),malware:await malwareScanner.healthCheck() };
-      if(oidcProvider) dependencies.oidc=await oidcProvider.healthCheck();
-      if(Object.values(dependencies).some(item=>item?.status!=='ok')) throw new Error('dependency not ready');
-      res.json({status:'ok',service:'backend',database:'up',dependencies});
-    }catch(_error){res.status(503).json({status:'error',service:'backend'});}
-  });
 
   app.get('/api/auth/csrf', (req, res) => res.json({ csrfToken: csrfToken(req) }));
   app.get('/api/auth/config', (_req,res)=>res.json({ authProvider:config.authProvider }));

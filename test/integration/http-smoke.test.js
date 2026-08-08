@@ -54,6 +54,7 @@ test('3계층 Docker 앱 health와 API 로그인 세션 흐름이 동작한다',
   const pool = createPool(databaseUrl);
   let manager;
   try {
+  const sessionsBefore = await pool.query('SELECT count(*)::int count FROM user_sessions');
   const frontendHealth = await fetch(`${baseUrl}/health`);
   assert.equal(frontendHealth.status, 200);
   assert.deepEqual(await frontendHealth.json(), { status: 'ok', service: 'frontend' });
@@ -69,6 +70,8 @@ test('3계층 Docker 앱 health와 API 로그인 세션 흐름이 동작한다',
   assert.equal(anonymousError.code, 'AUTH_REQUIRED');
   assert.ok(anonymousError.requestId);
   assert.deepEqual(anonymousError.fieldErrors, []);
+  const sessionsAfterAnonymousHealth = await pool.query('SELECT count(*)::int count FROM user_sessions');
+  assert.equal(sessionsAfterAnonymousHealth.rows[0].count, sessionsBefore.rows[0].count, 'health와 익명 보호 API는 세션을 만들지 않아야 한다');
 
   manager = await login('manager@seowon.local', integrationConfig.seedManagerPassword);
   assert.equal(manager.user.role, 'MANAGER');
