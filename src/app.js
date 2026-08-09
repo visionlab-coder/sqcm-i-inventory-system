@@ -5,7 +5,7 @@ const connectPgSimple = require('connect-pg-simple');
 const helmet = require('helmet');
 const bcrypt = require('bcryptjs');
 const crypto = require('node:crypto');
-const { DUMMY_HASH, csrfToken, csrfProtection, requireAuth, requireRole, sanitizeUser } = require('./security');
+const { DUMMY_HASH, csrfToken, csrfProtection, sameOriginProtection, requireAuth, requireRole, sanitizeUser } = require('./security');
 const { createItem, updateItem, deactivateItem, checkoutItem, returnItem } = require('./services/inventory-service');
 const { requestContext, requestLogger, auditTrace } = require('./observability');
 const { createLoginRateLimiter } = require('./login-rate-limit');
@@ -57,13 +57,16 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
     maxAttempts: config.loginRateLimitMax,
     windowMs: config.loginRateLimitWindowMs
   });
-  if (config.env === 'production') app.set('trust proxy', 1);
+  if (config.env === 'production') app.set('trust proxy', config.trustedProxyCount);
   app.set('view engine', 'ejs');
   app.set('views', path.join(process.cwd(), 'src', 'views'));
   app.disable('x-powered-by');
   app.use(requestContext);
   app.use(requestLogger());
-  app.use(helmet({ contentSecurityPolicy: false }));
+  app.use(helmet({ contentSecurityPolicy: { directives: {
+    defaultSrc: ["'self'"], scriptSrc: ["'self'"], styleSrc: ["'self'", "'unsafe-inline'"],
+    imgSrc: ["'self'", 'data:'], fontSrc: ["'self'"], objectSrc: ["'none'"], baseUri: ["'self'"], frameAncestors: ["'none'"]
+  } } }));
   app.use(express.json({ limit: '50kb' }));
   app.use(express.urlencoded({ extended: false, limit: '50kb' }));
   app.use(express.static(path.join(process.cwd(), 'src', 'public'), { maxAge: config.env === 'production' ? '1d' : 0 }));
@@ -115,6 +118,7 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
       next(error);
     }
   });
+  app.use(sameOriginProtection({ publicBaseUrl: config.publicBaseUrl, enforce: config.env === 'production' }));
   app.use(csrfProtection);
 
   // ------------------------------------------------------------------
@@ -531,7 +535,8 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
       code: error.code || (status >= 500 ? 'INTERNAL_ERROR' : (error.name === 'DomainError' ? 'DOMAIN_ERROR' : 'REQUEST_ERROR')),
       message: status >= 500 ? '처리 중 오류가 발생했습니다.' : error.message,
       fieldErrors: error.fieldErrors || [],
-      requestId: req.id
+      requestId: req.id,
+      ...(error.code === 'CSRF_INVALID' ? { csrfRefreshRequired: true } : {})
     });
     if (req.accepts('html')) return res.status(status).render('error', { title: '오류', status, message: status >= 500 ? '처리 중 오류가 발생했습니다.' : error.message });
     res.status(status).json({ error: status >= 500 ? 'internal_error' : error.message });

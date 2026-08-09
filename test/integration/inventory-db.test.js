@@ -36,7 +36,7 @@ test('PostgreSQL에서 등록 → 대여 → 반납 왕복이 수량 무결성�
     const audit = await pool.query("SELECT count(*)::int AS count FROM audit_logs WHERE entity_id IN ($1,$2)", [String(itemId), String(loanId)]);
     assert.ok(audit.rows[0].count >= 5);
     const migrations = await pool.query("SELECT version FROM schema_migrations ORDER BY version");
-    assert.deepEqual(migrations.rows.map(row => row.version), ['001_init.sql', '002_audit_trace.sql', '003_enterprise_inventory.sql', '004_procurement_inspection_assets.sql', '005_organization_invitations.sql', '006_reference_data_lifecycle.sql', '007_asset_status_reason_reference.sql', '008_asset_evidence_files.sql', '009_mfa_credentials.sql', '010_department_scope_backfill.sql', '011_multistage_approvals.sql', '012_return_evidence.sql', '013_oidc_identity.sql']);
+    assert.deepEqual(migrations.rows.map(row => row.version), ['001_init.sql', '002_audit_trace.sql', '003_enterprise_inventory.sql', '004_procurement_inspection_assets.sql', '005_organization_invitations.sql', '006_reference_data_lifecycle.sql', '007_asset_status_reason_reference.sql', '008_asset_evidence_files.sql', '009_mfa_credentials.sql', '010_department_scope_backfill.sql', '011_multistage_approvals.sql', '012_return_evidence.sql', '013_oidc_identity.sql', '014_api_idempotency.sql']);
   } finally {
     if (loanId || itemId) {
       await pool.query("DELETE FROM audit_logs WHERE entity_id = ANY($1::text[])", [[String(itemId || ''), String(loanId || '')]]);

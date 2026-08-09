@@ -14,6 +14,7 @@ function csrfProtection(req, res, next) {
   const received = Buffer.from(String(req.body?._csrf || req.get?.('x-csrf-token') || ''), 'utf8');
   if (expected.length === 0 || expected.length !== received.length || !crypto.timingSafeEqual(expected, received)) {
     const error = new Error('요청 검증에 실패했습니다. 페이지를 새로고침해 주세요.');
+    error.code = 'CSRF_INVALID';
     error.status = 403;
     return next(error);
   }
@@ -48,4 +49,19 @@ function sanitizeUser(row) {
   };
 }
 
-module.exports = { DUMMY_HASH, csrfToken, csrfProtection, requireAuth, requireRole, sanitizeUser };
+function sameOriginProtection({ publicBaseUrl = '', enforce = false } = {}) {
+  const expectedOrigin = publicBaseUrl ? new URL(publicBaseUrl).origin : '';
+  return (req, _res, next) => {
+    if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) return next();
+    const fetchSite = String(req.get?.('sec-fetch-site') || '').toLowerCase();
+    const origin = String(req.get?.('origin') || '');
+    const blocked = fetchSite === 'cross-site' || (expectedOrigin && origin && origin !== expectedOrigin);
+    if (blocked || (enforce && fetchSite && !['same-origin', 'none'].includes(fetchSite))) {
+      const error = new Error('허용된 동일 출처에서만 변경 요청을 보낼 수 있습니다.');
+      error.code = 'CROSS_SITE_REQUEST'; error.status = 403; return next(error);
+    }
+    next();
+  };
+}
+
+module.exports = { DUMMY_HASH, csrfToken, csrfProtection, sameOriginProtection, requireAuth, requireRole, sanitizeUser };

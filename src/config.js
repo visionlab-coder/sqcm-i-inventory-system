@@ -30,6 +30,7 @@ function getConfig(overrides = {}) {
   const authProvider = String(env.AUTH_PROVIDER || 'local').toLowerCase();
   const malwareScanDriver = String(env.MALWARE_SCAN_DRIVER || 'mock').toLowerCase();
   const operationalAdapterModule = String(env.OPERATIONAL_ADAPTER_MODULE || '').trim();
+  const publicBaseUrl = String(env.PUBLIC_BASE_URL || '').trim().replace(/\/$/, '');
   if (!['local', 'oidc'].includes(authProvider)) throw new Error('AUTH_PROVIDER must be local or oidc.');
   if (!['mock', 'external'].includes(malwareScanDriver)) throw new Error('MALWARE_SCAN_DRIVER must be mock or external.');
   if (env.NODE_ENV === 'production') {
@@ -37,6 +38,8 @@ function getConfig(overrides = {}) {
     if (malwareScanDriver !== 'external') throw new Error('Production requires MALWARE_SCAN_DRIVER=external.');
     if (!operationalAdapterModule) throw new Error('Production requires OPERATIONAL_ADAPTER_MODULE.');
     if (!/^https:\/\//i.test(String(env.OIDC_REDIRECT_URI || ''))) throw new Error('Production requires an HTTPS OIDC_REDIRECT_URI.');
+    if (!/^https:\/\//i.test(publicBaseUrl)) throw new Error('Production requires an HTTPS PUBLIC_BASE_URL.');
+    if (!String(env.OIDC_REDIRECT_URI || '').startsWith(`${publicBaseUrl}/`)) throw new Error('OIDC_REDIRECT_URI must belong to PUBLIC_BASE_URL.');
   }
 
   const mfaEncryptionKey = env.MFA_ENCRYPTION_KEY || require('node:crypto').createHash('sha256').update(`development-mfa:${sessionSecret}`).digest('base64');
@@ -56,6 +59,8 @@ function getConfig(overrides = {}) {
     authProvider,
     malwareScanDriver,
     operationalAdapterModule,
+    publicBaseUrl,
+    trustedProxyCount: boundedInteger(env.TRUSTED_PROXY_COUNT, 1, 'TRUSTED_PROXY_COUNT', 1, 10),
     oidcRedirectUri: String(env.OIDC_REDIRECT_URI || '').trim(),
     oidcAllowEmailLinking: env.OIDC_ALLOW_EMAIL_LINKING === 'true',
     mfaEncryptionKey,

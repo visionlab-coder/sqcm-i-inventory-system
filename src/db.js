@@ -5,7 +5,7 @@ const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 
 function createPool(connectionString) {
-  const pool = new Pool({ connectionString, max: 10, idleTimeoutMillis: 30_000 });
+  const pool = new Pool({ connectionString, max: 10, idleTimeoutMillis: 30_000, connectionTimeoutMillis: 5_000, query_timeout: 6_000, statement_timeout: 5_000 });
   // DB 재시작으로 유휴 연결이 종료되더라도 Node의 unhandled error로 앱 전체가
   // 즉시 종료되지 않게 한다. 신규 요청은 pool의 새 연결을 사용하고 /health가 상태를 알린다.
   pool.on('error', error => console.error(JSON.stringify({ event: 'database_pool_error', code: error.code || null, message: error.message })));

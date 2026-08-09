@@ -16,6 +16,9 @@ const REQUIRED_CUTOVER_GATES = [
   'core_smoke',
   'logs_5xx',
   'rollback',
+  'csrf_idempotency',
+  'operational_health',
+  'nonfunctional',
   'uat_signoff'
 ];
 
@@ -108,6 +111,17 @@ function validateCutoverEvidence(evidence, { allowTemplate = false } = {}) {
     const approval = approvers[role];
     if (!allowTemplate && (!approval || approval.status !== 'APPROVED' || !approval.signedAt || !approval.signedBy)) {
       failures.push(`${role} approval is required`);
+    }
+  }
+
+  if (!allowTemplate) {
+    const pilot = evidence.pilot || {};
+    if (Number(pilot.openCriticalDefects) !== 0) failures.push('openCriticalDefects must be 0');
+    if (Number(pilot.openHighDefects) !== 0) failures.push('openHighDefects must be 0');
+    const roleResults = new Map((pilot.roleResults || []).map(item => [item.role, item]));
+    for (const role of ['employee', 'manager', 'admin']) {
+      const result = roleResults.get(role);
+      if (!result || result.status !== 'PASS' || !result.evidence) failures.push(`${role} pilot UAT PASS evidence is required`);
     }
   }
 

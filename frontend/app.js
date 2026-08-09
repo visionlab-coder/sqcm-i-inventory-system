@@ -3,23 +3,61 @@ const $ = selector => document.querySelector(selector);
 const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
 const date = value => value ? new Date(value).toLocaleDateString('ko-KR') : '-';
 const isManager = () => ['MANAGER', 'ADMIN'].includes(state.user?.role);
+const mutatingMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+const inFlightWrites = new Map();
+const newIdempotencyKey = () => globalThis.crypto?.randomUUID?.() || `req-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
-async function request(path, options = {}) {
-  const method = options.method || 'GET';
-  const headers = { Accept: 'application/json', ...(options.headers || {}) };
-  let body;
-  if (options.body) {
-    headers['Content-Type'] = 'application/json';
-    body = JSON.stringify(method === 'GET' ? options.body : { ...options.body, _csrf: state.csrfToken });
+async function refreshSecurityContext() {
+  const me = await fetch('/api/auth/me', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+  if (me.ok) {
+    const data = await me.json(); state.user = data.user; state.csrfToken = data.csrfToken; return true;
   }
-  const response = await fetch(path, { ...options, method, headers, body, credentials: 'same-origin' });
+  const csrf = await fetch('/api/auth/csrf', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+  if (csrf.ok) state.csrfToken = (await csrf.json()).csrfToken;
+  return false;
+}
+
+async function responseData(response) {
   if (response.status === 204) return null;
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    if (response.status === 401 && !['/api/auth/login','/api/auth/mfa/verify'].includes(path)) showLogin();
-    throw new Error(data.message || '요청을 처리하지 못했습니다.');
+    if (response.status === 403 && data.code === 'CSRF_INVALID') {
+      const authenticated = await refreshSecurityContext();
+      if (!authenticated && state.user) showLogin();
+      const error = new Error('보안 세션이 갱신되었습니다. 입력은 유지됩니다. 다시 제출해 주세요.');
+      error.code = 'CSRF_REFRESHED'; throw error;
+    }
+    throw Object.assign(new Error(data.message || '요청을 처리하지 못했습니다.'), { code: data.code });
   }
   return data;
+}
+
+async function request(path, options = {}) {
+  const method = String(options.method || 'GET').toUpperCase();
+  const mutating = mutatingMethods.has(method);
+  const signature = mutating ? `${method}:${path}:${JSON.stringify(options.body || null)}` : null;
+  if (signature && inFlightWrites.has(signature)) return inFlightWrites.get(signature);
+  const operation = (async () => {
+    const headers = { Accept: 'application/json', ...(options.headers || {}) }; let body;
+    if (options.body) { headers['Content-Type'] = 'application/json'; body = JSON.stringify(options.body); }
+    if (mutating) { headers['x-csrf-token'] = state.csrfToken || ''; headers['idempotency-key'] = options.idempotencyKey || newIdempotencyKey(); }
+    const response = await fetch(path, { ...options, method, headers, body, credentials: 'same-origin' });
+    if (response.status === 401 && !['/api/auth/login','/api/auth/mfa/verify'].includes(path)) showLogin();
+    return responseData(response);
+  })();
+  if (signature) inFlightWrites.set(signature, operation);
+  try { return await operation; } finally { if (signature) inFlightWrites.delete(signature); }
+}
+
+async function uploadBinary(path, file, extraHeaders = {}) {
+  const signature = `UPLOAD:${path}:${file.name}:${file.size}:${file.lastModified}`;
+  if (inFlightWrites.has(signature)) return inFlightWrites.get(signature);
+  const operation = (async () => responseData(await fetch(path, { method:'POST',credentials:'same-origin',headers:{
+    'content-type':file.type,'x-file-name':encodeURIComponent(file.name),'x-csrf-token':state.csrfToken || '',
+    'idempotency-key':newIdempotencyKey(),...extraHeaders
+  },body:await file.arrayBuffer() })))();
+  inFlightWrites.set(signature, operation);
+  try { return await operation; } finally { inFlightWrites.delete(signature); }
 }
 
 function showMessage(message, type = 'success') {
@@ -213,7 +251,7 @@ async function renderAssetDetail(id) {
   const reasonSelect=$('#asset-status select[name="reasonCode"]'); const detailInput=$('#asset-status input[name="reasonDetail"]');
   reasonSelect?.addEventListener('change',()=>{const policy=ref.reasons.find(row=>row.code===reasonSelect.value);detailInput.required=Boolean(policy?.requires_detail);detailInput.placeholder=detailInput.required?'2자 이상 필수':'선택 입력';});
   $('#asset-status')?.addEventListener('submit', async event => { event.preventDefault(); try { await request(`/api/enterprise/assets/${id}/status`, { method:'POST', body:Object.fromEntries(new FormData(event.target)) }); showMessage('자산 상태를 변경했습니다.'); renderAssetDetail(id); } catch (error) { showMessage(error.message, 'error'); } });
-  $('#evidence-upload')?.addEventListener('submit',async event=>{event.preventDefault();const button=event.submitter;const file=event.target.elements.evidence.files[0];if(!file)return;button.disabled=true;try{const response=await fetch(`/api/enterprise/assets/${id}/files`,{method:'POST',credentials:'same-origin',headers:{'content-type':file.type,'x-file-name':encodeURIComponent(file.name),'x-file-type':event.target.elements.fileType.value,'x-csrf-token':state.csrfToken},body:await file.arrayBuffer()});const body=await response.json().catch(()=>({}));if(!response.ok)throw new Error(body.message||'증빙파일을 업로드하지 못했습니다.');showMessage('증빙파일을 업로드했습니다.');await renderAssetDetail(id);}catch(error){showMessage(error.message,'error');}finally{button.disabled=false;}});
+  $('#evidence-upload')?.addEventListener('submit',async event=>{event.preventDefault();const button=event.submitter;const file=event.target.elements.evidence.files[0];if(!file)return;button.disabled=true;try{await uploadBinary(`/api/enterprise/assets/${id}/files`,file,{'x-file-type':event.target.elements.fileType.value});showMessage('증빙파일을 업로드했습니다.');await renderAssetDetail(id);}catch(error){showMessage(error.message,'error');}finally{button.disabled=false;}});
   document.querySelectorAll('.evidence-deactivate').forEach(button=>button.addEventListener('click',async()=>{if(!window.confirm('파일을 감사 보존 상태로 비활성화하시겠습니까?'))return;try{await request(`/api/enterprise/assets/${id}/files/${button.dataset.fileId}/deactivate`,{method:'POST',body:{}});showMessage('증빙파일을 비활성화했습니다.');await renderAssetDetail(id);}catch(error){showMessage(error.message,'error');}}));
 }
 
@@ -248,7 +286,7 @@ async function createWorkflowRequest(event) {
   if(values.requestType==='RETURN'){payload.conditionCode=values.conditionCode;payload.note=values.returnNote;payload.accessories=String(values.accessories||'').split(',').map(value=>value.trim()).filter(Boolean);if(!(returnPhoto instanceof File)||!returnPhoto.size)return showMessage('반납 사진을 선택하세요.','error');if(!['image/jpeg','image/png'].includes(returnPhoto.type))return showMessage('반납 사진은 JPEG 또는 PNG만 허용됩니다.','error');}
   delete values.conditionCode;delete values.returnNote;delete values.accessories;
   values.organizationId = state.user.organizationId; values.payload = payload;
-  try { const created=await request('/api/enterprise/requests', { method:'POST', body:values }); if(values.requestType==='RETURN'){const upload=await fetch(`/api/enterprise/requests/${created.request.id}/return-photo`,{method:'POST',credentials:'same-origin',headers:{'content-type':returnPhoto.type,'x-file-name':encodeURIComponent(returnPhoto.name),'x-csrf-token':state.csrfToken},body:await returnPhoto.arrayBuffer()});const body=await upload.json().catch(()=>({}));if(!upload.ok)throw new Error(body.message||'반납 사진 업로드에 실패했습니다.');} showMessage(values.requestType==='RETURN'?'사진이 연결된 반납 초안을 만들었습니다.':'요청 초안을 만들었습니다.'); await renderAssignments(); } catch(error) { showMessage(error.message,'error'); }
+  try { const created=await request('/api/enterprise/requests', { method:'POST', body:values }); if(values.requestType==='RETURN')await uploadBinary(`/api/enterprise/requests/${created.request.id}/return-photo`,returnPhoto); showMessage(values.requestType==='RETURN'?'사진이 연결된 반납 초안을 만들었습니다.':'요청 초안을 만들었습니다.'); await renderAssignments(); } catch(error) { showMessage(error.message,'error'); }
 }
 
 function bindRequestActions(refresh) { document.querySelectorAll('.request-action').forEach(button => button.addEventListener('click', async () => { try { await request(`/api/enterprise/requests/${button.dataset.id}/action`, { method:'POST', body:{ action:button.dataset.action, reviewReason: button.dataset.action === 'REJECT' ? '요건 보완 필요' : '검토 완료' } }); showMessage('요청 상태를 변경했습니다.'); refresh(); } catch(error) { showMessage(error.message,'error'); } })); }

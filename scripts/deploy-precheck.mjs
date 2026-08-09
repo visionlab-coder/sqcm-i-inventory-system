@@ -72,6 +72,16 @@ if (target !== "local" && !value("OPERATIONAL_ADAPTER_MODULE")) {
 if (target !== "local" && !/^https:\/\//i.test(value("OIDC_REDIRECT_URI"))) {
   failures.push("External deployments require an HTTPS OIDC_REDIRECT_URI.");
 }
+if (target !== "local" && !/^https:\/\//i.test(value("PUBLIC_BASE_URL"))) {
+  failures.push("External deployments require an HTTPS PUBLIC_BASE_URL.");
+}
+if (target !== "local" && /^https:\/\//i.test(value("PUBLIC_BASE_URL")) && !value("OIDC_REDIRECT_URI").startsWith(`${value("PUBLIC_BASE_URL").replace(/\/$/, "")}/`)) {
+  failures.push("OIDC_REDIRECT_URI must belong to PUBLIC_BASE_URL.");
+}
+const trustedProxyCount = Number(value("TRUSTED_PROXY_COUNT") || "1");
+if (!Number.isInteger(trustedProxyCount) || trustedProxyCount < 1 || trustedProxyCount > 10) {
+  failures.push("TRUSTED_PROXY_COUNT must be an integer from 1 to 10.");
+}
 if (target !== "local" && value("COOKIE_SECURE").toLowerCase() !== "true") {
   failures.push("외부 배포에서는 COOKIE_SECURE=true여야 합니다.");
 }

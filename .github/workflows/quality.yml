@@ -40,6 +40,16 @@ jobs:
           SEED_MANAGER_PASSWORD: Manager1234!
           SEED_ADMIN_PASSWORD: Admin1234!
         run: npm run test:integration
+      - name: Run nonfunctional quality gate
+        env:
+          NONFUNCTIONAL_BASE_URL: http://localhost:3000
+        run: npm run test:nonfunctional
+      - name: Verify database dependency recovery
+        env:
+          ALLOW_DATABASE_PAUSE: "true"
+          RECOVERY_BASE_URL: http://localhost:3000
+          RECOVERY_COMPOSE_FILES: compose.yaml,compose.test.yaml
+        run: npm run test:recovery
       - name: Capture service state and logs
         if: always()
         run: |

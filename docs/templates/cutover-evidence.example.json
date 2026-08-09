@@ -12,8 +12,20 @@
     { "id": "core_smoke", "status": "PENDING", "evidence": "" },
     { "id": "logs_5xx", "status": "PENDING", "evidence": "" },
     { "id": "rollback", "status": "PENDING", "evidence": "" },
+    { "id": "csrf_idempotency", "status": "PENDING", "evidence": "" },
+    { "id": "operational_health", "status": "PENDING", "evidence": "" },
+    { "id": "nonfunctional", "status": "PENDING", "evidence": "" },
     { "id": "uat_signoff", "status": "PENDING", "evidence": "" }
   ],
+  "pilot": {
+    "openCriticalDefects": null,
+    "openHighDefects": null,
+    "roleResults": [
+      { "role": "employee", "status": "PENDING", "evidence": "" },
+      { "role": "manager", "status": "PENDING", "evidence": "" },
+      { "role": "admin", "status": "PENDING", "evidence": "" }
+    ]
+  },
   "approvals": {
     "business": { "status": "PENDING", "signedBy": "", "signedAt": "" },
     "security": { "status": "PENDING", "signedBy": "", "signedAt": "" },

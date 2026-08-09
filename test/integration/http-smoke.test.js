@@ -40,8 +40,8 @@ async function removeTestSessions(pool, sessions) {
   if (ids.length) await pool.query('DELETE FROM user_sessions WHERE sid = ANY($1::text[])', [ids]);
 }
 
-async function api(path, session, { method = 'GET', body, includeCsrf = true } = {}) {
-  const headers = { cookie: session.cookie, accept: 'application/json' };
+async function api(path, session, { method = 'GET', body, includeCsrf = true, headers: extraHeaders = {} } = {}) {
+  const headers = { cookie: session.cookie, accept: 'application/json', ...extraHeaders };
   let payload;
   if (body !== undefined) {
     headers['content-type'] = 'application/json';
@@ -49,6 +49,24 @@ async function api(path, session, { method = 'GET', body, includeCsrf = true } =
   }
   return fetch(`${baseUrl}${path}`, { method, headers, body: payload, redirect: 'manual' });
 }
+
+test('동일 Idempotency-Key 재전송은 자산을 한 번만 생성하고 다른 payload는 거부한다', { skip: !baseUrl || !databaseUrl }, async () => {
+  const pool=createPool(databaseUrl);const marker=Date.now().toString().slice(-9);const tag=`IDEM-${marker}`;const key=`idem-${crypto.randomUUID()}`;let admin;let assetId;
+  try{
+    admin=await login('admin@seowon.local',integrationConfig.seedAdminPassword);
+    const reference=await (await api('/api/enterprise/reference',admin,{})).json();
+    const body={organizationId:admin.user.organizationId,assetTag:tag,name:`중복방지 자산 ${marker}`,departmentId:reference.departments[0]?.id||null,locationId:reference.locations[0]?.id||null,categoryId:reference.categories[0]?.id||null,statusCode:'AVAILABLE'};
+    const first=await api('/api/enterprise/assets',admin,{method:'POST',body,headers:{'idempotency-key':key}});assert.equal(first.status,201);const firstBody=await first.json();assetId=firstBody.asset.id;
+    const replay=await api('/api/enterprise/assets',admin,{method:'POST',body,headers:{'idempotency-key':key}});assert.equal(replay.status,201);assert.equal(replay.headers.get('idempotent-replay'),'true');assert.equal((await replay.json()).asset.id,assetId);
+    const conflict=await api('/api/enterprise/assets',admin,{method:'POST',body:{...body,name:'다른 payload'},headers:{'idempotency-key':key}});assert.equal(conflict.status,409);assert.equal((await conflict.json()).code,'IDEMPOTENCY_CONFLICT');
+    assert.equal((await pool.query('SELECT count(*)::int count FROM assets WHERE asset_tag=$1',[tag])).rows[0].count,1);
+  }finally{
+    await removeTestSessions(pool,[admin]);
+    await pool.query('DELETE FROM api_idempotency_keys WHERE idempotency_key=$1',[key]);
+    if(assetId){await pool.query('DELETE FROM asset_status_histories WHERE asset_id=$1',[assetId]);await pool.query("DELETE FROM outbox_events WHERE aggregate_type='ASSET' AND aggregate_id=$1",[String(assetId)]);await pool.query("DELETE FROM audit_logs WHERE entity_type='ASSET' AND entity_id=$1",[String(assetId)]);await pool.query('DELETE FROM assets WHERE id=$1',[assetId]);}
+    await pool.end();
+  }
+});
 
 test('3계층 Docker 앱 health와 API 로그인 세션 흐름이 동작한다', { skip: !baseUrl }, async () => {
   const pool = createPool(databaseUrl);
@@ -80,6 +98,21 @@ test('3계층 Docker 앱 health와 API 로그인 세션 흐름이 동작한다',
   const dashboardData = await dashboard.json();
   assert.equal(typeof dashboardData.stats.total_items, 'number');
   assert.ok(Array.isArray(dashboardData.items));
+
+  const staleCsrf = await api('/api/items', manager, {
+    method: 'POST',
+    includeCsrf: false,
+    headers: { 'x-csrf-token': 'stale-browser-token' },
+    body: { code: 'CSRF-NOT-CREATED', name: '차단 대상', category: '보안 테스트', totalQuantity: 1, minQuantity: 0 }
+  });
+  assert.equal(staleCsrf.status, 403);
+  const staleCsrfError = await staleCsrf.json();
+  assert.equal(staleCsrfError.code, 'CSRF_INVALID');
+  assert.equal(staleCsrfError.csrfRefreshRequired, true);
+
+  const refreshedSession = await api('/api/auth/me', manager);
+  assert.equal(refreshedSession.status, 200);
+  assert.ok((await refreshedSession.json()).csrfToken);
   } finally {
     await removeTestSessions(pool, [manager]);
     await pool.end();
