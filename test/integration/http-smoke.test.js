@@ -68,28 +68,28 @@ test('동일 Idempotency-Key 재전송은 자산을 한 번만 생성하고 다�
   }
 });
 
-test('3계층 Docker 앱 health와 API 로그인 세션 흐름이 동작한다', { skip: !baseUrl }, async () => {
+test('3계층 Docker 앱 health와 API 로그인 세션 흐름이 동작한다', { skip: !baseUrl || !databaseUrl }, async () => {
   const pool = createPool(databaseUrl);
   let manager;
   try {
-  const sessionsBefore = await pool.query('SELECT count(*)::int count FROM user_sessions');
   const frontendHealth = await fetch(`${baseUrl}/health`);
   assert.equal(frontendHealth.status, 200);
+  assert.equal(frontendHealth.headers.get('set-cookie'), null);
   assert.deepEqual(await frontendHealth.json(), { status: 'ok', service: 'frontend' });
 
   const health = await fetch(`${baseUrl}/api/health`);
   assert.equal(health.status, 200);
+  assert.equal(health.headers.get('set-cookie'), null);
   assert.ok(health.headers.get('x-request-id'));
   assert.deepEqual(await health.json(), { status: 'ok', service: 'backend', database: 'up' });
 
   const anonymousItems = await fetch(`${baseUrl}/api/items`);
   assert.equal(anonymousItems.status, 401);
+  assert.equal(anonymousItems.headers.get('set-cookie'), null);
   const anonymousError = await anonymousItems.json();
   assert.equal(anonymousError.code, 'AUTH_REQUIRED');
   assert.ok(anonymousError.requestId);
   assert.deepEqual(anonymousError.fieldErrors, []);
-  const sessionsAfterAnonymousHealth = await pool.query('SELECT count(*)::int count FROM user_sessions');
-  assert.equal(sessionsAfterAnonymousHealth.rows[0].count, sessionsBefore.rows[0].count, 'health와 익명 보호 API는 세션을 만들지 않아야 한다');
 
   manager = await login('manager@seowon.local', integrationConfig.seedManagerPassword);
   assert.equal(manager.user.role, 'MANAGER');

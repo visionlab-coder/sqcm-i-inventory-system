@@ -33,11 +33,21 @@
 
 다음 작업에 단계별 결정 기록, 마이그레이션, 테스트 결과와 미완료 배포 항목을 남긴다. 임시 토큰, 테스트 세션, 개인·생계 데이터가 포함된 로그는 남기지 않는다.
 
-## 현재 상태 — Phase 30~33 후속 운영 준비
+## 현재 상태 — Phase 34~39 운영 완성 체인
 
-- 기업형 기능 FR 35/35와 Phase 24~29 체인 완료, 실제 운영 공급자·배포·UAT 승인만 외부 게이트로 분리
-- migration 13개·필수 테이블 31개, 단위 65/65, 통합 16/16, Docker 3/3, readiness·smoke·최종 격리 복구 통과
-- Docker frontend/backend/database 3서비스와 PostgreSQL 16 healthy
-- 최종 백업 SHA-256 `f2d18ac60f04d64e1932571178d7a07302d26cac1c1a0fc01e4902fbbea7cb9c`; health 세션 생성과 업무 테스트 잔존 0, 외부 결정은 `docs/operations-decision-register.md`, 인수는 `docs/UAT-checklist.md`에서 추적
-- Phase 30 후속 체인과 4개 메타프롬프트 작성, Phase 31 Node 24 Actions 전환, Phase 32 운영 manifest·live probe, Phase 33 9개 증거·3개 승인 전환 게이트 구현
-- 템플릿은 계약 검증만 통과하며 실제 production 승인으로 사용할 수 없다. 실제 공급자·DNS/TLS·Secret·UAT 서명과 GitHub 대상 계정 식별은 외부 게이트다.
+- 기준 브랜치·커밋은 `agent/quality-security-hardening`의 `8d4a0b3`이며 기업형 기능 FR 35/35와 Phase 24~39 저장소 구현 범위를 완료했다.
+- migration 14개·필수 테이블 32개, 구문 검사 64개, 단위 82/82, 통합 17/17을 기록했다.
+- Docker `frontend`·`backend`·`database` 3서비스와 PostgreSQL 16 health, HTTP smoke, 유지보수 점검, 백업·격리 복구, 비기능·장애복구 시험을 통과했다.
+- Phase 35에서 CSRF 재동기화 안내와 API 멱등성을 구현했고, Phase 36에서 production HTTPS·OIDC·외부 저장소·악성코드 검사기 계약을 fail-closed로 강제했다.
+- Phase 37에서 운영 상태·경보 판정과 백업·복구 증거를 연결했으며, 최종 백업 SHA-256은 `a2a5a81e70a4ce5ba4b29fce7ffd5c9055f4f3b64a71af8b977555382abbf804`다.
+- Phase 38 로컬 시험은 60요청 p95 48.7ms·오류율 0%, DB 장애 감지 6,046ms·복구 8ms를 기록했다.
+- Phase 39는 12개 전환 증거, Critical/High 결함 0, 직원·담당자·관리자 역할별 PASS와 업무·보안·운영 책임자 서명을 요구한다.
+- 템플릿은 계약 검증만 통과하며 실제 production 승인을 대신할 수 없다. 실제 DNS/TLS·Secret Manager·회사 OIDC·외부 저장소/검사기·경보 채널·파일럿 UAT 서명은 외부 게이트다.
+- 운영 결정은 `docs/operations-decision-register.md`, 인수 절차는 `docs/UAT-checklist.md`와 `docs/pilot-uat-execution.md`, Phase별 증거는 `docs/phase-reports/34_*`부터 `39_*`까지에서 추적한다.
+
+## 최근 재검증 — 2026-08-09
+
+- 구문 검사 64개, 단위 82/82, 통합 17/17, Docker 3/3 healthy, deploy smoke와 유지보수 점검을 다시 통과했다.
+- 통합 테스트의 전역 세션 개수 비교가 병렬 세션 정리와 충돌하던 비결정성을 제거하고, health·익명 응답별 `Set-Cookie` 부재를 직접 검증하도록 변경했다.
+- 최근 15분 HTTP 5xx와 backend error/fatal 로그는 없었다. 중복 기준정보 삽입의 PostgreSQL UNIQUE 오류는 409 역조건 통합 테스트에서 의도적으로 발생한 기록이다.
+- 저장소 내부 검증은 통과했으며 다음 진행 조건은 실제 운영 공급자 연결과 역할별 파일럿 UAT·책임자 승인이다.
