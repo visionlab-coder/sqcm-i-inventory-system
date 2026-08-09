@@ -26,7 +26,7 @@ async function uploadReturnPhoto({ pool,fileStore,malwareScanner,maxBytes,user,r
   const request = found.rows[0];
   if (request.request_type !== 'RETURN' || request.status !== 'DRAFT') throw new DomainError('초안 상태의 반납 요청에만 사진을 추가할 수 있습니다.',409);
   if (Number(request.requester_id) !== Number(user.id)) throw new DomainError('반납 요청자만 사진을 추가할 수 있습니다.',403);
-  if (Number(request.organization_id) !== Number(user.organizationId) && user.role !== 'ADMIN') throw new DomainError('다른 조직 요청에 접근할 수 없습니다.',403);
+  if (Number(request.organization_id) !== Number(user.organizationId) && !user.isSystemAdmin) throw new DomainError('다른 조직 요청에 접근할 수 없습니다.',403);
   await requireDepartmentAccess(pool,user,request.department_id);
   const normalized = normalizeUpload({ ...input,fileType:'RETURN' },maxBytes);
   const scan = await malwareScanner.scan(input.content,{ contentType:normalized.contentType,originalName:normalized.originalName });

@@ -7,7 +7,7 @@ async function resolveScope(pool, user) {
   const result = await pool.query(`SELECT scope_type,organization_id,department_id FROM user_role_scopes
     WHERE user_id=$1 AND role_code=$2 ORDER BY created_at`, [user.id, user.role]);
   const selected = result.rows.sort((a,b)=>(PRIORITY[b.scope_type]||0)-(PRIORITY[a.scope_type]||0))[0];
-  const scopeType = selected?.scope_type || (user.role === 'ADMIN' ? 'ALL' : user.role === 'MANAGER' ? 'ORGANIZATION' : 'DEPARTMENT');
+  const scopeType = selected?.scope_type || (user.isSystemAdmin ? 'ALL' : user.role === 'ADMIN' ? 'ORGANIZATION' : user.role === 'MANAGER' ? 'ORGANIZATION' : 'DEPARTMENT');
   const departmentId = selected?.department_id || user.departmentId || null;
   if (scopeType === 'DEPARTMENT' && !departmentId) throw new DomainError('부서 범위 사용자에게 기준 부서가 없습니다.', 403);
   if (scopeType === 'ALL' || scopeType === 'ORGANIZATION') return { scopeType, organizationId: Number(selected?.organization_id || user.organizationId), departmentIds: null, selfUserId: null };

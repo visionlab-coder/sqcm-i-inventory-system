@@ -9,6 +9,8 @@ const { uploadAssetFile, getAssetFile, deactivateAssetFile } = require('./servic
 const { resolveScope, canAccessDepartment } = require('./services/scope-service');
 const { createApprovalPolicy, listApprovalPolicies } = require('./services/approval-service');
 const { uploadReturnPhoto } = require('./services/return-service');
+const { getCostCommandCenter } = require('./services/cost-service');
+const { recommendActions, searchAssets, detectAnomalies, extractDocument } = require('./services/ai-service');
 const { createIdempotencyMiddleware } = require('./idempotency');
 
 const page = req => ({ size: Math.min(100, Math.max(1, Number(req.query.size) || 25)), offset: Math.max(0, Number(req.query.page) || 0) * Math.min(100, Math.max(1, Number(req.query.size) || 25)) });
@@ -21,7 +23,7 @@ async function audit(pool, req, action, type, id, metadata = {}) {
     VALUES($1,$2,$3,$4,$5::jsonb,$6,$7)`, [req.user.id, action, type, String(id), JSON.stringify(metadata), current.requestId, current.ip]);
 }
 
-function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProduction = false, fileStore, malwareScanner, fileMaxBytes = 5 * 1024 * 1024 }) {
+function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProduction = false, fileStore, malwareScanner, fileMaxBytes = 5 * 1024 * 1024, aiProvider }) {
   const router = express.Router();
   const idempotency = createIdempotencyMiddleware({ pool, required: isProduction });
   router.use(apiAuth);
@@ -148,9 +150,31 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
   router.get('/reports/summary', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.query.organizationId); const scope=await resolveScope(pool,req.user); const report=await getAssetReport(pool,organizationId,{},scope); const values=[organizationId]; const scopeSql=scope.departmentIds?(values.push(scope.departmentIds),` AND COALESCE(a.department_id,u.department_id)=ANY($2::bigint[])`):''; const pending=await pool.query(`SELECT count(*)::int count FROM workflow_requests r JOIN users u ON u.id=r.requester_id LEFT JOIN assets a ON a.id=r.asset_id WHERE r.organization_id=$1 AND r.status='SUBMITTED'${scopeSql}`,values); res.json({summary:{...report.summary,pending_requests:pending.rows[0].count}}); });
   router.get('/reports/assets', async(req,res)=>{ requirePermission(req.user,'report.read'); const scope=await resolveScope(pool,req.user); res.json(await getAssetReport(pool,orgId(req,req.query.organizationId),req.query,scope)); });
   router.get('/reports/assets.csv', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.query.organizationId); const scope=await resolveScope(pool,req.user); const report=await getReportAssets(pool,organizationId,req.query,scope); const esc=value=>`"${String(value??'').replaceAll('"','""')}"`; const csv=['asset_tag,name,serial_no,status,department,location,category,acquired_at,acquisition_cost',...report.assets.map(row=>[row.asset_tag,row.name,row.serial_no,row.status_code,row.department_name,row.location_name,row.category_name,row.acquired_at?.toISOString?.().slice(0,10)||row.acquired_at,row.acquisition_cost].map(esc).join(','))].join('\r\n'); await audit(pool,req,'REPORT_EXPORTED','REPORT',organizationId,{format:'csv',rows:report.assets.length,filters:report.filters}); res.set({'content-type':'text/csv; charset=utf-8','content-disposition':'attachment; filename="seowon-assets.csv"'}).send('\ufeff'+csv); });
+  router.get('/cost/command-center', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.query.organizationId); const scope=await resolveScope(pool,req.user); res.json(await getCostCommandCenter(pool,req.user,organizationId,scope)); });
+  router.get('/notifications', async(req,res)=>{ const organizationId=orgId(req,req.query.organizationId); const limit=Math.min(100,Math.max(1,Number(req.query.limit)||30)); const result=await pool.query(`SELECT n.* FROM notifications n WHERE n.organization_id=$1 AND (n.recipient_user_id IS NULL OR n.recipient_user_id=$2) ORDER BY n.created_at DESC LIMIT $3`,[organizationId,req.user.id,limit]); res.json({notifications:result.rows}); });
+  router.get('/ai/recommendations', async(req,res)=>{ requirePermission(req.user,'report.read'); const scope=await resolveScope(pool,req.user); const result=await recommendActions(pool,req.user,req.query,scope); return res.json(result); });
+  router.get('/ai/search', async(req,res)=>{ requirePermission(req.user,'asset.read'); const scope=await resolveScope(pool,req.user); res.json(await searchAssets(pool,req.user,req.query,scope)); });
+  router.get('/ai/anomalies', async(req,res)=>{ requirePermission(req.user,'report.read'); const scope=await resolveScope(pool,req.user); const result=await detectAnomalies(pool,req.user,req.query,scope); return res.json(result); });
+  router.post('/ai/ocr', async(req,res)=>{ requirePermission(req.user,'asset.update'); const organizationId=orgId(req,req.body.organizationId); const result=await extractDocument({provider:aiProvider?.ocr,organizationId,assetId:req.body.assetId,fileId:req.body.fileId,input:req.body}); if(result.status==='NOT_CONFIGURED'&&isProduction) throw new DomainError('운영 OCR 공급자가 구성되지 않았습니다.',503); const saved=await pool.query(`INSERT INTO document_extractions(organization_id,asset_id,source_file_id,provider,model_version,status,fields,confidence,created_by) VALUES($1,$2,$3,$4,$5,$6,$7::jsonb,$8::jsonb,$9) RETURNING id,created_at`,[organizationId,req.body.assetId||null,req.body.fileId||null,result.provider,result.modelVersion,result.status,JSON.stringify(result.fields),JSON.stringify(result.confidence),req.user.id]); res.status(result.status==='NOT_CONFIGURED'?501:200).json({extraction:{...result,id:saved.rows[0].id,createdAt:saved.rows[0].created_at}}); });
 
-  router.get('/admin', async(req,res)=>{ requirePermission(req.user,'admin.manage'); const [orgs,depts,locations,users,invitations,outbox]=await Promise.all([pool.query('SELECT * FROM organizations ORDER BY name'),pool.query('SELECT * FROM departments ORDER BY organization_id,parent_id NULLS FIRST,name'),pool.query('SELECT * FROM locations ORDER BY name'),pool.query(`SELECT u.id,u.email,u.display_name,u.role,u.status,u.organization_id,u.department_id,u.mfa_enabled,s.scope_type,s.department_id scope_department_id FROM users u LEFT JOIN LATERAL (SELECT scope_type,department_id FROM user_role_scopes WHERE user_id=u.id AND role_code=u.role ORDER BY created_at DESC LIMIT 1) s ON true ORDER BY u.display_name`),pool.query(`SELECT i.id,i.organization_id,i.department_id,i.email,i.display_name,i.role,i.scope_type,i.expires_at,i.accepted_at,i.revoked_at,i.created_at,d.name department_name
-    FROM user_invitations i LEFT JOIN departments d ON d.id=i.department_id ORDER BY i.created_at DESC LIMIT 100`),pool.query('SELECT * FROM outbox_events ORDER BY created_at DESC LIMIT 50')]); res.json({organizations:orgs.rows,departments:depts.rows,locations:locations.rows,users:users.rows,invitations:invitations.rows,outbox:outbox.rows}); });
+  router.get('/admin', async(req,res)=>{
+    requirePermission(req.user,'admin.manage');
+    const organizationId=orgId(req,req.query.organizationId);
+    const orgFilter=req.user.isSystemAdmin?'':' WHERE id=$1';
+    const orgValues=req.user.isSystemAdmin?[]:[organizationId];
+    const [orgs,depts,locations,users,invitations,outbox]=await Promise.all([
+      pool.query(`SELECT * FROM organizations${orgFilter} ORDER BY name`,orgValues),
+      pool.query(`SELECT * FROM departments WHERE organization_id=$1 ORDER BY parent_id NULLS FIRST,name`,[organizationId]),
+      pool.query(`SELECT * FROM locations WHERE organization_id=$1 ORDER BY name`,[organizationId]),
+      pool.query(`SELECT u.id,u.email,u.display_name,u.role,u.status,u.organization_id,u.department_id,u.mfa_enabled,u.is_system_admin,s.scope_type,s.department_id scope_department_id
+        FROM users u LEFT JOIN LATERAL (SELECT scope_type,department_id FROM user_role_scopes WHERE user_id=u.id AND role_code=u.role ORDER BY created_at DESC LIMIT 1) s ON true
+        WHERE u.organization_id=$1 ORDER BY u.display_name`,[organizationId]),
+      pool.query(`SELECT i.id,i.organization_id,i.department_id,i.email,i.display_name,i.role,i.scope_type,i.expires_at,i.accepted_at,i.revoked_at,i.created_at,d.name department_name
+        FROM user_invitations i LEFT JOIN departments d ON d.id=i.department_id WHERE i.organization_id=$1 ORDER BY i.created_at DESC LIMIT 100`,[organizationId]),
+      pool.query(`SELECT * FROM outbox_events WHERE payload->>'organizationId'=$1 ORDER BY created_at DESC LIMIT 50`,[String(organizationId)])
+    ]);
+    res.json({organizations:orgs.rows,departments:depts.rows,locations:locations.rows,users:users.rows,invitations:invitations.rows,outbox:outbox.rows});
+  });
   router.post('/admin/departments', async(req,res)=>{ const department=await createOrganizationUnit(pool,req.user,req.body.organizationId,req.body,trace(req)); res.status(201).json({department}); });
   router.post('/admin/invitations', async(req,res)=>{ const created=await createInvitation(pool,req.user,req.body.organizationId,req.body,trace(req)); res.status(201).json({invitation:created.invitation,...(!isProduction?{developmentToken:created.rawToken}:{})}); });
   router.post('/admin/invitations/:id/revoke', async(req,res)=>res.json({invitation:await revokeInvitation(pool,req.user,req.params.id,trace(req))}));

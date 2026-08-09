@@ -86,8 +86,13 @@ function normalizeAuditFilters(input = {}) {
   return filters;
 }
 
-async function getAuditLogs(pool, input = {}) {
+async function getAuditLogs(pool, input = {}, user = null) {
   const filters = normalizeAuditFilters(input); const values = []; const where = [];
+  if (!user?.isSystemAdmin) {
+    const organizationId = Number(user?.organizationId);
+    if (!Number.isInteger(organizationId) || organizationId <= 0) throw new DomainError('조직 범위가 지정된 사용자만 감사 로그를 조회할 수 있습니다.', 403);
+    values.push(organizationId); where.push(`a.organization_id=$${values.length}`);
+  }
   if (filters.action) { values.push(filters.action); where.push(`a.action=$${values.length}`); }
   if (filters.entityType) { values.push(filters.entityType); where.push(`a.entity_type=$${values.length}`); }
   if (filters.actorId) { values.push(filters.actorId); where.push(`a.actor_user_id=$${values.length}`); }

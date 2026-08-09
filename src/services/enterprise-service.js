@@ -31,7 +31,8 @@ function requirePermission(user, permission) {
 function requireOrganization(user, organizationId) {
   const requested = Number(organizationId);
   if (!Number.isInteger(requested) || requested <= 0) throw new DomainError('올바른 조직이 필요합니다.');
-  if (user.role !== 'ADMIN' && Number(user.organizationId) !== requested) throw new DomainError('다른 조직의 데이터에 접근할 수 없습니다.', 403);
+  const legacyAdminContext = user.role === 'ADMIN' && typeof user.isSystemAdmin === 'undefined';
+  if (!user.isSystemAdmin && !legacyAdminContext && Number(user.organizationId) !== requested) throw new DomainError('다른 조직의 데이터에 접근할 수 없습니다.', 403);
   return requested;
 }
 

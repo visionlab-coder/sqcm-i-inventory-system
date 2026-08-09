@@ -1,4 +1,4 @@
-const state = { user: null, csrfToken: null, view: 'dashboard', reference: null };
+const state = { user: null, csrfToken: null, view: 'dashboard', reference: null, assetPage: 0 };
 const $ = selector => document.querySelector(selector);
 const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
 const date = value => value ? new Date(value).toLocaleDateString('ko-KR') : '-';
@@ -79,6 +79,21 @@ function showLogin() {
   }
 }
 
+function closeMobileNav() {
+  const shell = $('#app-shell'); const toggle = $('#mobile-nav-toggle');
+  shell?.classList.remove('nav-open');
+  toggle?.setAttribute('aria-expanded', 'false');
+  toggle?.setAttribute('aria-label', '메뉴 열기');
+}
+
+function toggleMobileNav() {
+  const shell = $('#app-shell'); const toggle = $('#mobile-nav-toggle');
+  const open = !shell.classList.contains('nav-open');
+  shell.classList.toggle('nav-open', open);
+  toggle.setAttribute('aria-expanded', String(open));
+  toggle.setAttribute('aria-label', open ? '메뉴 닫기' : '메뉴 열기');
+}
+
 function showInvitation(token) {
   showLogin();
   $('#login-form').classList.add('hidden');
@@ -95,6 +110,10 @@ function showApp() {
   $('#audit-nav').classList.toggle('hidden', state.user.role !== 'ADMIN');
   document.querySelectorAll('[data-manager-only]').forEach(element => element.classList.toggle('hidden', !isManager()));
   document.querySelectorAll('[data-admin-only]').forEach(element => element.classList.toggle('hidden', state.user.role !== 'ADMIN'));
+  const nav = document.querySelector('.sidebar nav');
+  if (nav && !nav.querySelector('[data-view="cost-control"]') && isManager()) {
+    const costButton = document.createElement('button'); costButton.type = 'button'; costButton.dataset.view = 'cost-control'; costButton.textContent = 'Cost Command Center'; costButton.addEventListener('click', () => navigate('cost-control')); nav.insertBefore(costButton, nav.querySelector('[data-view="reports"]') || null);
+  }
   navigate('dashboard');
 }
 
@@ -117,6 +136,12 @@ async function boot() {
 
 async function navigate(view) {
   state.view = view;
+  const nextUrl = new URL(location.href);
+  nextUrl.hash = `view=${encodeURIComponent(view)}`;
+  history.replaceState({ view }, '', nextUrl);
+  closeMobileNav();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  $('#main').scrollTop = 0;
   document.querySelectorAll('[data-view]').forEach(button => button.classList.toggle('active', button.dataset.view === view));
   $('#view-root').innerHTML = '<div class="loading">데이터를 불러오는 중입니다…</div>';
   try {
@@ -128,6 +153,7 @@ async function navigate(view) {
     if (view === 'stocktakes') await renderStocktakes();
     if (view === 'repairs') await renderRepairs();
     if (view === 'reports') await renderReports();
+    if (view === 'cost-control') await renderCostControl();
     if (view === 'admin') await renderAdmin();
     if (view === 'items') await renderItems();
     if (view === 'loans') await renderLoans();
@@ -147,6 +173,24 @@ async function renderDashboard() {
     <section class="command-hero"><div class="command-copy"><span>AVAILABLE EQUIPMENT / 실시간 가용 수량</span><strong>${data.items.reduce((sum,item) => sum + Number(item.available_quantity), 0)}</strong><span>모든 현장의 작업 가능 자산을 기준으로 집계</span></div><div class="command-signal"><div><strong>${data.stats.low_stock}</strong><span>LOW STOCK<br>즉시 확인</span></div></div></section>
     <section class="metric-strip"><article class="metric-feature"><span>등록 자산군</span><strong>${data.stats.total_items}</strong><small>운영 기준 품목</small></article><article><span>대여 중</span><strong>${data.stats.loaned}</strong><small>현장 사용 수량</small></article><article><span>반납 지연</span><strong>${data.stats.overdue}</strong><small>관리 필요 건</small></article><article class="metric-risk"><span>재고 부족</span><strong>${data.stats.low_stock}</strong><small>발주 검토 품목</small></article></section>
     <section class="panel"><div class="panel-head"><h2>비품 현황</h2><button class="link" data-go="items">전체 보기</button></div><div class="table-wrap"><table><thead><tr><th>코드</th><th>비품명</th><th>카테고리</th><th>가용/총수량</th><th>상태</th></tr></thead><tbody>${rows || '<tr><td colspan="5" class="empty-cell">등록된 비품이 없습니다.</td></tr>'}</tbody></table></div></section>`;
+  const position = document.createElement('section');
+  position.className = 'panel product-position';
+  position.innerHTML = '<p class="eyebrow">COST CONTROL POSITION</p><h2>구매 전에, 다른 현장의 유휴 자산부터 찾습니다.</h2><p class="muted">이동 · 수리 · 교체 중 가장 낮은 비용의 다음 행동을 추천하는 AI 현장 자산 Cost Control</p><div class="position-actions"><button class="primary" data-go="cost-control">비용 의사결정 열기</button><button class="secondary" data-go="assets">정식 자산 원장 보기</button></div>';
+  $('#view-root').prepend(position);
+}
+
+async function renderCostControl() {
+  const data = await request(`/api/enterprise/cost/command-center?organizationId=${encodeURIComponent(state.user.organizationId)}`);
+  const ai = await request(`/api/enterprise/ai/recommendations?organizationId=${encodeURIComponent(state.user.organizationId)}`).catch(() => ({ recommendations: [] }));
+  const s = data.summary || {};
+  const money = value => `${Number(value || 0).toLocaleString('ko-KR')}원`;
+  const idleRows = (data.idleAssets || []).map(asset => `<tr><td class="mono">${escapeHtml(asset.asset_tag)}</td><td><strong>${escapeHtml(asset.name)}</strong></td><td>${escapeHtml(asset.location_name || '-')}</td><td>${asset.idle_days}일</td><td>${money(asset.acquisition_cost)}</td><td><button class="small" data-go="assets">이동 후보 확인</button></td></tr>`).join('');
+  const renewalRows = (data.upcomingRenewals || []).map(row => `<tr><td class="mono">${escapeHtml(row.asset_tag)}</td><td>${escapeHtml(row.name)}</td><td>${date(row.warranty_end)}</td><td>${date(row.lease_end)}</td></tr>`).join('');
+  const aiRows = (ai.recommendations || []).slice(0, 6).map(row => `<li class="ai-recommendation"><strong>${escapeHtml(row.actionType)}</strong><span>${escapeHtml(row.assetTag || '-')}</span><small>회피 가능 ${money(row.avoidedCost)} · 신뢰도 ${Math.round(Number(row.confidence || 0) * 100)}%</small></li>`).join('');
+  $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">COST COMMAND CENTER / TCO</p><h1>구매 전<br>비용 의사결정</h1><p class="muted">취득·수리·이동·처분 원장을 합산해 현재 자본이 묶인 곳과 다음 검토 대상을 보여줍니다.</p></div><button class="secondary" data-go="assets">자산 원장 열기</button></div>
+    <section class="metric-strip cost-metric-strip"><article class="metric-feature"><span>TCO 원장 합계</span><strong>${money(s.tco)}</strong><small>확정된 비용 이벤트 기준</small></article><article><span>장부가</span><strong>${money(s.book_value)}</strong><small>직선법 감가 반영</small></article><article><span>유휴 자본</span><strong>${money(s.idle_capital)}</strong><small>${s.idle_asset_count || 0}개 자산</small></article><article class="metric-risk"><span>수리 비용</span><strong>${money(s.repair_cost)}</strong><small>수리 원장 누계</small></article></section>
+    <section class="two-column"><article class="panel"><div class="panel-head"><div><p class="eyebrow">TRANSFER BEFORE BUY</p><h2>유휴 자산 이동 후보</h2></div><span>${(data.idleAssets || []).length} CANDIDATES</span></div><div class="table-wrap"><table><thead><tr><th>자산</th><th>명칭</th><th>현장</th><th>유휴일</th><th>취득가</th><th>다음 행동</th></tr></thead><tbody>${idleRows || '<tr><td colspan="6" class="empty-cell">현재 유휴 후보가 없습니다.</td></tr>'}</tbody></table></div></article><article class="panel"><div class="panel-head"><div><p class="eyebrow">AI DECISION SUPPORT</p><h2>구매 전 추천</h2></div><span>${ai.recommendations?.length || 0} PROPOSALS</span></div><ul class="ai-recommendation-list">${aiRows || '<li class="empty-cell">추천을 만들 수 있는 비용 근거가 없습니다.</li>'}</ul></article></section>
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">WARRANTY / LEASE</p><h2>90일 내 만료</h2></div></div><div class="table-wrap"><table><thead><tr><th>자산</th><th>명칭</th><th>보증 만료</th><th>리스 만료</th></tr></thead><tbody>${renewalRows || '<tr><td colspan="4" class="empty-cell">예정된 만료가 없습니다.</td></tr>'}</tbody></table></div></section>`;
 }
 
 async function renderItems(query = '') {
@@ -227,12 +271,17 @@ async function reference() {
 const options = (rows, label, selected = '') => rows.map(row => `<option value="${row.id}" ${String(row.id) === String(selected) ? 'selected' : ''}>${escapeHtml(label(row))}</option>`).join('');
 const statusBadge = value => `<span class="badge ${['AVAILABLE','APPROVED','MATCH','ACTIVE','RESOLVED'].includes(value) ? 'good' : ['LOST','REJECTED','MISSING','DAMAGED'].includes(value) ? 'bad' : 'neutral'}">${escapeHtml(value)}</span>`;
 
-async function renderAssets(query = '') {
-  const data = await request(`/api/enterprise/assets?q=${encodeURIComponent(query)}`);
+async function renderAssets(query = '', page = 0) {
+  state.assetPage = page;
+  const data = await request(`/api/enterprise/assets?q=${encodeURIComponent(query)}&page=${page}&size=25`);
   const rows = data.assets.map(asset => `<tr><td class="mono">${escapeHtml(asset.asset_tag)}</td><td><strong>${escapeHtml(asset.name)}</strong><br><small>${escapeHtml(asset.serial_no || '-')}</small></td><td>${escapeHtml(asset.category_name || '-')}</td><td>${escapeHtml(asset.location_name || '-')}</td><td>${statusBadge(asset.status_code)}</td><td><button class="small enterprise-asset-detail" data-id="${asset.id}">상세</button></td></tr>`).join('');
   $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">ASSET REGISTER / INDIVIDUAL CONTROL</p><h1>기업 자산<br>통합 원장</h1><p class="muted">개별 자산번호, 일련번호, 위치와 전체 상태 이력을 한곳에서 조회합니다.</p></div>${isManager() ? '<button class="primary" data-go="asset-register">+ 자산 등록</button>' : ''}</div>
   <section class="panel"><form id="asset-search" class="search-panel"><input type="search" name="q" value="${escapeHtml(query)}" placeholder="자산번호 · 자산명 · 일련번호"><button class="secondary">검색</button></form><div class="table-wrap"><table><thead><tr><th>자산번호</th><th>자산</th><th>분류</th><th>위치</th><th>상태</th><th>관리</th></tr></thead><tbody>${rows || '<tr><td colspan="6" class="empty-cell">조건에 맞는 자산이 없습니다.</td></tr>'}</tbody></table></div></section>`;
-  $('#asset-search').addEventListener('submit', event => { event.preventDefault(); renderAssets(new FormData(event.target).get('q')); });
+  const totalPages = Math.max(1, Math.ceil(Number(data.total || 0) / Number(data.size || 25)));
+  const tablePanel = $('#view-root').querySelector('.table-wrap');
+  if (tablePanel) tablePanel.insertAdjacentHTML('afterend', `<div class="table-pager" role="navigation" aria-label="자산 목록 페이지"><button class="secondary" data-asset-page="${Math.max(0, page - 1)}" ${page <= 0 ? 'disabled' : ''}>이전</button><span>${page + 1} / ${totalPages} · ${Number(data.total || 0)}건</span><button class="secondary" data-asset-page="${Math.min(totalPages - 1, page + 1)}" ${page >= totalPages - 1 ? 'disabled' : ''}>다음</button></div>`);
+  $('#asset-search').addEventListener('submit', event => { event.preventDefault(); renderAssets(new FormData(event.target).get('q'), 0); });
+  document.querySelectorAll('[data-asset-page]').forEach(button => button.addEventListener('click', () => renderAssets(query, Number(button.dataset.assetPage))));
   document.querySelectorAll('.enterprise-asset-detail').forEach(button => button.addEventListener('click', () => renderAssetDetail(button.dataset.id)));
 }
 
@@ -435,7 +484,10 @@ $('#invitation-form').addEventListener('submit', async event => {
 $('#invitation-back').addEventListener('click',()=>{history.replaceState({},'',location.pathname);$('#invitation-form').classList.add('hidden');$('#login-form').classList.remove('hidden');});
 
 document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => navigate(button.dataset.view)));
-document.addEventListener('click', event => { const target = event.target.closest('[data-go]'); if (target) navigate(target.dataset.go); });
+document.addEventListener('click', event => { const target = event.target.closest('[data-go]'); if (target) navigate(target.dataset.go === 'items' ? 'assets' : target.dataset.go); });
+$('#mobile-nav-toggle')?.addEventListener('click', toggleMobileNav);
+$('#nav-backdrop')?.addEventListener('click', closeMobileNav);
+document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMobileNav(); });
 $('#logout-button').addEventListener('click', async () => { try { await request('/api/auth/logout', { method:'POST', body:{} }); } finally { const csrf = await request('/api/auth/csrf'); state.csrfToken = csrf.csrfToken; showLogin(); } });
 
 boot();
