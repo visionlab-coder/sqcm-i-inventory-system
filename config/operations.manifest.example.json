@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "template": true,
   "environment": "staging",
-  "publicBaseUrl": "https://inventory.example.com",
+  "publicBaseUrl": "https://sqcm.safe-link.co.kr",
   "providers": {
     "oidc": {
       "issuer": "https://idp.example.com",
       "clientId": "inventory-staging",
-      "redirectUri": "https://inventory.example.com/api/auth/oidc/callback"
+      "redirectUri": "https://sqcm.safe-link.co.kr/api/auth/oidc/callback"
     },
     "storage": {
       "endpoint": "https://objects.example.com",

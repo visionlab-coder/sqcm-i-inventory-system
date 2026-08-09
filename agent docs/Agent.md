@@ -43,6 +43,7 @@
 - Phase 38 로컬 시험은 60요청 p95 48.7ms·오류율 0%, DB 장애 감지 6,046ms·복구 8ms를 기록했다.
 - Phase 39는 12개 전환 증거, Critical/High 결함 0, 직원·담당자·관리자 역할별 PASS와 업무·보안·운영 책임자 서명을 요구한다.
 - 템플릿은 계약 검증만 통과하며 실제 production 승인을 대신할 수 없다. 실제 DNS/TLS·Secret Manager·회사 OIDC·외부 저장소/검사기·경보 채널·파일럿 UAT 서명은 외부 게이트다.
+- 운영 공개 도메인은 `sqcm.safe-link.co.kr`로 결정했다. 제품화 게이트가 모두 완료된 뒤 가비아 DNS에 연결하며, 그 전에는 DNS 또는 production 연결을 실행하지 않는다.
 - 운영 결정은 `docs/operations-decision-register.md`, 인수 절차는 `docs/UAT-checklist.md`와 `docs/pilot-uat-execution.md`, Phase별 증거는 `docs/phase-reports/34_*`부터 `39_*`까지에서 추적한다.
 
 ## 최근 재검증 — 2026-08-09
