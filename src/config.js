@@ -9,6 +9,13 @@ function boundedInteger(value, fallback, name, min, max) {
   return parsed;
 }
 
+function booleanValue(value, fallback, name) {
+  if (value == null || value === '') return fallback;
+  if (value === true || value === 'true') return true;
+  if (value === false || value === 'false') return false;
+  throw new Error(`${name}은(는) true 또는 false여야 합니다.`);
+}
+
 function getConfig(overrides = {}) {
   const env = { ...process.env, ...overrides };
   const sessionSecret = env.SESSION_SECRET || 'development-only-change-this-secret-now';
@@ -31,9 +38,14 @@ function getConfig(overrides = {}) {
   const malwareScanDriver = String(env.MALWARE_SCAN_DRIVER || 'mock').toLowerCase();
   const operationalAdapterModule = String(env.OPERATIONAL_ADAPTER_MODULE || '').trim();
   const publicBaseUrl = String(env.PUBLIC_BASE_URL || '').trim().replace(/\/$/, '');
+  const isProduction = env.NODE_ENV === 'production';
+  const dbAutoMigrate = booleanValue(env.DB_AUTO_MIGRATE, !isProduction, 'DB_AUTO_MIGRATE');
+  const dbRunSeeds = booleanValue(env.DB_RUN_SEEDS, !isProduction, 'DB_RUN_SEEDS');
   if (!['local', 'oidc'].includes(authProvider)) throw new Error('AUTH_PROVIDER must be local or oidc.');
   if (!['mock', 'external'].includes(malwareScanDriver)) throw new Error('MALWARE_SCAN_DRIVER must be mock or external.');
   if (env.NODE_ENV === 'production') {
+    if (dbAutoMigrate) throw new Error('Production cannot auto-apply migrations at application startup.');
+    if (dbRunSeeds) throw new Error('Production cannot create seed users or sample data.');
     if (authProvider !== 'oidc') throw new Error('Production requires AUTH_PROVIDER=oidc.');
     if (malwareScanDriver !== 'external') throw new Error('Production requires MALWARE_SCAN_DRIVER=external.');
     if (!operationalAdapterModule) throw new Error('Production requires OPERATIONAL_ADAPTER_MODULE.');
@@ -64,10 +76,15 @@ function getConfig(overrides = {}) {
     oidcRedirectUri: String(env.OIDC_REDIRECT_URI || '').trim(),
     oidcAllowEmailLinking: env.OIDC_ALLOW_EMAIL_LINKING === 'true',
     mfaEncryptionKey,
+    dbAutoMigrate,
+    dbRunSeeds,
+    outboxPublisherRequired: isProduction,
+    outboxPollIntervalMs: boundedInteger(env.OUTBOX_POLL_INTERVAL_MS, 5000, 'OUTBOX_POLL_INTERVAL_MS', 1000, 300000),
+    outboxBatchSize: boundedInteger(env.OUTBOX_BATCH_SIZE, 20, 'OUTBOX_BATCH_SIZE', 1, 100),
     seedAdminPassword: env.SEED_ADMIN_PASSWORD || 'Admin1234!',
     seedManagerPassword: env.SEED_MANAGER_PASSWORD || 'Manager1234!',
     seedUserPassword: env.SEED_USER_PASSWORD || 'Employee1234!'
   };
 }
 
-module.exports = { getConfig, boundedInteger };
+module.exports = { getConfig, boundedInteger, booleanValue };

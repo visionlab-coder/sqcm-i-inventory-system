@@ -35,7 +35,7 @@
 
 ## 4. UAT와 최종 게이트
 
-`docs/UAT-checklist.md`를 실제 URL과 역할별 계정으로 수행한다. 결함은 ID·재현·기대·실제·담당자·상태를 기록한다. 완료 후 `docs/templates/cutover-evidence.example.json`을 복사해 다음 9개 증거를 채운다.
+`docs/UAT-checklist.md`를 실제 URL과 역할별 계정으로 수행한다. 결함은 ID·재현·기대·실제·담당자·상태를 기록한다. 완료 후 `docs/templates/cutover-evidence.example.json`을 복사해 다음 12개 증거를 채운다.
 
 1. Artifact
 2. 백업·격리 복구
@@ -46,6 +46,9 @@
 7. 로그·5xx
 8. rollback
 9. UAT 서명
+10. CSRF·멱등성
+11. 운영 health·백업·경보
+12. 비기능·장애복구
 
 업무·보안·운영 책임자의 이름과 승인 시각까지 입력한 뒤 다음을 실행한다.
 

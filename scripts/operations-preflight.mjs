@@ -42,13 +42,15 @@ if (probe) {
     throw new Error('OIDC discovery contract mismatch');
   }
   const base = manifest.publicBaseUrl.replace(/\/$/, '');
-  const [health, readiness, storage, scanner] = await Promise.all([
+  const [health, readiness, storage, scanner, eventPublisher, alerting] = await Promise.all([
     expectReachable(`${base}/health`, 'frontend health', (status) => status === 200),
     expectReachable(`${base}/api/readiness`, 'backend readiness', (status) => status === 200),
     expectReachable(manifest.providers.storage.endpoint, 'object storage'),
-    expectReachable(manifest.providers.malwareScanner.endpoint, 'malware scanner')
+    expectReachable(manifest.providers.malwareScanner.endpoint, 'malware scanner'),
+    expectReachable(manifest.providers.eventPublisher.endpoint, 'event publisher'),
+    expectReachable(manifest.providers.alerting.endpoint, 'alerting')
   ]);
-  console.log(JSON.stringify({ liveProbe: { oidcDiscovery: discoveryResponse.status, health, readiness, storage, scanner } }, null, 2));
+  console.log(JSON.stringify({ liveProbe: { oidcDiscovery: discoveryResponse.status, health, readiness, storage, scanner, eventPublisher, alerting } }, null, 2));
 }
 
 console.log(JSON.stringify({ checkedAt: new Date().toISOString(), manifest: resolved, ...result.summary }, null, 2));

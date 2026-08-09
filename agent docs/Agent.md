@@ -51,3 +51,12 @@
 - 통합 테스트의 전역 세션 개수 비교가 병렬 세션 정리와 충돌하던 비결정성을 제거하고, health·익명 응답별 `Set-Cookie` 부재를 직접 검증하도록 변경했다.
 - 최근 15분 HTTP 5xx와 backend error/fatal 로그는 없었다. 중복 기준정보 삽입의 PostgreSQL UNIQUE 오류는 409 역조건 통합 테스트에서 의도적으로 발생한 기록이다.
 - 저장소 내부 검증은 통과했으며 다음 진행 조건은 실제 운영 공급자 연결과 역할별 파일럿 UAT·책임자 승인이다.
+
+## 현재 상태 — Phase 40~49 제품화 완성 체인
+
+- 브랜치 `agent/productization-completion-chain`에서 production bootstrap·migration·Outbox·운영 공급자 계약을 보완했다.
+- production은 앱 시작 자동 migration과 seed 사용자·샘플 데이터 생성을 거부한다. 별도 `db:migrate`·`db:verify` 명령을 사용한다.
+- migration 015에 Outbox 재시도·lock·오류·dead-letter를 추가하고 production event publisher 계약을 필수화했다.
+- 운영 manifest는 OIDC·저장소·검사기·event publisher·경보·PITR/WAL과 Secret 참조를 fail-closed로 검사한다.
+- 재검증: 구문 68개, 단위 87/87, 통합 17/17, migration 15/15, Docker 3/3 healthy, smoke·유지보수 통과.
+- 실제 공급자·staging·WAL/PITR·경보 수신·역할별 UAT·12개 증거·3개 승인·production 배포는 외부 실행 대기이며 최종 판정은 NO-GO다.

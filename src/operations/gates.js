@@ -2,6 +2,8 @@ const REQUIRED_SECRET_REFS = [
   'OIDC_CLIENT_SECRET',
   'STORAGE_CREDENTIALS',
   'MALWARE_SCANNER_TOKEN',
+  'EVENT_PUBLISHER_TOKEN',
+  'ALERTING_TOKEN',
   'SESSION_SECRET',
   'MFA_ENCRYPTION_KEY',
   'POSTGRES_PASSWORD'
@@ -63,10 +65,16 @@ function validateOperationsManifest(manifest) {
   if (!isHttps(malware.endpoint)) failures.push('providers.malwareScanner.endpoint must use HTTPS');
   if (!positiveInteger(malware.timeoutMs) || malware.timeoutMs > 120000) failures.push('malware scanner timeoutMs must be 1..120000');
 
+  for (const name of ['eventPublisher','alerting']) {
+    if (!isHttps(manifest.providers?.[name]?.endpoint)) failures.push(`providers.${name}.endpoint must use HTTPS`);
+  }
+
   const backup = manifest.backup || {};
   if (!isSecretReference(backup.storageRef)) failures.push('backup.storageRef must be a Secret/Vault reference');
   if (!positiveInteger(backup.rpoMinutes)) failures.push('backup.rpoMinutes must be a positive integer');
   if (!positiveInteger(backup.rtoMinutes)) failures.push('backup.rtoMinutes must be a positive integer');
+  if (backup.pitrEnabled !== true) failures.push('backup.pitrEnabled must be true');
+  if (!isSecretReference(backup.walArchiveRef)) failures.push('backup.walArchiveRef must be a Secret/Vault reference');
 
   for (const name of REQUIRED_SECRET_REFS) {
     if (!isSecretReference(manifest.secretRefs?.[name])) failures.push(`secretRefs.${name} must be a Secret/Vault reference`);
@@ -78,7 +86,7 @@ function validateOperationsManifest(manifest) {
     summary: {
       environment: manifest.environment || null,
       publicBaseUrl: manifest.publicBaseUrl || null,
-      providers: ['oidc', 'storage', 'malwareScanner'],
+      providers: ['oidc', 'storage', 'malwareScanner', 'eventPublisher', 'alerting'],
       secretReferenceCount: Object.keys(manifest.secretRefs || {}).length,
       template: manifest.template === true
     }

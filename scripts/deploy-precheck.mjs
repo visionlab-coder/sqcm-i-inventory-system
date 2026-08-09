@@ -29,13 +29,8 @@ rejectPlaceholder("MFA_ENCRYPTION_KEY", 40);
 if (Buffer.from(value("MFA_ENCRYPTION_KEY"), "base64").length !== 32) {
   failures.push("MFA_ENCRYPTION_KEY: base64 32-byte 값이어야 합니다.");
 }
-rejectPlaceholder("SEED_ADMIN_PASSWORD", 12);
-rejectPlaceholder("SEED_MANAGER_PASSWORD", 12);
-rejectPlaceholder("SEED_USER_PASSWORD", 12);
-
-if (value("SEED_ADMIN_PASSWORD") === value("SEED_MANAGER_PASSWORD")) {
-  failures.push("관리자와 담당자 초기 비밀번호는 서로 달라야 합니다.");
-}
+if (value("DB_AUTO_MIGRATE").toLowerCase() !== "false") failures.push("Production requires DB_AUTO_MIGRATE=false.");
+if (value("DB_RUN_SEEDS").toLowerCase() !== "false") failures.push("Production requires DB_RUN_SEEDS=false.");
 
 const port = Number(value("FRONTEND_PORT") || "3000");
 if (!Number.isInteger(port) || port < 1 || port > 65535) {

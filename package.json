@@ -23,7 +23,9 @@
     "test:nonfunctional": "node scripts/nonfunctional-check.mjs",
     "test:recovery": "node scripts/dependency-recovery-check.mjs",
     "db:backup": "node scripts/db-backup.mjs",
-    "db:restore-drill": "node scripts/db-restore-drill.mjs"
+    "db:restore-drill": "node scripts/db-restore-drill.mjs",
+    "db:migrate": "node scripts/db-migrate.mjs",
+    "db:verify": "node scripts/db-verify-migrations.mjs"
   },
   "engines": {
     "node": ">=22"

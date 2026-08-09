@@ -3,11 +3,12 @@ const assert = require('node:assert/strict');
 const { validateOperationalAdapters } = require('../../src/adapters/contracts');
 const { MockMalwareScanner } = require('../../src/adapters/mock-malware-scanner');
 
-const externalConfig={fileStorageDriver:'external',malwareScanDriver:'external',authProvider:'oidc'};
+const externalConfig={fileStorageDriver:'external',malwareScanDriver:'external',authProvider:'oidc',outboxPublisherRequired:true};
 const externalAdapters={
   fileStore:{driver:'S3_COMPATIBLE',async write(){},async read(){return Buffer.from('ok');},async removeNew(){},async healthCheck(){return{status:'ok'};}},
   malwareScanner:{driver:'ICAP',async scan(){return{status:'clean'};},async healthCheck(){return{status:'ok'};}},
-  oidcProvider:{async authorizationUrl(){return'https://idp.example/authorize';},async exchangeCode(){return{};},async healthCheck(){return{status:'ok'};}}
+  oidcProvider:{async authorizationUrl(){return'https://idp.example/authorize';},async exchangeCode(){return{};},async healthCheck(){return{status:'ok'};}},
+  eventPublisher:{async publish(){return{id:'provider-event'};},async healthCheck(){return{status:'ok'};}}
 };
 
 test('주입된 운영 어댑터는 공급자 독립 계약을 충족한다',()=>{
@@ -16,6 +17,7 @@ test('주입된 운영 어댑터는 공급자 독립 계약을 충족한다',()=
 
 test('운영 어댑터 누락·local·mock은 fail-closed 된다',()=>{
   assert.throws(()=>validateOperationalAdapters(externalConfig,{}),/fileStore/);
+  assert.throws(()=>validateOperationalAdapters(externalConfig,{...externalAdapters,eventPublisher:null}),/eventPublisher/);
   assert.throws(()=>validateOperationalAdapters(externalConfig,{...externalAdapters,fileStore:{...externalAdapters.fileStore,driver:'LOCAL'}}),/LOCAL/);
   assert.throws(()=>validateOperationalAdapters(externalConfig,{...externalAdapters,malwareScanner:new MockMalwareScanner()}),/MOCK/);
 });

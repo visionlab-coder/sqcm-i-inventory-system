@@ -16,10 +16,18 @@
     "malwareScanner": {
       "endpoint": "https://scanner.example.com/v1/scan",
       "timeoutMs": 30000
+    },
+    "eventPublisher": {
+      "endpoint": "https://events.example.com/v1/publish"
+    },
+    "alerting": {
+      "endpoint": "https://alerts.example.com/v1/events"
     }
   },
   "backup": {
     "storageRef": "secret://inventory/staging/backup-storage",
+    "pitrEnabled": true,
+    "walArchiveRef": "secret://inventory/staging/wal-archive",
     "rpoMinutes": 1440,
     "rtoMinutes": 240
   },
@@ -27,6 +35,8 @@
     "OIDC_CLIENT_SECRET": "secret://inventory/staging/oidc-client-secret",
     "STORAGE_CREDENTIALS": "secret://inventory/staging/storage-credentials",
     "MALWARE_SCANNER_TOKEN": "secret://inventory/staging/malware-scanner-token",
+    "EVENT_PUBLISHER_TOKEN": "secret://inventory/staging/event-publisher-token",
+    "ALERTING_TOKEN": "secret://inventory/staging/alerting-token",
     "SESSION_SECRET": "secret://inventory/staging/session-secret",
     "MFA_ENCRYPTION_KEY": "secret://inventory/staging/mfa-encryption-key",
     "POSTGRES_PASSWORD": "secret://inventory/staging/postgres-password"

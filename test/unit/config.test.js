@@ -14,7 +14,15 @@ test('운영 설정은 안전한 세션 비밀과 secure cookie를 강제한다'
   assert.equal(config.cookieSecure, true);
   assert.equal(config.publicBaseUrl, 'https://inventory.example');
   assert.equal(config.trustedProxyCount, 1);
+  assert.equal(config.dbAutoMigrate, false);
+  assert.equal(config.dbRunSeeds, false);
   assert.throws(()=>createApp({pool:{},config}),/external fileStore/);
+});
+
+test('production은 앱 시작 migration과 seed를 거부한다', () => {
+  const base={NODE_ENV:'production',SESSION_SECRET:'x'.repeat(32),COOKIE_SECURE:'true',MFA_ENCRYPTION_KEY:Buffer.alloc(32,7).toString('base64'),FILE_STORAGE_DRIVER:'external',AUTH_PROVIDER:'oidc',MALWARE_SCAN_DRIVER:'external',OPERATIONAL_ADAPTER_MODULE:'adapter.js',PUBLIC_BASE_URL:'https://inventory.example',OIDC_REDIRECT_URI:'https://inventory.example/api/auth/oidc/callback'};
+  assert.throws(()=>getConfig({...base,DB_AUTO_MIGRATE:'true'}),/cannot auto-apply/);
+  assert.throws(()=>getConfig({...base,DB_RUN_SEEDS:'true'}),/cannot create seed/);
 });
 test('운영 공개 URL은 HTTPS이고 OIDC callback의 기준 origin이어야 한다', () => {
   const base={NODE_ENV:'production',SESSION_SECRET:'x'.repeat(32),COOKIE_SECURE:'true',MFA_ENCRYPTION_KEY:Buffer.alloc(32,7).toString('base64'),FILE_STORAGE_DRIVER:'external',AUTH_PROVIDER:'oidc',MALWARE_SCAN_DRIVER:'external',OPERATIONAL_ADAPTER_MODULE:'adapter.js'};
