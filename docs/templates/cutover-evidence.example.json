@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "template": true,
+  "releaseTag": "REPLACE_WITH_RELEASE_TAG",
+  "targetUrl": "https://inventory.example.com",
+  "gates": [
+    { "id": "artifact", "status": "PENDING", "evidence": "" },
+    { "id": "backup_restore", "status": "PENDING", "evidence": "" },
+    { "id": "migration_review", "status": "PENDING", "evidence": "" },
+    { "id": "provider_preflight", "status": "PENDING", "evidence": "" },
+    { "id": "health_readiness", "status": "PENDING", "evidence": "" },
+    { "id": "core_smoke", "status": "PENDING", "evidence": "" },
+    { "id": "logs_5xx", "status": "PENDING", "evidence": "" },
+    { "id": "rollback", "status": "PENDING", "evidence": "" },
+    { "id": "csrf_idempotency", "status": "PENDING", "evidence": "" },
+    { "id": "operational_health", "status": "PENDING", "evidence": "" },
+    { "id": "nonfunctional", "status": "PENDING", "evidence": "" },
+    { "id": "uat_signoff", "status": "PENDING", "evidence": "" }
+  ],
+  "pilot": {
+    "openCriticalDefects": null,
+    "openHighDefects": null,
+    "roleResults": [
+      { "role": "employee", "status": "PENDING", "evidence": "" },
+      { "role": "manager", "status": "PENDING", "evidence": "" },
+      { "role": "admin", "status": "PENDING", "evidence": "" }
+    ]
+  },
+  "approvals": {
+    "business": { "status": "PENDING", "signedBy": "", "signedAt": "" },
+    "security": { "status": "PENDING", "signedBy": "", "signedAt": "" },
+    "operations": { "status": "PENDING", "signedBy": "", "signedAt": "" }
+  }
+}

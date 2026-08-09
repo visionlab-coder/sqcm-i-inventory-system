@@ -32,7 +32,9 @@ try {
   const data = fs.readFileSync(backupPath);
   if (data.length < 1024) throw new Error(`backup is unexpectedly small: ${data.length} bytes`);
   const digest = crypto.createHash("sha256").update(data).digest("hex");
-  console.log(JSON.stringify({ backupPath, bytes: data.length, sha256: digest }, null, 2));
+  const manifest = { schemaVersion:1,createdAt:new Date().toISOString(),backupPath,bytes:data.length,sha256:digest,restoreVerified:false,restoreDrillAt:null };
+  fs.writeFileSync(`${backupPath}.json`, `${JSON.stringify(manifest,null,2)}\n`, { flag:"wx" });
+  console.log(JSON.stringify(manifest, null, 2));
   console.log("PostgreSQL 백업 생성 통과");
 } catch (error) {
   if (fs.existsSync(backupPath)) fs.rmSync(backupPath);

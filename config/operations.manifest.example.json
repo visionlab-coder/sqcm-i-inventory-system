@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "template": true,
+  "environment": "staging",
+  "publicBaseUrl": "https://inventory.example.com",
+  "providers": {
+    "oidc": {
+      "issuer": "https://idp.example.com",
+      "clientId": "inventory-staging",
+      "redirectUri": "https://inventory.example.com/api/auth/oidc/callback"
+    },
+    "storage": {
+      "endpoint": "https://objects.example.com",
+      "bucket": "inventory-evidence-staging"
+    },
+    "malwareScanner": {
+      "endpoint": "https://scanner.example.com/v1/scan",
+      "timeoutMs": 30000
+    }
+  },
+  "backup": {
+    "storageRef": "secret://inventory/staging/backup-storage",
+    "rpoMinutes": 1440,
+    "rtoMinutes": 240
+  },
+  "secretRefs": {
+    "OIDC_CLIENT_SECRET": "secret://inventory/staging/oidc-client-secret",
+    "STORAGE_CREDENTIALS": "secret://inventory/staging/storage-credentials",
+    "MALWARE_SCANNER_TOKEN": "secret://inventory/staging/malware-scanner-token",
+    "SESSION_SECRET": "secret://inventory/staging/session-secret",
+    "MFA_ENCRYPTION_KEY": "secret://inventory/staging/mfa-encryption-key",
+    "POSTGRES_PASSWORD": "secret://inventory/staging/postgres-password"
+  }
+}

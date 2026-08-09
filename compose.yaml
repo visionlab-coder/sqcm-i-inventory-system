@@ -26,6 +26,20 @@ services:
       SESSION_SECRET: ${SESSION_SECRET:-local-compose-secret-change-before-production}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-Admin1234!}
       SEED_MANAGER_PASSWORD: ${SEED_MANAGER_PASSWORD:-Manager1234!}
+      SEED_USER_PASSWORD: ${SEED_USER_PASSWORD:-Employee1234!}
+      LOGIN_RATE_LIMIT_MAX: ${LOGIN_RATE_LIMIT_MAX:-10}
+      LOGIN_RATE_LIMIT_WINDOW_MS: ${LOGIN_RATE_LIMIT_WINDOW_MS:-900000}
+      FILE_STORAGE_DRIVER: ${FILE_STORAGE_DRIVER:-local}
+      FILE_STORAGE_ROOT: /app/data/uploads
+      FILE_MAX_BYTES: ${FILE_MAX_BYTES:-5242880}
+      AUTH_PROVIDER: ${AUTH_PROVIDER:-local}
+      MALWARE_SCAN_DRIVER: ${MALWARE_SCAN_DRIVER:-mock}
+      OPERATIONAL_ADAPTER_MODULE: ${OPERATIONAL_ADAPTER_MODULE:-}
+      OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:-}
+      OIDC_ALLOW_EMAIL_LINKING: ${OIDC_ALLOW_EMAIL_LINKING:-false}
+      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:-}
+    volumes:
+      - file-data:/app/data/uploads
     expose:
       - "8080"
     depends_on:
@@ -57,3 +71,4 @@ services:
 
 volumes:
   postgres-data:
+  file-data:

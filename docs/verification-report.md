@@ -1,12 +1,12 @@
-# 검증 보고서 — 2026-08-06
+# 검증 보고서 — 2026-08-07
 
 ## 결과 요약
 
 | 검증 | 결과 |
 |---|---|
 | JavaScript 구문 검사 | 통과 |
-| 단위 테스트 | 17/17 통과 |
-| 전체 자동 테스트 | 20/20 통과 / 실패·skip 0건 |
+| 단위 테스트 | 36/36 통과 / 실패·skip 0건 |
+| Docker 통합 테스트 | 8/8 통과 / 실패·skip 0건 |
 | PostgreSQL 등록·대여·반납 통합 테스트 | 1/1 통과 |
 | Docker HTTP CSRF·RBAC·CRUD 통합 테스트 | 1/1 통과 |
 | 비품 수정·비활성화 수량 무결성 | 통과 |
@@ -32,12 +32,13 @@
 ```powershell
 npm.cmd run check
 docker compose -f compose.yaml -f compose.test.yaml up -d --build
-$env:INTEGRATION_DATABASE_URL='postgres://seowon:change-me@localhost:55432/seowon_inventory'
+$env:INTEGRATION_DATABASE_URL='<테스트 환경에서 안전하게 주입>'
 $env:INTEGRATION_BASE_URL='http://localhost:3000'
-$env:SEED_MANAGER_PASSWORD='Manager1234!'
 npm.cmd run test:integration
 docker compose -f compose.yaml -f compose.test.yaml ps
 ```
+
+아래 Phase별 본문 수치는 각 Phase 실행 당시의 역사적 결과다. 현재 최종 판정은 문서 하단의 `기업형 확장 최종 검증`과 `develop docs/14_전역지침_1대1_보완체크리스트.md`를 기준으로 한다.
 
 ## 브라우저 증거
 
@@ -90,3 +91,200 @@ Phase 10에서는 실제 Nginx `/api` 프록시를 통해 익명 401, CSRF 누�
 ## 판정
 
 프론트엔드·백엔드·데이터베이스를 분리한 로컬 3계층 배포와 핵심 기능 검증이 완료됐다. 운영 배포 전에는 기본 비밀 변경, HTTPS, 백업·복구 훈련이 필요하다.
+
+## 2026-08-07 최우선 보완 재검증
+
+| 경계 | 결과 | 증거 |
+|---|---|---|
+| 단위 품질 게이트 | 통과 | 23/23, 실패·skip 0 |
+| Docker 통합 게이트 | 통과 | 3/3, 실패·skip 0; 환경 누락 시 exit 2 |
+| UI→API | 통과 | 로그인, 대시보드, 비품, 대여·반납, 감사 화면 |
+| API→DB | 통과 | 등록·대여·반납·수정·비활성화 트랜잭션 |
+| 오류 계약 | 통과 | code/message/fieldErrors/requestId 및 x-request-id |
+| 감사 추적 | 통과 | 업무 이벤트 request_id·ip_address 저장·표시 |
+| DB 변경 | 통과 | 001·002 migration 및 SHA-256 이력 |
+| 관측 | 통과 | 비밀 제외 구조화 HTTP·오류·서버·DB 로그 |
+| 로그인 방어 | 통과 | 계정 잠금 + IP/이메일 429·Retry-After |
+| 브라우저 | 통과 | 4개 핵심 화면 의미 있는 본문, 오류 overlay·console 오류 0 |
+| 정적 배포 갱신 | 통과 | HTML no-store, CSS/JS 버전 키, 최신 감사 추적 열 표시 |
+| Docker | 통과 | frontend/backend/database 모두 healthy |
+| 유지보수 점검 | 통과 | frontend/API 200, 필수 테이블 6/6 |
+
+최신 상세 판정은 `develop docs/14_전역지침_1대1_보완체크리스트.md`와 `docs/phase-reports/13_최우선_보완.md`를 따른다.
+
+## 2026-08-07 기업형 확장 최종 검증
+
+| 검증 | 결과 |
+|---|---|
+| JavaScript 구문 | 27개 통과 |
+| 단위 테스트 | 27/27 통과, 실패·skip 0 |
+| Docker 통합 | 5/5 통과, 실패·skip 0 |
+| 기업 승인 원자성 | 배정·상태·감사·Outbox 일괄 반영 통과 |
+| 3계층 상태 | frontend/backend/database 모두 healthy |
+| 실제 SPA | 로그인 + 업무 10페이지, 기업 메뉴 9개 순회 통과 |
+| 브라우저 | 콘텐츠 있음, 오류 overlay 0, console 경고·오류 0 |
+| 유지보수 | 필수 테이블 28/28 |
+| 백업 | `seowon-inventory-20260807T000223Z.dump`, 191,832 bytes, SHA-256 `9f3ad0f3999c7c5a033986f815ba4fd9806c3aef612b06e82278669992124044` |
+| 격리 복구 | 28/28 테이블, 3/3 migration, 주요 데이터 수 일치 |
+
+상세 변경 및 실패 개선 루프는 `docs/phase-reports/14_기업형_확장_보완.md`, FR별 판정은 `develop docs/15_기업형_FR_구현대조표.md`를 따른다.
+
+## Phase 15 증적·추적성 동기화
+
+- GitHub Issue #2로 작업 정의를 생성하고 PR #1의 자동 종료 대상으로 연결한다.
+- 최신 요약 수치를 단위 27/27, 통합 5/5, Docker 3/3 healthy로 통일한다.
+- 과거 Phase 실행 수치는 삭제하지 않고 역사적 결과임을 명시한다.
+- 실제 운영 배포와 실환경 사용자 인수는 수행하지 않았으므로 Phase 11·12를 부분 완료로 판정한다.
+
+## Phase 16 FR-025 구매 요청 검증
+
+| 검증 | 결과 |
+|---|---|
+| 구매 payload 단위 | 정상 정규화·누락·수량·금액·비용센터·실제 날짜 검증 통과 |
+| HTTP 통합 | 정상 저장·감사, 필수값 400, 다른 조직 403, 잔존 요청 0 |
+| 전체 단위/통합 | 30/30, 6/6, 실패·skip 0 |
+| Docker | frontend/backend/database 모두 healthy |
+| 정적 SPA | 최신 app.js 200, 구매 폼·품목·비용센터·필요일 필드 확인 |
+| 로그 | 검증 구간의 예상하지 않은 500 오류 0 |
+| 자동 브라우저 | 브라우저 도구 커널 자산 경로 오류로 미실행; 인수 대기 |
+
+FR-025는 자동 브라우저에서 직원 로그인 → 요청함 → 구매 초안 생성 → 구매 요약 표시를 확인한 뒤 완료로 판정한다.
+
+## Phase 17 FR-026/027 부분 입고·검수 검증
+
+| 검증 | 결과 |
+|---|---|
+| 발주 입력 단위 | 발주번호·금액 정규화 및 오류 거부 통과 |
+| 검수 입력 단위 | PASS/FAIL/CONDITIONAL 정규화, 그 외 거부 통과 |
+| 전체 단위/통합 | 32/32, 7/7, 실패·skip 0 |
+| 부분 입고 | 2/3 `PARTIAL_RECEIVED`, 잔여 입고 후 `RECEIVED` |
+| 역조건 | 누적수량 초과 409, 검수 전 자산 0, 중복 검수 409 |
+| 자산화 | PASS 2개 AVAILABLE 자산·이력·연결 생성, FAIL 추가 자산 0 |
+| PostgreSQL | 필수 테이블 29/29, migration 4/4 |
+| Docker | frontend/backend/database 모두 healthy |
+| 백업·격리 복구 | 304,042 bytes, SHA-256 `2520f1f49f531af719f9b11fac95a44bf9b599e33897a3af49b55c704a532715`, 전후 건수 일치 |
+| 브라우저 | Codex 런타임 `failed to write kernel assets` 외부 오류로 미실행; FR-025 인수와 함께 잔여 추적 |
+
+## Phase 18 FR-033/035 다차원 보고·감사 검증
+
+| 검증 | 결과 |
+|---|---|
+| 필터 단위 | 차원 ID·상태·실제 날짜·기간 순서·감사 시각 검증 통과 |
+| 전체 단위/통합 | 36/36, 8/8, 실패·skip 0 |
+| 권한 역조건 | USER 보고서 403, 감사 ADMIN 제한 유지 |
+| 다차원 집계 | 부서·위치·유형·상태·취득기간 필터와 건수·취득가 일치 |
+| CSV | 화면과 동일 필터, 대상 자산 포함, text/csv 응답 |
+| 다운로드 감사 | `REPORT_EXPORTED`에 필터·행 수·request ID·IP 기록 및 검색 통과 |
+| 실제 SPA | 보고 필터·4개 차원표·감사 검색 폼 정적 번들 확인 |
+
+## Phase 19 FR-001~004 조직·사용자 검증
+
+| 검증 | 결과 |
+|---|---|
+| 정적·단위 | JavaScript 30개, 단위 39/39 |
+| Docker 통합 | HTTP/DB 9/9, 실패·skip 0 |
+| 조직·권한 | USER 관리자 변경 403, ADMIN 재인증 후 TEAM 생성 |
+| 초대 보안 | SHA-256만 저장, URL fragment 전달, 48시간·단회 수락, 재사용 400 |
+| 역할 범위 | 수락 사용자와 DEPARTMENT 범위를 한 트랜잭션에 생성 |
+| PostgreSQL | 필수 테이블 30/30, migration 5/5 |
+| 백업·복구 | 336,479 bytes, SHA-256 `775dc7d0e60b6eae458b946e90524e541ab52f76d2ff3797535f71556f39f316`, 격리 복구 건수 일치 |
+| 브라우저 | 런타임 경로 오류가 반복되어 실제 클릭 인수는 Issue #3에 통합 유지 |
+
+## Phase 20 FR-009/016 기준정보 생명주기 검증
+
+| 검증 | 결과 |
+|---|---|
+| 정적·단위 | JavaScript 33개, 단위 43/43 통과 |
+| Docker 통합 | HTTP/DB 10/10, 실패·skip 0 |
+| 권한·역조건 | USER 403, 중복 코드 409, 잘못된 모델 분류 409 |
+| 생명주기 | 유형·모델·업체·위치 생성·수정·비활성 및 감사 로그 통과 |
+| 참조 무결성 | 업무 선택에서 비활성 제외, 기존 자산 FK 유지 |
+| PostgreSQL | 필수 테이블 30/30, migration 6/6 |
+| 백업·복구 | 361,626 bytes, SHA-256 `3c74111855712c2a066720849b26ac170459c58c063c3a3605ac478031d40783`, 격리 복구 건수 일치 |
+| 브라우저 | 생성 폼 4개·수정 버튼 9개·공식 로고·콘솔 오류 0, 390px 수평 넘침 없음 |
+
+## Phase 21 FR-009 상태·사유 기준정보 검증
+
+| 검증 | 결과 |
+|---|---|
+| 정적·단위 | JavaScript 33개, 단위 45/45 통과 |
+| Docker 통합 | HTTP/DB 11/11, 실패·skip 0 |
+| 정책 역조건 | USER 403, 임의 상태 400, 중복·비활성·적용 상태 불일치 409, 필수 설명 누락 400 |
+| 이력·감사 | 사유 FK·추가 설명·당시 문구, 정책 변경 전후 값 보존 |
+| PostgreSQL | 16.13, 필수 테이블 30/30, migration 7/7, 만료 세션 0 |
+| 백업·복구 | 380,955 bytes, SHA-256 `b8c2212547640b140a717f595ddb908cfeb67ba60474d42bdf8052b6344237cd`, 격리 복구 건수 일치 |
+| 브라우저 | 관리자 기준정보 6종·자산 상세 상태/사유·390px 단일 열·공식 로고·콘솔 오류 0 |
+
+## Phase 22 FR-013 자산 증빙파일 검증
+
+| 검증 | 결과 |
+|---|---|
+| 정적·단위 | JavaScript 37개, 단위 49/49 통과 |
+| Docker 통합 | HTTP/DB 12/12, 실패·skip 0 |
+| 파일 역조건 | USER 변경 403, 위장 400, 미지원 415, 5 MiB 초과 413, 비활성 다운로드 404 |
+| 저장·감사 | 무작위 키·SHA-256, 업로드/다운로드/비활성 감사, DB·바이너리 보존 |
+| PostgreSQL | 16.13, 필수 테이블 30개, migration 8개, 신규 인덱스 4개 |
+| Docker | frontend/backend/database 3/3 healthy, backend 영속 파일 볼륨 쓰기 가능 |
+| 브라우저 | desktop·375px 자산 상세 증빙 UI, body=viewport 375px, 공식 반전 로고, 콘솔 오류 0 |
+| 백업·복구 | 394,006 bytes, SHA-256 `29fcab58b2ed1ca78dbce75d9fe3795ec6bb858964990aa1b35d583a91f28e0e`, 건수 일치 |
+
+## Phase 23 FR-025 구매 요청 브라우저 인수
+
+| 검증 | 결과 |
+|---|---|
+| 브라우저 흐름 | 직원 로그인 → 요청함 → 6개 필드 입력 → 생성 성공 → 구매 요약 재표시 통과 |
+| desktop | 1280px, 공식 반전 로고, 요청 #58 `PURCHASE/DRAFT` 표시 |
+| mobile | viewport·body 375px 일치, 수평 넘침 없음, 공식 반전 로고 |
+| PostgreSQL | 품목·수량·금액·비용센터·필요일 payload와 요청자·사유 일치 |
+| 감사 | `REQUEST_CREATED`, `REQUEST/58`, 요청 ID와 구매 metadata 연결 |
+| 정리 | 검증된 테스트 요청 1건·감사 1건만 트랜잭션 삭제, 사후 `0|0` |
+| 회귀 | JavaScript 37개, 단위 49/49, 통합 12/12, Docker 3/3 healthy, 안정 구간 신규 오류 0 |
+| 판정 | FR-025 완료, 기업형 완료 31·부분 완료 4 |
+
+## Phase 24 MFA·재인증 검증
+
+| 검증 | 결과 |
+|---|---|
+| 구문·단위 | JavaScript 40개, 단위 52/52 |
+| Docker 통합 | MFA 신규 흐름 포함 13/13, 실패·skip 0 |
+| 인증 | 비밀번호 후 pending challenge, TOTP 후 세션 재회전 |
+| 역조건 | 오류 코드·TOTP counter·복구코드 재사용 거부 |
+| 저장·감사 | AES-256-GCM, 원문 비노출, MFA lifecycle 감사 |
+| 브라우저 | desktop·375px, 공식 반전 로고, 수평 넘침·콘솔 오류 0 |
+| 정리 | 관리자 MFA 임시 변경 원상복구 `false|0|0` |
+| 판정 | FR-006 완료, 기업형 완료 32·부분 완료 3 |
+
+## 2026-08-08 Phase 29 최종 검증
+
+| 검증 | 최신 결과 |
+|---|---|
+| 기업형 요구사항 | FR-001~035 완료 35/35 |
+| 구문·단위·통합 | JavaScript 50개, 65/65, 16/16, 실패·skip 0 |
+| Docker·스모크 | frontend/backend/database healthy, health·readiness·401·공식 로고 통과 |
+| DB | PostgreSQL 16.13, migration 13개, 필수 테이블 31개 |
+| 로그·보안 | 예상하지 않은 5xx 0, 추적 파일 비밀 키 패턴 0, production 취약점 0 |
+| 디자인 | 페이지별 컨셉 11개, PNG 12개 제작 메타데이터 의심 문자열 0 |
+| 프롬프트 | 메타프롬프트 21개, 4,000자 초과 0 |
+| 백업·격리 복구 | 191,608 bytes, SHA-256 `f2d18ac60f04d64e1932571178d7a07302d26cac1c1a0fc01e4902fbbea7cb9c`, 31 tables·13 migrations·주요 건수 일치 |
+| 세션·테스트 잔존 | health 세션 생성 0, 업무 테스트 행·업로드 파일·인증 세션·복구 임시 DB 0 |
+| 판정 | 저장소 Phase 완료, 실제 공급자·운영 배포·실사용자 UAT 승인 대기 |
+
+상세 1:1 대조와 실패 개선 기록은 `develop docs/28_Phase29_최종_1대1_체크리스트.md` 및 `docs/phase-reports/29_최종_완료_감사.md`를 따른다.
+
+## 2026-08-08 Phase 30~33 후속 운영 준비 검증
+
+| 검증 | 최신 결과 |
+|---|---|
+| 후속 추적성 | CI·공급자·DNS/TLS·Secret·전환·UAT·GitHub 공유 게이트 1:1 분리 |
+| CI 런타임 | checkout/setup-node v5(Node 24), 운영 계약 검사 연결, run 31260802672 두 job 성공·annotation 0 |
+| 구문·단위·통합 | JavaScript 55개, 단위 69/69, 통합 16/16, 실패·skip 0 |
+| 운영 계약 | manifest·Secret 참조·callback·RPO/RTO 템플릿 검사 통과 |
+| 역조건 | 평문 Secret·외부 callback·template preflight·template cutover 승인 차단 |
+| 전환 게이트 | 9개 증거와 업무·보안·운영 3개 승인 필수 |
+| Docker·스모크 | 3/3 healthy, health·readiness·익명 401·공식 반전 로고 통과 |
+| DB | PostgreSQL 16.13, migration 13개, 필수 테이블 31개, 만료 세션 0 |
+| 프롬프트 | 메타프롬프트 25개, 4,000자 초과 0 |
+| 비밀 검사 | 일반 토큰·개인키 패턴 0 |
+| 판정 | 저장소 후속 실행 패키지 완료, 실제 공급자·운영 전환·UAT 서명은 외부 게이트 |
+
+후속 체인과 실행 책임은 `develop docs/29_Phase30_33_후속체인.md`, `docs/production-handoff.md`를 따른다.

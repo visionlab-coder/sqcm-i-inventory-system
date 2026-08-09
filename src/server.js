@@ -1,16 +1,18 @@
 const { getConfig } = require('./config');
 const { createPool, initializeDatabase } = require('./db');
 const { createApp } = require('./app');
+const { loadOperationalAdapters } = require('./adapters/loader');
 
 async function main() {
   const config = getConfig();
   const pool = createPool(config.databaseUrl);
   await initializeDatabase(pool, config);
-  const app = createApp({ pool, config });
-  const server = app.listen(config.port, () => console.log(`서원토건 비품관리: http://localhost:${config.port}`));
+  const adapters = await loadOperationalAdapters(config);
+  const app = createApp({ pool, config, ...adapters });
+  const server = app.listen(config.port, () => console.log(JSON.stringify({ event: 'server_started', port: config.port, env: config.env })));
 
   const shutdown = signal => {
-    console.log(`${signal} 수신: 안전하게 종료합니다.`);
+    console.log(JSON.stringify({ event: 'server_shutdown', signal }));
     server.close(async () => {
       await pool.end();
       process.exit(0);
@@ -21,6 +23,6 @@ async function main() {
 }
 
 main().catch(error => {
-  console.error('애플리케이션 시작 실패:', error.message);
+  console.error(JSON.stringify({ event: 'server_start_failed', name: error.name, message: error.message }));
   process.exit(1);
 });

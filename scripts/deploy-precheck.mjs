@@ -25,8 +25,13 @@ const rejectPlaceholder = (name, minimum) => {
 
 rejectPlaceholder("POSTGRES_PASSWORD", 16);
 rejectPlaceholder("SESSION_SECRET", 32);
+rejectPlaceholder("MFA_ENCRYPTION_KEY", 40);
+if (Buffer.from(value("MFA_ENCRYPTION_KEY"), "base64").length !== 32) {
+  failures.push("MFA_ENCRYPTION_KEY: base64 32-byte 값이어야 합니다.");
+}
 rejectPlaceholder("SEED_ADMIN_PASSWORD", 12);
 rejectPlaceholder("SEED_MANAGER_PASSWORD", 12);
+rejectPlaceholder("SEED_USER_PASSWORD", 12);
 
 if (value("SEED_ADMIN_PASSWORD") === value("SEED_MANAGER_PASSWORD")) {
   failures.push("관리자와 담당자 초기 비밀번호는 서로 달라야 합니다.");
@@ -37,11 +42,46 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
   failures.push("FRONTEND_PORT: 1~65535 범위의 정수여야 합니다.");
 }
 
+const rateLimitMax = Number(value("LOGIN_RATE_LIMIT_MAX") || "10");
+if (!Number.isInteger(rateLimitMax) || rateLimitMax < 1 || rateLimitMax > 1000) {
+  failures.push("LOGIN_RATE_LIMIT_MAX: 1~1000 범위의 정수여야 합니다.");
+}
+
+const rateLimitWindow = Number(value("LOGIN_RATE_LIMIT_WINDOW_MS") || "900000");
+if (!Number.isInteger(rateLimitWindow) || rateLimitWindow < 1000 || rateLimitWindow > 86400000) {
+  failures.push("LOGIN_RATE_LIMIT_WINDOW_MS: 1000~86400000 범위의 정수여야 합니다.");
+}
+
 if (!/^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$/.test(value("RELEASE_TAG"))) {
   failures.push("RELEASE_TAG: Git SHA 또는 안전한 릴리스 태그를 지정해야 합니다.");
 }
 
 const target = value("DEPLOY_TARGET") || "production";
+if (target !== "local" && (value("FILE_STORAGE_DRIVER") || "local").toLowerCase() === "local") {
+  failures.push("External deployments require FILE_STORAGE_DRIVER=external.");
+}
+if (target !== "local" && value("MALWARE_SCAN_DRIVER").toLowerCase() !== "external") {
+  failures.push("External deployments require MALWARE_SCAN_DRIVER=external.");
+}
+if (target !== "local" && value("AUTH_PROVIDER").toLowerCase() !== "oidc") {
+  failures.push("External deployments require AUTH_PROVIDER=oidc.");
+}
+if (target !== "local" && !value("OPERATIONAL_ADAPTER_MODULE")) {
+  failures.push("External deployments require OPERATIONAL_ADAPTER_MODULE.");
+}
+if (target !== "local" && !/^https:\/\//i.test(value("OIDC_REDIRECT_URI"))) {
+  failures.push("External deployments require an HTTPS OIDC_REDIRECT_URI.");
+}
+if (target !== "local" && !/^https:\/\//i.test(value("PUBLIC_BASE_URL"))) {
+  failures.push("External deployments require an HTTPS PUBLIC_BASE_URL.");
+}
+if (target !== "local" && /^https:\/\//i.test(value("PUBLIC_BASE_URL")) && !value("OIDC_REDIRECT_URI").startsWith(`${value("PUBLIC_BASE_URL").replace(/\/$/, "")}/`)) {
+  failures.push("OIDC_REDIRECT_URI must belong to PUBLIC_BASE_URL.");
+}
+const trustedProxyCount = Number(value("TRUSTED_PROXY_COUNT") || "1");
+if (!Number.isInteger(trustedProxyCount) || trustedProxyCount < 1 || trustedProxyCount > 10) {
+  failures.push("TRUSTED_PROXY_COUNT must be an integer from 1 to 10.");
+}
 if (target !== "local" && value("COOKIE_SECURE").toLowerCase() !== "true") {
   failures.push("외부 배포에서는 COOKIE_SECURE=true여야 합니다.");
 }

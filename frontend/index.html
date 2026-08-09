@@ -4,9 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>서원토건 비품관리</title>
-  <link rel="stylesheet" href="/styles.css">
-  <link rel="stylesheet" href="/brand.css">
-  <link rel="stylesheet" href="/experience.css">
+  <link rel="stylesheet" href="/styles.css?v=20260807-p1">
+  <link rel="stylesheet" href="/brand.css?v=20260807-p1">
+  <link rel="stylesheet" href="/experience.css?v=20260807-p3">
+  <link rel="stylesheet" href="/evidence.css?v=20260807-p1">
 </head>
 <body>
   <a class="skip-link" href="#main">본문으로 건너뛰기</a>
@@ -25,6 +26,27 @@
         <label>이메일<input type="email" name="email" autocomplete="username" required placeholder="name@seowon.local"></label>
         <label>비밀번호<input type="password" name="password" autocomplete="current-password" minlength="10" required></label>
         <button class="primary full" type="submit">로그인</button>
+        <a id="sso-login" class="button-link full hidden" href="/api/auth/oidc/start">회사 SSO로 로그인</a>
+      </form>
+      <form id="mfa-login-form" class="login-form hidden">
+        <p class="eyebrow">SECOND FACTOR</p>
+        <h2>MFA 인증</h2>
+        <p class="muted">인증 앱의 6자리 코드 또는 복구코드를 입력하세요.</p>
+        <div id="mfa-login-error" class="alert error hidden" role="alert"></div>
+        <label>인증 코드<input name="code" inputmode="numeric" autocomplete="one-time-code" required></label>
+        <button class="primary full" type="submit">인증 완료</button>
+        <button class="link full" id="mfa-login-back" type="button">로그인으로 돌아가기</button>
+      </form>
+      <form id="invitation-form" class="login-form hidden">
+        <p class="eyebrow">ACCOUNT ACTIVATION</p>
+        <h2>초대 계정 활성화</h2>
+        <p class="muted">12자 이상이며 대문자·소문자·숫자·특수문자를 포함한 비밀번호를 설정하세요.</p>
+        <div id="invitation-error" class="alert error hidden" role="alert"></div>
+        <input type="hidden" name="token">
+        <label>새 비밀번호<input type="password" name="newPassword" autocomplete="new-password" minlength="12" required></label>
+        <label>비밀번호 확인<input type="password" name="passwordConfirm" autocomplete="new-password" minlength="12" required></label>
+        <button class="primary full" type="submit">계정 활성화</button>
+        <button class="link full" id="invitation-back" type="button">로그인으로 돌아가기</button>
       </form>
     </div>
   </section>
@@ -34,9 +56,16 @@
       <div class="brand"><img class="official-logo sidebar-logo" src="/assets/seowon-official-logo-reversed.png" alt="SEOWON Since 1991"><strong>비품관리</strong></div>
       <nav aria-label="주 메뉴">
         <button data-view="dashboard" class="active">대시보드</button>
-        <button data-view="items">비품 관리</button>
-        <button data-view="loans">대여·반납</button>
+        <button data-view="assets">자산 목록</button>
+        <button data-view="asset-register" data-manager-only>자산 등록</button>
+        <button data-view="assignments">배정·반납</button>
+        <button data-view="requests">요청함</button>
+        <button data-view="stocktakes" data-manager-only>재물조사</button>
+        <button data-view="repairs">수리 관리</button>
+        <button data-view="reports" data-manager-only>보고서</button>
+        <button data-view="admin" data-admin-only>관리자</button>
         <button data-view="audit" id="audit-nav">감사 로그</button>
+        <button data-view="security">보안 설정</button>
       </nav>
       <div class="user-box"><strong id="user-name"></strong><span id="user-role"></span><button id="logout-button">로그아웃</button></div>
     </aside>
@@ -48,6 +77,6 @@
       </main>
     </div>
   </div>
-  <script src="/app.js" defer></script>
+  <script src="/app.js?v=20260807-p6" defer></script>
 </body>
 </html>

@@ -21,6 +21,13 @@ await expectResponse("/api/health", 200, async (response) => {
   const body = await response.json();
   if (body.status !== "ok") throw new Error("backend health body mismatch");
 });
+
+await expectResponse("/api/readiness", 200, async (response) => {
+  const body = await response.json();
+  if (body.status !== "ok" || body.dependencies?.storage?.status !== "ok" || body.dependencies?.malware?.status !== "ok") {
+    throw new Error("backend readiness contract mismatch");
+  }
+});
 await expectResponse("/api/items", 401);
 await expectResponse("/assets/seowon-official-logo-reversed.png", 200, async (response) => {
   if (!response.headers.get("content-type")?.startsWith("image/")) {
