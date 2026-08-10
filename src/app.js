@@ -50,7 +50,7 @@ function apiError(req, res, status, code, message, fieldErrors = []) {
 function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiProvider }) {
   fileStore ||= new LocalFileStore(config.fileStorageRoot);
   malwareScanner ||= config.malwareScanDriver === 'mock' ? new MockMalwareScanner() : null;
-  validateOperationalAdapters(config,{ fileStore,malwareScanner,oidcProvider });
+  validateOperationalAdapters(config,{ fileStore,malwareScanner,oidcProvider,aiProvider });
   const app = express();
   const PgSession = connectPgSimple(session);
   const loginRateLimit = createLoginRateLimiter({

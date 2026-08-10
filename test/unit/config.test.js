@@ -34,3 +34,9 @@ test('포트와 레이트리밋 설정은 허용 범위의 정수만 받는다',
   assert.throws(() => boundedInteger('NaN', 5, 'VALUE', 1, 20), /범위/);
   assert.throws(() => getConfig({ PORT: '70000' }), /PORT/);
 });
+test('built-in external AI endpoint and timeout configuration', () => {
+  assert.throws(() => getConfig({ AI_PROVIDER_DRIVER: 'external' }), /AI_PROVIDER_URL/);
+  const config = getConfig({ AI_PROVIDER_DRIVER: 'external', AI_PROVIDER_URL: 'https://ai.example/recommend', AI_PROVIDER_OCR_URL: 'https://ai.example/ocr', AI_PROVIDER_HEALTH_URL: 'https://ai.example/health', AI_PROVIDER_MODEL: 'pilot-v1', AI_PROVIDER_TIMEOUT_MS: '5000' });
+  assert.equal(config.aiProviderModel, 'pilot-v1');
+  assert.equal(config.aiProviderTimeoutMs, 5000);
+});

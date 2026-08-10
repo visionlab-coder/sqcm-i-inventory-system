@@ -36,6 +36,13 @@ function getConfig(overrides = {}) {
 
   const authProvider = String(env.AUTH_PROVIDER || 'local').toLowerCase();
   const aiProviderDriver = String(env.AI_PROVIDER_DRIVER || 'rules').toLowerCase();
+  const aiProviderUrl = String(env.AI_PROVIDER_URL || '').trim();
+  const aiProviderOcrUrl = String(env.AI_PROVIDER_OCR_URL || '').trim();
+  const aiProviderHealthUrl = String(env.AI_PROVIDER_HEALTH_URL || '').trim();
+  const aiProviderApiKey = String(env.AI_PROVIDER_API_KEY || '').trim();
+  const aiProviderModel = String(env.AI_PROVIDER_MODEL || 'cost-control-v1').trim();
+  const aiProviderName = String(env.AI_PROVIDER_NAME || 'external-http').trim();
+  const aiProviderTimeoutMs = boundedInteger(env.AI_PROVIDER_TIMEOUT_MS, 12000, 'AI_PROVIDER_TIMEOUT_MS', 1000, 120000);
   const malwareScanDriver = String(env.MALWARE_SCAN_DRIVER || 'mock').toLowerCase();
   const operationalAdapterModule = String(env.OPERATIONAL_ADAPTER_MODULE || '').trim();
   const publicBaseUrl = String(env.PUBLIC_BASE_URL || '').trim().replace(/\/$/, '');
@@ -44,6 +51,12 @@ function getConfig(overrides = {}) {
   const dbRunSeeds = booleanValue(env.DB_RUN_SEEDS, !isProduction, 'DB_RUN_SEEDS');
   if (!['local', 'oidc'].includes(authProvider)) throw new Error('AUTH_PROVIDER must be local or oidc.');
   if (!['rules', 'external'].includes(aiProviderDriver)) throw new Error('AI_PROVIDER_DRIVER must be rules or external.');
+  if (aiProviderDriver === 'external' && !operationalAdapterModule && (!aiProviderUrl || !aiProviderOcrUrl || !aiProviderHealthUrl)) {
+    throw new Error('Built-in external AI requires AI_PROVIDER_URL, AI_PROVIDER_OCR_URL and AI_PROVIDER_HEALTH_URL.');
+  }
+  if (aiProviderDriver === 'external' && !operationalAdapterModule && env.NODE_ENV === 'production' && [aiProviderUrl, aiProviderOcrUrl, aiProviderHealthUrl].some(url => !/^https:\/\//i.test(url))) {
+    throw new Error('Production external AI endpoints must use HTTPS.');
+  }
   if (!['mock', 'external'].includes(malwareScanDriver)) throw new Error('MALWARE_SCAN_DRIVER must be mock or external.');
   if (env.NODE_ENV === 'production') {
     if (dbAutoMigrate) throw new Error('Production cannot auto-apply migrations at application startup.');
@@ -73,6 +86,13 @@ function getConfig(overrides = {}) {
     fileMaxBytes: boundedInteger(env.FILE_MAX_BYTES, 5 * 1024 * 1024, 'FILE_MAX_BYTES', 1024, 5 * 1024 * 1024),
     authProvider,
     aiProviderDriver,
+    aiProviderUrl,
+    aiProviderOcrUrl,
+    aiProviderHealthUrl,
+    aiProviderApiKey,
+    aiProviderModel,
+    aiProviderName,
+    aiProviderTimeoutMs,
     malwareScanDriver,
     operationalAdapterModule,
     publicBaseUrl,

@@ -1,8 +1,12 @@
 const path = require('node:path');
 const { validateOperationalAdapters } = require('./contracts');
+const { createHttpAiProvider } = require('./http-ai-provider');
 
 async function loadOperationalAdapters(config) {
-  if (!config.operationalAdapterModule) return validateOperationalAdapters(config, {});
+  if (!config.operationalAdapterModule) {
+    const builtIn = config.aiProviderDriver === 'external' ? { aiProvider: createHttpAiProvider(config) } : {};
+    return validateOperationalAdapters(config, builtIn);
+  }
   const modulePath = path.resolve(config.operationalAdapterModule);
   const factory = require(modulePath);
   if (typeof factory.createOperationalAdapters !== 'function') {
