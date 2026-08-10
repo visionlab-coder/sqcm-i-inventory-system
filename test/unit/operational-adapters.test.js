@@ -22,6 +22,13 @@ test('운영 어댑터 누락·local·mock은 fail-closed 된다',()=>{
   assert.throws(()=>validateOperationalAdapters(externalConfig,{...externalAdapters,malwareScanner:new MockMalwareScanner()}),/MOCK/);
 });
 
+test('외부 AI provider는 추천·상태·OCR 계약을 요구한다',()=>{
+  const config={...externalConfig,aiProviderDriver:'external'};
+  assert.throws(()=>validateOperationalAdapters(config,externalAdapters),/aiProvider/);
+  const result=validateOperationalAdapters(config,{...externalAdapters,aiProvider:{async recommend(){return{recommendations:[]};},async healthCheck(){return{status:'ok'};},ocr:{async extract(){return{fields:{},confidence:{}};}}}});
+  assert.equal(typeof result.aiProvider.recommend,'function');
+});
+
 test('mock 스캐너는 staging 계약 테스트에서만 clean 결과를 낸다',async()=>{
   const scanner=new MockMalwareScanner();
   assert.deepEqual(await scanner.scan(Buffer.from('test')),{status:'clean',engine:'contract-mock',signatureVersion:'test-only'});

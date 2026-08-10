@@ -35,6 +35,7 @@ function getConfig(overrides = {}) {
   if (!['local', 'external'].includes(fileStorageDriver)) throw new Error('FILE_STORAGE_DRIVER must be local or external.');
 
   const authProvider = String(env.AUTH_PROVIDER || 'local').toLowerCase();
+  const aiProviderDriver = String(env.AI_PROVIDER_DRIVER || 'rules').toLowerCase();
   const malwareScanDriver = String(env.MALWARE_SCAN_DRIVER || 'mock').toLowerCase();
   const operationalAdapterModule = String(env.OPERATIONAL_ADAPTER_MODULE || '').trim();
   const publicBaseUrl = String(env.PUBLIC_BASE_URL || '').trim().replace(/\/$/, '');
@@ -42,12 +43,14 @@ function getConfig(overrides = {}) {
   const dbAutoMigrate = booleanValue(env.DB_AUTO_MIGRATE, !isProduction, 'DB_AUTO_MIGRATE');
   const dbRunSeeds = booleanValue(env.DB_RUN_SEEDS, !isProduction, 'DB_RUN_SEEDS');
   if (!['local', 'oidc'].includes(authProvider)) throw new Error('AUTH_PROVIDER must be local or oidc.');
+  if (!['rules', 'external'].includes(aiProviderDriver)) throw new Error('AI_PROVIDER_DRIVER must be rules or external.');
   if (!['mock', 'external'].includes(malwareScanDriver)) throw new Error('MALWARE_SCAN_DRIVER must be mock or external.');
   if (env.NODE_ENV === 'production') {
     if (dbAutoMigrate) throw new Error('Production cannot auto-apply migrations at application startup.');
     if (dbRunSeeds) throw new Error('Production cannot create seed users or sample data.');
     if (authProvider !== 'oidc') throw new Error('Production requires AUTH_PROVIDER=oidc.');
     if (malwareScanDriver !== 'external') throw new Error('Production requires MALWARE_SCAN_DRIVER=external.');
+    if (aiProviderDriver !== 'external') throw new Error('Production requires AI_PROVIDER_DRIVER=external.');
     if (!operationalAdapterModule) throw new Error('Production requires OPERATIONAL_ADAPTER_MODULE.');
     if (!/^https:\/\//i.test(String(env.OIDC_REDIRECT_URI || ''))) throw new Error('Production requires an HTTPS OIDC_REDIRECT_URI.');
     if (!/^https:\/\//i.test(publicBaseUrl)) throw new Error('Production requires an HTTPS PUBLIC_BASE_URL.');
@@ -69,6 +72,7 @@ function getConfig(overrides = {}) {
     fileStorageRoot: env.FILE_STORAGE_ROOT || path.join(process.cwd(), 'artifacts', 'uploads'),
     fileMaxBytes: boundedInteger(env.FILE_MAX_BYTES, 5 * 1024 * 1024, 'FILE_MAX_BYTES', 1024, 5 * 1024 * 1024),
     authProvider,
+    aiProviderDriver,
     malwareScanDriver,
     operationalAdapterModule,
     publicBaseUrl,

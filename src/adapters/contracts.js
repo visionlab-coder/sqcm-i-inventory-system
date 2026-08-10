@@ -18,6 +18,10 @@ function validateOperationalAdapters(config, adapters = {}) {
   }
   if (config.authProvider === 'oidc') requireMethods(result.oidcProvider, 'oidcProvider', ['authorizationUrl', 'exchangeCode', 'healthCheck']);
   if (config.outboxPublisherRequired) requireMethods(result.eventPublisher, 'eventPublisher', ['publish', 'healthCheck']);
+  if (config.aiProviderDriver === 'external') {
+    requireMethods(result.aiProvider, 'aiProvider', ['recommend', 'healthCheck']);
+    requireMethods(result.aiProvider.ocr, 'aiProvider.ocr', ['extract']);
+  }
   return result;
 }
 

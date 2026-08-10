@@ -30,6 +30,13 @@ test('cost command center and AI read contracts are org-scoped and operational',
   const headers = { cookie: session.cookie, accept: 'application/json' };
   const organizationId = session.user.organizationId;
 
+  const dashboardResponse = await fetch(`${baseUrl}/api/enterprise/dashboard?organizationId=${organizationId}`, { headers });
+  assert.equal(dashboardResponse.status, 200);
+  const dashboard = await dashboardResponse.json();
+  assert.ok(dashboard.summary);
+  assert.equal(typeof dashboard.summary.asset_count, 'number');
+  assert.ok(Array.isArray(dashboard.assets));
+
   const costResponse = await fetch(`${baseUrl}/api/enterprise/cost/command-center?organizationId=${organizationId}`, { headers });
   assert.equal(costResponse.status, 200);
   const cost = await costResponse.json();
@@ -37,10 +44,28 @@ test('cost command center and AI read contracts are org-scoped and operational',
   assert.ok(Array.isArray(cost.idleAssets));
   assert.ok(Array.isArray(cost.upcomingRenewals));
 
+  const roiResponse = await fetch(`${baseUrl}/api/enterprise/cost/roi?organizationId=${organizationId}`, { headers });
+  assert.equal(roiResponse.status, 200);
+  const roi = await roiResponse.json();
+  assert.ok(roi.savings);
+  assert.ok(Array.isArray(roi.vendors));
+
   const recommendationsResponse = await fetch(`${baseUrl}/api/enterprise/ai/recommendations?organizationId=${organizationId}`, { headers });
   assert.equal(recommendationsResponse.status, 200);
   const recommendations = await recommendationsResponse.json();
   assert.ok(Array.isArray(recommendations.recommendations));
+
+  const feedbackResponse = await fetch(`${baseUrl}/api/enterprise/ai/feedback`, {
+    method: 'POST',
+    headers: { ...headers, 'content-type': 'application/json', 'x-csrf-token': session.csrfToken },
+    body: JSON.stringify({ organizationId, actionType: 'HOLD', decision: 'NOT_USEFUL', reason: '현장 확인 후 보류' })
+  });
+  assert.equal(feedbackResponse.status, 201);
+  const qualityResponse = await fetch(`${baseUrl}/api/enterprise/ai/quality?organizationId=${organizationId}`, { headers });
+  assert.equal(qualityResponse.status, 200);
+  const quality = await qualityResponse.json();
+  assert.ok(quality.feedback);
+  assert.ok(Array.isArray(quality.evaluations));
 
   const searchResponse = await fetch(`${baseUrl}/api/enterprise/ai/search?q=자산&organizationId=${organizationId}`, { headers });
   assert.equal(searchResponse.status, 200);

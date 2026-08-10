@@ -1,7 +1,7 @@
 const express = require('express');
 const { DomainError, positiveInteger } = require('./services/inventory-service');
 const { requirePermission, requireOrganization, createAsset, changeAssetStatus, createRequest, transitionRequest, createPurchaseOrder, createReceipt, inspectReceipt } = require('./services/enterprise-service');
-const { getAssetReport, getReportAssets } = require('./services/reporting-service');
+const { getAssetReport, getReportAssets, getAssetDashboard } = require('./services/reporting-service');
 const { createOrganizationUnit, createInvitation, revokeInvitation } = require('./services/organization-service');
 const { getOperationalReferences, getAdminReferences, createReference, updateReference } = require('./services/reference-service');
 const { auditTrace } = require('./observability');
@@ -9,8 +9,8 @@ const { uploadAssetFile, getAssetFile, deactivateAssetFile } = require('./servic
 const { resolveScope, canAccessDepartment } = require('./services/scope-service');
 const { createApprovalPolicy, listApprovalPolicies } = require('./services/approval-service');
 const { uploadReturnPhoto } = require('./services/return-service');
-const { getCostCommandCenter } = require('./services/cost-service');
-const { recommendActions, searchAssets, detectAnomalies, extractDocument } = require('./services/ai-service');
+const { getCostCommandCenter, getCostRoiSummary, recordSavingsEvent } = require('./services/cost-service');
+const { recommendActions, searchAssets, detectAnomalies, extractDocument, normalizeFeedback, normalizeEvaluation } = require('./services/ai-service');
 const { createIdempotencyMiddleware } = require('./idempotency');
 
 const page = req => ({ size: Math.min(100, Math.max(1, Number(req.query.size) || 25)), offset: Math.max(0, Number(req.query.page) || 0) * Math.min(100, Math.max(1, Number(req.query.size) || 25)) });
@@ -62,6 +62,13 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
       count(*) OVER()::int total_count FROM assets a LEFT JOIN locations l ON l.id=a.location_id LEFT JOIN departments d ON d.id=a.department_id
       LEFT JOIN item_categories c ON c.id=a.category_id WHERE ${where.join(' AND ')} ORDER BY a.updated_at DESC LIMIT $${values.length - 1} OFFSET $${values.length}`, values);
     res.json({ assets: result.rows, page: paging.offset / paging.size, size: paging.size, total: result.rows[0]?.total_count || 0 });
+  });
+
+  router.get('/dashboard', async (req, res) => {
+    requirePermission(req.user, 'asset.read');
+    const organizationId = orgId(req, req.query.organizationId);
+    const scope = await resolveScope(pool, req.user);
+    res.json(await getAssetDashboard(pool, organizationId, req.user, scope));
   });
 
   router.post('/assets', async (req, res) => res.status(201).json({ asset: await createAsset(pool, req.user, req.body, trace(req)) }));
@@ -151,6 +158,8 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
   router.get('/reports/assets', async(req,res)=>{ requirePermission(req.user,'report.read'); const scope=await resolveScope(pool,req.user); res.json(await getAssetReport(pool,orgId(req,req.query.organizationId),req.query,scope)); });
   router.get('/reports/assets.csv', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.query.organizationId); const scope=await resolveScope(pool,req.user); const report=await getReportAssets(pool,organizationId,req.query,scope); const esc=value=>`"${String(value??'').replaceAll('"','""')}"`; const csv=['asset_tag,name,serial_no,status,department,location,category,acquired_at,acquisition_cost',...report.assets.map(row=>[row.asset_tag,row.name,row.serial_no,row.status_code,row.department_name,row.location_name,row.category_name,row.acquired_at?.toISOString?.().slice(0,10)||row.acquired_at,row.acquisition_cost].map(esc).join(','))].join('\r\n'); await audit(pool,req,'REPORT_EXPORTED','REPORT',organizationId,{format:'csv',rows:report.assets.length,filters:report.filters}); res.set({'content-type':'text/csv; charset=utf-8','content-disposition':'attachment; filename="seowon-assets.csv"'}).send('\ufeff'+csv); });
   router.get('/cost/command-center', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.query.organizationId); const scope=await resolveScope(pool,req.user); res.json(await getCostCommandCenter(pool,req.user,organizationId,scope)); });
+  router.get('/cost/roi', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.query.organizationId); const scope=await resolveScope(pool,req.user); res.json(await getCostRoiSummary(pool,req.user,organizationId,scope)); });
+  router.post('/cost/savings', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.body.organizationId); const scope=await resolveScope(pool,req.user); if(req.body.assetId){const asset=await pool.query('SELECT organization_id,department_id FROM assets WHERE id=$1',[positiveInteger(req.body.assetId,'자산번호')]);if(!asset.rowCount)throw new DomainError('자산을 찾을 수 없습니다.',404);orgId(req,asset.rows[0].organization_id);if(!canAccessDepartment(scope,asset.rows[0].department_id))throw new DomainError('허용된 부서 범위를 벗어났습니다.',403);} const result=await recordSavingsEvent(pool,req.user,{...req.body,organizationId}); await audit(pool,req,'COST_SAVINGS_RECORDED','COST_SAVINGS',result.id,{savingsType:result.savingsType,avoidedAmount:result.avoidedAmount,assetId:result.assetId}); res.status(201).json({savings:result}); });
   router.get('/notifications', async(req,res)=>{
     const organizationId=orgId(req,req.query.organizationId); const limit=Math.min(100,Math.max(1,Number(req.query.limit)||30)); const scope=await resolveScope(pool,req.user); const values=[organizationId,req.user.id];
     let scopeSql='';
@@ -164,9 +173,30 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
     values.push(limit); const limitParam=values.length;
     const result=await pool.query(`SELECT n.* FROM notifications n WHERE n.organization_id=$1${scopeSql} ORDER BY n.created_at DESC LIMIT $${limitParam}`,values); res.json({notifications:result.rows});
   });
-  router.get('/ai/recommendations', async(req,res)=>{ requirePermission(req.user,'report.read'); const scope=await resolveScope(pool,req.user); const result=await recommendActions(pool,req.user,req.query,scope); return res.json(result); });
+  router.get('/ai/recommendations', async(req,res)=>{ requirePermission(req.user,'report.read'); const scope=await resolveScope(pool,req.user); const result=await recommendActions(pool,req.user,req.query,scope,aiProvider); return res.json(result); });
   router.get('/ai/search', async(req,res)=>{ requirePermission(req.user,'asset.read'); const scope=await resolveScope(pool,req.user); res.json(await searchAssets(pool,req.user,req.query,scope)); });
   router.get('/ai/anomalies', async(req,res)=>{ requirePermission(req.user,'report.read'); const scope=await resolveScope(pool,req.user); const result=await detectAnomalies(pool,req.user,req.query,scope); return res.json(result); });
+  router.post('/ai/feedback', async(req,res)=>{
+    requirePermission(req.user,'report.read');
+    const organizationId=orgId(req,req.body.organizationId); const feedback=normalizeFeedback(req.body);
+    const assetId=req.body.assetId==null||req.body.assetId===''?null:positiveInteger(req.body.assetId,'자산번호');
+    const requestId=req.body.requestId==null||req.body.requestId===''?null:positiveInteger(req.body.requestId,'요청번호'); const scope=await resolveScope(pool,req.user);
+    if(assetId){const asset=await pool.query('SELECT organization_id,department_id FROM assets WHERE id=$1',[assetId]);if(!asset.rowCount)throw new DomainError('자산을 찾을 수 없습니다.',404);orgId(req,asset.rows[0].organization_id);if(!canAccessDepartment(scope,asset.rows[0].department_id))throw new DomainError('허용된 부서 범위를 벗어났습니다.',403);}
+    if(requestId){const request=await pool.query('SELECT organization_id,requester_id FROM workflow_requests WHERE id=$1',[requestId]);if(!request.rowCount)throw new DomainError('요청을 찾을 수 없습니다.',404);orgId(req,request.rows[0].organization_id);if(req.user.role==='USER'&&Number(request.rows[0].requester_id)!==Number(req.user.id))throw new DomainError('허용된 요청 범위를 벗어났습니다.',403);}
+    const result=await pool.query(`INSERT INTO ai_recommendation_feedback(organization_id,asset_id,request_id,action_type,decision,reason,provider,model_version,estimated_cost,avoided_cost,confidence,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id,created_at`,[organizationId,assetId,requestId,feedback.actionType,feedback.decision,feedback.reason,feedback.provider,feedback.modelVersion,feedback.estimatedCost,feedback.avoidedCost,feedback.confidence,req.user.id]);
+    await audit(pool,req,'AI_RECOMMENDATION_FEEDBACK','AI_RECOMMENDATION',result.rows[0].id,{assetId,requestId,decision:feedback.decision,actionType:feedback.actionType}); res.status(201).json({feedback:{id:result.rows[0].id,createdAt:result.rows[0].created_at}});
+  });
+  router.get('/ai/quality', async(req,res)=>{
+    requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.query.organizationId); const scope=await resolveScope(pool,req.user); const values=[organizationId]; let scopeSql='';
+    if(scope.departmentIds?.length){values.push(scope.departmentIds);scopeSql=` AND (a.department_id=ANY($${values.length}::bigint[]) OR f.asset_id IS NULL)`;}
+    const [feedback,evaluations]=await Promise.all([pool.query(`SELECT count(*)::int total,count(*) FILTER(WHERE f.decision IN ('ACCEPTED','EXECUTED'))::int positive,count(*) FILTER(WHERE f.decision='REJECTED')::int rejected,COALESCE(sum(f.avoided_cost),0)::numeric avoided_cost FROM ai_recommendation_feedback f LEFT JOIN assets a ON a.id=f.asset_id AND a.organization_id=f.organization_id WHERE f.organization_id=$1${scopeSql}` ,values),pool.query('SELECT id,provider,model_version,dataset_version,sample_count,precision_score,recall_score,cost_per_request,status,metrics,created_at FROM ai_evaluation_runs WHERE organization_id=$1 ORDER BY created_at DESC LIMIT 10',[organizationId])]);
+    res.json({organizationId,feedback:feedback.rows[0],evaluations:evaluations.rows});
+  });
+  router.post('/ai/evaluations', async(req,res)=>{
+    requirePermission(req.user,'admin.manage'); const organizationId=orgId(req,req.body.organizationId); const evaluation=normalizeEvaluation(req.body); if(evaluation.costPerRequest!=null&&(!Number.isFinite(evaluation.costPerRequest)||evaluation.costPerRequest<0))throw new DomainError('요청당 비용은 0 이상 숫자여야 합니다.');
+    const result=await pool.query(`INSERT INTO ai_evaluation_runs(organization_id,provider,model_version,dataset_version,sample_count,precision_score,recall_score,cost_per_request,status,metrics,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11) RETURNING id,created_at`,[organizationId,evaluation.provider,evaluation.modelVersion,evaluation.datasetVersion,evaluation.sampleCount,evaluation.precision,evaluation.recall,evaluation.costPerRequest,evaluation.status,JSON.stringify(evaluation.metrics),req.user.id]);
+    await audit(pool,req,'AI_EVALUATION_RECORDED','AI_EVALUATION',result.rows[0].id,{provider:evaluation.provider,modelVersion:evaluation.modelVersion,datasetVersion:evaluation.datasetVersion,status:evaluation.status}); res.status(201).json({evaluation:{id:result.rows[0].id,createdAt:result.rows[0].created_at}});
+  });
   router.use('/ai/ocr', async(req,res,next)=>{
     const organizationId=orgId(req,req.body.organizationId); const assetId=req.body.assetId==null||req.body.assetId===''?null:positiveInteger(req.body.assetId,'자산번호'); const fileId=req.body.fileId==null||req.body.fileId===''?null:positiveInteger(req.body.fileId,'파일번호'); const scope=await resolveScope(pool,req.user);
     if(assetId){ const asset=await pool.query('SELECT organization_id,department_id FROM assets WHERE id=$1',[assetId]); if(!asset.rowCount) throw new DomainError('자산을 찾을 수 없습니다.',404); orgId(req,asset.rows[0].organization_id); if(!canAccessDepartment(scope,asset.rows[0].department_id)) throw new DomainError('허용된 부서 범위를 벗어났습니다.',403); }

@@ -47,7 +47,7 @@ function apiError(req, res, status, code, message, fieldErrors = []) {
   return res.status(status).json({ code, message, fieldErrors, requestId: req.id });
 }
 
-function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
+function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiProvider }) {
   fileStore ||= new LocalFileStore(config.fileStorageRoot);
   malwareScanner ||= config.malwareScanDriver === 'mock' ? new MockMalwareScanner() : null;
   validateOperationalAdapters(config,{ fileStore,malwareScanner,oidcProvider });
@@ -148,7 +148,7 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
     next();
   };
 
-  app.use('/api/enterprise', createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProduction: config.env === 'production', fileStore, malwareScanner, fileMaxBytes: config.fileMaxBytes }));
+  app.use('/api/enterprise', createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProduction: config.env === 'production', fileStore, malwareScanner, fileMaxBytes: config.fileMaxBytes, aiProvider }));
 
   app.get('/api/auth/csrf', (req, res) => res.json({ csrfToken: csrfToken(req) }));
   app.get('/api/auth/config', (_req,res)=>res.json({ authProvider:config.authProvider }));
