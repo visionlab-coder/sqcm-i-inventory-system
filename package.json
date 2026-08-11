@@ -27,7 +27,8 @@
     "db:migrate": "node scripts/db-migrate.mjs",
     "db:verify": "node scripts/db-verify-migrations.mjs",
     "automation:worker": "node scripts/automation-worker.mjs",
-    "ui:contract": "node scripts/ui-contract-check.mjs"
+    "ui:contract": "node scripts/ui-contract-check.mjs",
+    "ai:preflight": "node scripts/ai-bridge-preflight.mjs"
   },
   "engines": {
     "node": ">=22"
