@@ -29,6 +29,13 @@ async function expectReachable(url, label, accepted = (status) => status >= 200 
   return response.status;
 }
 
+async function expectGet(url, label) {
+  const response = await fetch(url, { method: 'GET', redirect: 'manual', headers: { accept: 'application/json' }, signal: AbortSignal.timeout(10000) });
+  if (response.status !== 200) throw new Error(`${label} returned ${response.status}`);
+  await response.arrayBuffer();
+  return response.status;
+}
+
 if (probe) {
   if (manifest.template === true) {
     console.error('Template manifests cannot perform live provider probes.');
@@ -42,15 +49,18 @@ if (probe) {
     throw new Error('OIDC discovery contract mismatch');
   }
   const base = manifest.publicBaseUrl.replace(/\/$/, '');
-  const [health, readiness, storage, scanner, eventPublisher, alerting] = await Promise.all([
+  const ai = manifest.providers.ai;
+  const [health, readiness, storage, scanner, eventPublisher, alerting, aiHealth, aiReady] = await Promise.all([
     expectReachable(`${base}/health`, 'frontend health', (status) => status === 200),
     expectReachable(`${base}/api/readiness`, 'backend readiness', (status) => status === 200),
     expectReachable(manifest.providers.storage.endpoint, 'object storage'),
     expectReachable(manifest.providers.malwareScanner.endpoint, 'malware scanner'),
     expectReachable(manifest.providers.eventPublisher.endpoint, 'event publisher'),
-    expectReachable(manifest.providers.alerting.endpoint, 'alerting')
+    expectReachable(manifest.providers.alerting.endpoint, 'alerting'),
+    expectGet(ai.healthEndpoint, 'AI provider health'),
+    expectGet(ai.readyEndpoint, 'AI provider readiness')
   ]);
-  console.log(JSON.stringify({ liveProbe: { oidcDiscovery: discoveryResponse.status, health, readiness, storage, scanner, eventPublisher, alerting } }, null, 2));
+  console.log(JSON.stringify({ liveProbe: { oidcDiscovery: discoveryResponse.status, health, readiness, storage, scanner, eventPublisher, alerting, aiHealth, aiReady } }, null, 2));
 }
 
 console.log(JSON.stringify({ checkedAt: new Date().toISOString(), manifest: resolved, ...result.summary }, null, 2));

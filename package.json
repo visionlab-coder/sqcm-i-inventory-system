@@ -28,6 +28,9 @@
     "db:verify": "node scripts/db-verify-migrations.mjs",
     "automation:worker": "node scripts/automation-worker.mjs",
     "ui:contract": "node scripts/ui-contract-check.mjs",
+    "compose:contract": "node scripts/compose-contract-check.mjs",
+    "repository:hygiene": "node scripts/repository-hygiene-check.mjs",
+    "ci:env": "node scripts/write-ci-env.mjs",
     "ai:preflight": "node scripts/ai-bridge-preflight.mjs"
   },
   "engines": {

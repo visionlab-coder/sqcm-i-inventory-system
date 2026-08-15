@@ -26,7 +26,13 @@ async function recommendActions(pool,user,input={},scope={},provider=null) {
       completionTokens: Number(external.usage.completion_tokens || external.usage.completionTokens || 0),
       totalTokens: Number(external.usage.total_tokens || external.usage.totalTokens || 0)
     } : null;
-    return { organizationId, provider: provider.name || 'external', modelVersion: provider.modelVersion || 'external', usage, recommendations: recommendations.slice(0,20) };
+    return {
+      organizationId,
+      provider: safeText(external?.provider || provider.name || 'external', 80) || 'external',
+      modelVersion: safeText(external?.modelVersion || provider.modelVersion || 'external', 80) || 'external',
+      usage,
+      recommendations: recommendations.slice(0,20)
+    };
   }
   const purchaseCost=Math.max(0,Number(input.estimatedPurchaseCost||0)); const recommendations=[];
   for(const row of rows.rows){ if(row.status_code!=='REPAIR'&&Number(row.acquisition_cost||0)>0) recommendations.push({actionType:'TRANSFER',assetId:row.id,assetTag:row.asset_tag,estimatedCost:Number(row.transfer_cost||0),avoidedCost:purchaseCost||Number(row.acquisition_cost||0),confidence:.78,evidence:[`동일 조직 자산 ${row.asset_tag}`,`상태 ${row.status_code}`,'자산 원장·이동 비용 이벤트']}); if(row.status_code==='REPAIR') recommendations.push({actionType:'REPAIR',assetId:row.id,assetTag:row.asset_tag,estimatedCost:Number(row.repair_cost||0),avoidedCost:purchaseCost||Number(row.acquisition_cost||0),confidence:.66,evidence:[`수리 원장 ${Number(row.repair_cost||0).toLocaleString()}원`,'수리 티켓 비용']}); if(purchaseCost>0) recommendations.push({actionType:'REPLACE',assetId:row.id,assetTag:row.asset_tag,estimatedCost:purchaseCost,avoidedCost:0,confidence:.41,evidence:['사용자 입력 예상 구매비용','교체는 승인 후 실행']}); }

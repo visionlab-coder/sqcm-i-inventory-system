@@ -16,6 +16,8 @@ services:
       DB_RUN_SEEDS: "false"
       OUTBOX_POLL_INTERVAL_MS: ${OUTBOX_POLL_INTERVAL_MS:-5000}
       OUTBOX_BATCH_SIZE: ${OUTBOX_BATCH_SIZE:-20}
+      AUTOMATION_WORKER_ENABLED: "true"
+      AUTOMATION_WORKER_INTERVAL_MS: ${AUTOMATION_WORKER_INTERVAL_MS:-60000}
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
       MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:?MFA_ENCRYPTION_KEY is required}
@@ -34,32 +36,6 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-
-  automation-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: ["node", "scripts/automation-worker.mjs"]
-    environment:
-      NODE_ENV: production
-      DATABASE_URL: postgres://seowon:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@database:5432/seowon_inventory
-      DB_AUTO_MIGRATE: "false"
-      DB_RUN_SEEDS: "false"
-      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
-      COOKIE_SECURE: "true"
-      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?PUBLIC_BASE_URL is required}
-      AUTH_PROVIDER: oidc
-      FILE_STORAGE_DRIVER: external
-      MALWARE_SCAN_DRIVER: external
-      OPERATIONAL_ADAPTER_MODULE: ${OPERATIONAL_ADAPTER_MODULE:?OPERATIONAL_ADAPTER_MODULE is required}
-      OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:?OIDC_REDIRECT_URI is required}
-      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:?MFA_ENCRYPTION_KEY is required}
-    depends_on:
-      database:
-        condition: service_healthy
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
 
   frontend:
     security_opt:

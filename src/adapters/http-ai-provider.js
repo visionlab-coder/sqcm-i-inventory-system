@@ -9,6 +9,12 @@ function jsonContent(value) {
   return JSON.parse(text.slice(start, end + 1));
 }
 
+function jsonObject(value, label) {
+  const parsed = jsonContent(value);
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error(`AI provider ${label} response must be a JSON object.`);
+  return parsed;
+}
+
 function createHttpAiProvider(config, fetchImpl = fetch) {
   const baseUrl = String(config.aiProviderUrl || '').trim();
   if (!baseUrl) throw new Error('AI_PROVIDER_URL is required for the built-in external AI adapter.');
@@ -40,27 +46,26 @@ function createHttpAiProvider(config, fetchImpl = fetch) {
   async function recommend({ organizationId, query = {}, assets = [] }) {
     const response = await request(baseUrl, {
       method: 'POST',
-      body: JSON.stringify({
-        model,
-        response_format: { type: 'json_object' },
-        messages: [
-          { role: 'system', content: 'Return only JSON: {"recommendations":[{"assetId":number,"actionType":"TRANSFER|REPAIR|REPLACE|HOLD","estimatedCost":number,"avoidedCost":number,"confidence":number,"evidence":[string]}]}. Recommend the lowest-cost action using only the supplied assets.' },
-          { role: 'user', content: JSON.stringify({ organizationId, query, assets }) }
-        ]
-      })
+      body: JSON.stringify({ organizationId, query, assets })
     });
-    const content = response?.choices?.[0]?.message?.content ?? response?.output_text ?? response;
-    const result = jsonContent(content);
-    return { recommendations: Array.isArray(result.recommendations) ? result.recommendations : [], usage: response?.usage || null };
+    const result = jsonObject(response, 'recommend');
+    if (!Array.isArray(result.recommendations)) throw new Error('AI provider recommend response must contain recommendations[].');
+    return {
+      provider: typeof result.provider === 'string' && result.provider.trim() ? result.provider.trim() : providerName,
+      modelVersion: typeof result.modelVersion === 'string' && result.modelVersion.trim() ? result.modelVersion.trim() : model,
+      recommendations: result.recommendations,
+      usage: result.usage && typeof result.usage === 'object' ? result.usage : null
+    };
   }
 
   async function extract({ organizationId, assetId = null, fileId = null, text = '' }) {
     const ocrUrl = String(config.aiProviderOcrUrl || '').trim();
     if (!ocrUrl) throw new Error('AI_PROVIDER_OCR_URL is required for the external OCR adapter.');
-    const response = await request(ocrUrl, { method: 'POST', body: JSON.stringify({ model, organizationId, assetId, fileId, text }) });
-    const content = response?.choices?.[0]?.message?.content ?? response?.output_text ?? response;
-    const result = jsonContent(content);
-    return { fields: result.fields && typeof result.fields === 'object' ? result.fields : {}, confidence: result.confidence && typeof result.confidence === 'object' ? result.confidence : {}, usage: response?.usage || null };
+    const response = await request(ocrUrl, { method: 'POST', body: JSON.stringify({ organizationId, assetId, fileId, text }) });
+    const result = jsonObject(response, 'ocr');
+    if (!result.fields || typeof result.fields !== 'object' || Array.isArray(result.fields)) throw new Error('AI provider OCR response must contain fields.');
+    if (!result.confidence || typeof result.confidence !== 'object' || Array.isArray(result.confidence)) throw new Error('AI provider OCR response must contain confidence.');
+    return { fields: result.fields, confidence: result.confidence, usage: result.usage && typeof result.usage === 'object' ? result.usage : null };
   }
 
   async function healthCheck() {
@@ -70,7 +75,14 @@ function createHttpAiProvider(config, fetchImpl = fetch) {
     return { status: 'ok', provider: providerName, modelVersion: model };
   }
 
-  return { driver: 'HTTP', name: providerName, modelVersion: model, recommend, healthCheck, ocr: { extract } };
+  async function readinessCheck() {
+    const readyUrl = String(config.aiProviderReadyUrl || '').trim();
+    if (!readyUrl) throw new Error('AI_PROVIDER_READY_URL is required for the external AI adapter.');
+    await request(readyUrl, { method: 'GET' });
+    return { status: 'ready', provider: providerName, modelVersion: model };
+  }
+
+  return { driver: 'HTTP', name: providerName, modelVersion: model, recommend, healthCheck, readinessCheck, ocr: { extract } };
 }
 
 module.exports = { createHttpAiProvider, jsonContent };

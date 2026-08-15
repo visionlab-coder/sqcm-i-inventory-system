@@ -75,7 +75,7 @@ async function ensureSeedUsers(pool, config) {
     await pool.query(
       `INSERT INTO users (email, display_name, password_hash, role, status, organization_id, department_id)
        VALUES ($1, $2, $3, $4, 'ACTIVE', (SELECT id FROM organizations WHERE code='SEOWON'), (SELECT id FROM departments WHERE code='HQ' LIMIT 1))
-       ON CONFLICT (email) DO UPDATE SET organization_id=COALESCE(users.organization_id,EXCLUDED.organization_id),department_id=COALESCE(users.department_id,EXCLUDED.department_id)`,
+       ON CONFLICT (email) DO UPDATE SET password_hash=EXCLUDED.password_hash,failed_login_count=0,locked_until=NULL,organization_id=COALESCE(users.organization_id,EXCLUDED.organization_id),department_id=COALESCE(users.department_id,EXCLUDED.department_id)`,
       [email, displayName, hash, role]
     );
   }

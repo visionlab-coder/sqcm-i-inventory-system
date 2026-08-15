@@ -25,7 +25,7 @@ test('운영 어댑터 누락·local·mock은 fail-closed 된다',()=>{
 test('외부 AI provider는 추천·상태·OCR 계약을 요구한다',()=>{
   const config={...externalConfig,aiProviderDriver:'external'};
   assert.throws(()=>validateOperationalAdapters(config,externalAdapters),/aiProvider/);
-  const result=validateOperationalAdapters(config,{...externalAdapters,aiProvider:{async recommend(){return{recommendations:[]};},async healthCheck(){return{status:'ok'};},ocr:{async extract(){return{fields:{},confidence:{}};}}}});
+  const result=validateOperationalAdapters(config,{...externalAdapters,aiProvider:{async recommend(){return{recommendations:[]};},async healthCheck(){return{status:'ok'};},async readinessCheck(){return{status:'ready'};},ocr:{async extract(){return{fields:{},confidence:{}};}}}});
   assert.equal(typeof result.aiProvider.recommend,'function');
 });
 

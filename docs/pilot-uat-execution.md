@@ -7,7 +7,7 @@
 ## 사전 조건
 
 - HTTPS staging, 회사 OIDC, 외부 저장소·악성코드 검사기 readiness 통과
-- 검증된 release tag와 migration 14개, 필수 테이블 32개
+- 검증된 release tag와 migration 22개, 필수 테이블 32개
 - 최신 백업 checksum과 격리 복구훈련, 운영 상태·비기능 게이트 통과
 - 직원·담당자·관리자 계정과 서로 다른 부서 표본 준비
 

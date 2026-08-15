@@ -20,6 +20,8 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm run operations:contracts
+      - run: npm run compose:contract
+      - run: npm run repository:hygiene
 
   three-tier-integration:
     runs-on: ubuntu-latest
@@ -31,14 +33,13 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - name: Generate ephemeral test credentials
+        run: npm run ci:env
       - name: Start frontend, backend and PostgreSQL
         run: docker compose -f compose.yaml -f compose.test.yaml up -d --build --wait
       - name: Run required integration tests
         env:
           INTEGRATION_BASE_URL: http://localhost:3000
-          INTEGRATION_DATABASE_URL: postgres://seowon:change-me@localhost:55432/seowon_inventory
-          SEED_MANAGER_PASSWORD: Manager1234!
-          SEED_ADMIN_PASSWORD: Admin1234!
         run: npm run test:integration
       - name: Run nonfunctional quality gate
         env:
