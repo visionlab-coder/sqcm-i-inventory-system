@@ -23,21 +23,18 @@
 ## 빠른 실행
 
 ```powershell
-Copy-Item .env.example .env
+powershell -ExecutionPolicy Bypass -File scripts/new-local-env.ps1
 docker compose up -d --build
 docker compose ps
 ```
 
 브라우저에서 `http://localhost:3000`에 접속합니다.
 
-- 관리자: `admin@seowon.local` / `Admin1234!`
-- 담당자: `manager@seowon.local` / `Manager1234!`
+- 관리자: `admin@seowon.local`
+- 비품 담당자: `manager@seowon.local`
+- 현장 직원: `employee@seowon.local`
 
-> 시드 비밀번호는 로컬 실습 전용입니다. 운영에서는 `POSTGRES_PASSWORD`, `SESSION_SECRET`, `SEED_ADMIN_PASSWORD`, `SEED_MANAGER_PASSWORD`, `SEED_USER_PASSWORD`를 반드시 서로 다른 안전한 값으로 변경해야 합니다.
-
-- 관리자: `admin@seowon.local` / `Admin1234!`
-- 비품 담당자: `manager@seowon.local` / `Manager1234!`
-- 현장 직원: `employee@seowon.local` / `Employee1234!`
+시드 비밀번호와 DB·세션 비밀값은 실행 시 `.env`에 무작위 생성되며 화면이나 명령 출력에 표시하지 않습니다. `.env`는 Git 추적 대상이 아닙니다.
 
 ## 운영 배포
 
@@ -57,10 +54,9 @@ powershell -ExecutionPolicy Bypass -File scripts/deploy.ps1 `
 ```powershell
 npm.cmd run check
 docker compose -f compose.yaml -f compose.test.yaml up -d --build
-$env:INTEGRATION_DATABASE_URL='postgres://seowon:change-me@localhost:55432/seowon_inventory'
+Get-Content .env | Where-Object { $_ -match '^[A-Z0-9_]+=' } | ForEach-Object { $name, $value = $_.Split('=', 2); [Environment]::SetEnvironmentVariable($name, $value, 'Process') }
 $env:INTEGRATION_BASE_URL='http://localhost:3000'
-$env:SEED_MANAGER_PASSWORD='Manager1234!'
-$env:SEED_ADMIN_PASSWORD='Admin1234!'
+$env:INTEGRATION_DATABASE_URL=$env:DATABASE_URL -replace ':5432/', ':55432/'
 npm.cmd run check:full
 ```
 
@@ -84,6 +80,7 @@ npm.cmd run db:restore-drill -- "artifacts/backups/백업파일.dump"
 - 개발 문서: [`develop docs`](./develop%20docs)
 - 에이전트 문서: [`agent docs`](./agent%20docs)
 - 단계별 보고서: [`docs/phase-reports`](./docs/phase-reports)
+- 최신 단일 현황: [`docs/current-state.md`](./docs/current-state.md)
 - 검증 보고서: [`docs/verification-report.md`](./docs/verification-report.md)
 - 화면 목업: [`mock/html/index.html`](./mock/html/index.html)
 - 페이지별 콘셉트 아트: [`mock/concept/pages/index.html`](./mock/concept/pages/index.html)

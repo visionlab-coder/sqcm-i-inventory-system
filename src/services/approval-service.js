@@ -11,7 +11,7 @@ function requireAdmin(user) {
 function adminOrganization(user, value) {
   requireAdmin(user);
   const organizationId = positiveInteger(value || user.organizationId, '조직');
-  if (user.role !== 'ADMIN' && Number(user.organizationId) !== organizationId) throw new DomainError('다른 조직에 접근할 수 없습니다.', 403);
+  if (!user.isSystemAdmin && Number(user.organizationId) !== organizationId) throw new DomainError('다른 조직에 접근할 수 없습니다.', 403);
   return organizationId;
 }
 
@@ -82,7 +82,7 @@ async function getCurrentApproval(client, requestId) {
 }
 
 function requireStepRole(user, approval) {
-  if (user.role === 'ADMIN') return;
+  if (user.isSystemAdmin || user.role === 'ADMIN') return;
   if (user.role !== approval.approver_role) throw new DomainError(`${approval.step_name}은 ${approval.approver_role} 역할만 처리할 수 있습니다.`, 403);
 }
 

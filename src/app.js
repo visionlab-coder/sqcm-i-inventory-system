@@ -30,7 +30,7 @@ async function writeAudit(pool, actorId, action, entityType = 'AUTH', entityId =
 }
 
 async function loadScopedUser(pool, userId) {
-  const result = await pool.query(`SELECT u.id,u.email,u.display_name,u.role,u.status,u.organization_id,u.department_id,u.employee_no,u.mfa_enabled,u.password_reset_required,
+  const result = await pool.query(`SELECT u.id,u.email,u.display_name,u.role,u.status,u.organization_id,u.department_id,u.employee_no,u.mfa_enabled,u.password_reset_required,u.is_system_admin,
     s.scope_type,s.department_id scope_department_id
     FROM users u LEFT JOIN LATERAL (
       SELECT scope_type,department_id FROM user_role_scopes WHERE user_id=u.id AND role_code=u.role
@@ -47,10 +47,10 @@ function apiError(req, res, status, code, message, fieldErrors = []) {
   return res.status(status).json({ code, message, fieldErrors, requestId: req.id });
 }
 
-function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
+function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiProvider }) {
   fileStore ||= new LocalFileStore(config.fileStorageRoot);
   malwareScanner ||= config.malwareScanDriver === 'mock' ? new MockMalwareScanner() : null;
-  validateOperationalAdapters(config,{ fileStore,malwareScanner,oidcProvider });
+  validateOperationalAdapters(config,{ fileStore,malwareScanner,oidcProvider,aiProvider });
   const app = express();
   const PgSession = connectPgSimple(session);
   const loginRateLimit = createLoginRateLimiter({
@@ -148,7 +148,7 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
     next();
   };
 
-  app.use('/api/enterprise', createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProduction: config.env === 'production', fileStore, malwareScanner, fileMaxBytes: config.fileMaxBytes }));
+  app.use('/api/enterprise', createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProduction: config.env === 'production', fileStore, malwareScanner, fileMaxBytes: config.fileMaxBytes, aiProvider }));
 
   app.get('/api/auth/csrf', (req, res) => res.json({ csrfToken: csrfToken(req) }));
   app.get('/api/auth/config', (_req,res)=>res.json({ authProvider:config.authProvider }));
@@ -310,17 +310,19 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
     res.status(201).json({ user: sanitizeUser(user), message: '계정 활성화를 완료했습니다. 로그인하세요.' });
   });
 
-  app.get('/api/dashboard', apiAuth, async (_req, res) => {
+  app.get('/api/dashboard', apiAuth, async (req, res) => {
+    const organizationId = Number(req.user.organizationId);
+    if (!Number.isInteger(organizationId) || organizationId <= 0) return apiError(req, res, 403, 'ORG_SCOPE_REQUIRED', '조직 범위가 지정된 사용자만 조회할 수 있습니다.');
     const [counts, items, loans] = await Promise.all([
       pool.query(`SELECT
-        (SELECT count(*) FROM items WHERE status = 'ACTIVE')::int AS total_items,
-        (SELECT COALESCE(sum(quantity), 0) FROM loans WHERE returned_at IS NULL)::int AS loaned,
-        (SELECT count(*) FROM loans WHERE returned_at IS NULL AND due_at < now())::int AS overdue,
-        (SELECT count(*) FROM items WHERE status = 'ACTIVE' AND available_quantity <= min_quantity)::int AS low_stock`),
-      pool.query("SELECT * FROM items WHERE status = 'ACTIVE' ORDER BY (available_quantity <= min_quantity) DESC, updated_at DESC LIMIT 8"),
+        (SELECT count(*) FROM items WHERE organization_id=$1 AND status = 'ACTIVE')::int AS total_items,
+        (SELECT COALESCE(sum(quantity), 0) FROM loans WHERE organization_id=$1 AND returned_at IS NULL)::int AS loaned,
+        (SELECT count(*) FROM loans WHERE organization_id=$1 AND returned_at IS NULL AND due_at < now())::int AS overdue,
+        (SELECT count(*) FROM items WHERE organization_id=$1 AND status = 'ACTIVE' AND available_quantity <= min_quantity)::int AS low_stock`, [organizationId]),
+      pool.query("SELECT * FROM items WHERE organization_id=$1 AND status = 'ACTIVE' ORDER BY (available_quantity <= min_quantity) DESC, updated_at DESC LIMIT 8", [organizationId]),
       pool.query(`SELECT l.*, i.code, i.name AS item_name, u.display_name AS borrower_name
                   FROM loans l JOIN items i ON i.id=l.item_id JOIN users u ON u.id=l.user_id
-                  WHERE l.returned_at IS NULL ORDER BY l.due_at ASC LIMIT 8`)
+                  WHERE l.organization_id=$1 AND i.organization_id=$1 AND u.organization_id=$1 AND l.returned_at IS NULL ORDER BY l.due_at ASC LIMIT 8`, [organizationId])
     ]);
     res.json({ stats: counts.rows[0], items: items.rows, loans: loans.rows });
   });
@@ -328,8 +330,10 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
   app.get('/api/items', apiAuth, async (req, res) => {
     const query = String(req.query.q || '').trim();
     const status = String(req.query.status || 'ALL');
-    const values = [];
-    const where = ["status = 'ACTIVE'"];
+    const organizationId = Number(req.user.organizationId);
+    if (!Number.isInteger(organizationId) || organizationId <= 0) return apiError(req, res, 403, 'ORG_SCOPE_REQUIRED', '조직 범위가 지정된 사용자만 조회할 수 있습니다.');
+    const values = [organizationId];
+    const where = ["organization_id = $1", "status = 'ACTIVE'"];
     if (query) {
       values.push(`%${query}%`);
       where.push(`(code ILIKE $${values.length} OR name ILIKE $${values.length} OR category ILIKE $${values.length})`);
@@ -347,14 +351,15 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
 
   app.get('/api/items/:id', apiAuth, async (req, res) => {
     if (!/^\d+$/.test(req.params.id)) return apiError(req, res, 404, 'NOT_FOUND', '비품을 찾을 수 없습니다.');
-    const itemResult = await pool.query('SELECT * FROM items WHERE id=$1', [req.params.id]);
+    const organizationId = Number(req.user.organizationId);
+    const itemResult = await pool.query('SELECT * FROM items WHERE id=$1 AND organization_id=$2', [req.params.id, organizationId]);
     if (!itemResult.rowCount) return apiError(req, res, 404, 'NOT_FOUND', '비품을 찾을 수 없습니다.');
     const loanResult = await pool.query(
       `SELECT l.id, l.quantity, l.loaned_at, l.due_at, l.returned_at, l.return_condition,
               u.display_name AS borrower_name
        FROM loans l JOIN users u ON u.id=l.user_id
-       WHERE l.item_id=$1 ORDER BY l.loaned_at DESC LIMIT 20`,
-      [req.params.id]
+       WHERE l.item_id=$1 AND l.organization_id=$2 AND u.organization_id=$2 ORDER BY l.loaned_at DESC LIMIT 20`,
+      [req.params.id, organizationId]
     );
     res.json({ item: itemResult.rows[0], loans: loanResult.rows });
   });
@@ -371,15 +376,16 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
 
   app.get('/api/loans', apiAuth, async (req, res) => {
     const manager = ['MANAGER', 'ADMIN'].includes(req.user.role);
-    const params = manager ? [] : [req.user.id];
-    const scope = manager ? '' : 'WHERE l.user_id = $1';
+    const organizationId = Number(req.user.organizationId);
+    const params = manager ? [organizationId] : [organizationId, req.user.id];
+    const scope = manager ? 'WHERE l.organization_id = $1 AND i.organization_id = $1 AND u.organization_id = $1' : 'WHERE l.organization_id = $1 AND i.organization_id = $1 AND u.organization_id = $1 AND l.user_id = $2';
     const [loans, items, users] = await Promise.all([
       pool.query(`SELECT l.*, i.code, i.name AS item_name, u.email, u.display_name AS borrower_name,
                          (l.returned_at IS NULL AND l.due_at < now()) AS overdue
                   FROM loans l JOIN items i ON i.id=l.item_id JOIN users u ON u.id=l.user_id
                   ${scope} ORDER BY (l.returned_at IS NULL) DESC, l.due_at DESC LIMIT 100`, params),
-      pool.query("SELECT id, code, name, available_quantity FROM items WHERE status='ACTIVE' AND available_quantity > 0 ORDER BY name"),
-      manager ? pool.query("SELECT email, display_name FROM users WHERE status='ACTIVE' ORDER BY display_name") : Promise.resolve({ rows: [] })
+      pool.query("SELECT id, code, name, available_quantity FROM items WHERE organization_id=$1 AND status='ACTIVE' AND available_quantity > 0 ORDER BY name", [organizationId]),
+      manager ? pool.query("SELECT email, display_name FROM users WHERE organization_id=$1 AND status='ACTIVE' ORDER BY display_name", [organizationId]) : Promise.resolve({ rows: [] })
     ]);
     res.json({ loans: loans.rows, items: items.rows, users: users.rows, manager });
   });
@@ -395,7 +401,7 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
   });
 
   app.get('/api/audit', apiRole('ADMIN'), async (req, res) => {
-    res.json(await getAuditLogs(pool, req.query));
+    res.json(await getAuditLogs(pool, req.query, req.user));
   });
 
   app.get('/login', (req, res) => {
@@ -456,16 +462,17 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
   });
 
   app.get('/', requireAuth, async (req, res) => {
+    const organizationId = Number(req.user.organizationId);
     const [counts, items, loans] = await Promise.all([
       pool.query(`SELECT
-        (SELECT count(*) FROM items WHERE status = 'ACTIVE')::int AS total_items,
-        (SELECT COALESCE(sum(quantity), 0) FROM loans WHERE returned_at IS NULL)::int AS loaned,
-        (SELECT count(*) FROM loans WHERE returned_at IS NULL AND due_at < now())::int AS overdue,
-        (SELECT count(*) FROM items WHERE status = 'ACTIVE' AND available_quantity <= min_quantity)::int AS low_stock`),
-      pool.query("SELECT * FROM items WHERE status = 'ACTIVE' ORDER BY (available_quantity <= min_quantity) DESC, updated_at DESC LIMIT 8"),
+        (SELECT count(*) FROM items WHERE organization_id=$1 AND status = 'ACTIVE')::int AS total_items,
+        (SELECT COALESCE(sum(quantity), 0) FROM loans WHERE organization_id=$1 AND returned_at IS NULL)::int AS loaned,
+        (SELECT count(*) FROM loans WHERE organization_id=$1 AND returned_at IS NULL AND due_at < now())::int AS overdue,
+        (SELECT count(*) FROM items WHERE organization_id=$1 AND status = 'ACTIVE' AND available_quantity <= min_quantity)::int AS low_stock`, [organizationId]),
+      pool.query("SELECT * FROM items WHERE organization_id=$1 AND status = 'ACTIVE' ORDER BY (available_quantity <= min_quantity) DESC, updated_at DESC LIMIT 8", [organizationId]),
       pool.query(`SELECT l.*, i.code, i.name AS item_name, u.display_name AS borrower_name
                   FROM loans l JOIN items i ON i.id=l.item_id JOIN users u ON u.id=l.user_id
-                  WHERE l.returned_at IS NULL ORDER BY l.due_at ASC LIMIT 8`)
+                  WHERE l.organization_id=$1 AND i.organization_id=$1 AND u.organization_id=$1 AND l.returned_at IS NULL ORDER BY l.due_at ASC LIMIT 8`, [organizationId])
     ]);
     res.render('dashboard', { title: '대시보드', stats: counts.rows[0], items: items.rows, loans: loans.rows });
   });
@@ -473,8 +480,9 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
   app.get('/items', requireAuth, async (req, res) => {
     const query = String(req.query.q || '').trim();
     const status = String(req.query.status || 'ALL');
-    const values = [];
-    const where = ["status = 'ACTIVE'"];
+    const organizationId = Number(req.user.organizationId);
+    const values = [organizationId];
+    const where = ["organization_id = $1", "status = 'ACTIVE'"];
     if (query) {
       values.push(`%${query}%`);
       where.push(`(code ILIKE $${values.length} OR name ILIKE $${values.length} OR category ILIKE $${values.length})`);
@@ -493,15 +501,16 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
 
   app.get('/loans', requireAuth, async (req, res) => {
     const manager = ['MANAGER', 'ADMIN'].includes(req.user.role);
-    const params = manager ? [] : [req.user.id];
-    const scope = manager ? '' : 'WHERE l.user_id = $1';
+    const organizationId = Number(req.user.organizationId);
+    const params = manager ? [organizationId] : [organizationId, req.user.id];
+    const scope = manager ? 'WHERE l.organization_id = $1 AND i.organization_id = $1 AND u.organization_id = $1' : 'WHERE l.organization_id = $1 AND i.organization_id = $1 AND u.organization_id = $1 AND l.user_id = $2';
     const [loans, items, users] = await Promise.all([
       pool.query(`SELECT l.*, i.code, i.name AS item_name, u.email, u.display_name AS borrower_name,
                          (l.returned_at IS NULL AND l.due_at < now()) AS overdue
                   FROM loans l JOIN items i ON i.id=l.item_id JOIN users u ON u.id=l.user_id
                   ${scope} ORDER BY (l.returned_at IS NULL) DESC, l.due_at DESC LIMIT 100`, params),
-      pool.query("SELECT id, code, name, available_quantity FROM items WHERE status='ACTIVE' AND available_quantity > 0 ORDER BY name"),
-      manager ? pool.query("SELECT email, display_name FROM users WHERE status='ACTIVE' ORDER BY display_name") : Promise.resolve({ rows: [] })
+      pool.query("SELECT id, code, name, available_quantity FROM items WHERE organization_id=$1 AND status='ACTIVE' AND available_quantity > 0 ORDER BY name", [organizationId]),
+      manager ? pool.query("SELECT email, display_name FROM users WHERE organization_id=$1 AND status='ACTIVE' ORDER BY display_name", [organizationId]) : Promise.resolve({ rows: [] })
     ]);
     res.render('loans', { title: '대여·반납', loans: loans.rows, items: items.rows, users: users.rows, manager });
   });
@@ -518,9 +527,9 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider }) {
     res.redirect('/loans');
   });
 
-  app.get('/audit', requireRole('ADMIN'), async (_req, res) => {
+  app.get('/audit', requireRole('ADMIN'), async (req, res) => {
     const result = await pool.query(`SELECT a.*, u.display_name, u.email FROM audit_logs a
-      LEFT JOIN users u ON u.id=a.actor_user_id ORDER BY a.created_at DESC LIMIT 200`);
+      LEFT JOIN users u ON u.id=a.actor_user_id WHERE a.organization_id=$1 ORDER BY a.created_at DESC LIMIT 200`, [req.user.organizationId]);
     res.render('audit', { title: '감사 로그', logs: result.rows });
   });
 

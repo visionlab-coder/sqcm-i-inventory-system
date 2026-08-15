@@ -47,6 +47,22 @@ async function runMigrations(pool) {
   }
 }
 
+async function verifyMigrations(pool) {
+  const exists = await pool.query("SELECT to_regclass('public.schema_migrations') name");
+  if (!exists.rows[0]?.name) throw new Error('schema_migrations table is missing. Run the approved migration job first.');
+  const migrationDir = path.join(process.cwd(), 'db', 'migrations');
+  const files = (await fs.readdir(migrationDir)).filter(file => /^\d+.*\.sql$/.test(file)).sort();
+  const applied = await pool.query('SELECT version,checksum FROM schema_migrations ORDER BY version');
+  const byVersion = new Map(applied.rows.map(row => [row.version, row.checksum]));
+  for (const file of files) {
+    const sql = await fs.readFile(path.join(migrationDir, file), 'utf8');
+    const checksum = crypto.createHash('sha256').update(sql).digest('hex');
+    if (!byVersion.has(file)) throw new Error(`적용되지 않은 migration입니다: ${file}`);
+    if (byVersion.get(file) !== checksum) throw new Error(`적용된 migration이 변경되었습니다: ${file}`);
+  }
+  return { expected: files.length, applied: applied.rowCount };
+}
+
 async function ensureSeedUsers(pool, config) {
   const users = [
     ['admin@seowon.local', '관리자', 'ADMIN', config.seedAdminPassword],
@@ -59,14 +75,16 @@ async function ensureSeedUsers(pool, config) {
     await pool.query(
       `INSERT INTO users (email, display_name, password_hash, role, status, organization_id, department_id)
        VALUES ($1, $2, $3, $4, 'ACTIVE', (SELECT id FROM organizations WHERE code='SEOWON'), (SELECT id FROM departments WHERE code='HQ' LIMIT 1))
-       ON CONFLICT (email) DO UPDATE SET organization_id=COALESCE(users.organization_id,EXCLUDED.organization_id),department_id=COALESCE(users.department_id,EXCLUDED.department_id)`,
+       ON CONFLICT (email) DO UPDATE SET password_hash=EXCLUDED.password_hash,failed_login_count=0,locked_until=NULL,organization_id=COALESCE(users.organization_id,EXCLUDED.organization_id),department_id=COALESCE(users.department_id,EXCLUDED.department_id)`,
       [email, displayName, hash, role]
     );
   }
 }
 
 async function initializeDatabase(pool, config) {
-  await runMigrations(pool);
+  if (config.dbAutoMigrate) await runMigrations(pool);
+  else await verifyMigrations(pool);
+  if (!config.dbRunSeeds) return;
   await ensureSeedUsers(pool, config);
   const seedDir = path.join(process.cwd(), 'db', 'seeds');
   const seedFiles = (await fs.readdir(seedDir)).filter(file => /^\d+.*\.sql$/.test(file)).sort();
@@ -78,4 +96,4 @@ async function runSqlFile(pool, relativePath) {
   await pool.query(sql);
 }
 
-module.exports = { createPool, initializeDatabase, runMigrations };
+module.exports = { createPool, initializeDatabase, runMigrations, verifyMigrations };

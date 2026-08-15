@@ -79,7 +79,7 @@ async function updateItem(pool, actorId, itemId, input, trace = {}) {
     const result = await client.query(
       `UPDATE items SET name=$1, category=$2, total_quantity=$3, available_quantity=$4,
        min_quantity=$5, location=NULLIF($6, ''), updated_at=now()
-       WHERE id=$7 RETURNING *`,
+      WHERE id=$7 RETURNING *`,
       [name, category, total, available, minimum, location, id]
     );
     await audit(client, actorId, 'ITEM_UPDATED', 'ITEM', id, {

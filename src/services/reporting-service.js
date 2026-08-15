@@ -72,6 +72,43 @@ async function getReportAssets(pool, organizationId, input = {}, scope = {}) {
   return { filters: query.filters, assets: result.rows };
 }
 
+/**
+ * Canonical dashboard read model.
+ *
+ * The legacy inventory dashboard is intentionally not reused here: this
+ * projection reads only the enterprise `assets` ledger and applies the same
+ * organization/department predicate as the enterprise reports.
+ */
+async function getAssetDashboard(pool, organizationId, user, scope = {}) {
+  const query = assetFilterSql(organizationId, {}, scope);
+  const from = `FROM assets a LEFT JOIN departments d ON d.id=a.department_id LEFT JOIN locations l ON l.id=a.location_id WHERE ${query.where}`;
+  const values = [...query.values];
+  const pendingValues = [organizationId];
+  const pendingWhere = ['r.organization_id=$1'];
+  if (scope.departmentIds?.length) {
+    pendingValues.push(scope.departmentIds);
+    pendingWhere.push(`COALESCE(a.department_id,u.department_id)=ANY($${pendingValues.length}::bigint[])`);
+  }
+  if (user?.role === 'USER' && !user?.isSystemAdmin) {
+    pendingValues.push(user.id);
+    pendingWhere.push(`r.requester_id=$${pendingValues.length}`);
+  }
+  const [summary, assets, pending] = await Promise.all([
+    pool.query(`SELECT count(*)::int asset_count,
+      count(*) FILTER (WHERE a.status_code='AVAILABLE')::int available,
+      count(*) FILTER (WHERE a.status_code IN ('ASSIGNED','IN_USE'))::int in_use,
+      count(*) FILTER (WHERE a.status_code='REPAIR')::int repair,
+      count(*) FILTER (WHERE a.status_code='LOST')::int lost,
+      count(*) FILTER (WHERE a.status_code IN ('TRANSFER_PENDING','DISPOSE_PENDING'))::int attention,
+      COALESCE(sum(a.acquisition_cost),0)::numeric total_cost ${from}`, values),
+    pool.query(`SELECT a.id,a.asset_tag,a.name,a.status_code,a.acquisition_cost,d.name department_name,l.name location_name
+      ${from} ORDER BY a.updated_at DESC,a.id DESC LIMIT 8`, values),
+    pool.query(`SELECT count(*)::int count FROM workflow_requests r JOIN users u ON u.id=r.requester_id LEFT JOIN assets a ON a.id=r.asset_id
+      WHERE ${pendingWhere.join(' AND ')} AND r.status='SUBMITTED'`, pendingValues)
+  ]);
+  return { summary: { ...summary.rows[0], pending_requests: pending.rows[0]?.count || 0 }, assets: assets.rows };
+}
+
 function normalizeAuditFilters(input = {}) {
   const filters = {
     action: String(input.action || '').trim().slice(0, 80) || null,
@@ -86,8 +123,13 @@ function normalizeAuditFilters(input = {}) {
   return filters;
 }
 
-async function getAuditLogs(pool, input = {}) {
+async function getAuditLogs(pool, input = {}, user = null) {
   const filters = normalizeAuditFilters(input); const values = []; const where = [];
+  if (!user?.isSystemAdmin) {
+    const organizationId = Number(user?.organizationId);
+    if (!Number.isInteger(organizationId) || organizationId <= 0) throw new DomainError('조직 범위가 지정된 사용자만 감사 로그를 조회할 수 있습니다.', 403);
+    values.push(organizationId); where.push(`a.organization_id=$${values.length}`);
+  }
   if (filters.action) { values.push(filters.action); where.push(`a.action=$${values.length}`); }
   if (filters.entityType) { values.push(filters.entityType); where.push(`a.entity_type=$${values.length}`); }
   if (filters.actorId) { values.push(filters.actorId); where.push(`a.actor_user_id=$${values.length}`); }
@@ -102,4 +144,4 @@ async function getAuditLogs(pool, input = {}) {
   return { filters, logs: result.rows };
 }
 
-module.exports = { normalizeReportFilters, normalizeAuditFilters, assetFilterSql, getAssetReport, getReportAssets, getAuditLogs };
+module.exports = { normalizeReportFilters, normalizeAuditFilters, assetFilterSql, getAssetReport, getReportAssets, getAssetDashboard, getAuditLogs };

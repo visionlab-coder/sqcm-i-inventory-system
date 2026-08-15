@@ -26,7 +26,7 @@
 - [ ] 권한 부족 403, 만료 세션 401, 잘못된 입력 400이 안전한 메시지로 표시된다.
 - [ ] 감염·unknown·timeout 파일은 저장되지 않는다.
 - [ ] IdP·저장소·검사기 장애 시 readiness 503과 경보를 확인한다.
-- [ ] health, 핵심 smoke, 5xx 로그, migration 13개를 확인한다.
+- [ ] health, 핵심 smoke, 5xx 로그, migration 22개를 확인한다.
 - [ ] rollback 후 health·로그인·조회와 DB 호환성을 확인한다.
 - [ ] 격리 복구에서 원본과 복구 DB 건수가 일치한다.
 

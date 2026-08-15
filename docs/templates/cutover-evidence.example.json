@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "template": true,
   "releaseTag": "REPLACE_WITH_RELEASE_TAG",
-  "targetUrl": "https://inventory.example.com",
+  "targetUrl": "https://sqcm.safe-link.co.kr",
   "gates": [
     { "id": "artifact", "status": "PENDING", "evidence": "" },
     { "id": "backup_restore", "status": "PENDING", "evidence": "" },

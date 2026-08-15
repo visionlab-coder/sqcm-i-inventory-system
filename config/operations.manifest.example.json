@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "template": true,
   "environment": "staging",
-  "publicBaseUrl": "https://inventory.example.com",
+  "publicBaseUrl": "https://sqcm.safe-link.co.kr",
   "providers": {
     "oidc": {
       "issuer": "https://idp.example.com",
       "clientId": "inventory-staging",
-      "redirectUri": "https://inventory.example.com/api/auth/oidc/callback"
+      "redirectUri": "https://sqcm.safe-link.co.kr/api/auth/oidc/callback"
     },
     "storage": {
       "endpoint": "https://objects.example.com",
@@ -16,10 +16,26 @@
     "malwareScanner": {
       "endpoint": "https://scanner.example.com/v1/scan",
       "timeoutMs": 30000
+    },
+    "eventPublisher": {
+      "endpoint": "https://events.example.com/v1/publish"
+    },
+    "alerting": {
+      "endpoint": "https://alerts.example.com/v1/events"
+    },
+    "ai": {
+      "recommendEndpoint": "https://ai-bridge.example.com/recommend",
+      "ocrEndpoint": "https://ai-bridge.example.com/ocr",
+      "healthEndpoint": "https://ai-bridge.example.com/health",
+      "readyEndpoint": "https://ai-bridge.example.com/ready",
+      "model": "cost-control-v1",
+      "timeoutMs": 12000
     }
   },
   "backup": {
     "storageRef": "secret://inventory/staging/backup-storage",
+    "pitrEnabled": true,
+    "walArchiveRef": "secret://inventory/staging/wal-archive",
     "rpoMinutes": 1440,
     "rtoMinutes": 240
   },
@@ -27,6 +43,9 @@
     "OIDC_CLIENT_SECRET": "secret://inventory/staging/oidc-client-secret",
     "STORAGE_CREDENTIALS": "secret://inventory/staging/storage-credentials",
     "MALWARE_SCANNER_TOKEN": "secret://inventory/staging/malware-scanner-token",
+    "EVENT_PUBLISHER_TOKEN": "secret://inventory/staging/event-publisher-token",
+    "ALERTING_TOKEN": "secret://inventory/staging/alerting-token",
+    "AI_PROVIDER_API_KEY": "secret://inventory/staging/ai-provider-api-key",
     "SESSION_SECRET": "secret://inventory/staging/session-secret",
     "MFA_ENCRYPTION_KEY": "secret://inventory/staging/mfa-encryption-key",
     "POSTGRES_PASSWORD": "secret://inventory/staging/postgres-password"

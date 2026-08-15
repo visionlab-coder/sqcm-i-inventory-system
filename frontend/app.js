@@ -1,7 +1,7 @@
-const state = { user: null, csrfToken: null, view: 'dashboard', reference: null };
+const state = { user: null, csrfToken: null, view: 'dashboard', reference: null, assetPage: 0, adminSection: 'org', workflowSection: 'request' };
 const $ = selector => document.querySelector(selector);
-const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
-const date = value => value ? new Date(value).toLocaleDateString('ko-KR') : '-';
+const escapeHtml = globalThis.AssetUI?.escapeHtml || (value => String(value ?? ''));
+const date = globalThis.AssetUI?.date || (value => value ? new Date(value).toLocaleDateString('ko-KR') : '-');
 const isManager = () => ['MANAGER', 'ADMIN'].includes(state.user?.role);
 const mutatingMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const inFlightWrites = new Map();
@@ -79,6 +79,21 @@ function showLogin() {
   }
 }
 
+function closeMobileNav() {
+  const shell = $('#app-shell'); const toggle = $('#mobile-nav-toggle');
+  shell?.classList.remove('nav-open');
+  toggle?.setAttribute('aria-expanded', 'false');
+  toggle?.setAttribute('aria-label', '메뉴 열기');
+}
+
+function toggleMobileNav() {
+  const shell = $('#app-shell'); const toggle = $('#mobile-nav-toggle');
+  const open = !shell.classList.contains('nav-open');
+  shell.classList.toggle('nav-open', open);
+  toggle.setAttribute('aria-expanded', String(open));
+  toggle.setAttribute('aria-label', open ? '메뉴 닫기' : '메뉴 열기');
+}
+
 function showInvitation(token) {
   showLogin();
   $('#login-form').classList.add('hidden');
@@ -95,6 +110,10 @@ function showApp() {
   $('#audit-nav').classList.toggle('hidden', state.user.role !== 'ADMIN');
   document.querySelectorAll('[data-manager-only]').forEach(element => element.classList.toggle('hidden', !isManager()));
   document.querySelectorAll('[data-admin-only]').forEach(element => element.classList.toggle('hidden', state.user.role !== 'ADMIN'));
+  const nav = document.querySelector('.sidebar nav');
+  if (nav && !nav.querySelector('[data-view="cost-control"]') && isManager()) {
+    const costButton = document.createElement('button'); costButton.type = 'button'; costButton.dataset.view = 'cost-control'; costButton.textContent = 'Cost Command Center'; costButton.addEventListener('click', () => navigate('cost-control')); nav.insertBefore(costButton, nav.querySelector('[data-view="reports"]') || null);
+  }
   navigate('dashboard');
 }
 
@@ -117,6 +136,12 @@ async function boot() {
 
 async function navigate(view) {
   state.view = view;
+  const nextUrl = new URL(location.href);
+  nextUrl.hash = `view=${encodeURIComponent(view)}`;
+  history.replaceState({ view }, '', nextUrl);
+  closeMobileNav();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  $('#main').scrollTop = 0;
   document.querySelectorAll('[data-view]').forEach(button => button.classList.toggle('active', button.dataset.view === view));
   $('#view-root').innerHTML = '<div class="loading">데이터를 불러오는 중입니다…</div>';
   try {
@@ -128,9 +153,9 @@ async function navigate(view) {
     if (view === 'stocktakes') await renderStocktakes();
     if (view === 'repairs') await renderRepairs();
     if (view === 'reports') await renderReports();
+    if (view === 'cost-control') await renderCostControl();
     if (view === 'admin') await renderAdmin();
-    if (view === 'items') await renderItems();
-    if (view === 'loans') await renderLoans();
+    if (view === 'items' || view === 'loans') await renderAssets();
     if (view === 'audit') await renderAudit();
     if (view === 'security') await renderSecurity();
     $('#main').focus();
@@ -140,84 +165,54 @@ async function navigate(view) {
 }
 
 async function renderDashboard() {
-  const data = await request('/api/dashboard');
-  const rows = data.items.map(item => `<tr><td class="mono">${escapeHtml(item.code)}</td><td><strong>${escapeHtml(item.name)}</strong></td><td>${escapeHtml(item.category)}</td><td>${item.available_quantity} / ${item.total_quantity}</td><td><span class="badge ${item.available_quantity <= item.min_quantity ? 'bad' : 'good'}">${item.available_quantity <= item.min_quantity ? '재고 부족' : '정상'}</span></td></tr>`).join('');
+  const organizationId = encodeURIComponent(state.user.organizationId);
+  const [data, cost] = await Promise.all([
+    request(`/api/enterprise/dashboard?organizationId=${organizationId}`),
+    isManager() ? request(`/api/enterprise/cost/command-center?organizationId=${organizationId}`).catch(() => null) : Promise.resolve(null)
+  ]);
+  const summary = data.summary || {};
+  const rows = (data.assets || []).map(asset => `<tr><td class="mono">${escapeHtml(asset.asset_tag)}</td><td><strong>${escapeHtml(asset.name)}</strong></td><td>${escapeHtml(asset.location_name || '-')}</td><td>${escapeHtml(asset.department_name || '-')}</td><td>${statusBadge(asset.status_code)}</td><td><button class="small" data-go="assets">상세 보기</button></td></tr>`).join('');
   $('#view-root').innerHTML = `
-    <div class="page-heading"><div><p class="eyebrow">FIELD COMMAND / 08.06</p><h1>현장 자산<br>지휘판</h1><p class="muted">오늘 조치할 재고와 대여 흐름부터 확인하세요.</p></div>${isManager() ? '<button class="primary" data-go="items">+ 신규 비품</button>' : ''}</div>
-    <section class="command-hero"><div class="command-copy"><span>AVAILABLE EQUIPMENT / 실시간 가용 수량</span><strong>${data.items.reduce((sum,item) => sum + Number(item.available_quantity), 0)}</strong><span>모든 현장의 작업 가능 자산을 기준으로 집계</span></div><div class="command-signal"><div><strong>${data.stats.low_stock}</strong><span>LOW STOCK<br>즉시 확인</span></div></div></section>
-    <section class="metric-strip"><article class="metric-feature"><span>등록 자산군</span><strong>${data.stats.total_items}</strong><small>운영 기준 품목</small></article><article><span>대여 중</span><strong>${data.stats.loaned}</strong><small>현장 사용 수량</small></article><article><span>반납 지연</span><strong>${data.stats.overdue}</strong><small>관리 필요 건</small></article><article class="metric-risk"><span>재고 부족</span><strong>${data.stats.low_stock}</strong><small>발주 검토 품목</small></article></section>
-    <section class="panel"><div class="panel-head"><h2>비품 현황</h2><button class="link" data-go="items">전체 보기</button></div><div class="table-wrap"><table><thead><tr><th>코드</th><th>비품명</th><th>카테고리</th><th>가용/총수량</th><th>상태</th></tr></thead><tbody>${rows || '<tr><td colspan="5" class="empty-cell">등록된 비품이 없습니다.</td></tr>'}</tbody></table></div></section>`;
+    <div class="page-heading"><div><p class="eyebrow">FIELD COMMAND / CANONICAL ASSET LEDGER</p><h1>현장 자산<br>지휘판</h1><p class="muted">기업 자산 원장을 기준으로 오늘 조치할 자산과 비용 신호를 확인하세요.</p></div>${isManager() ? '<button class="primary" data-go="asset-register">+ 자산 등록</button>' : ''}</div>
+    <section class="command-hero"><div class="command-copy"><span>AVAILABLE ASSETS / 실시간 가용 자산</span><strong>${Number(summary.available || 0)}</strong><span>조직·부서 범위가 적용된 기업 자산 원장</span></div><div class="command-signal"><div><strong>${Number(summary.attention || 0)}</strong><span>ATTENTION<br>즉시 확인</span></div></div></section>
+    <section class="metric-strip"><article class="metric-feature"><span>등록 자산</span><strong>${Number(summary.asset_count || 0)}</strong><small>기업 자산 원장</small></article><article><span>사용 중</span><strong>${Number(summary.in_use || 0)}</strong><small>배정·사용 상태</small></article><article><span>승인 대기</span><strong>${Number(summary.pending_requests || 0)}</strong><small>내 권한 범위</small></article><article class="metric-risk"><span>수리·분실</span><strong>${Number(summary.repair || 0) + Number(summary.lost || 0)}</strong><small>관리 필요 자산</small></article></section>
+    <section class="panel"><div class="panel-head"><h2>최근 자산</h2><button class="link" data-go="assets">통합 원장 전체 보기</button></div><div class="table-wrap"><table><thead><tr><th>자산번호</th><th>자산명</th><th>위치</th><th>부서</th><th>상태</th><th>관리</th></tr></thead><tbody>${rows || '<tr><td colspan="6" class="empty-cell">등록된 기업 자산이 없습니다.</td></tr>'}</tbody></table></div></section>`;
+  const position = document.createElement('section');
+  position.className = 'panel product-position';
+  const costSignal = cost?.summary ? `<span>유휴 자본 ${Number(cost.summary.idle_capital || 0).toLocaleString('ko-KR')}원 · TCO ${Number(cost.summary.tco || 0).toLocaleString('ko-KR')}원</span>` : '<span>비용 의사결정은 관리자 화면에서 확인할 수 있습니다.</span>';
+  position.innerHTML = `<p class="eyebrow">COST CONTROL POSITION</p><h2>구매 전에, 다른 현장의 유휴 자산부터 찾습니다.</h2><p class="muted">이동 · 수리 · 교체 중 가장 낮은 비용의 다음 행동을 추천하는 AI 현장 자산 Cost Control</p><div class="position-actions"><button class="primary" data-go="cost-control">비용 의사결정 열기</button><button class="secondary" data-go="assets">정식 자산 원장 보기</button></div><small class="cost-signal">${costSignal}</small>`;
+  $('#view-root').prepend(position);
 }
 
-async function renderItems(query = '') {
-  const data = await request(`/api/items?q=${encodeURIComponent(query)}`);
-  const rows = data.items.map(item => `<tr><td class="mono">${escapeHtml(item.code)}</td><td><strong>${escapeHtml(item.name)}</strong></td><td>${escapeHtml(item.category)}</td><td>${escapeHtml(item.location || '-')}</td><td>${item.available_quantity}</td><td>${item.total_quantity}</td><td><span class="badge ${item.available_quantity <= item.min_quantity ? 'bad' : 'good'}">${item.available_quantity <= item.min_quantity ? '재고 부족' : '정상'}</span></td><td><button class="small item-detail-button" data-id="${item.id}">상세</button></td></tr>`).join('');
-  $('#view-root').innerHTML = `
-    <div class="catalogue-head"><div class="page-heading"><div><p class="eyebrow">EQUIPMENT CATALOGUE</p><h1>비품<br>인덱스</h1><p class="muted">현장 자산을 빠르게 찾고 재고 상태를 비교합니다.</p></div></div><section class="catalogue-search"><p class="eyebrow">FIND / FILTER</p><form id="item-search" class="search-panel"><input type="search" name="q" value="${escapeHtml(query)}" placeholder="코드 · 비품명 · 카테고리"><button class="secondary">검색</button></form></section></div>
-    <section class="panel catalogue-table"><div class="table-wrap"><table><thead><tr><th>코드</th><th>비품명</th><th>카테고리</th><th>위치</th><th>가용</th><th>총수량</th><th>상태</th><th>관리</th></tr></thead><tbody>${rows || '<tr><td colspan="8" class="empty-cell">검색 결과가 없습니다.</td></tr>'}</tbody></table></div></section>
-    ${isManager() ? `<section class="panel form-panel"><div><p class="eyebrow">NEW ITEM</p><h2>비품 등록</h2></div><form id="item-create" class="grid-form"><label>비품 코드<input name="code" required pattern="[A-Za-z0-9-]{3,30}"></label><label>비품명<input name="name" required minlength="2"></label><label>카테고리<input name="category" required></label><label>위치<input name="location" maxlength="100"></label><label>총수량<input type="number" name="totalQuantity" min="0" required></label><label>최소재고<input type="number" name="minQuantity" min="0" value="0" required></label><button class="primary">등록</button></form></section>` : ''}`;
-  $('#item-search').addEventListener('submit', event => { event.preventDefault(); renderItems(new FormData(event.target).get('q')); });
-  $('#item-create')?.addEventListener('submit', createItem);
-  document.querySelectorAll('.item-detail-button').forEach(button => button.addEventListener('click', () => renderItemDetail(button.dataset.id)));
+async function renderCostControl() {
+  const data = await request(`/api/enterprise/cost/command-center?organizationId=${encodeURIComponent(state.user.organizationId)}`);
+  const [ai, roi] = await Promise.all([
+    request(`/api/enterprise/ai/recommendations?organizationId=${encodeURIComponent(state.user.organizationId)}`).catch(() => ({ recommendations: [] })),
+    request(`/api/enterprise/cost/roi?organizationId=${encodeURIComponent(state.user.organizationId)}`).catch(() => null)
+  ]);
+  const s = data.summary || {};
+  const money = value => `${Number(value || 0).toLocaleString('ko-KR')}원`;
+  const idleRows = (data.idleAssets || []).map(asset => `<tr><td class="mono">${escapeHtml(asset.asset_tag)}</td><td><strong>${escapeHtml(asset.name)}</strong></td><td>${escapeHtml(asset.location_name || '-')}</td><td>${asset.idle_days}일</td><td>${money(asset.acquisition_cost)}</td><td><button class="small" data-go="assets">이동 후보 확인</button></td></tr>`).join('');
+  const renewalRows = (data.upcomingRenewals || []).map(row => `<tr><td class="mono">${escapeHtml(row.asset_tag)}</td><td>${escapeHtml(row.name)}</td><td>${date(row.warranty_end)}</td><td>${date(row.lease_end)}</td></tr>`).join('');
+  const aiRows = (ai.recommendations || []).slice(0, 6).map(row => `<li class="ai-recommendation"><strong>${escapeHtml(row.actionType)}</strong><span>${escapeHtml(row.assetTag || '-')}</span><small>회피 가능 ${money(row.avoidedCost)} · 신뢰도 ${Math.round(Number(row.confidence || 0) * 100)}%</small></li>`).join('');
+  const aiProviderLabel = `${ai.provider || 'rules-and-adapters'} / ${ai.modelVersion || 'cost-control-v1'}`;
+  const roiSavings = roi?.savings || {};
+  const vendorRows = (roi?.vendors || []).slice(0, 8).map(row => `<tr><td>${escapeHtml(row.name)}</td><td>${row.order_count}</td><td>${money(row.ordered_amount)}</td><td>${Number(row.avg_lead_days || 0).toFixed(1)}일</td><td>${money(row.repair_cost)}</td></tr>`).join('');
+  const budgetRows = (roi?.budgets || []).map(row => `<tr><td>${escapeHtml(row.cost_center)}</td><td>${money(row.budget)}</td><td>${money(row.spent)}</td><td>${money(row.remaining)}</td></tr>`).join('');
+  $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">COST COMMAND CENTER / TCO</p><h1>구매 전<br>비용 의사결정</h1><p class="muted">취득·수리·이동·처분 원장을 합산해 현재 자본이 묶인 곳과 다음 검토 대상을 보여줍니다.</p></div><button class="secondary" data-go="assets">자산 원장 열기</button></div>
+    <section class="metric-strip cost-metric-strip"><article class="metric-feature"><span>TCO 원장 합계</span><strong>${money(s.tco)}</strong><small>확정된 비용 이벤트 기준</small></article><article><span>장부가</span><strong>${money(s.book_value)}</strong><small>직선법 감가 반영</small></article><article><span>유휴 자본</span><strong>${money(s.idle_capital)}</strong><small>${s.idle_asset_count || 0}개 자산</small></article><article class="metric-risk"><span>수리 비용</span><strong>${money(s.repair_cost)}</strong><small>수리 원장 누계</small></article></section>
+    <section class="two-column"><article class="panel"><div class="panel-head"><div><p class="eyebrow">TRANSFER BEFORE BUY</p><h2>유휴 자산 이동 후보</h2></div><span>${(data.idleAssets || []).length} CANDIDATES</span></div><div class="table-wrap"><table><thead><tr><th>자산</th><th>명칭</th><th>현장</th><th>유휴일</th><th>취득가</th><th>다음 행동</th></tr></thead><tbody>${idleRows || '<tr><td colspan="6" class="empty-cell">현재 유휴 후보가 없습니다.</td></tr>'}</tbody></table></div></article><article class="panel"><div class="panel-head"><div><p class="eyebrow">AI DECISION SUPPORT</p><h2>구매 전 추천</h2><small class="muted">${escapeHtml(aiProviderLabel)}</small></div><span>${ai.recommendations?.length || 0} PROPOSALS</span></div><ul class="ai-recommendation-list">${aiRows || '<li class="empty-cell">추천을 만들 수 있는 비용 근거가 없습니다.</li>'}</ul></article></section>
+    <section class="panel"><div class="panel-head"><div><p class="eyebrow">WARRANTY / LEASE</p><h2>90일 내 만료</h2></div></div><div class="table-wrap"><table><thead><tr><th>자산</th><th>명칭</th><th>보증 만료</th><th>리스 만료</th></tr></thead><tbody>${renewalRows || '<tr><td colspan="4" class="empty-cell">예정된 만료가 없습니다.</td></tr>'}</tbody></table></div></section>
+    <section class="metric-strip roi-strip"><article class="metric-feature"><span>실현 절감액</span><strong>${money(roiSavings.realized_savings)}</strong><small>${roiSavings.event_count || 0}건의 절감 원장</small></article><article><span>기준 비용</span><strong>${money(roiSavings.baseline_cost)}</strong><small>구매·교체 대안</small></article><article><span>실제 비용</span><strong>${money(roiSavings.actual_cost)}</strong><small>이동·수리·재사용</small></article><article class="metric-risk"><span>가동 자산</span><strong>${Number(roi?.utilization?.active_count || 0)}</strong><small>활성 배정·사용</small></article></section>
+    <section class="two-column"><article class="panel"><div class="panel-head"><div><p class="eyebrow">VENDOR PERFORMANCE</p><h2>공급사 가격·납기·수리</h2></div></div><div class="table-wrap"><table><thead><tr><th>공급사</th><th>발주</th><th>발주액</th><th>평균 납기</th><th>수리비</th></tr></thead><tbody>${vendorRows || '<tr><td colspan="5" class="empty-cell">공급사 거래가 없습니다.</td></tr>'}</tbody></table></div></article><article class="panel"><div class="panel-head"><div><p class="eyebrow">BUDGET CONTROL</p><h2>비용센터 예산 대비</h2></div></div><div class="table-wrap"><table><thead><tr><th>비용센터</th><th>예산</th><th>사용액</th><th>잔액</th></tr></thead><tbody>${budgetRows || '<tr><td colspan="4" class="empty-cell">올해 예산이 없습니다.</td></tr>'}</tbody></table></div></article></section>
+    ${isManager() ? `<section class="panel form-panel"><div><p class="eyebrow">REALIZED SAVINGS LEDGER</p><h2>절감 실적 기록</h2><p class="muted">구매 대안 비용과 실제 이동·수리·재사용 비용을 남겨 Cost KPI를 누적합니다.</p></div><form id="cost-savings-form" class="grid-form enterprise-form"><label>절감 유형<select name="savingsType"><option>TRANSFER_AVOIDED_PURCHASE</option><option>REPAIR_AVOIDED_REPLACE</option><option>REUSE_AVOIDED_PURCHASE</option><option>DISPOSAL_RECOVERY</option></select></label><label>자산<select name="assetId"><option value="">선택 안 함</option>${options(data.idleAssets || [], row => `${row.asset_tag} · ${row.name}`)}</select></label><label>기준 비용<input type="number" name="baselineCost" min="0" step="0.01" required></label><label>실제 비용<input type="number" name="actualCost" min="0" step="0.01" required></label><label class="full">근거 메모<input name="evidenceNote" maxlength="500" required></label><button class="primary full">절감 실적 저장</button></form></section>` : ''}`;
+  $('#cost-savings-form')?.addEventListener('submit', async event => { event.preventDefault(); const values=Object.fromEntries(new FormData(event.target)); const body={organizationId:state.user.organizationId,savingsType:values.savingsType,assetId:values.assetId,baselineCost:values.baselineCost,actualCost:values.actualCost,evidence:{note:values.evidenceNote}}; try { await request('/api/enterprise/cost/savings',{method:'POST',body}); showMessage('절감 실적을 기록했습니다.'); renderCostControl(); } catch(error) { showMessage(error.message,'error'); } });
 }
 
-async function createItem(event) {
-  event.preventDefault();
-  const values = Object.fromEntries(new FormData(event.target));
-  try {
-    await request('/api/items', { method: 'POST', body: values });
-    showMessage('비품을 등록했습니다.');
-    await renderItems();
-  } catch (error) { showMessage(error.message, 'error'); }
-}
-
-async function renderItemDetail(itemId) {
-  try {
-    const data = await request(`/api/items/${itemId}`);
-    const item = data.item;
-    const unavailable = Number(item.total_quantity) - Number(item.available_quantity);
-    const activeLoaned = data.loans.filter(loan => !loan.returned_at).reduce((sum, loan) => sum + Number(loan.quantity), 0);
-    const history = data.loans.map(loan => `<tr><td>${date(loan.loaned_at)}</td><td>${escapeHtml(loan.borrower_name)}</td><td>${loan.quantity}</td><td>${date(loan.due_at)}</td><td><span class="badge ${loan.returned_at ? 'good' : 'neutral'}">${loan.returned_at ? '반납 완료' : '대여 중'}</span></td></tr>`).join('');
-    $('#view-root').innerHTML = `
-      <div class="page-heading"><div><p class="eyebrow">ASSET SPECIFICATION / ${escapeHtml(item.code)}</p><h1>${escapeHtml(item.name)}</h1><p class="muted">현재 수량과 최근 인계 이력을 확인하고 관리 정보를 수정합니다.</p></div><button class="secondary" id="item-back">목록으로</button></div>
-      <section class="asset-detail-shell"><aside class="asset-blueprint"><span class="mono">${escapeHtml(item.code)}</span><strong>${item.available_quantity}</strong><small>AVAILABLE / TOTAL ${item.total_quantity}</small></aside><div class="asset-facts"><dl><dt>카테고리</dt><dd>${escapeHtml(item.category)}</dd><dt>위치</dt><dd>${escapeHtml(item.location || '-')}</dd><dt>활성 대여</dt><dd>${activeLoaned}</dd><dt>가용 제외</dt><dd>${unavailable}</dd><dt>최소재고</dt><dd>${item.min_quantity}</dd><dt>상태</dt><dd>${escapeHtml(item.status)}</dd></dl></div></section>
-      ${isManager() && item.status === 'ACTIVE' ? `<section class="panel form-panel"><div><p class="eyebrow">EDIT ITEM</p><h2>관리정보 수정</h2><p class="muted">총수량은 현재 가용 제외 수량 ${unavailable}개보다 작게 변경할 수 없습니다.</p></div><form id="item-update" class="grid-form"><label>비품명<input name="name" value="${escapeHtml(item.name)}" required minlength="2" maxlength="100"></label><label>카테고리<input name="category" value="${escapeHtml(item.category)}" required maxlength="50"></label><label>위치<input name="location" value="${escapeHtml(item.location || '')}" maxlength="100"></label><label>총수량<input type="number" name="totalQuantity" value="${item.total_quantity}" min="${unavailable}" required></label><label>최소재고<input type="number" name="minQuantity" value="${item.min_quantity}" min="0" required></label><button class="primary">수정 저장</button><button type="button" class="danger-button" id="item-deactivate">비품 비활성화</button></form></section>` : ''}
-      <section class="panel"><div class="panel-head"><h2>최근 대여 이력</h2><span>${data.loans.length} RECORDS</span></div><div class="table-wrap"><table><thead><tr><th>대여일</th><th>대여자</th><th>수량</th><th>반납 예정</th><th>상태</th></tr></thead><tbody>${history || '<tr><td colspan="5" class="empty-cell">대여 이력이 없습니다.</td></tr>'}</tbody></table></div></section>`;
-    $('#item-back').addEventListener('click', () => renderItems());
-    $('#item-update')?.addEventListener('submit', async event => {
-      event.preventDefault();
-      try {
-        await request(`/api/items/${itemId}`, { method: 'PATCH', body: Object.fromEntries(new FormData(event.target)) });
-        showMessage('비품 정보를 수정했습니다.');
-        await renderItemDetail(itemId);
-      } catch (error) { showMessage(error.message, 'error'); }
-    });
-    $('#item-deactivate')?.addEventListener('click', async () => {
-      if (!window.confirm('이 비품을 목록에서 비활성화하시겠습니까?')) return;
-      try {
-        await request(`/api/items/${itemId}`, { method: 'DELETE', body: {} });
-        showMessage('비품을 비활성화했습니다.');
-        await renderItems();
-      } catch (error) { showMessage(error.message, 'error'); }
-    });
-    $('#main').focus();
-  } catch (error) {
-    showMessage(error.message, 'error');
-    await renderItems();
-  }
-}
-
-async function renderLoans() {
-  const data = await request('/api/loans');
-  const rows = data.loans.map(loan => `<tr><td><strong>${escapeHtml(loan.item_name)}</strong><br><span class="mono">${escapeHtml(loan.code)}</span></td><td>${escapeHtml(loan.borrower_name)}</td><td>${loan.quantity}</td><td>${date(loan.due_at)}</td><td><span class="badge ${loan.returned_at ? 'good' : loan.overdue ? 'bad' : 'neutral'}">${loan.returned_at ? '반납 완료' : loan.overdue ? '연체' : '대여 중'}</span></td>${data.manager ? `<td>${loan.returned_at ? '' : `<button class="small return-button" data-id="${loan.id}">반납</button>`}</td>` : ''}</tr>`).join('');
-  const userOptions = data.users.map(user => `<option value="${escapeHtml(user.email)}">${escapeHtml(user.display_name)} (${escapeHtml(user.email)})</option>`).join('');
-  const itemOptions = data.items.map(item => `<option value="${item.id}">${escapeHtml(item.name)} · 가용 ${item.available_quantity}</option>`).join('');
-  $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">HANDOVER WORKFLOW</p><h1>인계하고<br>회수하기</h1><p class="muted">대여 확정과 반납 처리를 하나의 흐름에서 기록합니다.</p></div></div>
-    <div class="workflow-shell">${data.manager ? `<section class="panel form-panel"><div class="workflow-intro"><p class="eyebrow">STEP 01—04</p><h2>대여 처리</h2><p>담당자 → 비품 → 수량 → 반납일</p></div><form id="loan-create" class="grid-form"><label>01 대여자<select name="borrowerEmail" required><option value="">선택</option>${userOptions}</select></label><label>02 비품<select name="itemId" required><option value="">선택</option>${itemOptions}</select></label><label>03 수량<input type="number" name="quantity" min="1" value="1" required></label><label>04 반납 예정<input type="datetime-local" name="dueAt" required></label><button class="primary">대여 확정 →</button></form></section>` : ''}
-    <section class="panel workflow-ledger"><div class="panel-head"><h2>이동 원장</h2><span>${data.loans.length} RECORDS</span></div><div class="table-wrap"><table><thead><tr><th>비품</th><th>대여자</th><th>수량</th><th>반납 예정</th><th>상태</th>${data.manager ? '<th>처리</th>' : ''}</tr></thead><tbody>${rows || '<tr><td colspan="6" class="empty-cell">대여 이력이 없습니다.</td></tr>'}</tbody></table></div></section></div>`;
-  $('#loan-create')?.addEventListener('submit', async event => { event.preventDefault(); try { await request('/api/loans', { method:'POST', body:Object.fromEntries(new FormData(event.target)) }); showMessage('대여 처리를 완료했습니다.'); renderLoans(); } catch(error){ showMessage(error.message,'error'); } });
-  document.querySelectorAll('.return-button').forEach(button => button.addEventListener('click', async () => { try { await request(`/api/loans/${button.dataset.id}/return`, { method:'POST', body:{ condition:'GOOD' } }); showMessage('반납 처리를 완료했습니다.'); renderLoans(); } catch(error){ showMessage(error.message,'error'); } }));
-}
+// Compatibility aliases: direct legacy hashes are redirected into the canonical
+// enterprise asset/assignment surfaces. No legacy ledger API is called by UI.
+async function renderItems(query = '') { return renderAssets(query, 0); }
+async function renderLoans() { return navigate('assignments'); }
 
 async function reference() {
   if (!state.reference) state.reference = await request('/api/enterprise/reference');
@@ -225,14 +220,19 @@ async function reference() {
 }
 
 const options = (rows, label, selected = '') => rows.map(row => `<option value="${row.id}" ${String(row.id) === String(selected) ? 'selected' : ''}>${escapeHtml(label(row))}</option>`).join('');
-const statusBadge = value => `<span class="badge ${['AVAILABLE','APPROVED','MATCH','ACTIVE','RESOLVED'].includes(value) ? 'good' : ['LOST','REJECTED','MISSING','DAMAGED'].includes(value) ? 'bad' : 'neutral'}">${escapeHtml(value)}</span>`;
+const statusBadge = globalThis.AssetUI?.statusBadge || (value => `<span class="badge neutral">${escapeHtml(value)}</span>`);
 
-async function renderAssets(query = '') {
-  const data = await request(`/api/enterprise/assets?q=${encodeURIComponent(query)}`);
+async function renderAssets(query = '', page = 0) {
+  state.assetPage = page;
+  const data = await request(`/api/enterprise/assets?q=${encodeURIComponent(query)}&page=${page}&size=25`);
   const rows = data.assets.map(asset => `<tr><td class="mono">${escapeHtml(asset.asset_tag)}</td><td><strong>${escapeHtml(asset.name)}</strong><br><small>${escapeHtml(asset.serial_no || '-')}</small></td><td>${escapeHtml(asset.category_name || '-')}</td><td>${escapeHtml(asset.location_name || '-')}</td><td>${statusBadge(asset.status_code)}</td><td><button class="small enterprise-asset-detail" data-id="${asset.id}">상세</button></td></tr>`).join('');
   $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">ASSET REGISTER / INDIVIDUAL CONTROL</p><h1>기업 자산<br>통합 원장</h1><p class="muted">개별 자산번호, 일련번호, 위치와 전체 상태 이력을 한곳에서 조회합니다.</p></div>${isManager() ? '<button class="primary" data-go="asset-register">+ 자산 등록</button>' : ''}</div>
   <section class="panel"><form id="asset-search" class="search-panel"><input type="search" name="q" value="${escapeHtml(query)}" placeholder="자산번호 · 자산명 · 일련번호"><button class="secondary">검색</button></form><div class="table-wrap"><table><thead><tr><th>자산번호</th><th>자산</th><th>분류</th><th>위치</th><th>상태</th><th>관리</th></tr></thead><tbody>${rows || '<tr><td colspan="6" class="empty-cell">조건에 맞는 자산이 없습니다.</td></tr>'}</tbody></table></div></section>`;
-  $('#asset-search').addEventListener('submit', event => { event.preventDefault(); renderAssets(new FormData(event.target).get('q')); });
+  const totalPages = Math.max(1, Math.ceil(Number(data.total || 0) / Number(data.size || 25)));
+  const tablePanel = $('#view-root').querySelector('.table-wrap');
+  if (tablePanel) tablePanel.insertAdjacentHTML('afterend', `<div class="table-pager" role="navigation" aria-label="자산 목록 페이지"><button class="secondary" data-asset-page="${Math.max(0, page - 1)}" ${page <= 0 ? 'disabled' : ''}>이전</button><span>${page + 1} / ${totalPages} · ${Number(data.total || 0)}건</span><button class="secondary" data-asset-page="${Math.min(totalPages - 1, page + 1)}" ${page >= totalPages - 1 ? 'disabled' : ''}>다음</button></div>`);
+  $('#asset-search').addEventListener('submit', event => { event.preventDefault(); renderAssets(new FormData(event.target).get('q'), 0); });
+  document.querySelectorAll('[data-asset-page]').forEach(button => button.addEventListener('click', () => renderAssets(query, Number(button.dataset.assetPage))));
   document.querySelectorAll('.enterprise-asset-detail').forEach(button => button.addEventListener('click', () => renderAssetDetail(button.dataset.id)));
 }
 
@@ -289,11 +289,12 @@ async function createWorkflowRequest(event) {
   try { const created=await request('/api/enterprise/requests', { method:'POST', body:values }); if(values.requestType==='RETURN')await uploadBinary(`/api/enterprise/requests/${created.request.id}/return-photo`,returnPhoto); showMessage(values.requestType==='RETURN'?'사진이 연결된 반납 초안을 만들었습니다.':'요청 초안을 만들었습니다.'); await renderAssignments(); } catch(error) { showMessage(error.message,'error'); }
 }
 
-function bindRequestActions(refresh) { document.querySelectorAll('.request-action').forEach(button => button.addEventListener('click', async () => { try { await request(`/api/enterprise/requests/${button.dataset.id}/action`, { method:'POST', body:{ action:button.dataset.action, reviewReason: button.dataset.action === 'REJECT' ? '요건 보완 필요' : '검토 완료' } }); showMessage('요청 상태를 변경했습니다.'); refresh(); } catch(error) { showMessage(error.message,'error'); } })); }
+function bindRequestActions(refresh) { document.querySelectorAll('.request-action').forEach(button => button.addEventListener('click', async () => { try { const reasonInput=document.querySelector(`[data-review-reason="${button.dataset.id}"]`); const reviewReason=reasonInput?.value.trim() || ''; if(['APPROVE','REJECT'].includes(button.dataset.action) && reviewReason.length<2) throw new Error('승인·반려 사유를 2자 이상 입력하세요.'); await request(`/api/enterprise/requests/${button.dataset.id}/action`, { method:'POST', body:{ action:button.dataset.action, reviewReason:reviewReason || null } }); showMessage('요청 상태를 변경했습니다.'); refresh(); } catch(error) { showMessage(error.message,'error'); } })); }
 
 async function renderRequests() {
+  if (!isManager() && state.workflowSection === 'procurement') state.workflowSection = 'request';
   const data = await request('/api/enterprise/requests');
-  const rows = data.requests.map(row => { const purchase = row.request_type === 'PURCHASE' ? `<br><small>품목 ${escapeHtml(row.payload?.itemName || '-')} · ${Number(row.payload?.quantity || 0).toLocaleString()}개 · ${Number(row.payload?.estimatedAmount || 0).toLocaleString()}원 · ${escapeHtml(row.payload?.costCenter || '-')} · 필요 ${escapeHtml(row.payload?.neededAt || '-')}</small>` : ''; const progress=Number(row.approval_step_count||0)?`${row.status==='APPROVED'?row.approval_step_count:Math.max(0,Number(row.current_approval_step||1)-1)} / ${row.approval_step_count}`:'제출 전'; return `<tr><td>#${row.id}</td><td>${escapeHtml(row.request_type)}</td><td><strong>${escapeHtml(row.title)}</strong><br><small>${escapeHtml(row.reason)}</small>${purchase}</td><td>${escapeHtml(row.requester_name)}</td><td>${statusBadge(row.status)}</td><td>${escapeHtml(progress)}</td><td>${row.status === 'DRAFT' && row.requester_id === state.user.id ? `<button class="small request-action" data-id="${row.id}" data-action="SUBMIT">제출</button>` : ''}${isManager() && row.status === 'SUBMITTED' && row.requester_id !== state.user.id ? `<button class="small request-action" data-id="${row.id}" data-action="APPROVE">현재 단계 승인</button><button class="small danger-button request-action" data-id="${row.id}" data-action="REJECT">반려</button>` : ''}</td></tr>`; }).join('');
+  const rows = data.requests.map(row => { const purchase = row.request_type === 'PURCHASE' ? `<br><small>품목 ${escapeHtml(row.payload?.itemName || '-')} · ${Number(row.payload?.quantity || 0).toLocaleString()}개 · ${Number(row.payload?.estimatedAmount || 0).toLocaleString()}원 · ${escapeHtml(row.payload?.costCenter || '-')} · 필요 ${escapeHtml(row.payload?.neededAt || '-')}</small>` : ''; const progress=Number(row.approval_step_count||0)?`${row.status==='APPROVED'?row.approval_step_count:Math.max(0,Number(row.current_approval_step||1)-1)} / ${row.approval_step_count}`:'제출 전'; const review=`<input class="request-review-reason" data-review-reason="${row.id}" aria-label="요청 #${row.id} 처리 사유" placeholder="처리 사유" maxlength="1000">`; return `<tr><td>#${row.id}</td><td>${escapeHtml(row.request_type)}</td><td><strong>${escapeHtml(row.title)}</strong><br><small>${escapeHtml(row.reason)}</small>${purchase}</td><td>${escapeHtml(row.requester_name)}</td><td>${statusBadge(row.status)}</td><td>${escapeHtml(progress)}</td><td>${row.status === 'DRAFT' && row.requester_id === state.user.id ? `<button class="small request-action" data-id="${row.id}" data-action="SUBMIT">제출</button>` : ''}${isManager() && row.status === 'SUBMITTED' && row.requester_id !== state.user.id ? `${review}<button class="small request-action" data-id="${row.id}" data-action="APPROVE">현재 단계 승인</button><button class="small danger-button request-action" data-id="${row.id}" data-action="REJECT">반려</button>` : ''}</td></tr>`; }).join('');
   let procurementPanel = '';
   if (isManager()) {
     const [procurement, ref] = await Promise.all([request('/api/enterprise/procurement'), reference()]);
@@ -305,7 +306,9 @@ async function renderRequests() {
     const receiptRows = procurement.receipts.map(row => `<tr><td>#${row.id}</td><td>#${row.purchase_order_id}</td><td>${row.quantity}개</td><td>${statusBadge(row.status)}</td></tr>`).join('');
     procurementPanel = `<section class="panel form-panel"><div><p class="eyebrow">PURCHASE &amp; INSPECTION</p><h2>발주·입고·검수</h2><p class="muted">검수 합격 전에는 자산이 생성되지 않아 배정할 수 없습니다.</p></div><div class="workflow-shell"><form id="purchase-order" class="grid-form"><label>승인 구매요청<select name="requestId" required><option value="">선택</option>${options(approvedRequests, row => `#${row.id} · ${row.title}`)}</select></label><label>공급사<select name="vendorId"><option value="">미지정</option>${options(ref.vendors, row => row.name)}</select></label><label>발주번호<input name="orderNo" required pattern="[A-Za-z0-9][A-Za-z0-9_-]{2,49}"></label><label>발주금액<input type="number" name="totalAmount" required min="0.01" step="0.01"></label><button class="primary">발주 생성</button></form><form id="purchase-receipt" class="grid-form"><label>발주<select name="purchaseOrderId" required><option value="">선택</option>${options(activeOrders, row => `${row.order_no} · ${row.status}`)}</select></label><label>입고수량<input type="number" name="quantity" required min="1" step="1"></label><button class="primary">부분 입고</button></form><form id="purchase-inspection" class="grid-form"><label>검수대기 입고<select name="receiptId" required><option value="">선택</option>${options(pendingReceipts, row => `입고 #${row.id} · ${row.quantity}개`)}</select></label><label>결과<select name="result"><option>PASS</option><option>FAIL</option><option>CONDITIONAL</option></select></label><label>검수 메모<input name="note" maxlength="500"></label><button class="primary">검수 완료</button></form></div><div class="workflow-shell"><div class="table-wrap"><table><thead><tr><th>발주</th><th>요청</th><th>금액</th><th>상태</th></tr></thead><tbody>${orderRows || '<tr><td colspan="4">발주가 없습니다.</td></tr>'}</tbody></table></div><div class="table-wrap"><table><thead><tr><th>입고</th><th>발주</th><th>수량</th><th>상태</th></tr></thead><tbody>${receiptRows || '<tr><td colspan="4">입고가 없습니다.</td></tr>'}</tbody></table></div></div></section>`;
   }
-  $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">APPROVAL INBOX / SEGREGATION OF DUTIES</p><h1>요청·승인<br>통합함</h1><p class="muted">본인 승인 금지와 조직 범위 권한을 적용한 순차 승인 큐입니다.</p></div></div><section class="panel form-panel"><div><p class="eyebrow">PURCHASE REQUEST</p><h2>구매 요청 초안</h2><p class="muted">검토에 필요한 품목·수량·금액·비용센터·필요일을 모두 입력하세요.</p></div><form id="purchase-request" class="grid-form enterprise-form"><label>품목<input name="itemName" required minlength="2" maxlength="150"></label><label>수량<input type="number" name="quantity" required min="1" max="100000" step="1"></label><label>예상금액<input type="number" name="estimatedAmount" required min="0.01" step="0.01"></label><label>비용센터<input name="costCenter" required minlength="2" maxlength="50" pattern="[A-Za-z0-9][A-Za-z0-9_-]{1,49}" placeholder="HQ-001"></label><label>필요일<input type="date" name="neededAt" required></label><label>요청 사유<input name="reason" required minlength="2" maxlength="1000"></label><button class="primary full">구매 요청 초안 생성</button></form></section>${procurementPanel}<section class="panel"><div class="table-wrap"><table><thead><tr><th>번호</th><th>유형</th><th>요청</th><th>요청자</th><th>상태</th><th>승인 단계</th><th>처리</th></tr></thead><tbody>${rows || '<tr><td colspan="7">요청이 없습니다.</td></tr>'}</tbody></table></div></section>`;
+  $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">APPROVAL INBOX / SEGREGATION OF DUTIES</p><h1>요청·승인<br>작업 공간</h1><p class="muted">구매 요청 → 승인 → 발주 → 입고 → 검수의 단계별 화면입니다.</p></div></div><nav class="section-tabs" aria-label="구매 업무 단계"><button type="button" class="${state.workflowSection === 'request' ? 'active' : ''}" data-workflow-section="request" aria-selected="${state.workflowSection === 'request'}">요청 작성</button><button type="button" class="${state.workflowSection === 'approval' ? 'active' : ''}" data-workflow-section="approval" aria-selected="${state.workflowSection === 'approval'}">승인 큐</button>${isManager() ? `<button type="button" class="${state.workflowSection === 'procurement' ? 'active' : ''}" data-workflow-section="procurement" aria-selected="${state.workflowSection === 'procurement'}">발주·입고·검수</button>` : ''}</nav><section class="panel form-panel" data-workflow-panel="request"><div><p class="eyebrow">PURCHASE REQUEST</p><h2>구매 요청 초안</h2><p class="muted">검토에 필요한 품목·수량·금액·비용센터·필요일을 모두 입력하세요.</p></div><form id="purchase-request" class="grid-form enterprise-form"><label>품목<input name="itemName" required minlength="2" maxlength="150"></label><label>수량<input type="number" name="quantity" required min="1" max="100000" step="1"></label><label>예상금액<input type="number" name="estimatedAmount" required min="0.01" step="0.01"></label><label>비용센터<input name="costCenter" required minlength="2" maxlength="50" pattern="[A-Za-z0-9][A-Za-z0-9_-]{1,49}" placeholder="HQ-001"></label><label>필요일<input type="date" name="neededAt" required></label><label>요청 사유<input name="reason" required minlength="2" maxlength="1000"></label><button class="primary full">구매 요청 초안 생성</button></form></section>${procurementPanel ? procurementPanel.replace('<section class="panel form-panel">','<section class="panel form-panel" data-workflow-panel="procurement">') : ''}<section class="panel" data-workflow-panel="approval"><div class="table-wrap"><table><thead><tr><th>번호</th><th>유형</th><th>요청</th><th>요청자</th><th>상태</th><th>승인 단계</th><th>처리</th></tr></thead><tbody>${rows || '<tr><td colspan="7">요청이 없습니다.</td></tr>'}</tbody></table></div></section>`;
+  document.querySelectorAll('[data-workflow-panel]').forEach(panel => { panel.hidden = panel.dataset.workflowPanel !== state.workflowSection; });
+  document.querySelectorAll('[data-workflow-section]').forEach(button => button.addEventListener('click', () => { state.workflowSection = button.dataset.workflowSection; renderRequests(); }));
   $('#purchase-request').addEventListener('submit', async event => { event.preventDefault(); const values=Object.fromEntries(new FormData(event.target)); const body={ organizationId:state.user.organizationId, requestType:'PURCHASE', title:`구매 요청: ${values.itemName.trim()}`, reason:values.reason, payload:{ itemName:values.itemName, quantity:values.quantity, estimatedAmount:values.estimatedAmount, costCenter:values.costCenter, neededAt:values.neededAt } }; try { await request('/api/enterprise/requests',{method:'POST',body}); showMessage('구매 요청 초안을 생성했습니다.'); renderRequests(); } catch(error){ showMessage(error.message,'error'); } }); bindRequestActions(renderRequests);
   for (const [formId, path, success] of [['purchase-order','/api/enterprise/procurement/orders','발주를 생성했습니다.'],['purchase-receipt','/api/enterprise/procurement/receipts','입고를 기록했습니다.'],['purchase-inspection','/api/enterprise/procurement/inspections','검수를 완료했습니다.']]) {
     $(`#${formId}`)?.addEventListener('submit', async event => { event.preventDefault(); const body=Object.fromEntries(new FormData(event.target)); body.organizationId=state.user.organizationId; try { const result=await request(path,{method:'POST',body}); const count=result.assets?.length || 0; showMessage(count ? `${success} 자산 ${count}개를 생성했습니다.` : success); renderRequests(); } catch(error){ showMessage(error.message,'error'); } });
@@ -337,8 +340,9 @@ async function renderReports(filters = {}) {
   $('#report-filter').addEventListener('submit',event=>{event.preventDefault();renderReports(Object.fromEntries(new FormData(event.target)));});
 }
 
-async function renderAdmin() {
+async function renderAdmin(section = state.adminSection || 'org') {
   if(state.user.role!=='ADMIN') throw new Error('관리자 권한이 없습니다.');
+  state.adminSection = ['org','approval','reference','access'].includes(section) ? section : 'org';
   const [data,referenceData,policyData]=await Promise.all([request('/api/enterprise/admin'),request('/api/enterprise/admin/references'),request('/api/enterprise/admin/approval-policies')]);
   const refs=referenceData.references;
   const departments=data.departments.filter(row=>Number(row.organization_id)===Number(state.user.organizationId));
@@ -366,6 +370,12 @@ async function renderAdmin() {
     <details><summary>변경 사유 추가</summary><form class="grid-form reference-create" data-kind="reasons"><label>코드<input name="code" required></label><label>사유명<input name="name" required></label><label>적용 상태<select name="appliesToStatus"><option value="">전체</option>${refs.statuses.map(row=>`<option value="${escapeHtml(row.code)}">${escapeHtml(row.code)}</option>`).join('')}</select></label><label class="inline-check"><input name="requiresDetail" type="checkbox"> 추가 설명 필수</label><button class="primary">등록</button></form></details>
   </div><div class="reference-lists"><article><h3>자산 유형</h3><div class="table-wrap"><table><thead><tr><th>코드</th><th>분류</th><th>명칭</th><th>상태</th><th>처리</th></tr></thead><tbody>${referenceRows('categories',refs.categories)||'<tr><td colspan="5">등록된 유형이 없습니다.</td></tr>'}</tbody></table></div></article><article><h3>모델</h3><div class="table-wrap"><table><thead><tr><th>브랜드</th><th>유형</th><th>명칭</th><th>상태</th><th>처리</th></tr></thead><tbody>${referenceRows('models',refs.models)||'<tr><td colspan="5">등록된 모델이 없습니다.</td></tr>'}</tbody></table></div></article><article><h3>공급업체</h3><div class="table-wrap"><table><thead><tr><th>코드</th><th>구분</th><th>명칭</th><th>상태</th><th>처리</th></tr></thead><tbody>${referenceRows('vendors',refs.vendors)||'<tr><td colspan="5">등록된 공급업체가 없습니다.</td></tr>'}</tbody></table></div></article><article><h3>위치</h3><div class="table-wrap"><table><thead><tr><th>코드</th><th>유형</th><th>명칭</th><th>상태</th><th>처리</th></tr></thead><tbody>${referenceRows('locations',refs.locations)||'<tr><td colspan="5">등록된 위치가 없습니다.</td></tr>'}</tbody></table></div></article><article><h3>자산 상태 정책</h3><div class="table-wrap"><table><thead><tr><th>코드</th><th>표시명</th><th>정렬</th><th>상태</th><th>처리</th></tr></thead><tbody>${statusRows}</tbody></table></div></article><article><h3>상태 변경 사유</h3><div class="table-wrap"><table><thead><tr><th>코드</th><th>사유명</th><th>정책</th><th>상태</th><th>처리</th></tr></thead><tbody>${reasonRows}</tbody></table></div></article></div></section>
   <section class="two-column"><article class="panel"><div class="panel-head"><h2>사용자 접근</h2></div><div class="table-wrap"><table><thead><tr><th>이름</th><th>이메일</th><th>역할</th><th>데이터 범위</th><th>상태</th><th>MFA</th></tr></thead><tbody>${users}</tbody></table></div></article><article class="panel"><div class="panel-head"><h2>이벤트 Outbox</h2></div><div class="table-wrap"><table><thead><tr><th>일자</th><th>대상</th><th>이벤트</th><th>상태</th></tr></thead><tbody>${events||'<tr><td colspan="4">이벤트가 없습니다.</td></tr>'}</tbody></table></div></article></section>`;
+  const adminSections = [...$('#view-root').querySelectorAll(':scope > section')];
+  const sectionKeys = ['org', 'org', 'approval', 'reference', 'access'];
+  const tabLabels = { org: '조직·초대', approval: '승인 정책', reference: '기준정보', access: '사용자·이벤트' };
+  adminSections.forEach((element, index) => { const key = sectionKeys[index] || 'org'; element.dataset.adminSection = key; element.hidden = key !== state.adminSection; });
+  $('#view-root .page-heading')?.insertAdjacentHTML('afterend', `<nav class="section-tabs" aria-label="관리자 작업 공간">${Object.entries(tabLabels).map(([key,label]) => `<button type="button" class="${key === state.adminSection ? 'active' : ''}" data-admin-section="${key}" aria-selected="${key === state.adminSection}">${label}</button>`).join('')}</nav>`);
+  document.querySelectorAll('[data-admin-section]').forEach(button => button.addEventListener('click', () => renderAdmin(button.dataset.adminSection)));
   const submitAdmin=async(event,path)=>{event.preventDefault();const body=Object.fromEntries(new FormData(event.target));const currentPassword=body.currentPassword;delete body.currentPassword;body.organizationId=state.user.organizationId;await request('/api/auth/reauth',{method:'POST',body:{password:currentPassword}});return request(path,{method:'POST',body});};
   $('#unit-create').addEventListener('submit',async event=>{try{await submitAdmin(event,'/api/enterprise/admin/departments');showMessage('조직 단위를 생성했습니다.');renderAdmin();}catch(error){showMessage(error.message,'error');}});
   $('#invite-create').addEventListener('submit',async event=>{try{const result=await submitAdmin(event,'/api/enterprise/admin/invitations');if(result.developmentToken){const url=`${location.origin}/#invitation=${encodeURIComponent(result.developmentToken)}`;$('#invite-result').innerHTML=`초대 링크: <a href="${escapeHtml(url)}">${escapeHtml(url)}</a>`;}else{$('#invite-result').textContent='초대가 등록되었습니다. 운영 알림 발송기에 연결하세요.';}showMessage('사용자 초대를 발급했습니다.');}catch(error){showMessage(error.message,'error');}});
@@ -435,7 +445,10 @@ $('#invitation-form').addEventListener('submit', async event => {
 $('#invitation-back').addEventListener('click',()=>{history.replaceState({},'',location.pathname);$('#invitation-form').classList.add('hidden');$('#login-form').classList.remove('hidden');});
 
 document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => navigate(button.dataset.view)));
-document.addEventListener('click', event => { const target = event.target.closest('[data-go]'); if (target) navigate(target.dataset.go); });
+document.addEventListener('click', event => { const target = event.target.closest('[data-go]'); if (target) navigate(target.dataset.go === 'items' ? 'assets' : target.dataset.go); });
+$('#mobile-nav-toggle')?.addEventListener('click', toggleMobileNav);
+$('#nav-backdrop')?.addEventListener('click', closeMobileNav);
+document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMobileNav(); });
 $('#logout-button').addEventListener('click', async () => { try { await request('/api/auth/logout', { method:'POST', body:{} }); } finally { const csrf = await request('/api/auth/csrf'); state.csrfToken = csrf.csrfToken; showLogin(); } });
 
 boot();

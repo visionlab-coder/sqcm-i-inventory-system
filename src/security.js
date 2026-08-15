@@ -44,7 +44,8 @@ function sanitizeUser(row) {
     id: row.id, email: row.email, displayName: row.display_name, role: row.role, status: row.status,
     organizationId: row.organization_id || null, departmentId: row.department_id || null,
     employeeNo: row.employee_no || null, mfaEnabled: Boolean(row.mfa_enabled), passwordResetRequired: Boolean(row.password_reset_required),
-    scopeType: row.scope_type || (row.role === 'ADMIN' ? 'ALL' : row.role === 'MANAGER' ? 'ORGANIZATION' : 'DEPARTMENT'),
+    isSystemAdmin: Boolean(row.is_system_admin),
+    scopeType: row.scope_type || (row.is_system_admin ? 'ALL' : row.role === 'ADMIN' ? 'ORGANIZATION' : row.role === 'MANAGER' ? 'ORGANIZATION' : 'DEPARTMENT'),
     scopeDepartmentId: row.scope_department_id || row.department_id || null
   };
 }

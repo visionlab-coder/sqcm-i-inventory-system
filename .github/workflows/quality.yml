@@ -12,33 +12,34 @@ jobs:
   unit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 24
           cache: npm
       - run: npm ci
       - run: npm run check
       - run: npm run operations:contracts
+      - run: npm run compose:contract
+      - run: npm run repository:hygiene
 
   three-tier-integration:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 24
           cache: npm
       - run: npm ci
+      - name: Generate ephemeral test credentials
+        run: npm run ci:env
       - name: Start frontend, backend and PostgreSQL
         run: docker compose -f compose.yaml -f compose.test.yaml up -d --build --wait
       - name: Run required integration tests
         env:
           INTEGRATION_BASE_URL: http://localhost:3000
-          INTEGRATION_DATABASE_URL: postgres://seowon:change-me@localhost:55432/seowon_inventory
-          SEED_MANAGER_PASSWORD: Manager1234!
-          SEED_ADMIN_PASSWORD: Admin1234!
         run: npm run test:integration
       - name: Run nonfunctional quality gate
         env:

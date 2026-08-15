@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: seowon_inventory
       POSTGRES_USER: seowon
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run scripts/new-local-env.ps1 or provide POSTGRES_PASSWORD}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -15,24 +15,36 @@ services:
     restart: unless-stopped
 
   backend:
-    image: seowon-inventory-backend:${RELEASE_TAG:-local}
+    image: ${BACKEND_IMAGE:-seowon-inventory-backend}:${RELEASE_TAG:-local}
     build:
       context: .
       dockerfile: Dockerfile
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 8080
-      DATABASE_URL: postgres://seowon:${POSTGRES_PASSWORD:-change-me}@database:5432/seowon_inventory
-      SESSION_SECRET: ${SESSION_SECRET:-local-compose-secret-change-before-production}
-      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-Admin1234!}
-      SEED_MANAGER_PASSWORD: ${SEED_MANAGER_PASSWORD:-Manager1234!}
-      SEED_USER_PASSWORD: ${SEED_USER_PASSWORD:-Employee1234!}
+      DATABASE_URL: postgres://seowon:${POSTGRES_PASSWORD:?Run scripts/new-local-env.ps1}@database:5432/seowon_inventory
+      SESSION_SECRET: ${SESSION_SECRET:?Run scripts/new-local-env.ps1 or provide SESSION_SECRET}
+      DB_AUTO_MIGRATE: ${DB_AUTO_MIGRATE:-true}
+      DB_RUN_SEEDS: ${DB_RUN_SEEDS:-true}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?Run scripts/new-local-env.ps1}
+      SEED_MANAGER_PASSWORD: ${SEED_MANAGER_PASSWORD:?Run scripts/new-local-env.ps1}
+      SEED_USER_PASSWORD: ${SEED_USER_PASSWORD:?Run scripts/new-local-env.ps1}
       LOGIN_RATE_LIMIT_MAX: ${LOGIN_RATE_LIMIT_MAX:-10}
       LOGIN_RATE_LIMIT_WINDOW_MS: ${LOGIN_RATE_LIMIT_WINDOW_MS:-900000}
       FILE_STORAGE_DRIVER: ${FILE_STORAGE_DRIVER:-local}
       FILE_STORAGE_ROOT: /app/data/uploads
       FILE_MAX_BYTES: ${FILE_MAX_BYTES:-5242880}
       AUTH_PROVIDER: ${AUTH_PROVIDER:-local}
+      AI_PROVIDER_DRIVER: ${AI_PROVIDER_DRIVER:-rules}
+      AI_PROVIDER_URL: ${AI_PROVIDER_URL:-}
+      AI_PROVIDER_OCR_URL: ${AI_PROVIDER_OCR_URL:-}
+      AI_PROVIDER_HEALTH_URL: ${AI_PROVIDER_HEALTH_URL:-}
+      AI_PROVIDER_READY_URL: ${AI_PROVIDER_READY_URL:-}
+      AI_PROVIDER_API_KEY: ${AI_PROVIDER_API_KEY:-}
+      AI_PROVIDER_API_KEY_FILE: ${AI_PROVIDER_API_KEY_FILE:-}
+      AI_PROVIDER_MODEL: ${AI_PROVIDER_MODEL:-cost-control-v1}
+      AI_PROVIDER_NAME: ${AI_PROVIDER_NAME:-external-http}
+      AI_PROVIDER_TIMEOUT_MS: ${AI_PROVIDER_TIMEOUT_MS:-12000}
       MALWARE_SCAN_DRIVER: ${MALWARE_SCAN_DRIVER:-mock}
       OPERATIONAL_ADAPTER_MODULE: ${OPERATIONAL_ADAPTER_MODULE:-}
       OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:-}
@@ -53,7 +65,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: seowon-inventory-frontend:${RELEASE_TAG:-local}
+    image: ${FRONTEND_IMAGE:-seowon-inventory-frontend}:${RELEASE_TAG:-local}
     build:
       context: .
       dockerfile: frontend/Dockerfile

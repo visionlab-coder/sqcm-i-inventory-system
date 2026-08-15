@@ -14,17 +14,20 @@ function validManifest() {
     providers: {
       oidc: { issuer: 'https://idp.example.com', clientId: 'inventory', redirectUri: 'https://inventory.example.com/api/auth/oidc/callback' },
       storage: { endpoint: 'https://objects.example.com', bucket: 'inventory-staging' },
-      malwareScanner: { endpoint: 'https://scanner.example.com/scan', timeoutMs: 30000 }
+      malwareScanner: { endpoint: 'https://scanner.example.com/scan', timeoutMs: 30000 },
+      eventPublisher:{endpoint:'https://events.example.com/publish'},
+      alerting:{endpoint:'https://alerts.example.com/events'},
+      ai:{recommendEndpoint:'https://ai.example.com/recommend',ocrEndpoint:'https://ai.example.com/ocr',healthEndpoint:'https://ai.example.com/health',readyEndpoint:'https://ai.example.com/ready',model:'cost-control-v1',timeoutMs:12000}
     },
-    backup: { storageRef: 'secret://inventory/backup', rpoMinutes: 60, rtoMinutes: 120 },
-    secretRefs: Object.fromEntries(['OIDC_CLIENT_SECRET','STORAGE_CREDENTIALS','MALWARE_SCANNER_TOKEN','SESSION_SECRET','MFA_ENCRYPTION_KEY','POSTGRES_PASSWORD'].map((name) => [name, `secret://inventory/${name.toLowerCase()}`]))
+    backup: { storageRef: 'secret://inventory/backup', pitrEnabled:true,walArchiveRef:'secret://inventory/wal',rpoMinutes: 60, rtoMinutes: 120 },
+    secretRefs: Object.fromEntries(['OIDC_CLIENT_SECRET','STORAGE_CREDENTIALS','MALWARE_SCANNER_TOKEN','EVENT_PUBLISHER_TOKEN','ALERTING_TOKEN','AI_PROVIDER_API_KEY','SESSION_SECRET','MFA_ENCRYPTION_KEY','POSTGRES_PASSWORD'].map((name) => [name, `secret://inventory/${name.toLowerCase()}`]))
   };
 }
 
 test('운영 manifest는 HTTPS 공급자와 Secret 참조만 허용한다', () => {
   const result = validateOperationsManifest(validManifest());
   assert.equal(result.ok, true);
-  assert.equal(result.summary.secretReferenceCount, 6);
+  assert.equal(result.summary.secretReferenceCount, 9);
 });
 
 test('운영 manifest는 평문 Secret과 다른 호스트의 OIDC callback을 거부한다', () => {

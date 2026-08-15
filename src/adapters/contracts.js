@@ -17,6 +17,11 @@ function validateOperationalAdapters(config, adapters = {}) {
     if(String(result.malwareScanner.driver||'').toUpperCase()==='MOCK') throw new Error('Production malwareScanner cannot use the MOCK driver.');
   }
   if (config.authProvider === 'oidc') requireMethods(result.oidcProvider, 'oidcProvider', ['authorizationUrl', 'exchangeCode', 'healthCheck']);
+  if (config.outboxPublisherRequired) requireMethods(result.eventPublisher, 'eventPublisher', ['publish', 'healthCheck']);
+  if (config.aiProviderDriver === 'external') {
+    requireMethods(result.aiProvider, 'aiProvider', ['recommend', 'healthCheck', 'readinessCheck']);
+    requireMethods(result.aiProvider.ocr, 'aiProvider.ocr', ['extract']);
+  }
   return result;
 }
 

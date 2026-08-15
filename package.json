@@ -23,7 +23,15 @@
     "test:nonfunctional": "node scripts/nonfunctional-check.mjs",
     "test:recovery": "node scripts/dependency-recovery-check.mjs",
     "db:backup": "node scripts/db-backup.mjs",
-    "db:restore-drill": "node scripts/db-restore-drill.mjs"
+    "db:restore-drill": "node scripts/db-restore-drill.mjs",
+    "db:migrate": "node scripts/db-migrate.mjs",
+    "db:verify": "node scripts/db-verify-migrations.mjs",
+    "automation:worker": "node scripts/automation-worker.mjs",
+    "ui:contract": "node scripts/ui-contract-check.mjs",
+    "compose:contract": "node scripts/compose-contract-check.mjs",
+    "repository:hygiene": "node scripts/repository-hygiene-check.mjs",
+    "ci:env": "node scripts/write-ci-env.mjs",
+    "ai:preflight": "node scripts/ai-bridge-preflight.mjs"
   },
   "engines": {
     "node": ">=22"
