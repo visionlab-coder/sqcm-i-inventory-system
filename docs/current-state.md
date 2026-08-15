@@ -2,7 +2,7 @@
 
 기준일: 2026-08-15
 
-브랜치: `agent/productization-completion-chain`
+브랜치: `main`
 
 상태: **로컬 제품 검증 PASS / 외부 운영 전환 NO-GO / AI PC 연결 HOLD**
 
@@ -61,10 +61,17 @@
 
 ## 다음 READY
 
-저장소 내부 READY는 최신 변경 commit·push와 PR CI 확인이다. 외부 READY는 정확한 GitHub username 또는 AI PC G1~G3 비밀 없는 증거 중 사용자가 먼저 제공하는 하나다.
+저장소 내부 릴리스 체인은 main 병합과 `v1.0.0-rc.1` 불변 이미지 발행까지 완료됐다. 외부 READY는 이슈 #15의 정확한 GitHub username, #14의 AI PC 주소·운영자·모델, #12의 staging/production 대상과 공급자 결정, #13의 실제 UAT 참여자 중 먼저 확인되는 한 건이다.
 # Phase 74 불변 이미지 릴리스 게이트 (2026-08-15)
 
 - GitHub Actions 외부 참조를 공식 commit SHA로 고정하고, main의 정확한 SHA로 frontend/backend 이미지를 GHCR에 발행하는 workflow를 추가했다.
 - production은 `sha-<40자리 git sha>`와 서로 다른 공식 GHCR 이미지 두 개만 허용하며 외부 호스트에서 재빌드하지 않는다.
 - 로컬 검증은 구문 93개, 단위 107/107, Compose 3서비스 계약, 저장소 위생, workflow YAML, PowerShell parser, diff 검사를 통과했다.
 - PR CI·main 병합·GHCR digest는 원격 실행 후 증거를 갱신한다. 운영 서버·Secret·DNS/TLS·UAT 서명·AI PC G1~G5가 없어 production은 NO-GO다.
+
+# Phase 75 외부 게이트 실행 계약 (2026-08-15)
+
+- PR #10·#11에서 검증된 애플리케이션 릴리스 기준 SHA `c51cc7377d52b569de0c934a09e0a8479f74f702`가 `v1.0.0-rc.1` prerelease와 두 불변 GHCR 이미지에 연결됐다.
+- 남은 외부 작업은 이슈 #15 검토자 → #14 AI PC → #12 staging 인프라·배포 → #13 UAT → production cutover 순서로 고정했다.
+- `sqcm.safe-link.co.kr`은 기존 SQCM-i OS 응답이므로 비품관리 앱의 운영 health 증거가 아니다. 전용 hostname 또는 충돌 없는 route가 필요하다.
+- 외부 입력이 없는 상태에서 계정·서버·Secret·서명을 추정하지 않으며 production은 승인된 보류다.
