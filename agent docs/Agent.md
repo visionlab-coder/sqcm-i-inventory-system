@@ -96,7 +96,7 @@
 
 # 현재 상태 — Phase 75 외부 게이트 실행 계약 (2026-08-15)
 
-- main SHA `c51cc7377d52b569de0c934a09e0a8479f74f702`와 prerelease `v1.0.0-rc.1`, frontend/backend GHCR digest·provenance가 검증됐다.
+- 애플리케이션 릴리스 기준 SHA `c51cc7377d52b569de0c934a09e0a8479f74f702`와 prerelease `v1.0.0-rc.1`, frontend/backend GHCR digest·provenance가 검증됐다.
 - 남은 정본은 GitHub 이슈 #12 운영, #13 UAT, #14 AI PC, #15 Frosty 계정이며 Phase 75 메타프롬프트가 실행 순서와 완료·중단 기준을 소유한다.
 - `sqcm.safe-link.co.kr`은 기존 SQCM-i OS가 사용 중이고 AI PC listener와 실제 UAT 행위자가 없으므로 production은 승인된 보류다.
 - 다음 READY는 #15 username, #14 AI PC 입력, #12 운영 대상, #13 UAT 참여자 중 실제 입력이 확인된 이슈 한 건이다.

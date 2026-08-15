@@ -71,7 +71,7 @@
 
 # Phase 75 외부 게이트 실행 계약 (2026-08-15)
 
-- PR #10·#11은 main에 병합됐고 최종 main SHA `c51cc7377d52b569de0c934a09e0a8479f74f702`가 `v1.0.0-rc.1` prerelease와 두 불변 GHCR 이미지에 연결됐다.
+- PR #10·#11에서 검증된 애플리케이션 릴리스 기준 SHA `c51cc7377d52b569de0c934a09e0a8479f74f702`가 `v1.0.0-rc.1` prerelease와 두 불변 GHCR 이미지에 연결됐다.
 - 남은 외부 작업은 이슈 #15 검토자 → #14 AI PC → #12 staging 인프라·배포 → #13 UAT → production cutover 순서로 고정했다.
 - `sqcm.safe-link.co.kr`은 기존 SQCM-i OS 응답이므로 비품관리 앱의 운영 health 증거가 아니다. 전용 hostname 또는 충돌 없는 route가 필요하다.
 - 외부 입력이 없는 상태에서 계정·서버·Secret·서명을 추정하지 않으며 production은 승인된 보류다.
