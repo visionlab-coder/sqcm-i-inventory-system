@@ -2,6 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import dotenv from "dotenv";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const { validateImmutableImageConfig } = require('../src/operations/release-contract.js');
 
 const envFile = process.argv[2];
 if (envFile) {
@@ -47,11 +51,13 @@ if (!Number.isInteger(rateLimitWindow) || rateLimitWindow < 1000 || rateLimitWin
   failures.push("LOGIN_RATE_LIMIT_WINDOW_MS: 1000~86400000 범위의 정수여야 합니다.");
 }
 
-if (!/^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$/.test(value("RELEASE_TAG"))) {
-  failures.push("RELEASE_TAG: Git SHA 또는 안전한 릴리스 태그를 지정해야 합니다.");
-}
-
 const target = value("DEPLOY_TARGET") || "production";
+failures.push(...validateImmutableImageConfig({
+  target,
+  releaseTag: value('RELEASE_TAG'),
+  backendImage: value('BACKEND_IMAGE'),
+  frontendImage: value('FRONTEND_IMAGE')
+}));
 if (target !== "local" && (value("FILE_STORAGE_DRIVER") || "local").toLowerCase() === "local") {
   failures.push("External deployments require FILE_STORAGE_DRIVER=external.");
 }

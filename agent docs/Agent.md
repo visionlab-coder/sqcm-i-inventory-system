@@ -86,3 +86,10 @@
 - 최신 검증은 구문 91개, 단위 105/105, 통합 20/20, UI 계약 13, migration 22/22, Docker 3/3 healthy, 비기능 60요청 오류율 0%·p95 20.6ms, 장애 감지 6,078ms·복구 17ms, 운영 의존성 취약점 0건이다.
 - 인앱 브라우저의 localhost URL 정책이 자동조작을 차단해 별도 시각 클릭 증거는 만들지 못했다. 대신 실제 프록시 health/readiness/익명 401/공식 반전 로고 HTTP smoke와 UI 계약을 통과했다.
 - 외부 8개 운영 결정, UAT 19항목·3개 책임자 서명, 실제 공급자 manifest·cutover evidence, AI PC G1~G5, DNS/TLS·PITR·production 배포는 미완료다. Production과 외부 AI는 `NO-GO/HOLD`다.
+# 현재 상태 — Phase 74 불변 이미지 릴리스 게이트 (2026-08-15)
+
+- production 배포는 정확한 `sha-<40자리 Git SHA>`와 서로 다른 공식 GHCR frontend/backend 저장소만 허용하도록 fail-closed 계약을 추가했다.
+- main push 시 두 앱 이미지를 build·push하고 provenance를 남기는 workflow를 추가했으며 모든 외부 Action 참조를 commit SHA로 고정했다.
+- 외부 배포는 서버 build 대신 검증 이미지 pull 후 `frontend/backend/database` 3서비스를 기동한다.
+- 로컬 증거는 구문 93개, 단위 107/107, Compose 계약, 저장소 위생, YAML·PowerShell parser, diff PASS다.
+- 다음 READY는 PR CI → main 병합 → GHCR digest 확인이다. 실제 production은 운영 호스트·Secret·DNS/TLS·UAT·AI PC 증거가 없어 NO-GO를 유지한다.

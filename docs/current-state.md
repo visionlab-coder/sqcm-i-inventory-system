@@ -62,3 +62,9 @@
 ## 다음 READY
 
 저장소 내부 READY는 최신 변경 commit·push와 PR CI 확인이다. 외부 READY는 정확한 GitHub username 또는 AI PC G1~G3 비밀 없는 증거 중 사용자가 먼저 제공하는 하나다.
+# Phase 74 불변 이미지 릴리스 게이트 (2026-08-15)
+
+- GitHub Actions 외부 참조를 공식 commit SHA로 고정하고, main의 정확한 SHA로 frontend/backend 이미지를 GHCR에 발행하는 workflow를 추가했다.
+- production은 `sha-<40자리 git sha>`와 서로 다른 공식 GHCR 이미지 두 개만 허용하며 외부 호스트에서 재빌드하지 않는다.
+- 로컬 검증은 구문 93개, 단위 107/107, Compose 3서비스 계약, 저장소 위생, workflow YAML, PowerShell parser, diff 검사를 통과했다.
+- PR CI·main 병합·GHCR digest는 원격 실행 후 증거를 갱신한다. 운영 서버·Secret·DNS/TLS·UAT 서명·AI PC G1~G5가 없어 production은 NO-GO다.

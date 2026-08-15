@@ -15,7 +15,7 @@ services:
     restart: unless-stopped
 
   backend:
-    image: seowon-inventory-backend:${RELEASE_TAG:-local}
+    image: ${BACKEND_IMAGE:-seowon-inventory-backend}:${RELEASE_TAG:-local}
     build:
       context: .
       dockerfile: Dockerfile
@@ -65,7 +65,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: seowon-inventory-frontend:${RELEASE_TAG:-local}
+    image: ${FRONTEND_IMAGE:-seowon-inventory-frontend}:${RELEASE_TAG:-local}
     build:
       context: .
       dockerfile: frontend/Dockerfile
