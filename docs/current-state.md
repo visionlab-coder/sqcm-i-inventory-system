@@ -75,3 +75,10 @@
 - 남은 외부 작업은 이슈 #15 검토자 → #14 AI PC → #12 staging 인프라·배포 → #13 UAT → production cutover 순서로 고정했다.
 - `sqcm.safe-link.co.kr`은 기존 SQCM-i OS 응답이므로 비품관리 앱의 운영 health 증거가 아니다. 전용 hostname 또는 충돌 없는 route가 필요하다.
 - 외부 입력이 없는 상태에서 계정·서버·Secret·서명을 추정하지 않으며 production은 승인된 보류다.
+
+# Phase 77 migration checksum 플랫폼 정합성 (2026-08-17)
+
+- Windows CRLF와 Linux LF가 동일 SQL에 동일한 migration checksum을 만들도록 정규화하고, 기존 CRLF checksum 호환과 실제 SQL 변경 감지를 함께 검증했다.
+- 최신 검증은 JavaScript 구문 95개, 단위 109/109, migration 22/22, PostgreSQL·HTTP 통합 20/20, UI 계약 13, Docker 3서비스 계약, 유지보수·저장소 위생 PASS다.
+- PR #17을 main SHA `a5abc374109438f7ee8c9e5683839ed568d13de8`로 병합했고 main quality와 frontend/backend 불변 이미지 발행이 PASS했다.
+- 운영 DB·production 배포는 수행하지 않았고 기존 외부 게이트의 NO-GO는 유지한다.
