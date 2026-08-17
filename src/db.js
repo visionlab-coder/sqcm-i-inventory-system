@@ -1,8 +1,8 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
-const crypto = require('node:crypto');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
+const { migrationChecksum, migrationChecksumCandidates } = require('./migration-checksum');
 
 function createPool(connectionString) {
   const pool = new Pool({ connectionString, max: 10, idleTimeoutMillis: 30_000, connectionTimeoutMillis: 5_000, query_timeout: 6_000, statement_timeout: 5_000 });
@@ -25,10 +25,10 @@ async function runMigrations(pool) {
     const files = (await fs.readdir(migrationDir)).filter(file => /^\d+.*\.sql$/.test(file)).sort();
     for (const file of files) {
       const sql = await fs.readFile(path.join(migrationDir, file), 'utf8');
-      const checksum = crypto.createHash('sha256').update(sql).digest('hex');
+      const checksum = migrationChecksum(sql);
       const applied = await client.query('SELECT checksum FROM schema_migrations WHERE version=$1', [file]);
       if (applied.rowCount) {
-        if (applied.rows[0].checksum !== checksum) throw new Error(`적용된 migration이 변경되었습니다: ${file}`);
+        if (!migrationChecksumCandidates(sql).has(applied.rows[0].checksum)) throw new Error(`적용된 migration이 변경되었습니다: ${file}`);
         continue;
       }
       await client.query('BEGIN');
@@ -56,9 +56,8 @@ async function verifyMigrations(pool) {
   const byVersion = new Map(applied.rows.map(row => [row.version, row.checksum]));
   for (const file of files) {
     const sql = await fs.readFile(path.join(migrationDir, file), 'utf8');
-    const checksum = crypto.createHash('sha256').update(sql).digest('hex');
     if (!byVersion.has(file)) throw new Error(`적용되지 않은 migration입니다: ${file}`);
-    if (byVersion.get(file) !== checksum) throw new Error(`적용된 migration이 변경되었습니다: ${file}`);
+    if (!migrationChecksumCandidates(sql).has(byVersion.get(file))) throw new Error(`적용된 migration이 변경되었습니다: ${file}`);
   }
   return { expected: files.length, applied: applied.rowCount };
 }
