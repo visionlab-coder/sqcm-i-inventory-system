@@ -67,7 +67,7 @@
 - `agent/productization-completion-chain`을 원격에 push하고 `main` 대상 draft PR #10을 생성했다.
 - PR URL은 `https://github.com/visionlab-coder/sqcm-i-inventory-system/pull/10`이다.
 - GitHub Actions `unit`과 `three-tier-integration`이 모두 PASS했다.
-- 저장소 협업자는 `visionlab-coder`만 확인되어 `Frosty city man` reviewer 지정은 정확한 GitHub username 확인 전까지 보류한다.
+- `Frosty city man`은 범소프트 팀장이며 GitHub 연결 대상이 아니다. 저장소 소유·커밋·PR·릴리스는 `visionlab-coder` 단일 계정으로 수행한다.
 - Phase 69 AI 브리지 STOP과 Production NO-GO 판정은 유지한다.
 
 ## 현재 상태 — Phase 71~72 AI PC 브리지 계약·인프라 설계 (2026-08-15)
@@ -97,6 +97,6 @@
 # 현재 상태 — Phase 75 외부 게이트 실행 계약 (2026-08-15)
 
 - 애플리케이션 릴리스 기준 SHA `c51cc7377d52b569de0c934a09e0a8479f74f702`와 prerelease `v1.0.0-rc.1`, frontend/backend GHCR digest·provenance가 검증됐다.
-- 남은 정본은 GitHub 이슈 #12 운영, #13 UAT, #14 AI PC, #15 Frosty 계정이며 Phase 75 메타프롬프트가 실행 순서와 완료·중단 기준을 소유한다.
+- 남은 정본은 GitHub 이슈 #12 운영, #13 UAT, #14 AI PC이며 Phase 75 메타프롬프트가 실행 순서와 완료·중단 기준을 소유한다. #15는 GitHub 연결 불필요 결정으로 종료됐다.
 - `sqcm.safe-link.co.kr`은 기존 SQCM-i OS가 사용 중이고 AI PC listener와 실제 UAT 행위자가 없으므로 production은 승인된 보류다.
-- 다음 READY는 #15 username, #14 AI PC 입력, #12 운영 대상, #13 UAT 참여자 중 실제 입력이 확인된 이슈 한 건이다.
+- 다음 READY는 #14 AI PC 입력, #12 운영 대상, #13 UAT 참여자 중 실제 입력이 확인된 이슈 한 건이다.
