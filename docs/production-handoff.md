@@ -60,4 +60,4 @@ npm run operations:cutover-gate -- <cutover-evidence.json>
 
 ## 5. GitHub 공유
 
-`Frosty city man`은 표시 이름만으로 계정을 확정할 수 없다. 정확한 GitHub 사용자명 또는 프로필 URL을 확인한 뒤 최소 권한으로 초대하고, 수락 상태를 별도 증거로 기록한다.
+`Frosty city man`은 범소프트 팀장이며 GitHub 협업자·reviewer 연결 대상이 아니다. 저장소 소유·커밋·PR·릴리스 계정은 `visionlab-coder` 하나만 사용하며 별도 collaborator 초대를 만들지 않는다.
