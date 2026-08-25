@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-08-25",
+  "repository": "visionlab-coder/sqcm-i-inventory-system",
+  "commit": "cfed57c62b9416b047f058ce33488cb8d059ec0b",
+  "headSha": "cfed57c62b9416b047f058ce33488cb8d059ec0b",
+  "baseSha": "112ff5a03112b63a5ce23ac00bc64e418e3625b4",
+  "pullRequest": {
+    "number": 22,
+    "url": "https://github.com/visionlab-coder/sqcm-i-inventory-system/pull/22",
+    "state": "open",
+    "draft": true,
+    "base": "main",
+    "head": "codex/fix-sidebar-accessibility",
+    "mergeable": true
+  },
+  "workflow": {
+    "id": 32796061921,
+    "name": "quality",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "unit",
+        "conclusion": "success"
+      },
+      {
+        "name": "three-tier-integration",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "excludedActionsPreserved": [
+    "merge",
+    "main-push",
+    "release",
+    "production-deployment",
+    "migration",
+    "secret-or-oauth-change",
+    "external-message",
+    "uat-signoff"
+  ]
+}

@@ -53,7 +53,7 @@ flowchart LR
 |---|---|---|---|---|
 | P0 로컬 제품 기준선 | 저장소 확보, Wi-Fi 대체 게이트, 로컬 Docker 3계층, DB·API·UI 기본 검증 | ✅ 증거 있는 완료 | 로컬 서비스 healthy, 필수 테스트 PASS, 보호 서비스 보존 | Wi-Fi 사용 가능, Docker 3/3 healthy, 구문 95, 단위 109/109, 통합 20/20 |
 | P1 UI 접근성 안정화 | 데스크톱·모바일 메뉴, 로그아웃 접근성, 클릭 차단 회귀 수정 | ✅ 증거 있는 완료 | 변경 diff 검토, UI 계약 16 PASS, 역할별 브라우저 확인, 변경 기준선 확정 승인 | UI 계약 16, 구문 95, 단위 109/109, 통합 20/20 PASS. 1280×720 및 390×844 로그아웃 동작 확인 |
-| P2 릴리스 기준선·CI | P1·Harness 변경 commit, Draft PR, 원격 CI, 불변 이미지 기준선 | 🔄 진행 중 | 승인된 commit/push/Draft PR, CI PASS, 정확한 SHA 기록. main 병합·이미지는 별도 승인 | 2026-08-25 로컬 재검증 PASS. 정확한 allowlist stage·commit·push·Draft PR 승인 필요 |
+| P2 릴리스 기준선·CI | P1·Harness 변경 commit, Draft PR, 원격 CI, 불변 이미지 기준선 | 🔄 진행 중 | 승인된 commit/push/Draft PR, CI PASS, main 병합 후 정확한 SHA·이미지 digest 기록 | commit `cfed57c…`, Draft PR #22, quality run `32796061921`의 unit·three-tier-integration PASS. main 병합·이미지 승인 필요 |
 | P3 AI PC 연동 | 독립 bridge/runtime/model, G1~G5, fallback | 🔒 승인된 보류 | checksum, listener, TLS·인증, health/ready, 계약·rollback PASS | AI PC 주소·운영자·모델 결정 필요. 기존 1234·11434·18765 보존 |
 | P4 Staging 인프라·배포 | 전용 hostname, 공급자, Secret reference, PITR, staging 배포 | 🔒 승인된 보류 | backup→migration→불변 이미지→health/smoke→rollback PASS | staging/production 대상과 공급자·접속 권한 필요 |
 | P5 역할별 UAT | 19개 UAT와 업무·보안·운영 책임자 검수 | 🔒 승인된 보류 | 19개 PASS, Critical/High 0, 책임자 3명 실제 서명 | 실제 참여자·책임자 지정 필요 |
@@ -82,8 +82,9 @@ flowchart LR
 - 변경 범위: 정확한 후보 allowlist stage·commit, `origin` 작업 브랜치 push, `main` 대상 Draft PR 생성과 원격 CI 확인.
 - 비범위: 외부 AI bridge, staging/production 배포, Secret 생성, UAT 서명.
 - 사전 증거: 2026-08-25 Harness strict 8/8, 구문 96 PASS, 단위 109/109 PASS, 통합 20/20 PASS, UI 계약 16 PASS, Compose·Docker 3/3 healthy, smoke·유지보수 PASS. SQCM-i 37봇과 보호 listener 보존.
-- 남은 게이트: allowlist stage·commit·push·Draft PR 생성의 사용자 명시 승인. merge·release·main push는 별도 승인.
-- 이번 Loop의 유일한 READY: **P2 Git·Draft PR 승인 확인**.
+- 원격 증거: commit `cfed57c62b9416b047f058ce33488cb8d059ec0b`, Draft PR #22, quality workflow run `32796061921`, unit·three-tier-integration 성공.
+- 남은 게이트: Draft PR ready 전환·main 병합·main quality·release-images·GHCR digest 확인의 사용자 명시 승인. production 배포는 비범위.
+- 이번 Loop의 유일한 READY: **P2 main 병합·릴리스 이미지 승인 확인**.
 
 ## 6. Phase 갱신 절차
 

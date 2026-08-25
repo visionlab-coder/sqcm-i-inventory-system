@@ -8,6 +8,7 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const projectDir = path.resolve(scriptDir, '..');
 const roadmapPath = path.join(projectDir, 'agent docs', 'harness', 'MASTER_ROADMAP.json');
 const candidatePath = path.join(projectDir, 'agent docs', 'harness', 'P2_RELEASE_CANDIDATE.json');
+const remoteEvidencePath = path.join(projectDir, 'agent docs', 'harness', 'P2_REMOTE_EVIDENCE.json');
 const state = JSON.parse(readFileSync(roadmapPath, 'utf8'));
 const command = process.argv[2] ?? 'status';
 
@@ -51,6 +52,9 @@ function check() {
   }
   if (existsSync(candidatePath)) {
     const candidate = JSON.parse(readFileSync(candidatePath, 'utf8'));
+    const remoteEvidence = existsSync(remoteEvidencePath)
+      ? JSON.parse(readFileSync(remoteEvidencePath, 'utf8'))
+      : null;
     const contentFiles = candidate.files.filter((file) => file.sha256);
     if (candidate.candidateFileCount !== candidate.files.length) {
       errors.push('CANDIDATE_FILE_COUNT_MISMATCH');
@@ -58,18 +62,43 @@ function check() {
     if (candidate.hashedContentFileCount !== contentFiles.length) {
       errors.push('CANDIDATE_HASHED_COUNT_MISMATCH');
     }
-    for (const file of contentFiles) {
-      const absolutePath = path.join(projectDir, file.path);
-      if (!existsSync(absolutePath)) {
-        errors.push(`CANDIDATE_FILE_MISSING:${file.path}`);
-        continue;
+    if (remoteEvidence?.commit) {
+      const changed = spawnSync('git', [
+        '-c', 'core.quotepath=false',
+        'diff-tree', '--no-commit-id', '--name-only', '-r', remoteEvidence.commit
+      ], { cwd: projectDir, encoding: 'utf8', shell: false });
+      const parent = spawnSync('git', ['rev-parse', `${remoteEvidence.commit}^`], {
+        cwd: projectDir, encoding: 'utf8', shell: false
+      });
+      const expectedPaths = candidate.files.map((file) => file.path).sort();
+      const actualPaths = changed.stdout.trim().split(/\r?\n/).filter(Boolean).sort();
+      if (changed.status !== 0 || JSON.stringify(actualPaths) !== JSON.stringify(expectedPaths)) {
+        errors.push('REMOTE_COMMIT_ALLOWLIST_MISMATCH');
       }
-      const actual = createHash('sha256').update(readFileSync(absolutePath)).digest('hex');
-      if (actual !== file.sha256) errors.push(`CANDIDATE_HASH_MISMATCH:${file.path}`);
+      if (parent.status !== 0 || parent.stdout.trim() !== candidate.baseSha) {
+        errors.push('REMOTE_COMMIT_PARENT_MISMATCH');
+      }
+    } else {
+      for (const file of contentFiles) {
+        const absolutePath = path.join(projectDir, file.path);
+        if (!existsSync(absolutePath)) {
+          errors.push(`CANDIDATE_FILE_MISSING:${file.path}`);
+          continue;
+        }
+        const actual = createHash('sha256').update(readFileSync(absolutePath)).digest('hex');
+        if (actual !== file.sha256) errors.push(`CANDIDATE_HASH_MISMATCH:${file.path}`);
+      }
     }
     const canonical = contentFiles.map((file) => `${file.path}|${file.sha256}`).join('\n');
     const aggregate = createHash('sha256').update(canonical, 'utf8').digest('hex');
     if (aggregate !== candidate.candidateDigest) errors.push('CANDIDATE_DIGEST_MISMATCH');
+    if (remoteEvidence) {
+      if (remoteEvidence.commit !== remoteEvidence.headSha) errors.push('REMOTE_EVIDENCE_SHA_MISMATCH');
+      if (remoteEvidence.pullRequest?.draft !== true) errors.push('REMOTE_PR_NOT_DRAFT');
+      if (!remoteEvidence.workflow?.jobs?.every((job) => job.conclusion === 'success')) {
+        errors.push('REMOTE_CI_NOT_GREEN');
+      }
+    }
   }
 
   console.log(JSON.stringify({

@@ -42,10 +42,10 @@
       "name": "릴리스 기준선·CI",
       "status": "in-progress",
       "readyWork": {
-        "id": "P2-GIT-DRAFT-PR-APPROVAL",
-        "description": "검증된 P1·Harness 후보의 정확한 allowlist stage, commit, origin 브랜치 push와 main 대상 Draft PR 생성 승인을 확인한다.",
+        "id": "P2-MAIN-MERGE-RELEASE-APPROVAL",
+        "description": "Draft PR #22를 ready로 전환하고 main에 병합한 뒤 main quality와 release-images 및 GHCR digest를 확인하는 명시 승인을 받는다.",
         "authority": "explicit-approval",
-        "nextGate": "P2-REMOTE-CI-EVIDENCE"
+        "nextGate": "P2-MAIN-QUALITY-AND-IMAGE-EVIDENCE"
       },
       "lastEvidence": {
         "date": "2026-08-25",
@@ -66,6 +66,15 @@
           "protected-listeners-preserved"
         ],
         "report": "docs/phase-reports/79_장기_Goal_Harness_설정.md"
+      },
+      "remoteEvidence": {
+        "commit": "cfed57c62b9416b047f058ce33488cb8d059ec0b",
+        "pullRequest": 22,
+        "draft": true,
+        "workflowRun": 32796061921,
+        "unit": "success",
+        "threeTierIntegration": "success",
+        "report": "docs/phase-reports/80_P2_Draft_PR_CI_증거.md"
       },
       "completionGate": "승인된 commit·push·Draft PR, 원격 CI PASS, 정확한 Git SHA 기록. main 병합 후 불변 이미지 digest는 별도 승인 게이트"
     },

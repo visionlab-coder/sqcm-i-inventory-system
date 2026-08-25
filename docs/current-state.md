@@ -11,7 +11,7 @@
 
 전체 순서와 한 번에 한 Phase만 진행하는 규칙은 [`docs/roadmap.md`](./roadmap.md)에서 시각화한다. P1 UI 접근성 안정화는 2026-08-21에 증거 있는 완료가 됐고, 현재 실행 Phase는 **P2 릴리스 기준선·CI**다. P2 종료 전에는 P3를 시작하지 않는다.
 
-장기 실행 계약은 [`agent docs/prompts/79_장기_Goal_Harness_메타프롬프트.md`](../agent%20docs/prompts/79_장기_Goal_Harness_메타프롬프트.md), 기계 상태는 [`agent docs/harness/MASTER_ROADMAP.json`](../agent%20docs/harness/MASTER_ROADMAP.json)이 소유한다. 2026-08-25 strict 계약 8/8과 Harness 불변식 오류 0건을 확인했고, P2 로컬 READY는 구문 96, 단위 109/109, 통합 20/20, UI 계약 16, Compose·Docker 3/3 healthy, smoke·유지보수 점검으로 통과했다. SQCM-i 모델 37개·Awake 8개와 기존 보호 listener를 보존했다. 다음 READY는 외부 Git 변경 승인이 필요한 `P2-GIT-DRAFT-PR-APPROVAL`이다.
+장기 실행 계약은 [`agent docs/prompts/79_장기_Goal_Harness_메타프롬프트.md`](../agent%20docs/prompts/79_장기_Goal_Harness_메타프롬프트.md), 기계 상태는 [`agent docs/harness/MASTER_ROADMAP.json`](../agent%20docs/harness/MASTER_ROADMAP.json)이 소유한다. 2026-08-25 strict 계약 8/8과 Harness 불변식 오류 0건을 확인했고, P2 로컬 READY는 구문 96, 단위 109/109, 통합 20/20, UI 계약 16, Compose·Docker 3/3 healthy, smoke·유지보수 점검으로 통과했다. SQCM-i 모델 37개·Awake 8개와 기존 보호 listener를 보존했다. commit `cfed57c62b9416b047f058ce33488cb8d059ec0b`, Draft PR #22와 GitHub quality unit·three-tier-integration 성공 증거를 확보했다. 다음 READY는 `P2-MAIN-MERGE-RELEASE-APPROVAL`이다.
 
 ## 2026-08-21 작업 오버레이
 
@@ -75,7 +75,7 @@
 
 ## 다음 READY
 
-현재 유일한 READY는 로드맵 **P2 allowlist stage·commit·origin 작업 브랜치 push·main 대상 Draft PR 승인 확인**이다. 승인 전에는 Git 외부 변경이나 원격 CI를 실행하지 않는다. merge·release·main push는 이번 승인 범위에 포함하지 않는다. 외부 #14 AI PC, #12 운영 인프라, #13 UAT는 P3~P5의 승인된 보류로 유지한다. `Frosty city man`은 범소프트 팀장이며 GitHub 연결 대상이 아니고, 저장소 소유 계정은 `visionlab-coder` 하나로 유지한다.
+현재 유일한 READY는 로드맵 **P2 Draft PR #22 ready 전환·main 병합·main quality·release-images·GHCR digest 확인 승인**이다. production 배포·migration·Secret·UAT는 이 승인 범위에 포함하지 않는다. 외부 #14 AI PC, #12 운영 인프라, #13 UAT는 P3~P5의 승인된 보류로 유지한다. `Frosty city man`은 범소프트 팀장이며 GitHub 연결 대상이 아니고, 저장소 소유 계정은 `visionlab-coder` 하나로 유지한다.
 # Phase 74 불변 이미지 릴리스 게이트 (2026-08-15)
 
 - GitHub Actions 외부 참조를 공식 commit SHA로 고정하고, main의 정확한 SHA로 frontend/backend 이미지를 GHCR에 발행하는 workflow를 추가했다.
