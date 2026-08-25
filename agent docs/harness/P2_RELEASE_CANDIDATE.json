@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-08-25",
+  "status": "AWAITING_EXPLICIT_APPROVAL",
+  "baseSha": "112ff5a03112b63a5ce23ac00bc64e418e3625b4",
+  "remoteMainSha": "112ff5a03112b63a5ce23ac00bc64e418e3625b4",
+  "remote": "origin",
+  "repository": "visionlab-coder/sqcm-i-inventory-system",
+  "branch": "codex/fix-sidebar-accessibility",
+  "targetBranch": "main",
+  "candidateFileCount": 13,
+  "hashedContentFileCount": 12,
+  "manifestExcludedFromOwnDigest": true,
+  "candidateDigest": "eea2f1278e65ce95f00e056624b8e3e71d82e0946321cf61b53a2d4ec34ce729",
+  "proposedCommitMessage": "feat: stabilize inventory navigation and add phase harness",
+  "proposedPullRequest": {
+    "title": "Stabilize inventory navigation and add phase harness",
+    "draft": true,
+    "base": "main",
+    "head": "codex/fix-sidebar-accessibility"
+  },
+  "approvalScope": [
+    "stage-only-the-13-allowlisted-files",
+    "create-one-local-commit",
+    "push-origin-codex-fix-sidebar-accessibility",
+    "create-main-target-draft-pull-request",
+    "observe-github-hosted-quality-ci"
+  ],
+  "excludedActions": [
+    "merge",
+    "main-push",
+    "release",
+    "production-deployment",
+    "migration",
+    "secret-or-oauth-change",
+    "external-message",
+    "uat-signoff"
+  ],
+  "evidence": {
+    "promptContract": "strict-8-of-8-warnings-0",
+    "harness": "pass-errors-0",
+    "syntax": "96-pass",
+    "unit": "109-of-109-pass",
+    "integration": "20-of-20-pass",
+    "uiContract": "16-pass",
+    "compose": "3-services-pass",
+    "docker": "3-of-3-running-healthy",
+    "deploySmoke": "pass",
+    "maintenance": "pass-required-tables-32",
+    "repositoryHygiene": "fixed-credentials-0",
+    "dependencyAudit": "vulnerabilities-0",
+    "productionPrecheck": "fail-closed-missing-external-production-inputs",
+    "sqcmiOs": "models-37-awake-8",
+    "protectedListeners": "preserved"
+  },
+  "files": [
+    {
+      "path": "agent docs/harness/MASTER_ROADMAP.json",
+      "sha256": "356239e8ef697daceeff6f6ca5be458d4b49ef307d17b249dcfe939b8b2ba889"
+    },
+    {
+      "path": "agent docs/harness/README.md",
+      "sha256": "3811667393cc809d282a55bf52fb80419fa87330c8541a86abf4493772cc825c"
+    },
+    {
+      "path": "agent docs/prompts/79_장기_Goal_Harness_메타프롬프트.md",
+      "sha256": "203ca75dc4d4c730898e55a49d3ef661eaea0ef35ebf9942541e4aaed00b92a2"
+    },
+    {
+      "path": "docs/current-state.md",
+      "sha256": "44e0c42b1aa029dd5cc747d8f2fc27083bd67e7e458049140a43a0ac93d3e1c1"
+    },
+    {
+      "path": "docs/phase-reports/79_장기_Goal_Harness_설정.md",
+      "sha256": "b7c3466d358c988d8519bc1f613f9491942dd4c164ea08980c59f92cd3f5473e"
+    },
+    {
+      "path": "docs/roadmap.md",
+      "sha256": "b523c93eb020c62f2d51a40a1f46be3637806654df1fbd6bafb7f29048a1aa77"
+    },
+    {
+      "path": "frontend/experience.css",
+      "sha256": "00241fcd1d430e1a00c3aefce3e7741a6105015748f84fd64e0dec309ad01ba8"
+    },
+    {
+      "path": "frontend/index.html",
+      "sha256": "49597183cfd9c1778e0cf2e6f891134d36086d46a473f10a42594ac448a6b535"
+    },
+    {
+      "path": "frontend/styles.css",
+      "sha256": "ee0ddf7ef178b2931d2d2e3d058a5153cb5e48b8fdd5c4b9d14d2fd02fcb0f92"
+    },
+    {
+      "path": "package.json",
+      "sha256": "230fe90a13a7347b3726ea2d5116fb11f5fc01e0ab3faf0d7f5abc1acd75ac07"
+    },
+    {
+      "path": "scripts/goal-harness.mjs",
+      "sha256": "3477dad232ed090d57a6b1dd9934177d86a1a31f96ea6d6136eed4eb03a8e7ba"
+    },
+    {
+      "path": "scripts/ui-contract-check.mjs",
+      "sha256": "ae8c132dc8b19d51e83747dae3bdbd7c48ad75a8a911c8f0e8bec6a5dd9bce0f"
+    },
+    {
+      "path": "agent docs/harness/P2_RELEASE_CANDIDATE.json",
+      "sha256": null
+    }
+  ]
+}

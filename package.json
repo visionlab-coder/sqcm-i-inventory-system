@@ -31,7 +31,10 @@
     "compose:contract": "node scripts/compose-contract-check.mjs",
     "repository:hygiene": "node scripts/repository-hygiene-check.mjs",
     "ci:env": "node scripts/write-ci-env.mjs",
-    "ai:preflight": "node scripts/ai-bridge-preflight.mjs"
+    "ai:preflight": "node scripts/ai-bridge-preflight.mjs",
+    "harness:status": "node scripts/goal-harness.mjs status",
+    "harness:check": "node scripts/goal-harness.mjs check",
+    "harness:verify": "node scripts/goal-harness.mjs verify"
   },
   "engines": {
     "node": ">=22"

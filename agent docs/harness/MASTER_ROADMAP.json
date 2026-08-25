@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "project": "SQCM-i inventory system",
+  "updatedAt": "2026-08-25",
+  "repository": "D:\\seowon_projects\\sqcm-i-inventory-system",
+  "branch": "codex/fix-sidebar-accessibility",
+  "goal": "P2부터 P7까지 증거 기반으로 한 Phase씩 완료하고 37봇과 보호 서비스를 보존한다.",
+  "currentPhase": "P2",
+  "completedPhases": 2,
+  "totalPhases": 8,
+  "invariants": {
+    "dockerServices": ["frontend", "backend", "database"],
+    "protectedPorts": [1234, 11434, 18765],
+    "preserveDirtyWorktree": true,
+    "productionGo": false
+  },
+  "authority": {
+    "localReadAndVerification": "local-autonomous",
+    "allowlistedLocalEdits": "local-autonomous",
+    "commitPushMergeRelease": "explicit-approval",
+    "remoteCiTrigger": "explicit-approval",
+    "productionOrMigration": "explicit-approval",
+    "secretsOauthMessagingUatSignoff": "explicit-approval"
+  },
+  "phases": [
+    {
+      "id": "P0",
+      "name": "로컬 제품 기준선",
+      "status": "evidence-complete",
+      "readyWork": null,
+      "completionGate": "Docker 3서비스 healthy, 필수 로컬 테스트 PASS, 보호 서비스 보존"
+    },
+    {
+      "id": "P1",
+      "name": "UI 접근성 안정화",
+      "status": "evidence-complete",
+      "readyWork": null,
+      "completionGate": "UI 계약, 단위·통합, 데스크톱·모바일 브라우저 증거 PASS"
+    },
+    {
+      "id": "P2",
+      "name": "릴리스 기준선·CI",
+      "status": "in-progress",
+      "readyWork": {
+        "id": "P2-GIT-DRAFT-PR-APPROVAL",
+        "description": "검증된 P1·Harness 후보의 정확한 allowlist stage, commit, origin 브랜치 push와 main 대상 Draft PR 생성 승인을 확인한다.",
+        "authority": "explicit-approval",
+        "nextGate": "P2-REMOTE-CI-EVIDENCE"
+      },
+      "lastEvidence": {
+        "date": "2026-08-25",
+        "result": "PASS",
+        "checks": [
+          "prompt-contract-strict-8-of-8",
+          "harness-invariants-0-errors",
+          "git-diff-check",
+          "javascript-syntax-96",
+          "unit-109-of-109",
+          "integration-20-of-20",
+          "ui-contract-16",
+          "compose-services-3",
+          "docker-health-3-of-3",
+          "deploy-smoke-5-of-5",
+          "maintenance-required-tables-32",
+          "sqcmi-models-37-awake-8",
+          "protected-listeners-preserved"
+        ],
+        "report": "docs/phase-reports/79_장기_Goal_Harness_설정.md"
+      },
+      "completionGate": "승인된 commit·push·Draft PR, 원격 CI PASS, 정확한 Git SHA 기록. main 병합 후 불변 이미지 digest는 별도 승인 게이트"
+    },
+    {
+      "id": "P3",
+      "name": "AI PC 연동",
+      "status": "approved-hold",
+      "readyWork": null,
+      "completionGate": "독립 runtime/model checksum, listener, TLS·인증, health/ready, G1~G5와 rollback PASS"
+    },
+    {
+      "id": "P4",
+      "name": "Staging 인프라·배포",
+      "status": "approved-hold",
+      "readyWork": null,
+      "completionGate": "운영 대상 승인 후 backup, migration, 불변 이미지, health/smoke, rollback PASS"
+    },
+    {
+      "id": "P5",
+      "name": "역할별 UAT",
+      "status": "approved-hold",
+      "readyWork": null,
+      "completionGate": "UAT 19개 PASS, Critical/High 0, 업무·보안·운영 책임자 실제 서명"
+    },
+    {
+      "id": "P6",
+      "name": "Production 전환",
+      "status": "approved-hold",
+      "readyWork": null,
+      "completionGate": "P3~P5 PASS와 승인된 cutover·rollback 증거"
+    },
+    {
+      "id": "P7",
+      "name": "운영·유지보수 활성화",
+      "status": "not-started",
+      "readyWork": null,
+      "completionGate": "백업·경보 수신·복구훈련·온콜과 운영 책임자 인수 증거"
+    }
+  ],
+  "stopConditions": [
+    "explicit-approval-or-external-input-required",
+    "protected-service-changed",
+    "security-risk-detected",
+    "same-root-cause-failed-three-times",
+    "all-phases-evidence-complete"
+  ]
+}
