@@ -1,0 +1,100 @@
+services:
+  database:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backend:
+    environment:
+      NODE_ENV: staging
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      NODE_EXTRA_CA_CERTS: /run/certs/supabase-ca.crt
+      DB_AUTO_MIGRATE: "false"
+      DB_RUN_SEEDS: "false"
+      DB_MIGRATION_HISTORY_MODE: supabase
+      COOKIE_SECURE: "true"
+      AUTH_PROVIDER: oidc
+      OIDC_ALLOW_EMAIL_LINKING: "false"
+      PUBLIC_BASE_URL: https://inventory-staging.safe-link.co.kr
+      TRUSTED_PROXY_COUNT: "1"
+      FILE_STORAGE_DRIVER: external
+      MALWARE_SCAN_DRIVER: external
+      AI_PROVIDER_DRIVER: external
+      OPERATIONAL_ADAPTER_MODULE: /app/src/adapters/staging-operational-adapters.js
+      AUTOMATION_WORKER_ENABLED: "false"
+      SUPABASE_URL: ${SUPABASE_URL:?SUPABASE_URL is required}
+      SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY:?SUPABASE_PUBLISHABLE_KEY is required}
+      OIDC_ISSUER: ${OIDC_ISSUER:?OIDC_ISSUER is required}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:?OIDC_CLIENT_ID is required}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:?OIDC_CLIENT_SECRET is required}
+      OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:?OIDC_REDIRECT_URI is required}
+      STORAGE_S3_ENDPOINT: ${STORAGE_S3_ENDPOINT:?STORAGE_S3_ENDPOINT is required}
+      STORAGE_S3_REGION: ${STORAGE_S3_REGION:?STORAGE_S3_REGION is required}
+      STORAGE_S3_ACCESS_KEY_ID: ${STORAGE_S3_ACCESS_KEY_ID:?STORAGE_S3_ACCESS_KEY_ID is required}
+      STORAGE_S3_SECRET_ACCESS_KEY: ${STORAGE_S3_SECRET_ACCESS_KEY:?STORAGE_S3_SECRET_ACCESS_KEY is required}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:?STORAGE_BUCKET is required}
+      AI_PROVIDER_URL: http://host.docker.internal:18766/recommend
+      AI_PROVIDER_OCR_URL: http://host.docker.internal:18766/ocr
+      AI_PROVIDER_HEALTH_URL: http://host.docker.internal:18766/health
+      AI_PROVIDER_READY_URL: http://host.docker.internal:18766/ready
+      AI_PROVIDER_API_KEY: ""
+      AI_PROVIDER_API_KEY_FILE: /run/secrets/ai_provider_api_key
+      AI_PROVIDER_MODEL: Qwen2.5-7B-Instruct-GGUF-Q4_K_M@bb5d59e
+      AI_PROVIDER_NAME: sqcmi-inventory-ai
+      AI_PROVIDER_TIMEOUT_MS: "120000"
+      MALWARE_SCANNER_URL: http://host.docker.internal:18766/security/scan
+      MALWARE_SCANNER_HEALTH_URL: http://host.docker.internal:18766/security/health
+      MALWARE_SCANNER_API_KEY: ""
+      MALWARE_SCANNER_API_KEY_FILE: /run/secrets/ai_provider_api_key
+      MALWARE_SCANNER_TIMEOUT_MS: "30000"
+      ALERTING_URL: http://host.docker.internal:18766/alerts
+      ALERTING_API_KEY: ""
+      ALERTING_API_KEY_FILE: /run/secrets/ai_provider_api_key
+      EVENT_PUBLISHER_URL: http://host.docker.internal:18766/events/publish
+      EVENT_PUBLISHER_API_KEY: ""
+      EVENT_PUBLISHER_API_KEY_FILE: /run/secrets/ai_provider_api_key
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - type: volume
+        source: ai-provider-secret
+        target: /run/secrets
+        read_only: true
+      - type: bind
+        source: ${SUPABASE_CA_CERT_PATH:?SUPABASE_CA_CERT_PATH is required}
+        target: /run/certs/supabase-ca.crt
+        read_only: true
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  frontend:
+    ports: !override
+      - "127.0.0.1:${FRONTEND_PORT:-3100}:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - type: bind
+        source: ./frontend/nginx.staging.conf
+        target: /etc/nginx/conf.d/default.conf
+        read_only: true
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  ai-provider-secret:
+    external: true
+    name: sqcmi-inventory-ai-secret

@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "workId": "P4-G0-STAGING-TARGET-AND-PROVIDER-INPUT",
+  "evidenceId": "P4-G0-CLOUDFLARE-SYNTHETIC-STAGING-PROVISION-20260829",
+  "checkedAt": "2026-08-29T08:55:20.1041829+09:00",
+  "status": "PARTIAL_TARGET_PROVISIONED_PROVIDER_INPUT_REMAINS",
+  "phaseProgress": "4 / 8",
+  "cloudflarePreflight": {
+    "decision": "ALLOW_WITH_CONDITIONS",
+    "provider": "Cloudflare, Inc.",
+    "component": "cloudflared",
+    "version": "2026.7.1",
+    "updateAvailable": "2026.8.2",
+    "signatureStatus": "Valid",
+    "signer": "Cloudflare, Inc.",
+    "sha256": "CCB0756DE288D3C2C076D19764CA53E0849A10F2DD9C23F8656AC42BDEB45001",
+    "reads": ["local ingress config", "new tunnel credential", "loopback HTTP origin"],
+    "externalWrites": ["created one Cloudflare tunnel object"],
+    "externalWritesNotPerformed": ["DNS record", "OAuth application", "R2", "Access policy", "production route"],
+    "rollback": "delete only tunnel 994b5a27-cba4-4958-aecf-ed43db8730ef, then remove its credential after confirming deletion",
+    "audit": ["tunnel list", "connector state", "local runtime logs"]
+  },
+  "stagingTarget": {
+    "hostname": "inventory-staging.safe-link.co.kr",
+    "hostnameState": "RESERVED_NOT_PUBLISHED",
+    "host": "DESKTOP-8FN510S",
+    "runtime": "Docker Desktop",
+    "localUrl": "http://127.0.0.1:3100",
+    "tunnelName": "sqcm-i-inventory-staging",
+    "tunnelId": "994b5a27-cba4-4958-aecf-ed43db8730ef",
+    "tunnelCredentialAcl": "CURRENT_USER_AND_SYSTEM_ONLY",
+    "tunnelConnectorTest": "PASS_CONNECTED_THEN_STOPPED",
+    "dnsPublished": false,
+    "publicExposure": false
+  },
+  "supabaseCandidate": {
+    "checkedAt": "2026-08-29T09:00:59.1423966+09:00",
+    "organization": "visionlab-safe-link",
+    "organizationPlan": "free",
+    "projectId": "wzmzpuxpcpuvuacwmslj",
+    "projectName": "visionlab-coder's Project",
+    "region": "ap-northeast-1",
+    "postgresVersion": "17.6.1.063",
+    "initialState": "INACTIVE",
+    "restoreRequested": true,
+    "lastObservedState": "COMING_UP",
+    "writeOrMigrationPerformed": false,
+    "reuseDecision": "PENDING_SCHEMA_AND_PROVENANCE_AUDIT",
+    "capabilityEvidence": {
+      "postgres": "AVAILABLE_AFTER_RESTORE_AUDIT",
+      "objectStorage": "S3_COMPATIBLE_CANDIDATE",
+      "oidc": "OAUTH_2_1_OIDC_PROVIDER_BETA_CANDIDATE",
+      "pitr": "NOT_INCLUDED_FREE_PLAN_PAID_ADD_ON_REQUIRES_COST_APPROVAL"
+    },
+    "retryStop": "project remained COMING_UP for three observations; no further retry in this loop"
+  },
+  "syntheticStack": {
+    "classification": "SYNTHETIC_PREFLIGHT_NOT_EXTERNAL_STAGING_ACCEPTANCE",
+    "composeProject": "seowon-inventory-staging-synthetic",
+    "services": ["backend", "database", "frontend"],
+    "serviceCount": 3,
+    "healthyCount": 3,
+    "publishedPorts": ["127.0.0.1:3100->frontend:80"],
+    "isolatedVolumes": ["postgres-data", "file-data"],
+    "smoke": "PASS_5_OF_5",
+    "readiness": 200,
+    "unauthenticatedItems": 401,
+    "realErrorLogMatches": 0,
+    "secretEnv": {
+      "path": ".env.staging.local",
+      "gitIgnored": true,
+      "acl": "CURRENT_USER_AND_SYSTEM_ONLY",
+      "secretValuesRecorded": false
+    }
+  },
+  "providerChecklist": [
+    {"input": "stagingHostnameAndTunnel", "status": "PARTIAL_PASS", "evidence": "independent tunnel and validated ingress config exist; DNS intentionally not published"},
+    {"input": "stagingServerAndRuntime", "status": "PASS_SYNTHETIC_TARGET", "evidence": "AI PC Docker target and loopback port are isolated and healthy"},
+    {"input": "postgresql", "status": "PASS_SYNTHETIC_ONLY", "evidence": "isolated PostgreSQL 16 is healthy"},
+    {"input": "pitrAndWalArchive", "status": "MISSING_COST_GATE", "evidence": "Supabase PITR is a paid add-on and is not included in the discovered free plan; no cost approval or restore point evidence"},
+    {"input": "objectStorage", "status": "CANDIDATE_RESTORING", "evidence": "existing Supabase project can provide S3-compatible Storage after provenance and security audit"},
+    {"input": "oidc", "status": "CANDIDATE_RESTORING", "evidence": "existing Supabase project can act as an OAuth 2.1/OIDC provider after asymmetric signing, client, authorization UI, and provenance audit"},
+    {"input": "malwareScanner", "status": "PASS_SYNTHETIC_ONLY", "evidence": "existing P3 Defender bridge readiness is used internally"},
+    {"input": "eventPublisher", "status": "MISSING", "evidence": "no external publisher endpoint, account, credential, or receipt"},
+    {"input": "alertProvider", "status": "PASS_SYNTHETIC_ONLY", "evidence": "existing Windows session alert is local evidence only"},
+    {"input": "aiProvider", "status": "PASS_INTERNAL_STAGING_PATH", "evidence": "existing authenticated loopback AI bridge is reachable from the synthetic backend"},
+    {"input": "providerSecretReferences", "status": "PARTIAL", "evidence": "local generated runtime secrets are protected; OIDC/storage/event/PITR provider references remain absent"}
+  ],
+  "protectedState": {
+    "originalInventoryServicesHealthy": 3,
+    "originalCloudflareTunnelConnections": 4,
+    "listeners": [
+      {"port": 1234, "pid": 6632, "preserved": true},
+      {"port": 11434, "pid": 8588, "preserved": true},
+      {"port": 18765, "pid": 22716, "preserved": true},
+      {"port": 18766, "pid": 65400, "preserved": true},
+      {"port": 18767, "pid": 28532, "preserved": true}
+    ]
+  },
+  "changesMade": [
+    "created independent Cloudflare tunnel sqcm-i-inventory-staging",
+    "restricted new tunnel credential ACL",
+    "created protected runtime config on D drive",
+    "created ignored protected synthetic staging env",
+    "started isolated three-service synthetic staging project",
+    "validated and stopped only the temporary new tunnel connector",
+    "requested restore of the existing inactive Supabase free project for read-only provenance audit"
+  ],
+  "blockedReasons": [
+    "SUPABASE_PROJECT_RESTORE_AND_PROVENANCE_AUDIT_PENDING",
+    "OIDC_CLIENT_AUTHORIZATION_UI_AND_ASYMMETRIC_SIGNING_MISSING",
+    "OBJECT_STORAGE_BUCKET_POLICY_AND_CREDENTIAL_MISSING",
+    "EVENT_PUBLISHER_ACCOUNT_AND_ENDPOINT_MISSING",
+    "PITR_WAL_ARCHIVE_PROVIDER_AND_POLICY_MISSING",
+    "PROVIDER_SECRET_REFERENCES_INCOMPLETE"
+  ],
+  "nextReady": "P4-G0-SUPABASE-RESTORE-AUDIT-THEN-PROVIDER-SECRET-REFERENCES",
+  "productionGo": false
+}

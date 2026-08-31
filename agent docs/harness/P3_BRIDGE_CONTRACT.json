@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-08-25",
+  "status": "PASS_LOCAL_AND_LIVE_CONTRACT",
+  "source": "src/bridge/inventory-cost-bridge.js",
+  "test": "test/unit/inventory-cost-bridge.test.js",
+  "contracts": {
+    "health": "PASS_PUBLIC_LIVENESS",
+    "ready": "PASS_AUTHENTICATED_FAIL_CLOSED",
+    "recommend": "PASS_BEARER_ORGANIZATION_ALLOWLIST",
+    "ocr": "PASS_BEARER_ORGANIZATION_ALLOWLIST",
+    "modelIdentity": "PASS_VERSION_AND_SHA256_REQUIRED"
+  },
+  "verification": {
+    "bridgeTests": "7/7 PASS",
+    "javascriptSyntax": "101 PASS",
+    "unit": "116/116 PASS",
+    "repositoryHygiene": "PASS"
+  },
+  "runtimeStarted": true,
+  "listenerOpened": true,
+  "serviceCreated": false,
+  "protectedServicesChanged": false,
+  "remainingGate": "P3-SQCMI-ADAPTER-CONNECTION-APPROVAL"
+}

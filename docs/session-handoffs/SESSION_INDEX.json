@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "sessions": [
+    {
+      "sessionId": "2026-08-31-sqcmi-notebook-handoff",
+      "project": "SQCM-i inventory system",
+      "platform": "codex",
+      "status": "handed-off",
+      "lastUsedAt": "2026-08-31T18:55:00+09:00",
+      "objective": "P3-P6 progress를 검증해 GitHub 브랜치로 노트북에 인계한다.",
+      "nextGoal": "노트북에서 원격 브랜치를 검증하고 P6-G1 외부 입력 Gate를 준비한다.",
+      "handoff": "docs/session-handoffs/2026-08-31_SQCMI_NOTEBOOK_SESSION_HANDOFF.md",
+      "nextPrompt": "docs/session-handoffs/2026-08-31_SQCMI_NOTEBOOK_NEXT_SESSION_PROMPT.md",
+      "pinned": false,
+      "runningWork": false,
+      "openApproval": true,
+      "openSubagents": false
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 const crypto = require('node:crypto');
 const { DomainError, positiveInteger } = require('./inventory-service');
-const { normalizeUpload, storageKey } = require('./file-service');
+const { normalizeUpload, storageKey, requireCleanScan } = require('./file-service');
 const { requireDepartmentAccess } = require('./scope-service');
 const repository = require('../repositories/file-repository');
 
@@ -30,7 +30,7 @@ async function uploadReturnPhoto({ pool,fileStore,malwareScanner,maxBytes,user,r
   await requireDepartmentAccess(pool,user,request.department_id);
   const normalized = normalizeUpload({ ...input,fileType:'RETURN' },maxBytes);
   const scan = await malwareScanner.scan(input.content,{ contentType:normalized.contentType,originalName:normalized.originalName });
-  if(scan?.status !== 'clean') throw new DomainError('악성코드 검사에서 안전하지 않은 파일로 판정되었습니다.',422);
+  requireCleanScan(scan);
   const key = storageKey(request.organization_id,normalized.media.ext);
   const checksum = crypto.createHash('sha256').update(input.content).digest('hex');
   await fileStore.write(key,input.content);

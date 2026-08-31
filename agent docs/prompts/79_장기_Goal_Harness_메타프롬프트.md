@@ -14,7 +14,7 @@ USERS / EXPECTED CHANGE:
 CONTEXT:
 - 활성 저장소: `D:\seowon_projects\sqcm-i-inventory-system`
 - 활성 브랜치: `codex/fix-sidebar-accessibility`
-- 현재 로드맵: P0·P1 완료, P2 진행 중, P3~P6 승인된 보류, P7 미착수
+- 현재 로드맵: P0~P3 완료, P4 staging 입력 Gate 진행 중, P5~P6 승인된 보류, P7 미착수
 - 현재 사용자 작업에는 추적 파일 5개와 `docs/roadmap.md`가 포함되며 reset·clean·덮어쓰기를 금지한다.
 - 기존 보호 서비스: LM Studio `1234`, Ollama `11434`, bridge/wslrelay `18765`
 - 과거 Phase 보고서는 역사 증거이며 현재 정본은 아래 우선순위를 따른다.
@@ -29,7 +29,7 @@ OUT OF SCOPE:
 - 승인 없는 commit, push, merge, release, 원격 CI 유발
 - 승인 없는 운영 배포, migration, DNS/TLS, 방화벽, 서비스·프로세스 변경
 - Secret·OAuth·계정 연결, Telegram 또는 외부 메시지 발송
-- 실제 UAT 서명·운영 책임자 지정·외부 데이터 생성 또는 전송
+- 명시 승인 없는 실제 UAT 서명·운영 책임자 지정·외부 데이터 생성 또는 전송. 단, 2026-08-25 현재 사용자가 승인한 업무·보안·운영 3건은 P3 G5 범위에만 유효하다.
 - 기존 37봇, Docker 3서비스, 보호 포트의 중단·교체
 
 INPUTS / SOURCE OF TRUTH:

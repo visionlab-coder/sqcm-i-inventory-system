@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "workId": "P5-G1-STAGING-UAT-REMEDIATION",
+  "checkedAt": "2026-08-31T18:10:50+09:00",
+  "status": "PASS_TECHNICAL_19_OF_19",
+  "phaseProgress": "5 / 8",
+  "backup": {
+    "file": "artifacts/backups/sqcm-i-supabase-staging-pre-p5-remediation-20260831T084206Z.dump",
+    "bytes": 488209,
+    "sha256": "e86044c3de3141cfcd127d137800df5242c1e53be3ba8fb449068e35f249d1df",
+    "archiveList": "PASS",
+    "caVerification": "verify-full",
+    "priorRestoreVerifiedBackup": "artifacts/backups/sqcm-i-supabase-staging-20260831T034703Z.dump"
+  },
+  "migration": {
+    "projectId": "iuoljosldyymkburagwj",
+    "name": "sqcmi_025_allow_supabase_s3_storage_driver",
+    "history": "25/25",
+    "constraint": ["LOCAL", "EXTERNAL", "SUPABASE_S3"],
+    "existingMigrationsModified": false
+  },
+  "deployment": {
+    "environment": "staging",
+    "backendImage": "seowon-inventory-backend:p5-remediation-20260831",
+    "backendDigest": "sha256:3ead502963d1669a56dd2e840a735e5c732b3718d3a45bb18644cf3d32202a09",
+    "previousBackendDigest": "sha256:13968de02f006a79c0b06e824594863d88a4046e6cbf8d8bcd2357f51c96d6bf",
+    "health": 200,
+    "readiness": 200,
+    "dockerHealthy": "3/3"
+  },
+  "quality": {
+    "syntax": "120 PASS",
+    "unit": "141/141 PASS",
+    "promptContract": "8/8 PASS",
+    "providerPreflight": "PASS",
+    "supabaseAdvisors": {"securityInfo":52,"securityWarnExisting":1,"performanceInfo":120,"newMigrationSecurityWarnings":0}
+  },
+  "defects": [
+    {"id":"P5-DEFECT-001","severity":"HIGH","status":"RESOLVED_TECHNICALLY","reverification":"P5-UAT-08 clean PNG 201 and byte-identical download"}
+  ],
+  "securityIncidentCleanup": {
+    "runId": "P5-UAT-20260831T085205Z",
+    "fileId": 4,
+    "recordStatus": "INACTIVE",
+    "storageObjectRemoved": true,
+    "auditRecorded": true,
+    "cause": "invalid UAT PDF fixture structure; replaced with previously verified embedded-file fixture"
+  },
+  "uat": {
+    "runId": "P5-UAT-20260831T085546Z",
+    "total": 19,
+    "passed": 19,
+    "failed": 0,
+    "browserPending": 0,
+    "passedIds": ["P5-UAT-01","P5-UAT-02","P5-UAT-03","P5-UAT-04","P5-UAT-05","P5-UAT-06","P5-UAT-07","P5-UAT-08","P5-UAT-09","P5-UAT-10","P5-UAT-11","P5-UAT-12","P5-UAT-13","P5-UAT-14","P5-UAT-15","P5-UAT-16","P5-UAT-17","P5-UAT-18","P5-UAT-19"],
+    "pendingIds": [],
+    "audit": {"total":48,"withActor":48,"traced":41,"actions":26},
+    "outbox": {"total":16,"published":16},
+    "malwareAlertReceiptRecorded": true,
+    "mfaRestored": true,
+    "secretsPrinted": false
+  },
+  "browser": {
+    "publicMobileViewport": "390x844",
+    "horizontalOverflow": 0,
+    "consoleWarningsErrors": 0,
+    "authenticatedRoleFlow": "PASS_USER_SUPABASE_SSO",
+    "verifiedRoutes": ["dashboard", "assets", "requests", "assignments", "security"],
+    "requestFormVisible": true,
+    "returnPhotoControlVisible": true,
+    "logout": "PASS_LOGIN_SCREEN_RESTORED",
+    "credentialValuesRecorded": false
+  },
+  "productionChangesMade": false,
+  "gitExternalChangesMade": false,
+  "productionGo": false,
+  "blockedReasons": ["P5_G2_SIGNOFF_NOT_STARTED"],
+  "nextReady": "P5-G2-STAGING-UAT-SIGNOFF"
+}

@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "template": false,
+  "activationState": "active",
+  "environment": "staging",
+  "publicBaseUrl": "https://inventory-staging.safe-link.co.kr",
+  "providers": {
+    "oidc": {
+      "status": "active-live-consent",
+      "issuer": "https://iuoljosldyymkburagwj.supabase.co/auth/v1",
+      "clientId": "399ba4bd-2078-426e-928a-68d79061c042",
+      "redirectUri": "https://inventory-staging.safe-link.co.kr/api/auth/oidc/callback"
+    },
+    "storage": {
+      "status": "active-private-server-only",
+      "endpoint": "https://iuoljosldyymkburagwj.storage.supabase.co/storage/v1/s3",
+      "bucket": "sqcm-i-inventory-staging"
+    },
+    "malwareScanner": {
+      "status": "active-https-route-bearer-protected",
+      "endpoint": "https://inventory-staging.safe-link.co.kr/internal/providers/security/scan",
+      "timeoutMs": 30000
+    },
+    "eventPublisher": {
+      "status": "active-https-route-bearer-protected",
+      "endpoint": "https://inventory-staging.safe-link.co.kr/internal/providers/events/publish"
+    },
+    "alerting": {
+      "status": "active-https-route-bearer-protected",
+      "endpoint": "https://inventory-staging.safe-link.co.kr/internal/providers/security/alert"
+    },
+    "ai": {
+      "status": "active-https-route-bearer-protected",
+      "recommendEndpoint": "https://inventory-staging.safe-link.co.kr/internal/providers/ai/recommend",
+      "ocrEndpoint": "https://inventory-staging.safe-link.co.kr/internal/providers/ai/ocr",
+      "healthEndpoint": "https://inventory-staging.safe-link.co.kr/internal/providers/ai/health",
+      "readyEndpoint": "https://inventory-staging.safe-link.co.kr/internal/providers/ai/ready",
+      "model": "Qwen2.5-7B-Instruct-GGUF-Q4_K_M",
+      "timeoutMs": 12000
+    }
+  },
+  "backup": {
+    "mode": "logical",
+    "storageRef": "secret://inventory/staging/backup-storage",
+    "pitrEnabled": false,
+    "retentionDays": 14,
+    "schedule": "0 3 * * *",
+    "rpoMinutes": 1440,
+    "rtoMinutes": 240,
+    "restoreEvidence": "artifacts/backups/sqcm-i-supabase-staging-20260831T034703Z.dump.json"
+  },
+  "secretRefs": {
+    "OIDC_CLIENT_SECRET": "secret://inventory/staging/oidc-client-secret",
+    "STORAGE_CREDENTIALS": "secret://inventory/staging/storage-credentials",
+    "MALWARE_SCANNER_TOKEN": "secret://inventory/staging/malware-scanner-token",
+    "EVENT_PUBLISHER_TOKEN": "secret://inventory/staging/event-publisher-token",
+    "ALERTING_TOKEN": "secret://inventory/staging/alerting-token",
+    "AI_PROVIDER_API_KEY": "secret://inventory/staging/ai-provider-api-key",
+    "SESSION_SECRET": "secret://inventory/staging/session-secret",
+    "MFA_ENCRYPTION_KEY": "secret://inventory/staging/mfa-encryption-key",
+    "POSTGRES_PASSWORD": "secret://inventory/staging/postgres-password"
+  }
+}

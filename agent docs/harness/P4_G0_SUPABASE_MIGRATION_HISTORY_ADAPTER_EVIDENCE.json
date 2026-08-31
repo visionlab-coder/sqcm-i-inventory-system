@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "workId": "P4-G0-SUPABASE-MIGRATION-HISTORY-ADAPTER",
+  "evidenceId": "P4-G0-SUPABASE-MIGRATION-HISTORY-ADAPTER-20260829",
+  "status": "BLOCKED_THREE_TIER_POSTGRES_ROLE_MISSING_THIRD_RECURRENCE",
+  "implementation": {
+    "explicitModes": ["application", "supabase"],
+    "defaultMode": "application",
+    "providerChecks": ["count", "name", "order", "statement_count", "normalized_sql_content"],
+    "autoDetection": false,
+    "productionExampleMode": "supabase"
+  },
+  "passed": {
+    "focusedUnit": "PASS_12_OF_12",
+    "fullUnit": "PASS_131_OF_131",
+    "javascriptSyntax": "PASS_110",
+    "providerNormalizedContent": "PASS_24_OF_24",
+    "postgres17BusinessIntegration": "PASS_19_AND_1_ENV_CONTRACT_MISMATCH",
+    "temporaryResourcesRemoved": true
+  },
+  "failure": {
+    "reproduction": "isolated three-tier Compose backend startup with application migration runner",
+    "actual": "server_start_failed: role postgres does not exist",
+    "expected": "backend healthy after application migrations",
+    "rootCauseLayer": "migration target portability",
+    "rootCause": "Migration 023 contains Supabase-specific ALTER DEFAULT PRIVILEGES FOR ROLE postgres, while the application Compose database is initialized with POSTGRES_USER=seowon and has no postgres role.",
+    "recurrenceCount": 3,
+    "automaticRetryStopped": true,
+    "impact": "Fresh non-Supabase application databases cannot advance past migration 022; existing services were not changed.",
+    "minimumSafeDesign": "Keep applied migration 023 immutable and add an explicit migration target manifest so application mode excludes Supabase-only migrations while Supabase mode continues to require all provider migrations."
+  },
+  "blockedReasons": ["SUPABASE_ONLY_MIGRATION_NOT_TARGET_SCOPED", "SAME_ROOT_CAUSE_THREE_RECURRENCES"],
+  "nextReady": "P4-G0-MULTI-PROVIDER-MIGRATION-TARGET-DESIGN",
+  "productionGo": false
+}

@@ -1,22 +1,48 @@
 # 서원토건 비품관리 시스템 최신 단일 현황
 
-기준일: 2026-08-25
+기준일: 2026-08-31
 
 릴리스 기준 브랜치: `main`
-현재 작업 브랜치: `codex/fix-sidebar-accessibility` (`112ff5a03112b63a5ce23ac00bc64e418e3625b4`)
+현재 작업 브랜치: `codex/fix-sidebar-accessibility` (`dfc37e3bfa60ea69a54900678897ee6b3a0eb078`)
+최신 릴리스 기준 main: `79a12924106b378d2337898c76a4dd431634b78d`
 
-상태: **로컬 제품 검증 PASS / 외부 운영 전환 NO-GO / AI PC 연결 HOLD**
+상태: **P5 staging UAT 19/19·서명 3/3 완료 / P6 Production preflight HOLD_EXTERNAL_INPUTS / Production NO-GO**
 
 이 문서는 현재 상태의 단일 정본이다. 과거 Phase 보고서의 당시 수치와 설계 결정은 역사 증거로 보존하되 현재 판정에는 이 문서와 실제 코드·테스트 결과를 우선한다.
 
-전체 순서와 한 번에 한 Phase만 진행하는 규칙은 [`docs/roadmap.md`](./roadmap.md)에서 시각화한다. P1 UI 접근성 안정화는 2026-08-21에 증거 있는 완료가 됐고, 현재 실행 Phase는 **P2 릴리스 기준선·CI**다. P2 종료 전에는 P3를 시작하지 않는다.
+전체 순서와 한 번에 한 Phase만 진행하는 규칙은 [`docs/roadmap.md`](./roadmap.md)에서 시각화한다. P2 릴리스 기준선·CI, P3 AI PC 연동, P4 Staging 인프라·배포와 P5 역할별 UAT는 증거 있는 완료이며, 현재 실행 Phase는 **P6 Production 전환**이다. 전용 Supabase 논리 백업은 public 복구가 원본 52 tables·40 rows·3 functions와 일치했고 회사 Google Drive의 소유자 전용 폴더에서 재다운로드 SHA-256까지 일치했다.
 
-장기 실행 계약은 [`agent docs/prompts/79_장기_Goal_Harness_메타프롬프트.md`](../agent%20docs/prompts/79_장기_Goal_Harness_메타프롬프트.md), 기계 상태는 [`agent docs/harness/MASTER_ROADMAP.json`](../agent%20docs/harness/MASTER_ROADMAP.json)이 소유한다. 2026-08-25 strict 계약 8/8과 Harness 불변식 오류 0건을 확인했고, P2 로컬 READY는 구문 96, 단위 109/109, 통합 20/20, UI 계약 16, Compose·Docker 3/3 healthy, smoke·유지보수 점검으로 통과했다. SQCM-i 모델 37개·Awake 8개와 기존 보호 listener를 보존했다. commit `cfed57c62b9416b047f058ce33488cb8d059ec0b`, Draft PR #22와 GitHub quality unit·three-tier-integration 성공 증거를 확보했다. 다음 READY는 `P2-MAIN-MERGE-RELEASE-APPROVAL`이다.
+## 2026-08-31 P4 off-site backup·signoff 오버레이
+
+- 회사 도메인 Google Drive 계정의 `SQCM-i Inventory/Staging Backups` 비공개 폴더를 독립 off-site 저장소로 사용했다.
+- dump 471,726 bytes와 Secret 없는 manifest를 업로드했고 `shared=false`, owner-only를 확인했다.
+- Drive raw readback의 bytes와 SHA-256 `74b3c163…530494`가 로컬 원본과 일치했다.
+- 현재 사용자의 명시적 P4-G3 실행 요청으로 업무·보안·운영 signoff 3/3을 기록했다. Production 승인 효과는 없다.
+- staging frontend/backend/database 3/3 healthy, 공개 health/readiness 200과 보호 listener PID를 재확인했다.
+
+## 2026-08-31 P5 staging UAT preflight 오버레이
+
+- ADMIN·MANAGER·USER application/Auth/OIDC 계정이 역할·ACTIVE·issuer·조직/부서·scope까지 각각 1:1로 일치했다.
+- `P5-UAT-` fixture 충돌은 조직·부서·자산·요청 모두 0이며 합성·비식별 run ID 계약을 고정했다.
+- audit request ID·IP 컬럼과 요청/행위자 인덱스 2/2를 확인했다.
+- 19개 UAT는 모두 `READY_NOT_RUN`이며 실제 실행 증거 전에는 PASS로 계산하지 않는다.
+- 열린 Critical/High는 사전 기준선 0이나 실제 UAT 중 한 건이라도 발견되면 Production NO-GO를 유지한다.
+
+장기 실행 계약은 [`agent docs/prompts/79_장기_Goal_Harness_메타프롬프트.md`](../agent%20docs/prompts/79_장기_Goal_Harness_메타프롬프트.md), 기계 상태는 [`agent docs/harness/MASTER_ROADMAP.json`](../agent%20docs/harness/MASTER_ROADMAP.json)이 소유한다. 새 격리 DB에서 application migration 23/23, 단위 133/133, 통합 20 PASS·0 FAIL, smoke 5/5와 maintenance가 통과했다. Supabase는 migration 이름·순서·정규화 본문 24/24, RLS 52/52, Data API 역할 grant 0, Security WARN·ERROR 0이다.
+
+## 2026-08-31 P4 provider binding 오버레이
+
+- 전용 Supabase private Storage, confidential OAuth client, ADMIN·MANAGER·USER 3계정과 identity link 3건을 non-seed staging에 연결했다.
+- `seowon-inventory-staging`의 `frontend/backend/database` 3서비스가 healthy이며 frontend만 `127.0.0.1:3100`에 노출되고 backend·database 호스트 포트는 0이다.
+- Cloudflare tunnel `994b…` connector PID 31736을 시작하고 `inventory-staging.safe-link.co.kr` DNS·TLS를 게시했다. 공개 health/readiness는 200, 인증 필요 provider route는 401이다.
+- 실제 OIDC는 start 302 → authorize 302 → callback 302 → ADMIN session → logout 204를 통과했고 새 브라우저 탭에서 ADMIN dashboard와 logout을 확인했다.
+- secure-cookie proxy와 consent redirect 결함을 수정했다. syntax 118, unit 140/140, UI 계약 20, active operations live preflight가 PASS했다.
+- synthetic·candidate는 삭제하지 않고 각각 3개 정지 컨테이너로 보존했다. Production 변경은 없었다.
 
 ## 2026-08-21 작업 오버레이
 
 - `codex/fix-sidebar-accessibility`에서 데스크톱 sidebar overflow, 모바일 user box, nav backdrop 클릭 경계를 수정했다.
-- P1 기능 변경은 프런트엔드 3개와 UI 계약 검사 1개, 총 4개 파일이다. 이후 로드맵·Harness·증거 문서가 별도 추가됐으며 전체 후보는 아직 commit·push하지 않았다.
+- P1 기능 변경과 P2 로드맵·Harness·증거는 PR #22로 main에 병합됐다.
 - 최신 로컬 증거는 UI 계약 16 PASS, JavaScript 구문 95 PASS, 단위 109/109 PASS, PostgreSQL 통합 20/20 PASS다.
 - 관리자·매니저·사용자 메뉴와 데스크톱 로그아웃, 390px 모바일 메뉴·로그아웃을 브라우저에서 확인했다.
 - P1 종료 재검증에서 UI 계약 16, 구문 95, 단위 109/109, PostgreSQL 통합 20/20이 모두 PASS했다. 1280×720 sidebar 스크롤과 로그아웃, 390×844 메뉴·사용자 영역·로그아웃 동작도 PASS했다.
@@ -67,15 +93,19 @@
 ## 미완료 외부 게이트
 
 1. 운영 결정표 8건은 검증 완료 0건이다. 운영 URL은 결정됐지만 DNS/TLS 연결은 대기다.
-2. UAT 체크 19항목과 업무·보안·운영 책임자 3명 서명이 비어 있다.
+2. P3 Pilot UAT 체크 19항목은 19 PASS·0 FAIL·0 NOT_RUN이며 업무·보안·운영 승인은 P3 G5 범위로 3/3 승인됐다. P5 staging UAT를 대신하지 않는다.
 3. 실제 operations manifest와 cutover evidence는 없고 저장소에는 계약용 template만 있다.
-4. 회사 OIDC, 외부 저장소, 악성코드 검사, event publisher, 경보 채널, PITR/WAL 증거가 없다.
-5. AI PC의 독립 runtime·모델 checksum·listener·TLS·인증·G1~G5 UAT가 없다.
+4. 비품관리 전용 OIDC·외부 저장소·event publisher·staging 경보·AI HTTPS route와 독립 off-site 논리 backup은 연결됐다. Free plan PITR 부재는 24시간 RPO 논리 백업으로 관리하며 Production 전 별도 운영 판정이 필요하다.
+5. AI PC runtime·bridge·OCR external end-to-end G3, 사용자 로그인 운영 모드 G4, Defender·로컬 경보 G5 19/19가 PASS해 P3는 증거 있는 완료다.
 6. main merge와 production 배포는 승인·증거가 충족될 때까지 실행하지 않는다.
 
 ## 다음 READY
 
-현재 유일한 READY는 로드맵 **P2 Draft PR #22 ready 전환·main 병합·main quality·release-images·GHCR digest 확인 승인**이다. production 배포·migration·Secret·UAT는 이 승인 범위에 포함하지 않는다. 외부 #14 AI PC, #12 운영 인프라, #13 UAT는 P3~P5의 승인된 보류로 유지한다. `Frosty city man`은 범소프트 팀장이며 GitHub 연결 대상이 아니고, 저장소 소유 계정은 `visionlab-coder` 하나로 유지한다.
+P5는 migration 025와 staging backend 재배포 후 **19 PASS·0 FAIL·0 PENDING**, Critical/High 0, 업무·보안·운영 전자서명 3/3으로 증거 있는 완료다. 정상 PNG·EICAR 차단·MFA·승인·반납·구매·provider receipt와 USER Supabase SSO·390×844 모바일 핵심 화면·로그아웃이 통과했다.
+
+P6-G0 비파괴 preflight 결과 현재 staging 후보는 미커밋이고 P2 main 이미지는 P3~P5 변경을 포함하지 않는다. Production manifest·actual cutover evidence·self-hosted Production workflow는 모두 0이며 template gate는 정상 fail-closed다.
+
+현재 유일한 READY는 **P6-G1-PRODUCTION-TARGET-CHANGE-WINDOW-AND-PROVIDER-INPUT**이다. 비품관리 전용 hostname·분리된 Production Supabase/공급자·release candidate·변경 시간/책임자·runner 입력이 필요하다. Production은 `NO-GO`다.
 # Phase 74 불변 이미지 릴리스 게이트 (2026-08-15)
 
 - GitHub Actions 외부 참조를 공식 commit SHA로 고정하고, main의 정확한 SHA로 frontend/backend 이미지를 GHCR에 발행하는 workflow를 추가했다.

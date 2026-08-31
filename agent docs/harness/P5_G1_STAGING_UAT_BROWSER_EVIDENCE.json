@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "workId": "P5-G1-STAGING-UAT-BROWSER-EXECUTION",
+  "checkedAt": "2026-08-31T18:10:50+09:00",
+  "status": "PASS_P5_UAT_13",
+  "environment": "staging",
+  "url": "https://inventory-staging.safe-link.co.kr",
+  "identity": {
+    "provider": "SUPABASE_AUTH_OIDC",
+    "role": "USER",
+    "displayNameVisible": true,
+    "credentialReference": ".env.staging.local",
+    "credentialValuesRecorded": false
+  },
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "horizontalOverflow": 0,
+    "consoleWarningsErrors": 0
+  },
+  "routes": [
+    {"id":"dashboard","result":"PASS","evidence":"USER dashboard and asset ledger summary visible"},
+    {"id":"assets","result":"PASS","evidence":"search and five-row staging asset ledger visible"},
+    {"id":"requests","result":"PASS","evidence":"purchase request draft form visible"},
+    {"id":"assignments","result":"PASS","evidence":"assign-return-transfer form and return photo control visible"},
+    {"id":"security","result":"PASS","evidence":"TOTP MFA settings visible"}
+  ],
+  "session": {
+    "login": "PASS",
+    "logout": "PASS_LOGIN_SCREEN_RESTORED"
+  },
+  "dataCreated": false,
+  "secretValuesPrinted": false,
+  "productionChangesMade": false,
+  "result": "P5-UAT-13 PASS; TECHNICAL UAT 19/19",
+  "nextReady": "P5-G2-STAGING-UAT-SIGNOFF"
+}

@@ -34,12 +34,15 @@
     "ai:preflight": "node scripts/ai-bridge-preflight.mjs",
     "harness:status": "node scripts/goal-harness.mjs status",
     "harness:check": "node scripts/goal-harness.mjs check",
-    "harness:verify": "node scripts/goal-harness.mjs verify"
+    "harness:verify": "node scripts/goal-harness.mjs verify",
+    "build:oauth-consent": "esbuild frontend/oauth-consent-entry.js --bundle --minify --platform=browser --format=iife --outfile=frontend/dist/oauth-consent.js"
   },
   "engines": {
     "node": ">=22"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "3.1121.0",
+    "@supabase/supabase-js": "2.112.4",
     "bcryptjs": "^3.0.2",
     "connect-pg-simple": "^10.0.0",
     "dotenv": "^17.2.1",
@@ -47,9 +50,11 @@
     "express": "^5.1.0",
     "express-session": "^1.18.2",
     "helmet": "^8.1.0",
+    "jose": "6.2.10",
     "pg": "^8.16.3"
   },
   "devDependencies": {
+    "esbuild": "0.28.2",
     "supertest": "^7.1.4"
   }
 }

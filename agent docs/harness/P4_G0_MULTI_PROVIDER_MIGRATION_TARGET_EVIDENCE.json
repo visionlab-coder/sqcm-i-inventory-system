@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "workId": "P4-G0-MULTI-PROVIDER-MIGRATION-TARGET-DESIGN",
+  "evidenceId": "P4-G0-MULTI-PROVIDER-MIGRATION-TARGET-20260831",
+  "status": "PASS_TARGET_DESIGN_BLOCKED_REVERIFY_ACCOUNT_LOCKOUT_THIRD_RECURRENCE",
+  "implementation": {
+    "manifest": "db/migration-targets.json",
+    "manifestEntries": 24,
+    "applicationMigrations": 23,
+    "supabaseMigrations": 24,
+    "applicationExcludes": ["023_supabase_data_api_lockdown.sql"],
+    "applicationIncludes": ["024_function_search_path_hardening.sql"],
+    "appliedMigrationsChanged": false,
+    "remoteStateChanged": false
+  },
+  "passed": {
+    "focusedUnit": "PASS_5_OF_5",
+    "fullUnit": "PASS_133_OF_133",
+    "javascriptSyntax": "PASS_110",
+    "freshComposeServices": "PASS_HEALTHY_3_OF_3",
+    "freshApplicationHistory": "PASS_23_023_ZERO_024_ONE",
+    "freshHttpHealth": "PASS_200",
+    "freshHttpReadiness": "PASS_200",
+    "temporaryResourcesRemoved": true,
+    "protectedListenersPreserved": [
+      "1234/PID6632",
+      "11434/PID8588",
+      "18765/PID22716"
+    ]
+  },
+  "blockedVerification": {
+    "check": "full integration",
+    "attempts": 3,
+    "result": "PASS_5_FAIL_15_SKIP_1",
+    "rootCause": "The first invalid test envelope accumulated failed-login counters; all three seed users ended with failed_login_count=5 and locked_until set. Password hashes still matched the generated seed values.",
+    "productImpact": "Migration portability and fresh service startup passed, but the complete integration gate cannot be promoted from this contaminated test database.",
+    "automaticRetryStopped": true
+  },
+  "cleanup": {
+    "composeProject": "sqcmi-p4-target-reverify",
+    "containersRemoved": true,
+    "volumesRemoved": true,
+    "networkRemoved": true,
+    "temporarySecretFileRemoved": true,
+    "existingProjectsPreserved": true
+  },
+  "blockedReasons": ["INTEGRATION_TEST_ACCOUNT_LOCKOUT_THIRD_RECURRENCE"],
+  "nextReady": "P4-G0-SUPABASE-MIGRATION-HISTORY-ADAPTER-REVERIFY",
+  "productionGo": false
+}

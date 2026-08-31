@@ -93,10 +93,30 @@ function check() {
     const aggregate = createHash('sha256').update(canonical, 'utf8').digest('hex');
     if (aggregate !== candidate.candidateDigest) errors.push('CANDIDATE_DIGEST_MISMATCH');
     if (remoteEvidence) {
-      if (remoteEvidence.commit !== remoteEvidence.headSha) errors.push('REMOTE_EVIDENCE_SHA_MISMATCH');
-      if (remoteEvidence.pullRequest?.draft !== true) errors.push('REMOTE_PR_NOT_DRAFT');
+      if (remoteEvidence.candidateCommit && remoteEvidence.candidateCommit !== remoteEvidence.commit) {
+        errors.push('REMOTE_CANDIDATE_COMMIT_MISMATCH');
+      }
+      if (remoteEvidence.pullRequest?.state === 'open' && remoteEvidence.pullRequest?.draft !== true) {
+        errors.push('REMOTE_OPEN_PR_NOT_DRAFT');
+      }
+      if (remoteEvidence.pullRequest?.merged === true && !remoteEvidence.pullRequest?.mergeSha) {
+        errors.push('REMOTE_MERGE_SHA_MISSING');
+      }
       if (!remoteEvidence.workflow?.jobs?.every((job) => job.conclusion === 'success')) {
         errors.push('REMOTE_CI_NOT_GREEN');
+      }
+      if (remoteEvidence.mainRelease) {
+        const release = remoteEvidence.mainRelease;
+        const digestPattern = /^sha256:[a-f0-9]{64}$/;
+        if (release.mainSha !== remoteEvidence.pullRequest?.mergeSha) errors.push('MAIN_RELEASE_SHA_MISMATCH');
+        if (!release.workflows?.every((workflow) => workflow.conclusion === 'success')) {
+          errors.push('MAIN_WORKFLOW_NOT_GREEN');
+        }
+        if (!digestPattern.test(release.images?.backend?.digest ?? '')
+          || !digestPattern.test(release.images?.frontend?.digest ?? '')
+          || release.images.backend.digest === release.images.frontend.digest) {
+          errors.push('MAIN_IMAGE_DIGEST_INVALID');
+        }
       }
     }
   }
@@ -156,23 +176,40 @@ function verify() {
   check();
   if (process.exitCode) return;
   const phase = currentPhase();
-  if (phase.id !== 'P2' || phase.readyWork.id !== 'P2-LOCAL-VERIFY') {
+  const verifierKey = `${phase.id}/${phase.readyWork.id}`;
+  const commandSets = {
+    'P2/P2-LOCAL-VERIFY': [
+      ['git-diff-check', 'git', ['diff', '--check']],
+      ['quality', 'npm.cmd', ['run', 'check']],
+      ['ui-contract', 'npm.cmd', ['run', 'ui:contract']],
+      ['compose-contract', 'npm.cmd', ['run', 'compose:contract']],
+      ['docker-health', 'docker', [
+        'ps',
+        '--filter', 'label=com.docker.compose.project=seowon-inventory-local',
+        '--format', '{{json .}}'
+      ], validateInventoryContainers]
+    ],
+    'P5/P5-G0-STAGING-UAT-PREFLIGHT': [
+      ['git-diff-check', 'git', ['diff', '--check']],
+      ['operations-contracts', 'npm.cmd', ['run', 'operations:contracts']],
+      ['staging-provider-preflight', 'npm.cmd', [
+        'run', 'operations:preflight', '--',
+        'config/operations.manifest.staging.candidate.json', '--probe'
+      ]],
+      ['repository-hygiene', 'npm.cmd', ['run', 'repository:hygiene']],
+      ['docker-health-staging', 'docker', [
+        'ps',
+        '--filter', 'label=com.docker.compose.project=seowon-inventory-staging',
+        '--format', '{{json .}}'
+      ], validateInventoryContainers]
+    ]
+  };
+  const commands = commandSets[verifierKey];
+  if (!commands) {
     console.error(`No autonomous verifier is registered for ${phase.id}/${phase.readyWork.id}.`);
     process.exitCode = 2;
     return;
   }
-
-  const commands = [
-    ['git-diff-check', 'git', ['diff', '--check']],
-    ['quality', 'npm.cmd', ['run', 'check']],
-    ['ui-contract', 'npm.cmd', ['run', 'ui:contract']],
-    ['compose-contract', 'npm.cmd', ['run', 'compose:contract']],
-    ['docker-health', 'docker', [
-      'ps',
-      '--filter', 'label=com.docker.compose.project=seowon-inventory-local',
-      '--format', '{{json .}}'
-    ], validateInventoryContainers]
-  ];
   const results = commands.map(([label, executable, args, validator]) => run(label, executable, args, validator));
   const failed = results.filter((result) => result.exitCode !== 0);
   console.log(`\n${JSON.stringify({

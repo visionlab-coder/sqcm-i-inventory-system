@@ -10,24 +10,29 @@ test('운영 설정은 안전한 세션 비밀과 secure cookie를 강제한다'
   assert.throws(() => getConfig({ NODE_ENV: 'production', SESSION_SECRET: 'x'.repeat(32), COOKIE_SECURE: 'true', MFA_ENCRYPTION_KEY: '' }), /MFA_ENCRYPTION_KEY/);
   assert.throws(() => getConfig({ NODE_ENV: 'production', SESSION_SECRET: 'x'.repeat(32), COOKIE_SECURE: 'true', MFA_ENCRYPTION_KEY: mfaKey }), /external file storage/);
   assert.throws(() => getConfig({ NODE_ENV: 'production', SESSION_SECRET: 'x'.repeat(32), COOKIE_SECURE: 'true', MFA_ENCRYPTION_KEY: mfaKey, FILE_STORAGE_DRIVER: 'external', DB_AUTO_MIGRATE: 'false', DB_RUN_SEEDS: 'false' }), /AUTH_PROVIDER/);
-  const config = getConfig({ NODE_ENV: 'production', SESSION_SECRET: 'x'.repeat(32), COOKIE_SECURE: 'true', MFA_ENCRYPTION_KEY: mfaKey, FILE_STORAGE_DRIVER: 'external', AUTH_PROVIDER:'oidc', MALWARE_SCAN_DRIVER:'external', AI_PROVIDER_DRIVER:'external', OPERATIONAL_ADAPTER_MODULE:'C:/runtime/adapters.js', PUBLIC_BASE_URL:'https://inventory.example', OIDC_REDIRECT_URI:'https://inventory.example/api/auth/oidc/callback', DB_AUTO_MIGRATE:'false', DB_RUN_SEEDS:'false' });
+  const config = getConfig({ NODE_ENV: 'production', SESSION_SECRET: 'x'.repeat(32), COOKIE_SECURE: 'true', MFA_ENCRYPTION_KEY: mfaKey, FILE_STORAGE_DRIVER: 'external', AUTH_PROVIDER:'oidc', MALWARE_SCAN_DRIVER:'external', AI_PROVIDER_DRIVER:'external', OPERATIONAL_ADAPTER_MODULE:'C:/runtime/adapters.js', PUBLIC_BASE_URL:'https://inventory.example', OIDC_REDIRECT_URI:'https://inventory.example/api/auth/oidc/callback', SUPABASE_URL:'https://project.supabase.co', SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test', DB_AUTO_MIGRATE:'false', DB_RUN_SEEDS:'false' });
   assert.equal(config.cookieSecure, true);
   assert.equal(config.publicBaseUrl, 'https://inventory.example');
   assert.equal(config.trustedProxyCount, 1);
   assert.equal(config.dbAutoMigrate, false);
   assert.equal(config.dbRunSeeds, false);
+  assert.equal(config.dbMigrationHistoryMode, 'application');
   assert.equal(config.automationWorkerEnabled, true);
   assert.equal(getConfig({ AUTOMATION_WORKER_ENABLED: 'false' }).automationWorkerEnabled, false);
   assert.throws(()=>createApp({pool:{},config}),/external fileStore/);
 });
+test('migration history mode is explicit and fail-closed', () => {
+  assert.equal(getConfig({ DB_MIGRATION_HISTORY_MODE: 'supabase' }).dbMigrationHistoryMode, 'supabase');
+  assert.throws(() => getConfig({ DB_MIGRATION_HISTORY_MODE: 'auto' }), /application or supabase/);
+});
 
 test('production은 앱 시작 migration과 seed를 거부한다', () => {
-  const base={NODE_ENV:'production',SESSION_SECRET:'x'.repeat(32),COOKIE_SECURE:'true',MFA_ENCRYPTION_KEY:Buffer.alloc(32,7).toString('base64'),FILE_STORAGE_DRIVER:'external',AUTH_PROVIDER:'oidc',MALWARE_SCAN_DRIVER:'external',AI_PROVIDER_DRIVER:'external',OPERATIONAL_ADAPTER_MODULE:'adapter.js',PUBLIC_BASE_URL:'https://inventory.example',OIDC_REDIRECT_URI:'https://inventory.example/api/auth/oidc/callback',DB_AUTO_MIGRATE:'false',DB_RUN_SEEDS:'false'};
+  const base={NODE_ENV:'production',SESSION_SECRET:'x'.repeat(32),COOKIE_SECURE:'true',MFA_ENCRYPTION_KEY:Buffer.alloc(32,7).toString('base64'),FILE_STORAGE_DRIVER:'external',AUTH_PROVIDER:'oidc',MALWARE_SCAN_DRIVER:'external',AI_PROVIDER_DRIVER:'external',OPERATIONAL_ADAPTER_MODULE:'adapter.js',PUBLIC_BASE_URL:'https://inventory.example',OIDC_REDIRECT_URI:'https://inventory.example/api/auth/oidc/callback',SUPABASE_URL:'https://project.supabase.co',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test',DB_AUTO_MIGRATE:'false',DB_RUN_SEEDS:'false'};
   assert.throws(()=>getConfig({...base,DB_AUTO_MIGRATE:'true'}),/cannot auto-apply/);
   assert.throws(()=>getConfig({...base,DB_RUN_SEEDS:'true',SEED_ADMIN_PASSWORD:'a',SEED_MANAGER_PASSWORD:'b',SEED_USER_PASSWORD:'c'}),/cannot create seed/);
 });
 test('운영 공개 URL은 HTTPS이고 OIDC callback의 기준 origin이어야 한다', () => {
-  const base={NODE_ENV:'production',SESSION_SECRET:'x'.repeat(32),COOKIE_SECURE:'true',MFA_ENCRYPTION_KEY:Buffer.alloc(32,7).toString('base64'),FILE_STORAGE_DRIVER:'external',AUTH_PROVIDER:'oidc',MALWARE_SCAN_DRIVER:'external',AI_PROVIDER_DRIVER:'external',OPERATIONAL_ADAPTER_MODULE:'adapter.js',DB_AUTO_MIGRATE:'false',DB_RUN_SEEDS:'false'};
+  const base={NODE_ENV:'production',SESSION_SECRET:'x'.repeat(32),COOKIE_SECURE:'true',MFA_ENCRYPTION_KEY:Buffer.alloc(32,7).toString('base64'),FILE_STORAGE_DRIVER:'external',AUTH_PROVIDER:'oidc',MALWARE_SCAN_DRIVER:'external',AI_PROVIDER_DRIVER:'external',OPERATIONAL_ADAPTER_MODULE:'adapter.js',SUPABASE_URL:'https://project.supabase.co',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test',DB_AUTO_MIGRATE:'false',DB_RUN_SEEDS:'false'};
   assert.throws(()=>getConfig({...base,PUBLIC_BASE_URL:'http://inventory.example',OIDC_REDIRECT_URI:'https://inventory.example/callback'}),/PUBLIC_BASE_URL/);
   assert.throws(()=>getConfig({...base,PUBLIC_BASE_URL:'https://inventory.example',OIDC_REDIRECT_URI:'https://other.example/callback'}),/belong/);
 });

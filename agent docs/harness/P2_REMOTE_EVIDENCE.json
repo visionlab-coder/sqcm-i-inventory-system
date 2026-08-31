@@ -3,19 +3,23 @@
   "observedAt": "2026-08-25",
   "repository": "visionlab-coder/sqcm-i-inventory-system",
   "commit": "cfed57c62b9416b047f058ce33488cb8d059ec0b",
-  "headSha": "cfed57c62b9416b047f058ce33488cb8d059ec0b",
+  "candidateCommit": "cfed57c62b9416b047f058ce33488cb8d059ec0b",
+  "evidenceCommit": "dfc37e3bfa60ea69a54900678897ee6b3a0eb078",
+  "headSha": "dfc37e3bfa60ea69a54900678897ee6b3a0eb078",
   "baseSha": "112ff5a03112b63a5ce23ac00bc64e418e3625b4",
   "pullRequest": {
     "number": 22,
     "url": "https://github.com/visionlab-coder/sqcm-i-inventory-system/pull/22",
-    "state": "open",
-    "draft": true,
+    "state": "closed",
+    "draft": false,
+    "merged": true,
+    "mergeSha": "79a12924106b378d2337898c76a4dd431634b78d",
     "base": "main",
     "head": "codex/fix-sidebar-accessibility",
     "mergeable": true
   },
   "workflow": {
-    "id": 32796061921,
+    "id": 32796633338,
     "name": "quality",
     "status": "completed",
     "conclusion": "success",
@@ -30,10 +34,32 @@
       }
     ]
   },
+  "mainRelease": {
+    "mainSha": "79a12924106b378d2337898c76a4dd431634b78d",
+    "workflows": [
+      {
+        "id": 32796785801,
+        "name": "quality",
+        "conclusion": "success"
+      },
+      {
+        "id": 32796785689,
+        "name": "release-images",
+        "conclusion": "success"
+      }
+    ],
+    "images": {
+      "backend": {
+        "tag": "ghcr.io/visionlab-coder/sqcm-i-inventory-backend:sha-79a12924106b378d2337898c76a4dd431634b78d",
+        "digest": "sha256:37ee6d90c0c8d4abbef0f3362a90fad1552f70e08c69b2fc8b7f4df476679f95"
+      },
+      "frontend": {
+        "tag": "ghcr.io/visionlab-coder/sqcm-i-inventory-frontend:sha-79a12924106b378d2337898c76a4dd431634b78d",
+        "digest": "sha256:1b8fb5e04a48971c239db09776bf0b5882f53624a5b66ba3f77d5f1fee36b6dd"
+      }
+    }
+  },
   "excludedActionsPreserved": [
-    "merge",
-    "main-push",
-    "release",
     "production-deployment",
     "migration",
     "secret-or-oauth-change",

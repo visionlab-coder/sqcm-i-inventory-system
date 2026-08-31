@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "migrations": [
+    { "file": "001_init.sql", "targets": ["application", "supabase"] },
+    { "file": "002_audit_trace.sql", "targets": ["application", "supabase"] },
+    { "file": "003_enterprise_inventory.sql", "targets": ["application", "supabase"] },
+    { "file": "004_procurement_inspection_assets.sql", "targets": ["application", "supabase"] },
+    { "file": "005_organization_invitations.sql", "targets": ["application", "supabase"] },
+    { "file": "006_reference_data_lifecycle.sql", "targets": ["application", "supabase"] },
+    { "file": "007_asset_status_reason_reference.sql", "targets": ["application", "supabase"] },
+    { "file": "008_asset_evidence_files.sql", "targets": ["application", "supabase"] },
+    { "file": "009_mfa_credentials.sql", "targets": ["application", "supabase"] },
+    { "file": "010_department_scope_backfill.sql", "targets": ["application", "supabase"] },
+    { "file": "011_multistage_approvals.sql", "targets": ["application", "supabase"] },
+    { "file": "012_return_evidence.sql", "targets": ["application", "supabase"] },
+    { "file": "013_oidc_identity.sql", "targets": ["application", "supabase"] },
+    { "file": "014_api_idempotency.sql", "targets": ["application", "supabase"] },
+    { "file": "015_outbox_delivery.sql", "targets": ["application", "supabase"] },
+    { "file": "016_canonical_ledger_org_isolation.sql", "targets": ["application", "supabase"] },
+    { "file": "017_cost_control_tco.sql", "targets": ["application", "supabase"] },
+    { "file": "018_automation_rules_notifications.sql", "targets": ["application", "supabase"] },
+    { "file": "019_ai_cost_recommendations.sql", "targets": ["application", "supabase"] },
+    { "file": "020_asset_financial_profile_trigger.sql", "targets": ["application", "supabase"] },
+    { "file": "021_ai_quality_feedback.sql", "targets": ["application", "supabase"] },
+    { "file": "022_cost_roi_savings.sql", "targets": ["application", "supabase"] },
+    { "file": "023_supabase_data_api_lockdown.sql", "targets": ["supabase"] },
+    { "file": "024_function_search_path_hardening.sql", "targets": ["application", "supabase"] },
+    { "file": "025_allow_supabase_s3_storage_driver.sql", "targets": ["application", "supabase"] }
+  ]
+}

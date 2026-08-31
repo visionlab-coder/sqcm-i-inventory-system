@@ -12,7 +12,42 @@ function createPool(connectionString) {
   return pool;
 }
 
-async function runMigrations(pool) {
+const MIGRATION_TARGETS = new Set(['application', 'supabase']);
+
+function validateMigrationTargetManifest(files, manifest) {
+  if (manifest?.schemaVersion !== 1 || !Array.isArray(manifest.migrations)) {
+    throw new Error('migration target manifest schema is invalid.');
+  }
+  const entries = manifest.migrations;
+  const manifestFiles = entries.map(entry => entry?.file);
+  if (new Set(manifestFiles).size !== manifestFiles.length) {
+    throw new Error('migration target manifest contains duplicate files.');
+  }
+  if (files.length !== manifestFiles.length || files.some((file, index) => manifestFiles[index] !== file)) {
+    throw new Error('migration target manifest must enumerate every migration in filename order.');
+  }
+  for (const entry of entries) {
+    if (!Array.isArray(entry.targets) || entry.targets.length === 0 || new Set(entry.targets).size !== entry.targets.length) {
+      throw new Error(`migration target manifest has invalid targets: ${entry.file || 'unknown'}.`);
+    }
+    if (entry.targets.some(target => !MIGRATION_TARGETS.has(target))) {
+      throw new Error(`migration target manifest has unsupported target: ${entry.file}.`);
+    }
+  }
+  return entries;
+}
+
+async function migrationFilesForTarget(target) {
+  if (!MIGRATION_TARGETS.has(target)) throw new Error(`Unsupported migration target: ${target}.`);
+  const migrationDir = path.join(process.cwd(), 'db', 'migrations');
+  const files = (await fs.readdir(migrationDir)).filter(file => /^\d+.*\.sql$/.test(file)).sort();
+  const manifestPath = path.join(process.cwd(), 'db', 'migration-targets.json');
+  const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
+  const entries = validateMigrationTargetManifest(files, manifest);
+  return entries.filter(entry => entry.targets.includes(target)).map(entry => entry.file);
+}
+
+async function runMigrations(pool, target = 'application') {
   const client = await pool.connect();
   try {
     await client.query('SELECT pg_advisory_lock($1)', [9142026]);
@@ -22,7 +57,7 @@ async function runMigrations(pool) {
       applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )`);
     const migrationDir = path.join(process.cwd(), 'db', 'migrations');
-    const files = (await fs.readdir(migrationDir)).filter(file => /^\d+.*\.sql$/.test(file)).sort();
+    const files = await migrationFilesForTarget(target);
     for (const file of files) {
       const sql = await fs.readFile(path.join(migrationDir, file), 'utf8');
       const checksum = migrationChecksum(sql);
@@ -48,11 +83,14 @@ async function runMigrations(pool) {
 }
 
 async function verifyMigrations(pool) {
+  const migrationDir = path.join(process.cwd(), 'db', 'migrations');
+  const files = await migrationFilesForTarget('application');
   const exists = await pool.query("SELECT to_regclass('public.schema_migrations') name");
   if (!exists.rows[0]?.name) throw new Error('schema_migrations table is missing. Run the approved migration job first.');
-  const migrationDir = path.join(process.cwd(), 'db', 'migrations');
-  const files = (await fs.readdir(migrationDir)).filter(file => /^\d+.*\.sql$/.test(file)).sort();
   const applied = await pool.query('SELECT version,checksum FROM schema_migrations ORDER BY version');
+  if (applied.rowCount !== files.length || applied.rows.some((row, index) => row.version !== files[index])) {
+    throw new Error(`application migration target mismatch: expected ${files.length}, applied ${applied.rowCount}.`);
+  }
   const byVersion = new Map(applied.rows.map(row => [row.version, row.checksum]));
   for (const file of files) {
     const sql = await fs.readFile(path.join(migrationDir, file), 'utf8');
@@ -60,6 +98,39 @@ async function verifyMigrations(pool) {
     if (!migrationChecksumCandidates(sql).has(byVersion.get(file))) throw new Error(`적용된 migration이 변경되었습니다: ${file}`);
   }
   return { expected: files.length, applied: applied.rowCount };
+}
+
+function normalizedProviderSql(sql) {
+  return String(sql || '').replace(/\r\n?/g, '\n').trimEnd();
+}
+
+async function verifySupabaseMigrations(pool) {
+  const migrationDir = path.join(process.cwd(), 'db', 'migrations');
+  const files = await migrationFilesForTarget('supabase');
+  const exists = await pool.query("SELECT to_regclass('supabase_migrations.schema_migrations') name");
+  if (!exists.rows[0]?.name) throw new Error('Supabase migration history is missing. Run the approved provider migration job first.');
+  const applied = await pool.query("SELECT name,statements FROM supabase_migrations.schema_migrations WHERE name LIKE 'sqcmi_%' ORDER BY version");
+  if (applied.rowCount !== files.length) {
+    throw new Error(`Supabase migration count mismatch: expected ${files.length}, applied ${applied.rowCount}.`);
+  }
+  for (let index = 0; index < files.length; index += 1) {
+    const file = files[index];
+    const expectedName = `sqcmi_${file.replace(/\.sql$/, '')}`;
+    const row = applied.rows[index];
+    if (row.name !== expectedName) throw new Error(`Supabase migration order mismatch: expected ${expectedName}, applied ${row.name || 'missing'}.`);
+    if (!Array.isArray(row.statements) || row.statements.length !== 1) throw new Error(`Supabase migration statement contract mismatch: ${expectedName}.`);
+    const sql = await fs.readFile(path.join(migrationDir, file), 'utf8');
+    if (normalizedProviderSql(row.statements[0]) !== normalizedProviderSql(sql)) {
+      throw new Error(`Supabase migration content mismatch: ${expectedName}.`);
+    }
+  }
+  return { expected: files.length, applied: applied.rowCount, history: 'supabase' };
+}
+
+async function verifyMigrationHistory(pool, mode = 'application') {
+  if (mode === 'application') return verifyMigrations(pool);
+  if (mode === 'supabase') return verifySupabaseMigrations(pool);
+  throw new Error(`Unsupported migration history mode: ${mode}.`);
 }
 
 async function ensureSeedUsers(pool, config) {
@@ -82,7 +153,7 @@ async function ensureSeedUsers(pool, config) {
 
 async function initializeDatabase(pool, config) {
   if (config.dbAutoMigrate) await runMigrations(pool);
-  else await verifyMigrations(pool);
+  else await verifyMigrationHistory(pool, config.dbMigrationHistoryMode);
   if (!config.dbRunSeeds) return;
   await ensureSeedUsers(pool, config);
   const seedDir = path.join(process.cwd(), 'db', 'seeds');
@@ -95,4 +166,4 @@ async function runSqlFile(pool, relativePath) {
   await pool.query(sql);
 }
 
-module.exports = { createPool, initializeDatabase, runMigrations, verifyMigrations };
+module.exports = { createPool, initializeDatabase, runMigrations, verifyMigrations, verifySupabaseMigrations, verifyMigrationHistory, normalizedProviderSql, migrationFilesForTarget, validateMigrationTargetManifest };

@@ -1,6 +1,6 @@
 # SQCM-i 비품관리 시스템 전체 로드맵
 
-기준일: 2026-08-25
+기준일: 2026-08-31
 
 상태 정본: [`docs/current-state.md`](./current-state.md)
 
@@ -24,28 +24,28 @@
 ```mermaid
 flowchart LR
     P0["P0 로컬 제품 기준선<br/>✅ 완료"] --> P1["P1 UI 접근성 안정화<br/>✅ 완료"]
-    P1 --> P2["P2 릴리스 기준선·CI<br/>🔄 현재"]
-    P2 -->|"commit·push·Draft PR 승인 + CI 증거"| P3["P3 AI PC 연동<br/>🔒 외부 입력"]
-    P3 --> P4["P4 Staging 인프라·배포<br/>🔒 외부 입력"]
-    P4 --> P5["P5 역할별 UAT<br/>🔒 외부 입력"]
-    P5 --> P6["P6 Production 전환<br/>🔒 승인"]
+    P1 --> P2["P2 릴리스 기준선·CI<br/>✅ 완료"]
+    P2 -->|"main SHA·CI·이미지 digest"| P3["P3 AI PC 연동<br/>✅ 완료"]
+    P3 --> P4["P4 Staging 인프라·배포<br/>✅ 완료"]
+    P4 --> P5["P5 역할별 UAT<br/>✅ 19/19·서명 3/3"]
+    P5 --> P6["P6 Production 전환<br/>🔄 Preflight"]
     P6 --> P7["P7 운영·유지보수 활성화<br/>⏳ 대기"]
 
     classDef done fill:#DCFCE7,stroke:#15803D,color:#14532D,stroke-width:2px;
     classDef active fill:#DBEAFE,stroke:#1D4ED8,color:#1E3A8A,stroke-width:4px;
     classDef pending fill:#F3F4F6,stroke:#6B7280,color:#374151,stroke-width:2px;
     classDef hold fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:2px;
-    class P0,P1 done;
-    class P2 active;
+    classDef blocked fill:#FEE2E2,stroke:#B91C1C,color:#7F1D1D,stroke-width:4px;
+    class P0,P1,P2,P3,P4,P5 done;
+    class P6 active;
     class P7 pending;
-    class P3,P4,P5,P6 hold;
 ```
 
-진척도: **2 / 8 Phase 완료**
+진척도: **6 / 8 Phase 완료**
 
-현재 위치: **P2 릴리스 기준선·CI**
+현재 위치: **P6 Production 전환**
 
-다음 Phase: **P3 AI PC 연동** — P2 종료 전에는 시작하지 않는다.
+다음 Phase: **P7 운영·유지보수 활성화** — P6 전환 증거 완료 전에는 시작하지 않는다.
 
 ## 3. 실행 Phase 판정표
 
@@ -53,11 +53,11 @@ flowchart LR
 |---|---|---|---|---|
 | P0 로컬 제품 기준선 | 저장소 확보, Wi-Fi 대체 게이트, 로컬 Docker 3계층, DB·API·UI 기본 검증 | ✅ 증거 있는 완료 | 로컬 서비스 healthy, 필수 테스트 PASS, 보호 서비스 보존 | Wi-Fi 사용 가능, Docker 3/3 healthy, 구문 95, 단위 109/109, 통합 20/20 |
 | P1 UI 접근성 안정화 | 데스크톱·모바일 메뉴, 로그아웃 접근성, 클릭 차단 회귀 수정 | ✅ 증거 있는 완료 | 변경 diff 검토, UI 계약 16 PASS, 역할별 브라우저 확인, 변경 기준선 확정 승인 | UI 계약 16, 구문 95, 단위 109/109, 통합 20/20 PASS. 1280×720 및 390×844 로그아웃 동작 확인 |
-| P2 릴리스 기준선·CI | P1·Harness 변경 commit, Draft PR, 원격 CI, 불변 이미지 기준선 | 🔄 진행 중 | 승인된 commit/push/Draft PR, CI PASS, main 병합 후 정확한 SHA·이미지 digest 기록 | commit `cfed57c…`, Draft PR #22, quality run `32796061921`의 unit·three-tier-integration PASS. main 병합·이미지 승인 필요 |
-| P3 AI PC 연동 | 독립 bridge/runtime/model, G1~G5, fallback | 🔒 승인된 보류 | checksum, listener, TLS·인증, health/ready, 계약·rollback PASS | AI PC 주소·운영자·모델 결정 필요. 기존 1234·11434·18765 보존 |
-| P4 Staging 인프라·배포 | 전용 hostname, 공급자, Secret reference, PITR, staging 배포 | 🔒 승인된 보류 | backup→migration→불변 이미지→health/smoke→rollback PASS | staging/production 대상과 공급자·접속 권한 필요 |
-| P5 역할별 UAT | 19개 UAT와 업무·보안·운영 책임자 검수 | 🔒 승인된 보류 | 19개 PASS, Critical/High 0, 책임자 3명 실제 서명 | 실제 참여자·책임자 지정 필요 |
-| P6 Production 전환 | 최종 승인, cutover, 관측·복구 확인 | 🔒 승인된 보류 | P3~P5 PASS, 승인된 변경 시간, cutover·rollback 증거 | 모든 선행 외부 게이트 필요 |
+| P2 릴리스 기준선·CI | P1·Harness 변경 commit, PR, 원격 CI, 불변 이미지 기준선 | ✅ 증거 있는 완료 | 승인된 commit/push/PR, CI PASS, main 병합 후 정확한 SHA·이미지 digest 기록 | main `79a1292…`, PR #22, main quality·release-images PASS, backend/frontend digest 기록 |
+| P3 AI PC 연동 | 독립 bridge/runtime/model, G1~G5, fallback | ✅ 증거 있는 완료 | checksum, listener, TLS·인증, health/ready, 계약·rollback PASS | G0~G5, Pilot UAT 19/19, 승인 3/3, Defender·경보 receipt PASS |
+| P4 Staging 인프라·배포 | 전용 hostname, 공급자, Secret reference, backup, staging 배포 | ✅ 증거 있는 완료 | backup→migration→불변 이미지→health/smoke→rollback PASS | non-seed·DNS/TLS·provider·OIDC·backup/migration·rollback·off-site readback·signoff 3/3 PASS |
+| P5 역할별 UAT | 19개 UAT와 업무·보안·운영 책임자 검수 | ✅ 증거 있는 완료 | staging 19개 PASS, Critical/High 0, 책임자 실제 서명 | 기술 UAT 19/19·Critical/High 0·업무/보안/운영 전자서명 3/3 |
+| P6 Production 전환 | 최종 승인, cutover, 관측·복구 확인 | 🔄 진행 중 | P3~P5 PASS, 승인된 변경 시간, cutover·rollback 증거 | G0 preflight HOLD: 현재 후보 미고정·Production manifest/cutover/runner 0. READY `P6-G1-PRODUCTION-TARGET-CHANGE-WINDOW-AND-PROVIDER-INPUT` |
 | P7 운영·유지보수 활성화 | 백업, 경보, 온콜, 정기 점검, 개선 큐 | ⏳ 미착수 | 운영 백업·경보 수신·복구훈련과 책임자 인수 | P6 완료 후 시작 |
 
 ## 4. 전역지침 11단계 연결
@@ -71,20 +71,18 @@ flowchart LR
 | 5 인프라 | 로컬 ✅ / 운영 🔒 | P0, P4 |
 | 6 DB | 로컬 ✅ / 운영 🔒 | P0, P4 |
 | 7 화면 | ✅ 증거 있는 완료 | P1 |
-| 8 개발 | 기준선 ✅ / 릴리스 기준선 🔄 | P2 |
-| 9 배포 | 🔒 승인된 보류 | P2, P4, P6 |
+| 8 개발 | 기준선·릴리스 기준선 ✅ | P2 |
+| 9 배포 | 불변 이미지 ✅ / staging·production 🔒 | P2, P4, P6 |
 | 10 통합 테스트 | 로컬 ✅ / 실사용자 🔒 | P0, P5 |
 | 11 유지보수 | 계약 ✅ / 운영 활성화 ⏳ | P7 |
 
-## 5. 현재 Phase 카드 — P2
+## 5. 현재 Phase 카드 — P6
 
-- 목표: P1·Harness 변경을 승인된 Git 기준선으로 고정하고 원격 CI와 불변 이미지 증거를 연결한다.
-- 변경 범위: 정확한 후보 allowlist stage·commit, `origin` 작업 브랜치 push, `main` 대상 Draft PR 생성과 원격 CI 확인.
-- 비범위: 외부 AI bridge, staging/production 배포, Secret 생성, UAT 서명.
-- 사전 증거: 2026-08-25 Harness strict 8/8, 구문 96 PASS, 단위 109/109 PASS, 통합 20/20 PASS, UI 계약 16 PASS, Compose·Docker 3/3 healthy, smoke·유지보수 PASS. SQCM-i 37봇과 보호 listener 보존.
-- 원격 증거: commit `cfed57c62b9416b047f058ce33488cb8d059ec0b`, Draft PR #22, quality workflow run `32796061921`, unit·three-tier-integration 성공.
-- 남은 게이트: Draft PR ready 전환·main 병합·main quality·release-images·GHCR digest 확인의 사용자 명시 승인. production 배포는 비범위.
-- 이번 Loop의 유일한 READY: **P2 main 병합·릴리스 이미지 승인 확인**.
+- 목표: P3~P5 완료 증거를 바탕으로 운영 대상·불변 이미지·backup/migration·cutover·rollback·관측 계약을 실제 Production 증거로 닫는다.
+- 사전 증거: P3 AI PC 19/19·서명 3/3, P4 staging/rollback/off-site backup·서명 3/3, P5 UAT 19/19·서명 3/3.
+- 비범위: 별도 승인 없는 Production 배포·migration·DNS/TLS·Secret·commit·push·merge·release.
+- 현재 상태: G0 preflight에서 P5 선행조건은 PASS했지만 현재 staging 후보는 미커밋이고 P2 main 이미지는 P3~P5 변경 전이다. Production manifest·cutover evidence·self-hosted workflow는 각각 0이며 `productionGo=false`다.
+- 다음 READY: **P6-G1-PRODUCTION-TARGET-CHANGE-WINDOW-AND-PROVIDER-INPUT**. 전용 hostname·Production Supabase/공급자·release candidate·변경 시간/책임자·runner 입력을 확정한다.
 
 ## 6. Phase 갱신 절차
 
