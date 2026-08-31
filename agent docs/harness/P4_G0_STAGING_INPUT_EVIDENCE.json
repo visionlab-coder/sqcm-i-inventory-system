@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "workId": "P4-G0-STAGING-TARGET-AND-PROVIDER-INPUT",
+  "checkedAt": "2026-08-29T08:39:39.8522284+09:00",
+  "status": "HOLD_STAGING_INPUT_REQUIRED",
+  "phaseProgress": "4 / 8",
+  "sourceState": {
+    "branch": "codex/fix-sidebar-accessibility",
+    "head": "dfc37e3bfa60ea69a54900678897ee6b3a0eb078",
+    "remoteBranchHead": "dfc37e3bfa60ea69a54900678897ee6b3a0eb078",
+    "remoteMainHead": "79a12924106b378d2337898c76a4dd431634b78d",
+    "newCommitSince2026_08_25": false,
+    "trackedWorktreePreserved": true
+  },
+  "runtimeState": {
+    "dockerProject": "seowon-inventory-local",
+    "composeServices": ["backend", "database", "frontend"],
+    "healthyServiceCount": 3,
+    "restartCount": 0,
+    "frontendHttpStatus": 200,
+    "backendHealthHttpStatus": 200,
+    "observabilityLastRun": "2026-08-29T08:35:23+09:00",
+    "observabilityLastResult": 0
+  },
+  "protectedServices": [
+    {"name": "LM Studio", "port": 1234, "expectedPid": 6632, "actualPid": 6632, "preserved": true},
+    {"name": "Ollama", "port": 11434, "expectedPid": 8588, "actualPid": 8588, "preserved": true},
+    {"name": "bridge/wslrelay", "port": 18765, "expectedPid": 22716, "actualPid": 22716, "preserved": true},
+    {"name": "inventory bridge", "port": 18766, "expectedPid": 65400, "actualPid": 65400, "preserved": true},
+    {"name": "inventory runtime", "port": 18767, "expectedPid": 28532, "actualPid": 28532, "preserved": true}
+  ],
+  "inputChecklist": [
+    {"input": "stagingDedicatedHostname", "status": "MISSING", "evidence": "sqcm.safe-link.co.kr resolves and serves SQCM-i OS, but inventory staging ownership and isolation are not established"},
+    {"input": "stagingServerAndAccount", "status": "MISSING", "evidence": "no approved host, account, access method, or deployment scope found"},
+    {"input": "postgresqlAndPitr", "status": "MISSING", "evidence": "local PostgreSQL is healthy; external staging database, WAL archive, retention, RPO/RTO owner, and credential reference are absent"},
+    {"input": "objectStorage", "status": "MISSING", "evidence": "only objects.example.com template endpoint exists"},
+    {"input": "oidc", "status": "MISSING", "evidence": "only idp.example.com template issuer exists; tenant, client, claims policy, and credential reference are absent"},
+    {"input": "malwareScanner", "status": "MISSING_FOR_STAGING", "evidence": "P3 Microsoft Defender is local evidence only; staging endpoint and credential reference are absent"},
+    {"input": "eventPublisher", "status": "MISSING", "evidence": "only events.example.com template endpoint exists"},
+    {"input": "alertProvider", "status": "MISSING_FOR_STAGING", "evidence": "P3 Windows Session Message is local evidence only; staging channel, recipient, endpoint, and credential reference are absent"},
+    {"input": "aiProvider", "status": "MISSING_FOR_STAGING", "evidence": "local loopback AI bridge is preserved; staging reachability and credential reference are absent"},
+    {"input": "secretReferences", "status": "MISSING", "evidence": "nine secret:// example references exist, but no approved Secret Manager namespace or actual references exist"}
+  ],
+  "readOnlyExternalObservation": {
+    "url": "https://sqcm.safe-link.co.kr",
+    "dnsResolved": true,
+    "tlsReachable": true,
+    "rootStatus": 200,
+    "healthStatus": 200,
+    "healthResponseIdentity": "SQCM-i OS login HTML, not inventory health contract",
+    "apiReadinessStatus": 401,
+    "inventoryStagingAccepted": false
+  },
+  "verification": {
+    "harnessCheck": "PASS_0_ERRORS",
+    "operationsTemplatePreflight": "PASS_TEMPLATE_ONLY",
+    "operationsContracts": "PASS_TEMPLATE_ONLY",
+    "composeContract": "PASS_3_SERVICES",
+    "deployPrecheck": "EXPECTED_FAIL_CLOSED_EXIT_1",
+    "deployPrecheckReasons": [
+      "placeholder POSTGRES_PASSWORD",
+      "placeholder SESSION_SECRET",
+      "invalid placeholder MFA_ENCRYPTION_KEY",
+      "missing immutable 40-character SHA release tag"
+    ]
+  },
+  "authority": {
+    "autonomousLocalChecksAndDocumentation": true,
+    "externalAccountOrCredentialCreation": false,
+    "oauthConsent": false,
+    "dnsTlsChange": false,
+    "stagingDeployOrMigrationReady": false,
+    "productionGo": false
+  },
+  "changesMade": [
+    "added P4-G0 resume execution contract",
+    "added P4-G0 machine evidence",
+    "added P4-G0 human checklist report"
+  ],
+  "externalChangesMade": false,
+  "blockedReasons": [
+    "STAGING_DEDICATED_TARGET_UNCONFIRMED",
+    "STAGING_SERVER_ACCOUNT_MISSING",
+    "STAGING_POSTGRES_PITR_INPUT_MISSING",
+    "STAGING_PROVIDER_ENDPOINTS_MISSING",
+    "STAGING_SECRET_REFERENCES_MISSING"
+  ],
+  "nextReady": "P4-G0-STAGING-TARGET-AND-PROVIDER-INPUT",
+  "nextAction": "Provide or authorize an exact staging host/account and approved provider/Secret references; do not deploy, migrate, or change DNS/TLS before that evidence exists."
+}

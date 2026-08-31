@@ -57,11 +57,33 @@ function getConfig(overrides = {}) {
   const aiProviderName = String(env.AI_PROVIDER_NAME || 'external-http').trim();
   const aiProviderTimeoutMs = boundedInteger(env.AI_PROVIDER_TIMEOUT_MS, 12000, 'AI_PROVIDER_TIMEOUT_MS', 1000, 120000);
   const malwareScanDriver = String(env.MALWARE_SCAN_DRIVER || 'mock').toLowerCase();
+  const malwareScannerUrl = String(env.MALWARE_SCANNER_URL || '').trim();
+  const malwareScannerHealthUrl = String(env.MALWARE_SCANNER_HEALTH_URL || '').trim();
+  const alertingUrl = String(env.ALERTING_URL || '').trim();
+  const malwareScannerApiKey = String(env.MALWARE_SCANNER_API_KEY || '').trim() || readSecretFile(env.MALWARE_SCANNER_API_KEY_FILE);
+  const alertingApiKey = String(env.ALERTING_API_KEY || '').trim() || readSecretFile(env.ALERTING_API_KEY_FILE);
+  const malwareScannerTimeoutMs = boundedInteger(env.MALWARE_SCANNER_TIMEOUT_MS, 30_000, 'MALWARE_SCANNER_TIMEOUT_MS', 1_000, 120_000);
   const operationalAdapterModule = String(env.OPERATIONAL_ADAPTER_MODULE || '').trim();
+  const storageS3Endpoint = String(env.STORAGE_S3_ENDPOINT || '').trim();
+  const storageS3Region = String(env.STORAGE_S3_REGION || '').trim();
+  const storageS3AccessKeyId = String(env.STORAGE_S3_ACCESS_KEY_ID || '').trim() || readSecretFile(env.STORAGE_S3_ACCESS_KEY_ID_FILE);
+  const storageS3SecretAccessKey = String(env.STORAGE_S3_SECRET_ACCESS_KEY || '').trim() || readSecretFile(env.STORAGE_S3_SECRET_ACCESS_KEY_FILE);
+  const storageBucket = String(env.STORAGE_BUCKET || '').trim();
+  const oidcIssuer = String(env.OIDC_ISSUER || '').trim();
+  const oidcClientId = String(env.OIDC_CLIENT_ID || '').trim();
+  const oidcClientSecret = String(env.OIDC_CLIENT_SECRET || '').trim() || readSecretFile(env.OIDC_CLIENT_SECRET_FILE);
+  const supabaseUrl = String(env.SUPABASE_URL || '').trim().replace(/\/$/, '');
+  const supabasePublishableKey = String(env.SUPABASE_PUBLISHABLE_KEY || '').trim();
+  const eventPublisherUrl = String(env.EVENT_PUBLISHER_URL || '').trim();
+  const eventPublisherApiKey = String(env.EVENT_PUBLISHER_API_KEY || '').trim() || readSecretFile(env.EVENT_PUBLISHER_API_KEY_FILE);
   const publicBaseUrl = String(env.PUBLIC_BASE_URL || '').trim().replace(/\/$/, '');
   const isProduction = env.NODE_ENV === 'production';
   const dbAutoMigrate = booleanValue(env.DB_AUTO_MIGRATE, !isProduction, 'DB_AUTO_MIGRATE');
   const dbRunSeeds = booleanValue(env.DB_RUN_SEEDS, false, 'DB_RUN_SEEDS');
+  const dbMigrationHistoryMode = String(env.DB_MIGRATION_HISTORY_MODE || 'application').trim().toLowerCase();
+  if (!['application', 'supabase'].includes(dbMigrationHistoryMode)) {
+    throw new Error('DB_MIGRATION_HISTORY_MODE must be application or supabase.');
+  }
   const seedAdminPassword = String(env.SEED_ADMIN_PASSWORD || '');
   const seedManagerPassword = String(env.SEED_MANAGER_PASSWORD || '');
   const seedUserPassword = String(env.SEED_USER_PASSWORD || '');
@@ -69,6 +91,7 @@ function getConfig(overrides = {}) {
     throw new Error('DB_RUN_SEEDS=true requires all SEED_*_PASSWORD values.');
   }
   if (!['local', 'oidc'].includes(authProvider)) throw new Error('AUTH_PROVIDER must be local or oidc.');
+  if (authProvider === 'oidc' && (!/^https:\/\//i.test(supabaseUrl) || !supabasePublishableKey)) throw new Error('OIDC consent requires SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY.');
   if (!['rules', 'external'].includes(aiProviderDriver)) throw new Error('AI_PROVIDER_DRIVER must be rules or external.');
   if (aiProviderDriver === 'external' && !operationalAdapterModule && (!aiProviderUrl || !aiProviderOcrUrl || !aiProviderHealthUrl || !aiProviderReadyUrl)) {
     throw new Error('Built-in external AI requires AI_PROVIDER_URL, AI_PROVIDER_OCR_URL, AI_PROVIDER_HEALTH_URL and AI_PROVIDER_READY_URL.');
@@ -114,7 +137,25 @@ function getConfig(overrides = {}) {
     aiProviderName,
     aiProviderTimeoutMs,
     malwareScanDriver,
+    malwareScannerUrl,
+    malwareScannerHealthUrl,
+    malwareScannerApiKey,
+    malwareScannerTimeoutMs,
+    alertingUrl,
+    alertingApiKey,
     operationalAdapterModule,
+    storageS3Endpoint,
+    storageS3Region,
+    storageS3AccessKeyId,
+    storageS3SecretAccessKey,
+    storageBucket,
+    oidcIssuer,
+    oidcClientId,
+    oidcClientSecret,
+    supabaseUrl,
+    supabasePublishableKey,
+    eventPublisherUrl,
+    eventPublisherApiKey,
     publicBaseUrl,
     trustedProxyCount: boundedInteger(env.TRUSTED_PROXY_COUNT, 1, 'TRUSTED_PROXY_COUNT', 1, 10),
     oidcRedirectUri: String(env.OIDC_REDIRECT_URI || '').trim(),
@@ -122,6 +163,7 @@ function getConfig(overrides = {}) {
     mfaEncryptionKey,
     dbAutoMigrate,
     dbRunSeeds,
+    dbMigrationHistoryMode,
     outboxPublisherRequired: isProduction,
     outboxPollIntervalMs: boundedInteger(env.OUTBOX_POLL_INTERVAL_MS, 5000, 'OUTBOX_POLL_INTERVAL_MS', 1000, 300000),
     outboxBatchSize: boundedInteger(env.OUTBOX_BATCH_SIZE, 20, 'OUTBOX_BATCH_SIZE', 1, 100),

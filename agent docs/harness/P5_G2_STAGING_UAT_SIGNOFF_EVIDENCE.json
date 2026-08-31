@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "workId": "P5-G2-STAGING-UAT-SIGNOFF",
+  "approvedAt": "2026-08-31T18:23:49+09:00",
+  "status": "PASS_SIGNOFF_3_OF_3",
+  "environment": "staging",
+  "approval": {
+    "source": "CURRENT_USER_EXPLICIT_IN_THREAD_APPROVAL",
+    "statement": "P5-G2 staging UAT 업무·보안·운영 책임자를 나로 지정하고 3건 실제 서명 승인",
+    "signingIdentity": "PROJECT_OWNER_CURRENT_USER",
+    "method": "ELECTRONIC_EXPLICIT_APPROVAL",
+    "futureReassignmentAllowed": true
+  },
+  "technicalBasis": {
+    "uatTotal": 19,
+    "passed": 19,
+    "failed": 0,
+    "pending": 0,
+    "openCritical": 0,
+    "openHigh": 0,
+    "browserEvidence": "PASS_P5_UAT_13",
+    "releaseSha": "dfc37e3bfa60ea69a54900678897ee6b3a0eb078",
+    "health": 200,
+    "readiness": 200,
+    "dockerHealthy": "3/3"
+  },
+  "signatures": [
+    {"role":"business","responsible":"PROJECT_OWNER_CURRENT_USER","status":"SIGNED","signedAt":"2026-08-31T18:23:49+09:00"},
+    {"role":"security","responsible":"PROJECT_OWNER_CURRENT_USER","status":"SIGNED","signedAt":"2026-08-31T18:23:49+09:00"},
+    {"role":"operations","responsible":"PROJECT_OWNER_CURRENT_USER","status":"SIGNED","signedAt":"2026-08-31T18:23:49+09:00"}
+  ],
+  "phaseCompletionChecklist": {
+    "goalScope": "PASS",
+    "approvedArtifacts": "PASS",
+    "riskProportionateVerification": "PASS",
+    "securityPrivacySecretBoundary": "PASS",
+    "docsHarnessTraceability": "PASS",
+    "gitDiffRollbackState": "PASS_DIRTY_WORKTREE_PRESERVED",
+    "nextExternalGate": "PASS_EXPLICIT"
+  },
+  "protectedServicesPreserved": true,
+  "secretValuesRecorded": false,
+  "productionChangesMade": false,
+  "productionGo": false,
+  "scopeLimit": "P5 staging UAT signoff only; not Production authorization",
+  "nextReady": "P6-G0-PRODUCTION-CUTOVER-PREFLIGHT"
+}

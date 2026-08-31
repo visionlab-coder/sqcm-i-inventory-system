@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "project": "SQCM-i inventory system",
-  "updatedAt": "2026-08-25",
+  "updatedAt": "2026-08-31",
   "repository": "D:\\seowon_projects\\sqcm-i-inventory-system",
   "branch": "codex/fix-sidebar-accessibility",
   "goal": "P2부터 P7까지 증거 기반으로 한 Phase씩 완료하고 37봇과 보호 서비스를 보존한다.",
-  "currentPhase": "P2",
-  "completedPhases": 2,
+  "currentPhase": "P6",
+  "completedPhases": 6,
   "totalPhases": 8,
   "invariants": {
     "dockerServices": ["frontend", "backend", "database"],
@@ -40,13 +40,8 @@
     {
       "id": "P2",
       "name": "릴리스 기준선·CI",
-      "status": "in-progress",
-      "readyWork": {
-        "id": "P2-MAIN-MERGE-RELEASE-APPROVAL",
-        "description": "Draft PR #22를 ready로 전환하고 main에 병합한 뒤 main quality와 release-images 및 GHCR digest를 확인하는 명시 승인을 받는다.",
-        "authority": "explicit-approval",
-        "nextGate": "P2-MAIN-QUALITY-AND-IMAGE-EVIDENCE"
-      },
+      "status": "evidence-complete",
+      "readyWork": null,
       "lastEvidence": {
         "date": "2026-08-25",
         "result": "PASS",
@@ -68,42 +63,205 @@
         "report": "docs/phase-reports/79_장기_Goal_Harness_설정.md"
       },
       "remoteEvidence": {
-        "commit": "cfed57c62b9416b047f058ce33488cb8d059ec0b",
+        "candidateCommit": "cfed57c62b9416b047f058ce33488cb8d059ec0b",
+        "evidenceCommit": "dfc37e3bfa60ea69a54900678897ee6b3a0eb078",
+        "mainSha": "79a12924106b378d2337898c76a4dd431634b78d",
         "pullRequest": 22,
-        "draft": true,
-        "workflowRun": 32796061921,
+        "merged": true,
+        "workflowRun": 32796633338,
         "unit": "success",
         "threeTierIntegration": "success",
-        "report": "docs/phase-reports/80_P2_Draft_PR_CI_증거.md"
+        "mainQualityRun": 32796785801,
+        "releaseImagesRun": 32796785689,
+        "backendDigest": "sha256:37ee6d90c0c8d4abbef0f3362a90fad1552f70e08c69b2fc8b7f4df476679f95",
+        "frontendDigest": "sha256:1b8fb5e04a48971c239db09776bf0b5882f53624a5b66ba3f77d5f1fee36b6dd",
+        "report": "docs/phase-reports/81_P2_Main_릴리스_완료.md"
       },
       "completionGate": "승인된 commit·push·Draft PR, 원격 CI PASS, 정확한 Git SHA 기록. main 병합 후 불변 이미지 digest는 별도 승인 게이트"
     },
     {
       "id": "P3",
       "name": "AI PC 연동",
-      "status": "approved-hold",
+      "status": "evidence-complete",
       "readyWork": null,
+      "lastEvidence": {
+        "date": "2026-08-25",
+        "result": "PASS_G0_TO_G5_P3_COMPLETE",
+        "g0": "PASS_PROTECTED_SERVICES_PRESERVED",
+        "g1": "PASS_INDEPENDENT_RUNTIME_MODEL_CHECKSUM_LICENSE",
+        "g2": "PASS_LOOPBACK_BRIDGE_BEARER_ORGANIZATION_ALLOWLIST",
+        "g3": "PASS_STRICT_OCR_BRIDGE_AND_BACKEND_END_TO_END",
+        "g4": "PASS_CURRENT_USER_LOGON_AUTOSTART_AND_FIVE_MINUTE_OBSERVABILITY",
+        "g5": "PASS_19_OF_19_APPROVED_DEFENDER_AND_LOCAL_ALERT",
+        "checks": [
+          "bridge-health-public",
+          "bridge-bearer-auth",
+          "bridge-organization-allowlist",
+          "bridge-model-sha256-required",
+          "bridge-readiness-fail-closed",
+          "bridge-runtime-contract-7-of-7",
+          "runtime-and-model-checksum-4-of-4",
+          "bridge-live-recommend-ocr",
+          "runtime-down-ready-503-and-recovery",
+          "docker-host-reachability-200",
+          "compose-ai-three-services-secret-file",
+          "docker-secret-volume-uid1000-mode0400-readonly",
+          "backend-external-adapter-health-ready-pass",
+          "backend-service-recommend-pass",
+          "backend-service-ocr-fail-http502",
+          "same-ocr-schema-failure-third-recurrence-stop",
+          "prompt-contract-strict-8-of-8",
+          "ocr-schema-focused-tests-8-of-8",
+          "ocr-schema-direct-runtime-pass",
+          "backend-remediation-image-build-pass",
+          "backend-one-reconnect-healthy",
+          "backend-verifier-invalid-file-id-http400-before-runtime",
+          "backend-rules-image-rollback-pass",
+          "bridge-one-reload-pid-11232-to-30392",
+          "bridge-unauthenticated-ready-401",
+          "bridge-strict-ocr-pass",
+          "backend-second-reconnect-external-healthy",
+          "backend-provider-health-ready-recommend-ocr-pass",
+          "external-ai-preflight-health-ready-200",
+          "docker-secret-readonly-uid1000-mode0400",
+          "g4-system-approval-received",
+          "g4-current-token-nonadmin",
+          "g4-secret-acl-system-current-user-only",
+          "g4-system-code-path-authenticated-users-modify-blocked",
+          "g4-no-task-acl-service-change",
+          "g4-s4u-prompt-contract-8-of-8",
+          "g4-observability-powershell-parse-pass",
+          "g4-observability-direct-four-endpoint-pass",
+          "g4-observability-sensitive-patterns-zero",
+          "g4-s4u-config-dry-run-pass",
+          "g4-s4u-first-registration-access-denied-stop",
+          "g4-original-tasks-pids-external-backend-preserved",
+          "g4-user-logon-mode-approved",
+          "g4-observability-task-interactive-limited",
+          "g4-observability-logon-and-five-minute-triggers",
+          "g4-observability-last-result-zero",
+          "g4-observability-first-five-minute-trigger-pass",
+          "g4-four-endpoint-pass-sensitive-patterns-zero",
+          "backend-rules-rollback-pass",
+          "deploy-smoke-5-of-5-after-rollback",
+          "javascript-syntax-101",
+          "unit-117-of-117",
+          "repository-hygiene",
+          "sqcmi-models-37-awake-8",
+          "protected-listeners-preserved",
+          "g5-current-user-assigned-admin-manager-user",
+          "g5-current-user-assigned-business-security-operations",
+          "g5-uat-matrix-19-items-pending-not-falsely-passed",
+          "g5-role-api-technical-preflight-1-of-1-pass"
+          ,"g5-integration-20-of-20-pass"
+          ,"g5-browser-user-manager-admin-pass"
+          ,"g5-mobile-390x844-no-overflow-console-zero"
+          ,"g5-backup-restore-32-tables-22-migrations-match"
+          ,"g5-dependency-recovery-503-to-200-pass"
+          ,"g5-ocr-invalid-input-400-defect-resolved"
+          ,"g5-backend-rollback-4dda-health-smoke-role-db22-pass"
+          ,"g5-candidate-forward-b9f0-smoke-role-ai-pass"
+          ,"g5-frontend-database-containers-preserved"
+          ,"g5-business-security-operations-3-of-3-approved-p3-only"
+          ,"g5-external-provider-preflight-hold-no-scanner-alert"
+          ,"g5-defender-4-18-26070-9-signature-1-457-324-0"
+          ,"g5-defender-clean-and-eicar-infected-pass"
+          ,"g5-infected-unknown-timeout-fail-closed"
+          ,"g5-windows-session-alert-three-categories-receipt-pass"
+          ,"g5-application-eicar-pdf-http422-storage-zero"
+          ,"g5-unit-122-of-122-integration-20-of-20-security-uat-1-of-1"
+          ,"g5-backend-final-digest-ff3eeeff"
+          ,"g5-bridge-security-reload-30392-to-65400"
+          ,"g5-uat-19-pass-0-fail-0-not-run"
+        ],
+        "report": "docs/phase-reports/94_P3_G5_Defender_Local_Alert_Integration.md"
+      },
       "completionGate": "독립 runtime/model checksum, listener, TLS·인증, health/ready, G1~G5와 rollback PASS"
     },
     {
       "id": "P4",
       "name": "Staging 인프라·배포",
-      "status": "approved-hold",
+      "status": "evidence-complete",
       "readyWork": null,
+      "lastEvidence": {
+        "date": "2026-08-31",
+        "result": "PASS_OFFSITE_BACKUP_AND_P4_SIGNOFF",
+        "checks": [
+          "public-tunnel-stopped-before-seed-rollback",
+          "synthetic-three-services-healthy-smoke-5-of-5",
+          "seed-public-exposure-zero",
+          "live-three-services-healthy-smoke-5-of-5",
+          "backend-5xx-error-exception-zero",
+          "tunnel-reconnected-four-seoul-edge-connections",
+          "post-forward-oidc-admin-session-logout-pass",
+          "public-dns-a-two-records",
+          "office-os-dns-negative-cache-warning-recorded",
+          "protected-listeners-preserved",
+          "company-google-drive-account-verified",
+          "offsite-folder-owner-only-not-shared",
+          "offsite-backup-readback-bytes-471726",
+          "offsite-backup-readback-sha256-match",
+          "p4-business-security-operations-signoff-3-of-3"
+        ],
+        "report": "docs/phase-reports/115_P4_G3_Offsite_Backup_Staging_Signoff.md"
+      },
       "completionGate": "운영 대상 승인 후 backup, migration, 불변 이미지, health/smoke, rollback PASS"
     },
     {
       "id": "P5",
       "name": "역할별 UAT",
-      "status": "approved-hold",
+      "status": "evidence-complete",
       "readyWork": null,
+      "lastEvidence": {
+        "date": "2026-08-31",
+        "result": "PASS_UAT_19_OF_19_SIGNOFF_3_OF_3",
+        "checks": [
+          "pre-remediation-backup-488209-bytes-sha256-recorded",
+          "migration-025-history-25-of-25",
+          "storage-driver-local-external-supabase-s3",
+          "p5-defect-001-technically-resolved",
+          "uat-pass-19-fail-0-pending-0",
+          "eicar-422-storage-zero-alert-receipt",
+          "mfa-recovery-reuse-rejected-and-restored",
+          "outbox-published-16-of-16",
+          "authenticated-user-supabase-sso-login-pass",
+          "mobile-390x844-dashboard-assets-requests-assignments-security-pass",
+          "mobile-overflow-zero-console-zero-logout-pass",
+          "p5-business-security-operations-signoff-3-of-3",
+          "docker-three-services-healthy",
+          "protected-listeners-preserved",
+          "production-and-git-external-changes-zero"
+        ],
+        "report": "docs/phase-reports/119_P5_G2_Staging_UAT_Signoff.md"
+      },
       "completionGate": "UAT 19개 PASS, Critical/High 0, 업무·보안·운영 책임자 실제 서명"
     },
     {
       "id": "P6",
       "name": "Production 전환",
-      "status": "approved-hold",
-      "readyWork": null,
+      "status": "in-progress",
+      "readyWork": {
+        "id": "P6-G1-PRODUCTION-TARGET-CHANGE-WINDOW-AND-PROVIDER-INPUT",
+        "description": "비품관리 전용 Production hostname, 분리된 Supabase/공급자, release candidate, 변경 시간·책임자와 배포 runner 입력을 확정한다.",
+        "authority": "external-input",
+        "nextGate": "P6-G2-RELEASE-CANDIDATE-GIT-CI-AND-IMMUTABLE-IMAGES"
+      },
+      "lastEvidence": {
+        "date": "2026-08-31",
+        "result": "HOLD_EXTERNAL_INPUTS",
+        "checks": [
+          "p5-prerequisite-complete-19-of-19-signoff-3-of-3",
+          "template-manifest-fail-closed",
+          "template-cutover-twelve-gates-fail-closed",
+          "current-candidate-dirty-not-frozen",
+          "p2-images-predate-p3-p5-changes",
+          "production-manifest-zero",
+          "actual-cutover-evidence-zero",
+          "self-hosted-production-workflow-zero",
+          "production-go-false"
+        ],
+        "report": "docs/phase-reports/120_P6_G0_Production_Cutover_Preflight.md"
+      },
       "completionGate": "P3~P5 PASS와 승인된 cutover·rollback 증거"
     },
     {

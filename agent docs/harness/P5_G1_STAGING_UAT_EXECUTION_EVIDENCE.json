@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "workId": "P5-G1-STAGING-UAT-EXECUTION",
+  "checkedAt": "2026-08-31T15:52:27+09:00",
+  "status": "BLOCKED_HIGH_DEFECT",
+  "phaseProgress": "5 / 8",
+  "environment": {
+    "name": "staging",
+    "url": "https://inventory-staging.safe-link.co.kr",
+    "health": 200,
+    "readiness": 200,
+    "dockerServices": ["frontend", "backend", "database"],
+    "healthyServices": 3,
+    "production": false
+  },
+  "execution": {
+    "total": 19,
+    "passed": 5,
+    "failed": 1,
+    "notRun": 13,
+    "browserCredentialTransmissionPerformed": false,
+    "secretsPrinted": false,
+    "items": [
+      {"id":"P5-UAT-01","status":"PASS","evidence":"HTTPS staging and isolated runId fixture established"},
+      {"id":"P5-UAT-02","status":"PASS","evidence":"credentials remained in the protected local environment"},
+      {"id":"P5-UAT-03","status":"PASS","evidence":"P4 backup, offsite readback and rollback baseline linked"},
+      {"id":"P5-UAT-04","status":"PASS","evidence":"ADMIN, MANAGER and USER OIDC sessions established with exact roles"},
+      {"id":"P5-UAT-05","status":"NOT_RUN","evidence":"execution stopped before session lifecycle completion"},
+      {"id":"P5-UAT-06","status":"NOT_RUN","evidence":"execution stopped before MFA scenario; exact restoration guard passed on every attempt"},
+      {"id":"P5-UAT-07","status":"PASS","evidence":"USER own-department visibility and outside-department 403 verified"},
+      {"id":"P5-UAT-08","status":"FAIL","evidence":"clean PNG upload returned HTTP 500 / PostgreSQL 23514 / ck_file_records_storage_driver"},
+      {"id":"P5-UAT-09","status":"NOT_RUN","evidence":"stopped after High defect"},
+      {"id":"P5-UAT-10","status":"NOT_RUN","evidence":"same storage path is a return-photo prerequisite"},
+      {"id":"P5-UAT-11","status":"NOT_RUN","evidence":"stopped after High defect"},
+      {"id":"P5-UAT-12","status":"NOT_RUN","evidence":"stopped after High defect"},
+      {"id":"P5-UAT-13","status":"NOT_RUN","evidence":"browser credential transmission was not performed"},
+      {"id":"P5-UAT-14","status":"NOT_RUN","evidence":"stopped after High defect"},
+      {"id":"P5-UAT-15","status":"NOT_RUN","evidence":"stopped before live EICAR provider receipt"},
+      {"id":"P5-UAT-16","status":"NOT_RUN","evidence":"stopped before outbox and alert receipt reconciliation"},
+      {"id":"P5-UAT-17","status":"NOT_RUN","evidence":"stopped after High defect"},
+      {"id":"P5-UAT-18","status":"NOT_RUN","evidence":"P4 baseline linked but not re-executed in this run"},
+      {"id":"P5-UAT-19","status":"NOT_RUN","evidence":"P4 baseline linked but not re-executed in this run"}
+    ]
+  },
+  "attempts": [
+    {"runId":"P5-UAT-20260831T064801Z","result":"FAIL_PRE_FIXTURE","reason":"OIDC consent response branch not handled","fixtureIds":{"outsideDepartmentId":2,"locationId":2},"mfaRestored":true},
+    {"runId":"P5-UAT-20260831T064947Z","result":"FAIL_PRE_FIXTURE","reason":"OIDC consent approval branch not handled for MANAGER","fixtureIds":{"outsideDepartmentId":3,"locationId":3},"mfaRestored":true},
+    {"runId":"P5-UAT-20260831T065117Z","result":"FAIL_INPUT_VALIDATION","reason":"approval policy priority exceeded 0..999","fixtureIds":{"outsideDepartmentId":4,"locationId":4},"mfaRestored":true},
+    {"runId":"P5-UAT-20260831T065158Z","result":"BLOCKED_HIGH_DEFECT","reason":"SUPABASE_S3 violates ck_file_records_storage_driver","fixtureIds":{"outsideDepartmentId":5,"locationId":5,"policyIds":[8,9,10,11,12],"assetId":1,"outsideAssetId":2},"mfaRestored":true}
+  ],
+  "defects": [
+    {
+      "id": "P5-DEFECT-001",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "role": "MANAGER",
+      "reproduction": "POST a valid clean PNG to /api/enterprise/assets/1/files in staging",
+      "expected": "HTTP 201 and a downloadable Supabase Storage file record",
+      "actual": "HTTP 500; PostgreSQL 23514; ck_file_records_storage_driver rejects adapter driver SUPABASE_S3",
+      "cause": "migration 008 permits only LOCAL or EXTERNAL while the live Supabase S3 adapter reports SUPABASE_S3",
+      "impact": "asset evidence upload is unavailable and return-photo UAT cannot be accepted",
+      "owner": "SQCM-I_ENGINEERING",
+      "fixVersion": "P5-G1-REMEDIATION",
+      "reverificationEvidence": null
+    }
+  ],
+  "protectedServices": [
+    {"port":1234,"pid":6632,"preserved":true},
+    {"port":11434,"pid":8588,"preserved":true},
+    {"port":18765,"pid":22716,"preserved":true},
+    {"port":18766,"pid":65724,"preserved":true},
+    {"port":18767,"pid":28532,"preserved":true}
+  ],
+  "changesMade": true,
+  "externalChangesMade": true,
+  "productionChangesMade": false,
+  "gitExternalChangesMade": false,
+  "productionGo": false,
+  "blockedReasons": ["OPEN_HIGH_P5_DEFECT_001", "UAT_19_NOT_COMPLETE", "BROWSER_UAT_NOT_RUN"],
+  "nextReady": "P5-G1-STAGING-UAT-REMEDIATION"
+}

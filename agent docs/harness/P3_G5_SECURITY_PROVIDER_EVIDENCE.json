@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-08-25",
+  "status": "PASS_P3_G5_SECURITY_PROVIDER",
+  "environment": "LOCAL_PILOT",
+  "malwareScanner": {
+    "provider": "Microsoft Defender Antivirus",
+    "engineVersion": "4.18.26070.9",
+    "signatureVersion": "1.457.324.0",
+    "endpoint": "http://host.docker.internal:18766/security/scan",
+    "authentication": "existing bearer key-file reference",
+    "clean": "PASS",
+    "infected": "PASS_EICAR_EMBEDDED_PDF",
+    "unknown": "PASS_FAIL_CLOSED",
+    "timeout": "PASS_FAIL_CLOSED",
+    "temporaryFilesRemaining": 0
+  },
+  "alerting": {
+    "provider": "Windows Session Message",
+    "channel": "interactive-user-session",
+    "recipient": "PROJECT_OWNER_CURRENT_USER",
+    "infectedReceipt": true,
+    "unknownReceipt": true,
+    "timeoutReceipt": true,
+    "auditContainsPayloadOrSecret": false
+  },
+  "applicationUat": {
+    "eicarPdfHttpStatus": 422,
+    "fileRecordsCreated": 0,
+    "test": "1/1 PASS"
+  },
+  "verification": {
+    "promptContract": "8/8 PASS",
+    "syntax": "107 PASS",
+    "unit": "122/122 PASS",
+    "integration": "20/20 PASS",
+    "securityUat": "1/1 PASS",
+    "maintenance": "PASS_32_TABLES",
+    "deploySmoke": "5/5 PASS",
+    "harness": "PASS"
+  },
+  "runtime": {
+    "backendImage": "sha256:ff3eeeffff6b2466f771bc8f0f1c196d53a40b38ad8d3c3cc1740de15740a1f8",
+    "rollbackImage": "sha256:b9f0b76d2841b1e21f9da726719fcba08e9e2afff33711405e34cbd64651e284",
+    "backendContainer": "3698005bb08b",
+    "frontendContainerPreserved": "49813e06cf13",
+    "databaseContainerPreserved": "c30c3b7594dd",
+    "bridgePid": 65400,
+    "runtimePid": 28532
+  },
+  "externalTransmission": false,
+  "productionApproved": false,
+  "nextAction": "P4-G0-STAGING-TARGET-AND-PROVIDER-INPUT"
+}

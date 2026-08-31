@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "workId": "P4-G1-STAGING-UAT-AUTH-IDENTITY-LINKING",
+  "checkedAt": "2026-08-31T13:30:04+09:00",
+  "status": "PASS",
+  "environment": "staging",
+  "supabaseProject": "iuoljosldyymkburagwj",
+  "accounts": {
+    "roles": ["ADMIN", "MANAGER", "USER"],
+    "applicationUsers": 3,
+    "authUsers": 3,
+    "autoConfirmed": 3,
+    "confirmationEmailsSent": 0,
+    "passwordValuesRecorded": false
+  },
+  "identity": {
+    "links": 3,
+    "distinctSubjects": 3,
+    "issuerValid": true,
+    "emailMatchValid": true,
+    "roleScopes": ["ALL", "ORGANIZATION", "DEPARTMENT"]
+  },
+  "verification": {
+    "passwordSignIn": "3/3 PASS_HTTP_200",
+    "logout": "3/3 PASS_HTTP_204",
+    "secretFileGitIgnored": true,
+    "secretFileAcl": "CURRENT_USER_AND_SYSTEM_ONLY",
+    "auditEvents": ["STAGING_UAT_USERS_PROVISIONED", "STAGING_UAT_OIDC_IDENTITIES_LINKED"]
+  },
+  "protectedListeners": [
+    {"port": 1234, "pid": 6632, "preserved": true},
+    {"port": 11434, "pid": 8588, "preserved": true},
+    {"port": 18765, "pid": 22716, "preserved": true},
+    {"port": 18766, "pid": 65724, "preserved": true},
+    {"port": 18767, "pid": 28532, "preserved": true}
+  ],
+  "remaining": [
+    "OIDC_CONSENT_UI_NOT_IMPLEMENTED",
+    "NON_SEED_STAGING_NOT_DEPLOYED",
+    "CLOUDFLARE_DNS_TLS_NOT_PUBLISHED"
+  ],
+  "productionGo": false
+}

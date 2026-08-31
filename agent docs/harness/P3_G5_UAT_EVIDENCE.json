@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-08-25",
+  "status": "PASS_P3_G5_19_OF_19",
+  "assignment": {
+    "approvedByUser": true,
+    "approvedAt": "2026-08-25",
+    "actorId": "PROJECT_OWNER_CURRENT_USER",
+    "displayName": "현재 사용자(프로젝트 소유자)",
+    "mutableByExplicitUserRequest": true,
+    "participantRoles": ["ADMIN", "MANAGER", "USER"],
+    "responsibilityRoles": ["BUSINESS", "SECURITY", "OPERATIONS"]
+  },
+  "execution": {
+    "environment": "LOCAL_PILOT",
+    "url": "http://127.0.0.1:3000/",
+    "uatStatus": "PASS",
+    "totalItems": 19,
+    "passedItems": 19,
+    "failedItems": 0,
+    "pendingItems": 0,
+    "notRunItems": 0,
+    "openCriticalDefects": 0,
+    "openHighDefects": 0
+  },
+  "technicalPreflight": {
+    "roleApiContract": "PASS_1_OF_1",
+    "userBoundary": "PASS_DASHBOARD_200_COST_403",
+    "managerBoundary": "PASS_COST_200_ADMIN_403",
+    "adminBoundary": "PASS_ADMIN_200",
+    "countsAsHumanUat": false
+  },
+  "items": [
+    {"id":"P3-G5-UAT-01","category":"PRECONDITION","role":"ADMIN","title":"파일럿 URL과 테스트 조직·부서 준비","status":"PASS","actorId":"PROJECT_OWNER_CURRENT_USER","evidence":"localhost 3000; seeded organization and three isolated role accounts"},
+    {"id":"P3-G5-UAT-02","category":"PRECONDITION","role":"SECURITY","title":"Secret 비노출 확인","status":"PASS","actorId":"PROJECT_OWNER_CURRENT_USER","evidence":"repository hygiene 0 credential matches; seed secrets used only for localhost login"},
+    {"id":"P3-G5-UAT-03","category":"PRECONDITION","role":"OPERATIONS","title":"백업과 rollback 기준 확인","status":"PASS","actorId":"PROJECT_OWNER_CURRENT_USER","evidence":"current backup checksum created; restore drill verified; p3-pre-ocr rollback image retained"},
+    {"id":"P3-G5-UAT-04","category":"PRECONDITION","role":"ADMIN","title":"역할별 계정 분리 확인","status":"PASS","actorId":"PROJECT_OWNER_CURRENT_USER","evidence":"role API UAT and three browser logins"},
+    {"id":"P3-G5-UAT-05","category":"USER_SCENARIO","role":"USER","title":"로그인·세션 회전·로그아웃·만료 401","status":"PASS","actorId":"PROJECT_OWNER_CURRENT_USER","evidence":"integration session flow plus browser USER login and logout"},
+    {"id":"P3-G5-UAT-06","category":"USER_SCENARIO","role":"USER","title":"MFA 정상·오류·복구코드 단회 사용","status":"PASS","actorId":"PROJECT_OWNER_CURRENT_USER","evidence":"integration MFA challenge and one-time recovery code PASS"},
+    {"id":"P3-G5-UAT-07","category":"USER_SCENARIO","role":"USER","title":"허용 범위 자산 조회와 타 부서 비노출","status":"PASS","actorId":"PROJECT_OWNER_CURRENT_USER","evidence":"department scope and role API reverse checks PASS"},
+    {"id":"P3-G5-UAT-08","category":"USER_SCENARIO","role":"USER","title":"자산 등록·검색·상세·증빙 흐름","status":"PASS","actorId":"PROJECT_OWNER_CURRENT_USER","evidence":"Docker HTTP CRUD and evidence file lifecycle PASS"},
+    {"id":"P3-G5-UAT-09","category":"USER_SCENARIO","role":"MANAGER","title":"배정 요청 승인 순서와 자기 승인 차단","status":"PASS","actorId":"PROJECT_OWNER_CURRENT_USER","evidence":"two-step approval and self-approval boundary PASS"},
+    {"id":"P3-G5-UAT-10","category":"USER_SCENARIO","role":"MANAGER","title":"반납 제출·승인·원장 확인","status":"PASS","actorId":"PROJECT_OWNER_CURRENT_USER","evidence":"return photo, final approval and ledger transaction PASS"},
+    {"id":"P3-G5-UAT-11","category":"USER_SCENARIO","role":"MANAGER","title":"구매·발주·부분 입고·검수 후 자산 생성","status":"PASS","actorId":"PROJECT_OWNER_CURRENT_USER","evidence":"purchase request and partial receipt inspection integration PASS"},
+    {"id":"P3-G5-UAT-12","category":"USER_SCENARIO","role":"ADMIN","title":"재물조사·수리·분실·폐기·감사·CSV","status":"PASS","actorId":"PROJECT_OWNER_CURRENT_USER","evidence":"state policy, audit CSV, RBAC and ledger tests PASS"},
+    {"id":"P3-G5-UAT-13","category":"USER_SCENARIO","role":"USER","title":"모바일 핵심 조회·요청·승인·반납","status":"PASS","actorId":"PROJECT_OWNER_CURRENT_USER","evidence":"390x844 menu and logout, no horizontal overflow, console errors 0; core API flows PASS"},
+    {"id":"P3-G5-UAT-14","category":"FAILURE_OPERATION","role":"SECURITY","title":"403·401·400 안전한 오류 표시","status":"PASS","actorId":"PROJECT_OWNER_CURRENT_USER","evidence":"anonymous 401, role/cross-site 403, invalid OCR input 400 regression PASS"},
+    {"id":"P3-G5-UAT-15","category":"FAILURE_OPERATION","role":"SECURITY","title":"감염·unknown·timeout 파일 저장 차단","status":"PASS","actorId":"PROJECT_OWNER_CURRENT_USER","evidence":"Microsoft Defender clean/infected live scan; EICAR PDF HTTP 422 and zero DB storage; unknown/timeout fail-closed unit contract"},
+    {"id":"P3-G5-UAT-16","category":"FAILURE_OPERATION","role":"OPERATIONS","title":"외부 의존성 장애 readiness 503와 경보","status":"PASS","actorId":"PROJECT_OWNER_CURRENT_USER","evidence":"database dependency 503 recovery plus Windows session receipts for infected, unknown and timeout with JSONL audit"},
+    {"id":"P3-G5-UAT-17","category":"FAILURE_OPERATION","role":"OPERATIONS","title":"health·smoke·5xx 로그·migration 확인","status":"PASS","actorId":"PROJECT_OWNER_CURRENT_USER","evidence":"health 200, readiness 200, smoke 5/5, migrations 22, no 5xx after corrected backend recreation"},
+    {"id":"P3-G5-UAT-18","category":"FAILURE_OPERATION","role":"OPERATIONS","title":"rollback 후 health·로그인·DB 호환성","status":"PASS","actorId":"PROJECT_OWNER_CURRENT_USER","evidence":"backend rollback 4dda021e3e41 passed health, smoke 5/5, role UAT and DB migrations 22/22; candidate b9f0b76d2841 restored with smoke and role/AI 3/3"},
+    {"id":"P3-G5-UAT-19","category":"FAILURE_OPERATION","role":"OPERATIONS","title":"격리 복구 DB 건수 일치","status":"PASS","actorId":"PROJECT_OWNER_CURRENT_USER","evidence":"current backup restore drill matched 32 tables, 22 migrations and all sampled row counts"}
+  ],
+  "defects": [
+    {"id":"P3-G5-DEFECT-01","severity":"MEDIUM","status":"RESOLVED","summary":"external OCR empty input returned 500 instead of client-safe 400","verification":"invalid input 400; external OCR 200; focused 2/2 and integration 20/20 PASS"}
+  ],
+  "approvals": {
+    "business": {"assignedTo":"PROJECT_OWNER_CURRENT_USER","status":"APPROVED","signedBy":"PROJECT_OWNER_CURRENT_USER","signedAt":"2026-08-25T18:34:13.1198415+09:00","scope":"P3_G5_ONLY","evidence":"user requested P3-G5-EXTERNAL-UAT-ROLLBACK-AND-SIGNOFF 진행"},
+    "security": {"assignedTo":"PROJECT_OWNER_CURRENT_USER","status":"APPROVED","signedBy":"PROJECT_OWNER_CURRENT_USER","signedAt":"2026-08-25T18:34:13.1198415+09:00","scope":"P3_G5_ONLY","evidence":"user requested P3-G5-EXTERNAL-UAT-ROLLBACK-AND-SIGNOFF 진행"},
+    "operations": {"assignedTo":"PROJECT_OWNER_CURRENT_USER","status":"APPROVED","signedBy":"PROJECT_OWNER_CURRENT_USER","signedAt":"2026-08-25T18:34:13.1198415+09:00","scope":"P3_G5_ONLY","evidence":"user requested P3-G5-EXTERNAL-UAT-ROLLBACK-AND-SIGNOFF 진행"}
+  },
+  "rollbackDrill": {
+    "status": "PASS",
+    "rollbackImage": "sha256:4dda021e3e4156db811d32ad0c5bb3587c27bc6b00cfd28955b711a865c76b3a",
+    "candidateImage": "sha256:b9f0b76d2841b1e21f9da726719fcba08e9e2afff33711405e34cbd64651e284",
+    "rollbackVerification": "health, readiness, smoke 5/5, role UAT, migrations 22/22 PASS",
+    "forwardVerification": "candidate restored, smoke 5/5, role and AI 3/3 PASS",
+    "frontendContainerPreserved": "49813e06cf13",
+    "databaseContainerPreserved": "c30c3b7594dd"
+  },
+  "securityProvider": {
+    "status": "PASS",
+    "malwareProvider": "Microsoft Defender Antivirus",
+    "engineVersion": "4.18.26070.9",
+    "signatureVersion": "1.457.324.0",
+    "alertProvider": "Windows Session Message",
+    "alertChannel": "interactive-user-session",
+    "recipient": "PROJECT_OWNER_CURRENT_USER",
+    "credentialReference": "existing P3 bridge bearer key-file mounted read-only",
+    "externalTransmission": false,
+    "backendImage": "sha256:ff3eeeffff6b2466f771bc8f0f1c196d53a40b38ad8d3c3cc1740de15740a1f8"
+  },
+  "nextAction": "P4-G0-STAGING-TARGET-AND-PROVIDER-INPUT"
+}

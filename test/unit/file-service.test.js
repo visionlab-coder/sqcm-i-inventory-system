@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const os = require('node:os');
-const { normalizeUpload, storageKey } = require('../../src/services/file-service');
+const { normalizeUpload, storageKey, requireCleanScan } = require('../../src/services/file-service');
 const { LocalFileStore } = require('../../src/storage/local-file-store');
 
 const png = Buffer.from([137,80,78,71,13,10,26,10,0]);
@@ -28,4 +28,11 @@ test('로컬 저장소는 루트 밖 경로를 거부한다', () => {
   const store=new LocalFileStore(path.join(os.tmpdir(),'seowon-file-test'));
   assert.throws(()=>store.resolve('../secret.txt'),/Invalid storage key|escaped/);
   assert.match(store.resolve('1/2026/08/abc.png'),/abc\.png$/);
+});
+
+test('검사 결과는 clean만 허용하고 infected·unknown·timeout을 저장 전에 거부한다', () => {
+  assert.equal(requireCleanScan({ status: 'clean' }).status, 'clean');
+  for (const status of ['infected', 'unknown', 'timeout']) {
+    assert.throws(() => requireCleanScan({ status }), error => error.status === 422);
+  }
 });

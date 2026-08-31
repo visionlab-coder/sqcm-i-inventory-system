@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-08-25",
+  "status": "HOLD",
+  "changesMade": false,
+  "provider": {
+    "driver": "rules",
+    "preflight": "skipped-external-ai-disabled"
+  },
+  "protectedServices": [
+    {"name": "LM Studio", "port": 1234, "pid": 6632, "preserved": true},
+    {"name": "Ollama", "port": 11434, "pid": 8588, "preserved": true},
+    {"name": "wslrelay", "port": 18765, "pid": 22716, "preserved": true}
+  ],
+  "sqcmiOs": {"models": 37, "awake": 8},
+  "candidatePorts": [
+    {"port": 18766, "listener": false},
+    {"port": 18767, "listener": false},
+    {"port": 18768, "listener": false},
+    {"port": 18769, "listener": false}
+  ],
+  "candidateRuntime": {
+    "windowsServiceFound": false,
+    "scheduledTaskFound": false,
+    "bridgeListenerFound": false,
+    "healthReadyEvidenceFound": false,
+    "tlsEvidenceFound": false,
+    "sourceAllowlistEvidenceFound": false
+  },
+  "existingModelIdentity": {
+    "runtime": "protected-ollama-11434",
+    "name": "qwen2.5:7b",
+    "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+    "independentRuntimeEvidence": false,
+    "licenseEvidence": false
+  },
+  "network": {
+    "interface": "Wi-Fi",
+    "ipv4": "172.30.1.85",
+    "gateway": "172.30.1.254",
+    "privateIpv4": true,
+    "sameHostBridgeRecommendation": "loopback-only"
+  },
+  "gates": {
+    "G0": "PASS",
+    "G1": "HOLD_NO_INDEPENDENT_RUNTIME_OR_LICENSE",
+    "G2": "HOLD_NO_BRIDGE_LISTENER_TLS_OR_ALLOWLIST",
+    "G3": "HOLD_NO_HEALTH_READY_CONTRACT_EVIDENCE",
+    "G4": "HOLD_NO_SERVICE_LOG_METRIC_ROLLBACK_EVIDENCE",
+    "G5": "HOLD_NO_PILOT_UAT",
+    "G6": "HOLD"
+  },
+  "nextAction": "P3-INDEPENDENT-RUNTIME-CHANGE-APPROVAL"
+}

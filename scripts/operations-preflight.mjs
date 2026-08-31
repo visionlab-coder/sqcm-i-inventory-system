@@ -5,6 +5,7 @@ import gates from '../src/operations/gates.js';
 
 const manifestPath = process.argv[2];
 const allowTemplate = process.argv.includes('--allow-template');
+const allowCandidate = process.argv.includes('--allow-candidate');
 const probe = process.argv.includes('--probe');
 if (!manifestPath) {
   console.error('Usage: npm run operations:preflight -- <manifest.json> [--allow-template]');
@@ -15,6 +16,7 @@ const resolved = path.resolve(manifestPath);
 const manifest = JSON.parse(fs.readFileSync(resolved, 'utf8'));
 const result = gates.validateOperationsManifest(manifest);
 if (manifest.template === true && !allowTemplate) result.failures.push('template manifest cannot authorize deployment');
+if (manifest.template !== true && manifest.activationState !== 'active' && !allowCandidate) result.failures.push('non-template manifest activationState must be active');
 result.ok = result.failures.length === 0;
 
 if (!result.ok) {
@@ -32,6 +34,13 @@ async function expectReachable(url, label, accepted = (status) => status >= 200 
 async function expectGet(url, label) {
   const response = await fetch(url, { method: 'GET', redirect: 'manual', headers: { accept: 'application/json' }, signal: AbortSignal.timeout(10000) });
   if (response.status !== 200) throw new Error(`${label} returned ${response.status}`);
+  await response.arrayBuffer();
+  return response.status;
+}
+
+async function expectStatus(url, label, expectedStatus) {
+  const response = await fetch(url, { method: 'GET', redirect: 'manual', headers: { accept: 'application/json' }, signal: AbortSignal.timeout(10000) });
+  if (response.status !== expectedStatus) throw new Error(`${label} returned ${response.status}; expected ${expectedStatus}`);
   await response.arrayBuffer();
   return response.status;
 }
@@ -58,7 +67,7 @@ if (probe) {
     expectReachable(manifest.providers.eventPublisher.endpoint, 'event publisher'),
     expectReachable(manifest.providers.alerting.endpoint, 'alerting'),
     expectGet(ai.healthEndpoint, 'AI provider health'),
-    expectGet(ai.readyEndpoint, 'AI provider readiness')
+    expectStatus(ai.readyEndpoint, 'AI provider readiness authentication boundary', 401)
   ]);
   console.log(JSON.stringify({ liveProbe: { oidcDiscovery: discoveryResponse.status, health, readiness, storage, scanner, eventPublisher, alerting, aiHealth, aiReady } }, null, 2));
 }

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "workId": "P4-G1-STAGING-RUNTIME-SECRETS-BACKUP-INPUT",
+  "checkedAt": "2026-08-31T12:47:03+09:00",
+  "status": "PASS_DATABASE_SECRET_LOGICAL_BACKUP_PUBLIC_RESTORE_OFFSITE_PENDING",
+  "phaseProgress": "4 / 8",
+  "secretContract": {
+    "path": ".env.staging.local",
+    "gitIgnored": true,
+    "requiredVariables": 6,
+    "populatedVariables": 6,
+    "acl": ["CURRENT_USER", "SYSTEM"],
+    "secretValueRecorded": false
+  },
+  "connection": {
+    "method": "Supabase shared session pooler",
+    "ssl": "require",
+    "databaseVersion": "17.6",
+    "status": "PASS"
+  },
+  "backup": {
+    "file": "artifacts/backups/sqcm-i-supabase-staging-20260831T034703Z.dump",
+    "bytes": 471726,
+    "sha256": "74b3c163e48a00ca142f95a533e09972473c2e090a31bbe0ede9e31836530494",
+    "archiveEntries": 1002,
+    "acl": ["CURRENT_USER", "SYSTEM"]
+  },
+  "restoreDrill": {
+    "attempts": [
+      {"attempt": 1, "status": "EXPECTED_INCOMPATIBLE_TARGET", "reason": "vanilla PostgreSQL lacks supabase_vault extension"},
+      {"attempt": 2, "status": "FILTER_INCOMPLETE", "reason": "public table default required three public functions"},
+      {"attempt": 3, "status": "PASS", "scope": "public schema, functions, tables, sequences, data, constraints, indexes and triggers"}
+    ],
+    "selectedArchiveEntries": 482,
+    "sourceCounts": {"publicTables": 52, "nonemptyTables": 8, "publicRows": 40, "functions": 3},
+    "restoredCounts": {"publicTables": 52, "nonemptyTables": 8, "publicRows": 40, "functions": 3},
+    "countsMatch": true,
+    "temporaryContainersRemoved": true
+  },
+  "recoveryContract": {
+    "supabasePlatformObjects": "recreate provider then apply migrations 001-024",
+    "applicationData": "restore verified public archive list",
+    "retentionDays": 14,
+    "rpoHours": 24,
+    "rtoHours": 4,
+    "offsiteCopy": "PENDING_EXTERNAL_STORAGE"
+  },
+  "protectedServices": [
+    {"port": 1234, "expectedPid": 6632, "preserved": true},
+    {"port": 11434, "expectedPid": 8588, "preserved": true},
+    {"port": 18765, "expectedPid": 22716, "preserved": true}
+  ],
+  "externalChangesMade": false,
+  "nextReady": "P4-G1-STAGING-OPERATIONS-MANIFEST-DESIGN",
+  "remainingExternalInputs": ["off-site backup storage", "OIDC/storage/event/alert/AI Secret references", "DNS/TLS activation scope"]
+}

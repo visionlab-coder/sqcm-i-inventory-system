@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>SQCM-i 연결 승인</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/oauth-consent.css">
+</head>
+<body>
+  <a class="skip-link" href="#consent-main">본문으로 바로가기</a>
+  <main id="consent-main" class="login-page" tabindex="-1">
+    <section class="login-visual" aria-hidden="true"><span class="brand-mark">◆</span><h1>SQCM-i</h1><p>서원토건 비품관리 시스템 보안 연결</p></section>
+    <section class="login-panel">
+      <div class="login-form" aria-busy="true" id="consent-card">
+        <p class="eyebrow">SECURE AUTHORIZATION</p>
+        <h2 id="consent-title">연결 요청 확인</h2>
+        <p class="muted" id="status" role="status" aria-live="polite">요청을 확인하고 있습니다.</p>
+        <div id="error" class="alert error hidden" role="alert"></div>
+        <form id="login-form" class="consent-form hidden" novalidate>
+          <label for="email">UAT 이메일</label><input id="email" type="email" autocomplete="username" required>
+          <label for="password">비밀번호</label><input id="password" type="password" autocomplete="current-password" required>
+          <button class="primary full" type="submit">로그인하고 요청 확인</button>
+        </form>
+        <section id="details" class="hidden" aria-labelledby="consent-title">
+          <p><strong id="client-name"></strong>에서 계정 정보 접근을 요청합니다.</p>
+          <p class="muted">요청 권한</p><ul id="scopes"></ul>
+          <p class="muted">승인하지 않아도 SQCM-i 계정은 변경되지 않습니다.</p>
+          <div class="consent-actions"><button id="deny" class="secondary" type="button">거부</button><button id="approve" class="primary" type="button">승인</button></div>
+        </section>
+      </div>
+    </section>
+  </main>
+  <script src="/oauth-consent.js" defer></script>
+</body>
+</html>

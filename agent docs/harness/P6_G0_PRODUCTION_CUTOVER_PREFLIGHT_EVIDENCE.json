@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "workId": "P6-G0-PRODUCTION-CUTOVER-PREFLIGHT",
+  "checkedAt": "2026-08-31T18:23:49+09:00",
+  "status": "HOLD_EXTERNAL_INPUTS",
+  "phaseProgress": "6 / 8",
+  "productionGo": false,
+  "baseline": {
+    "workingHead": "dfc37e3bfa60ea69a54900678897ee6b3a0eb078",
+    "mainReleaseSha": "79a12924106b378d2337898c76a4dd431634b78d",
+    "trackedChangedFiles": 30,
+    "untrackedFiles": 144,
+    "dirtyWorktreePreserved": true
+  },
+  "codeToProductionStages": [
+    {"stage":1,"name":"release baseline","status":"HOLD","evidence":"current staging implementation is dirty and not frozen to an approved immutable SHA"},
+    {"stage":2,"name":"local quality","status":"PASS_STAGING","evidence":"P5 technical UAT 19/19, Critical/High 0"},
+    {"stage":3,"name":"immutable images","status":"HOLD","evidence":"P2 main images exist but predate current P3-P5 staging changes"},
+    {"stage":4,"name":"GitHub-hosted CI","status":"HOLD","evidence":"main quality/release passed for 79a1292 only; current candidate not pushed or tested remotely"},
+    {"stage":5,"name":"deployment approval","status":"HOLD","evidence":"no Production target, change window, release candidate or cutover approval"},
+    {"stage":6,"name":"dedicated runner","status":"HOLD","evidence":"self-hosted Production workflow count 0"},
+    {"stage":7,"name":"Production deploy and rollback","status":"HOLD","evidence":"Production manifest 0 and actual cutover evidence 0"},
+    {"stage":8,"name":"operations handoff","status":"HOLD","evidence":"Production monitoring, backup/restore, on-call and recovery acceptance not completed"}
+  ],
+  "operationsDecisions": {
+    "total": 8,
+    "verified": 0,
+    "domainDecisionOnly": "sqcm.safe-link.co.kr",
+    "domainConflict": "currently serves existing SQCM-i OS and is not inventory Production evidence"
+  },
+  "artifacts": {
+    "existingMainBackendDigest": "sha256:37ee6d90c0c8d4abbef0f3362a90fad1552f70e08c69b2fc8b7f4df476679f95",
+    "existingMainFrontendDigest": "sha256:1b8fb5e04a48971c239db09776bf0b5882f53624a5b66ba3f77d5f1fee36b6dd",
+    "usableForCurrentCandidate": false
+  },
+  "failClosedChecks": {
+    "templateManifest": "BLOCKED_TEMPLATE_CANNOT_AUTHORIZE_DEPLOYMENT",
+    "templateCutoverEvidence": "BLOCKED_TEMPLATE_AND_12_GATES_PENDING",
+    "productionManifestCount": 0,
+    "actualCutoverEvidenceCount": 0,
+    "selfHostedWorkflowCount": 0
+  },
+  "requiredExternalInputs": [
+    "dedicated inventory Production hostname and DNS/TLS owner",
+    "dedicated Production Supabase project and provider/Secret references",
+    "approved release candidate scope followed by commit/push/main CI and new immutable image digests",
+    "Production change window and responsible operator",
+    "dedicated deployment runner or approved alternative",
+    "Production backup/PITR/RPO/RTO, monitoring, alert and rollback owners"
+  ],
+  "changesMade": true,
+  "externalChangesMade": false,
+  "blockedReasons": [
+    "CURRENT_STAGING_CANDIDATE_NOT_FROZEN",
+    "PRODUCTION_TARGET_AND_PROVIDERS_MISSING",
+    "PRODUCTION_MANIFEST_MISSING",
+    "ACTUAL_CUTOVER_EVIDENCE_MISSING",
+    "CHANGE_WINDOW_MISSING",
+    "DEDICATED_DEPLOYMENT_RUNNER_MISSING"
+  ],
+  "nextReady": "P6-G1-PRODUCTION-TARGET-CHANGE-WINDOW-AND-PROVIDER-INPUT"
+}

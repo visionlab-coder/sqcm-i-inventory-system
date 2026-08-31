@@ -16,6 +16,7 @@ const { LocalFileStore } = require('./storage/local-file-store');
 const { startMfaSetup, enableMfa, verifyMfaLogin, disableMfa } = require('./services/mfa-service');
 const { MockMalwareScanner } = require('./adapters/mock-malware-scanner');
 const { validateOperationalAdapters } = require('./adapters/contracts');
+const { pkcePair } = require('./adapters/supabase-oidc-provider');
 
 function safeReturnPath(value) {
   return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : '/';
@@ -57,7 +58,7 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiPr
     maxAttempts: config.loginRateLimitMax,
     windowMs: config.loginRateLimitWindowMs
   });
-  if (config.env === 'production') app.set('trust proxy', config.trustedProxyCount);
+  if (config.cookieSecure) app.set('trust proxy', config.trustedProxyCount);
   app.set('view engine', 'ejs');
   app.set('views', path.join(process.cwd(), 'src', 'views'));
   app.disable('x-powered-by');
@@ -152,13 +153,19 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiPr
 
   app.get('/api/auth/csrf', (req, res) => res.json({ csrfToken: csrfToken(req) }));
   app.get('/api/auth/config', (_req,res)=>res.json({ authProvider:config.authProvider }));
+  app.get('/api/auth/oidc/consent-config', (req,res) => {
+    res.set('Cache-Control','no-store');
+    if(config.authProvider !== 'oidc') return apiError(req,res,404,'OIDC_DISABLED','SSO 로그인이 활성화되지 않았습니다.');
+    res.json({ supabaseUrl:config.supabaseUrl, publishableKey:config.supabasePublishableKey });
+  });
   app.get('/api/auth/me', apiAuth, (req, res) => res.json({ user: req.user, csrfToken: csrfToken(req) }));
 
   app.get('/api/auth/oidc/start', async (req,res) => {
     if(config.authProvider !== 'oidc') return apiError(req,res,404,'OIDC_DISABLED','SSO 로그인이 활성화되지 않았습니다.');
     const state=crypto.randomBytes(32).toString('hex'); const nonce=crypto.randomBytes(32).toString('hex');
-    req.session.oidc={ state,nonce,issuedAt:Date.now(),returnTo:safeReturnPath(req.query.returnTo) };
-    res.redirect(await oidcProvider.authorizationUrl({state,nonce,redirectUri:config.oidcRedirectUri}));
+    const pkce=pkcePair();
+    req.session.oidc={ state,nonce,codeVerifier:pkce.verifier,issuedAt:Date.now(),returnTo:safeReturnPath(req.query.returnTo) };
+    res.redirect(await oidcProvider.authorizationUrl({state,nonce,redirectUri:config.oidcRedirectUri,codeChallenge:pkce.challenge}));
   });
 
   app.get('/api/auth/oidc/callback', async (req,res) => {
@@ -166,7 +173,7 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiPr
     if(config.authProvider !== 'oidc'||!pending||pending.state!==req.query.state||Date.now()-pending.issuedAt>5*60*1000) {
       return apiError(req,res,401,'OIDC_STATE_INVALID','SSO 인증 상태가 유효하지 않습니다.');
     }
-    const claims=await oidcProvider.exchangeCode({code:String(req.query.code||''),nonce:pending.nonce,redirectUri:config.oidcRedirectUri});
+    const claims=await oidcProvider.exchangeCode({code:String(req.query.code||''),nonce:pending.nonce,redirectUri:config.oidcRedirectUri,codeVerifier:pending.codeVerifier});
     if(!claims?.issuer||!claims?.subject||!claims?.email||claims.emailVerified!==true) return apiError(req,res,401,'OIDC_CLAIMS_INVALID','SSO 사용자 정보가 유효하지 않습니다.');
     let found=await pool.query(`SELECT u.* FROM user_oidc_identities i JOIN users u ON u.id=i.user_id WHERE i.issuer=$1 AND i.subject=$2`,[claims.issuer,claims.subject]);
     if(!found.rowCount&&config.oidcAllowEmailLinking){

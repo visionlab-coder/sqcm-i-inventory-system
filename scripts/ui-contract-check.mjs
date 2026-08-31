@@ -7,6 +7,9 @@ const components = fs.readFileSync('frontend/ui-components.js', 'utf8');
 const dockerfile = fs.readFileSync('frontend/Dockerfile', 'utf8');
 const baseCss = fs.readFileSync('frontend/styles.css', 'utf8');
 const css = fs.readFileSync('frontend/experience.css', 'utf8');
+const consentHtml = fs.readFileSync('frontend/oauth-consent.html', 'utf8');
+const consentJs = fs.readFileSync('frontend/oauth-consent-entry.js', 'utf8');
+const stagingNginx = fs.readFileSync('frontend/nginx.staging.conf', 'utf8');
 const checks = [
   ['mobile toggle has an accessible name', /id="mobile-nav-toggle"[^>]+aria-controls="primary-sidebar"[^>]+aria-expanded="false"/],
   ['mobile drawer has a backdrop', /id="nav-backdrop"/],
@@ -32,4 +35,10 @@ for (const [name, pattern] of checks) {
 assert.ok((index.match(/<label/g) || []).length >= 3, 'forms must keep explicit labels');
 assert.match(components, /module\.exports/);
 assert.match(dockerfile, /frontend\/ui-components\.js/);
-console.log(`UI contract checks passed: ${checks.length + 1}`);
+assert.match(consentHtml, /autocomplete="username"[\s\S]*autocomplete="current-password"/, 'consent login keeps safe autocomplete semantics');
+assert.match(consentHtml, /role="status"[\s\S]*role="alert"/, 'consent states are announced accessibly');
+assert.match(consentJs, /persistSession:false[\s\S]*autoRefreshToken:false/, 'consent session is memory-only');
+assert.match(consentJs, /getAuthorizationDetails[\s\S]*approveAuthorization[\s\S]*denyAuthorization/, 'consent implements the Supabase OAuth decision flow');
+assert.match(consentJs, /skipBrowserRedirect\s*:\s*true/, 'consent owns one explicit OAuth redirect path');
+assert.match(stagingNginx, /proxy_set_header\s+X-Forwarded-Proto\s+https;/, 'staging tunnel preserves the public HTTPS scheme for secure cookies');
+console.log(`UI contract checks passed: ${checks.length + 5}`);
