@@ -40,6 +40,8 @@
 
 ## 5. 실패/대체 경로
 
+- 최초 원격 CI `33518120655`는 Linux에서 Windows 역슬래시 합성 경로를 basename으로 해석하지 못한 시험 fixture 결함 1건으로 실패했다. 제품 runtime 실패는 아니며 같은 원인 1회차다.
+- 합성 receipt 경로를 플랫폼 중립 `path.join()`으로 교체한 뒤 Windows Node 24와 Linux `node:24-alpine`에서 해당 executor 시험이 각각 8/8 PASS했다.
 - checkpoint 누락·변조, receipt 수·상태·SHA·참조 불일치는 Gate 12를 실행하지 않는다.
 - 22:00 cutoff 이후 재개와 Gate 12 실패는 `production:route-disable -- --execute` adapter로 전환한다.
 - route-disable receipt가 없으면 격리 성공으로 승격하지 않는다.

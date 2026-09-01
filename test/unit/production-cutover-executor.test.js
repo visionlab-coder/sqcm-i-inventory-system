@@ -75,7 +75,7 @@ test('변경창·확인·root가 맞으면 12 Gate 14 step을 합성 실행하�
 
 function syntheticWriter(runId = '11111111-1111-4111-8111-111111111111') {
   let count = 0;
-  const writer = async ({ kind, gate, step }) => `C:\\runtime\\${String(++count).padStart(4, '0')}-${kind}-${gate}-${step}.json`;
+  const writer = async ({ kind, gate, step }) => path.join('synthetic-root', `${String(++count).padStart(4, '0')}-${kind}-${gate}-${step}.json`);
   Object.defineProperty(writer, 'runId', { value: runId });
   return writer;
 }
@@ -86,7 +86,7 @@ test('Gate 1~11 뒤 물리 checkpoint 계약을 기록하고 Gate 12를 실행�
   const writer = syntheticWriter();
   const result = await executeProductionCutover({
     execute: true, now: insideWindow, externalActionConfirmed: true, pauseBeforeSignoff: true, releaseSha: 'a'.repeat(40),
-    ensureReceiptRoot: () => 'C:\\runtime', createWriter: () => writer,
+    ensureReceiptRoot: () => 'synthetic-root', createWriter: () => writer,
     createRunner: ({ writeReceipt }) => async (step) => {
       stepCount += 1;
       return { exitCode: 0, status: step.acceptedStatuses[0], evidenceRef: await writeReceipt({ kind: 'step', gate: step.gate, step: step.id }) };
@@ -114,7 +114,7 @@ test('동일 run 역할·서명 6건 뒤 Gate 12만 재개한다', async () => {
   const result = await resumeProductionCutoverSignoff({
     execute: true, confirmation: SIGNOFF_RESUME_CONFIRMATION, runId: checkpoint.runId, releaseSha: checkpoint.releaseSha,
     checkpointPath: 'checkpoint', roleResultReferences: references, signoffReferences: references, now: insideWindow,
-    ensureReceiptRoot: () => 'C:\\runtime', loadCheckpoint: () => checkpoint,
+    ensureReceiptRoot: () => 'synthetic-root', loadCheckpoint: () => checkpoint,
     validateReceipts: () => ({ status: 'PASS_SIGNOFF_RESUME_RECEIPTS', failures: [], receiptCount: 24 }),
     createWriter: () => syntheticWriter(checkpoint.runId),
     createRunner: ({ writeReceipt }) => async (step) => {
@@ -139,7 +139,7 @@ test('cutoff 이후 재개는 Gate 12 대신 exact route-disable을 호출한다
   const result = await resumeProductionCutoverSignoff({
     execute: true, confirmation: SIGNOFF_RESUME_CONFIRMATION, runId: checkpoint.runId, releaseSha: checkpoint.releaseSha,
     checkpointPath: 'checkpoint', now: () => Date.parse('2026-09-11T13:01:00.000Z'),
-    ensureReceiptRoot: () => 'C:\\runtime', loadCheckpoint: () => checkpoint,
+    ensureReceiptRoot: () => 'synthetic-root', loadCheckpoint: () => checkpoint,
     validateReceipts: () => ({ status: 'PASS_SIGNOFF_RESUME_RECEIPTS', failures: [], receiptCount: 24 }),
     createWriter: () => syntheticWriter(checkpoint.runId),
     createRunner: ({ writeReceipt }) => async (step) => {
