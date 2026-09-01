@@ -69,6 +69,7 @@
     "operations:handover-assembler": "node scripts/operations-handover-assembler.mjs",
     "operations:handover-finalizer": "node scripts/operations-handover-finalizer.mjs",
     "operations:phase-completion": "node scripts/operations-phase-completion.mjs",
+    "operations:activation-orchestrator": "node scripts/operations-activation-orchestrator.mjs",
     "operations:health": "node scripts/operational-health-check.mjs",
     "test:nonfunctional": "node scripts/nonfunctional-check.mjs",
     "test:recovery": "node scripts/dependency-recovery-check.mjs",

@@ -333,6 +333,14 @@
       "evidence": "operations:signoff-input-assembler => READY_WAIT_P6_ACTUAL_CUTOVER; input read/write/signature zero; focused 7/7 PASS; P6 GO·eight actual domains·immutable release·exact unique hashes·recent owner receipt·six duties·zero blocking exceptions enforced; actual signoff NOT_RUN"
     },
     {
+      "id": "ACC-P7-24-PRODUCTION-OPERATIONS-ACTIVATION-ORCHESTRATOR",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO와 exact 19단계·10행위 승인이 있을 때만 SLO부터 종단 완료까지 한 호출에 한 단계씩 수행하고 redacted append-only receipt로 재개한다. WAIT는 실패로 세지 않으며 동일 단계 FAIL 3회면 PAUSED한다.",
+      "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; child/read/write zero; focused 8/8 PASS; exact approval·one-step execution·receipt sequence/command/digest/runId integrity·WAIT resume·three-failure stop enforced; actual activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

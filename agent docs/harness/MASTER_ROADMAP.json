@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "SQCM-i inventory system",
-  "updatedAt": "2026-09-01",
+  "updatedAt": "2026-09-02",
   "repository": "D:\\seowon_projects\\sqcm-i-inventory-system",
   "branch": "codex/p6-ai-pc-postgres-production",
   "goal": "P2부터 P7까지 증거 기반으로 한 Phase씩 완료하고 37봇과 보호 서비스를 보존한다.",
@@ -346,6 +346,7 @@
           "p7-production-five-signal-idempotent-alert-delivery-runner-ready",
           "p7-production-oncall-two-role-idempotent-escalation-drill-runner-ready",
           "p7-production-operations-owner-signoff-input-assembler-ready",
+          "p7-production-19-step-resumable-operations-activation-orchestrator-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],

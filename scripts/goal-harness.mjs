@@ -365,6 +365,7 @@ function verify() {
       ['production-cutover-evidence', 'npm.cmd', ['run', 'production:cutover-evidence']],
       ['production-cutover-finalizer', 'npm.cmd', ['run', 'production:cutover-finalizer']],
       ['production-phase-promotion', 'npm.cmd', ['run', 'production:phase-promotion']],
+      ['operations-activation-orchestrator', 'npm.cmd', ['run', 'operations:activation-orchestrator']],
       ['operations-handover-preflight', 'npm.cmd', ['run', 'operations:handover-preflight']],
       ['operations-slo-evidence', 'npm.cmd', ['run', 'operations:slo-evidence']],
       ['operations-slo-collector', 'npm.cmd', ['run', 'operations:slo-collector']],
@@ -389,6 +390,7 @@ function verify() {
     'P7/P7-G0-OPERATIONS-HANDOVER-PREFLIGHT': [
       ['git-diff-check', 'git', ['diff', '--check']],
       ['quality', 'npm.cmd', ['run', 'check']],
+      ['operations-activation-orchestrator', 'npm.cmd', ['run', 'operations:activation-orchestrator']],
       ['operations-handover-preflight', 'npm.cmd', ['run', 'operations:handover-preflight']],
       ['operations-slo-evidence', 'npm.cmd', ['run', 'operations:slo-evidence']],
       ['operations-slo-collector', 'npm.cmd', ['run', 'operations:slo-collector']],
