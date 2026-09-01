@@ -44,6 +44,7 @@
     "operations:certificate-evidence": "node scripts/operations-certificate-evidence.mjs",
     "operations:oncall-evidence": "node scripts/operations-oncall-evidence.mjs",
     "operations:maintenance-evidence": "node scripts/operations-maintenance-evidence.mjs",
+    "operations:improvement-queue-evidence": "node scripts/operations-improvement-queue-evidence.mjs",
     "operations:handover-assembler": "node scripts/operations-handover-assembler.mjs",
     "operations:handover-finalizer": "node scripts/operations-handover-finalizer.mjs",
     "operations:health": "node scripts/operational-health-check.mjs",

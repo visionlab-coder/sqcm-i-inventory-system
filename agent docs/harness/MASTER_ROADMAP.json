@@ -321,6 +321,7 @@
           "p7-production-tls-certificate-observation-evidence-compiler-ready",
           "p7-production-oncall-schedule-escalation-drill-evidence-compiler-ready",
           "p7-production-daily-maintenance-execution-evidence-compiler-ready",
+          "p7-production-improvement-queue-triage-evidence-compiler-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],

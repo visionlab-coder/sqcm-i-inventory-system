@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "template": true,
+  "environment": "production",
+  "activationState": "actual",
+  "evidenceType": "PRODUCTION_IMPROVEMENT_QUEUE_EXPORT",
+  "targetUrl": "https://inventory.safe-link.co.kr",
+  "queue": {
+    "provider": "GITHUB_ISSUES",
+    "repository": "visionlab-coder/sqcm-i-inventory-system",
+    "queueRef": "github://visionlab-coder/sqcm-i-inventory-system/issues?label=operations",
+    "triageOwnerRef": null,
+    "triageReceiptId": null,
+    "exportedAt": null,
+    "lastTriagedAt": null,
+    "nextTriageAt": null,
+    "untrackedFindingCount": null,
+    "openItemCount": null,
+    "items": [
+      {
+        "issueRef": null,
+        "source": null,
+        "severity": null,
+        "status": null,
+        "ownerRef": null,
+        "acceptanceRef": null,
+        "createdAt": null,
+        "triagedAt": null,
+        "nextActionAt": null,
+        "blockerRef": null
+      }
+    ]
+  }
+}

@@ -141,6 +141,14 @@
       "evidence": "npm.cmd run operations:maintenance-evidence => READY_WAIT_P6_COMPLETION_AND_MAINTENANCE_EXECUTION; focused 7/7 PASS; exact target·immutable SHA·six ordered daily checks·24-hour freshness/next schedule·unique receipts enforced; actual maintenance/evidence creation NOT_RUN"
     },
     {
+      "id": "ACC-P7-11-PRODUCTION-IMPROVEMENT-QUEUE-EVIDENCE-COMPILER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 완료·P7 활성화 뒤 전용 GitHub operations Issue queue의 최근 export·7일 triage·책임자·고유 receipt·미추적 finding 0건과 각 open item의 분류·담당자·수용조건·30일 후속기한을 검증하고 actual improvementQueue 문서를 저장소 밖에 원자적으로 작성한다.",
+      "evidence": "npm.cmd run operations:improvement-queue-evidence => READY_WAIT_P6_COMPLETION_AND_IMPROVEMENT_QUEUE_EXPORT; focused 7/7 PASS; exact repository/queue·24-hour export·7-day triage·unique issue refs·owner/acceptance/next-action·blocked dependency enforced; actual issue mutation/evidence creation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

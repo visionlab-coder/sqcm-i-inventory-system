@@ -32,6 +32,7 @@ npm.cmd run harness:verify
 - 인증서 실제 문서는 `P7_CERTIFICATE_OBSERVATION_INPUT_CONTRACT.json`의 최근 Production TLS 관측을 `operations:certificate-evidence -- --compile`이 검증한다. exact hostname, chain·hostname 검증, TLSv1.2/1.3, serial·SHA-256 fingerprint, 유효기간, health/readiness 200, 30일 갱신 lead와 운영 책임자 provenance가 모두 통과해야 저장소 밖에 원자적으로 1회 쓰며 기존 파일을 덮어쓰지 않는다.
 - 온콜 실제 문서는 `P7_ONCALL_HANDOVER_INPUT_CONTRACT.json`의 30일 이상 Asia/Seoul 연속 당번표와 최근 7일 escalation drill을 `operations:oncall-evidence -- --compile`이 검증한다. 서로 다른 primary·escalation 책임자의 수락, 5분·15분 이내 고유 acknowledgement receipt와 역할 일치를 모두 강제하며, 담당자를 지정하거나 메시지를 보내지 않고 저장소 밖에 원자적으로 1회만 쓴다.
 - 정기점검 실제 문서는 `P7_MAINTENANCE_EXECUTION_INPUT_CONTRACT.json`의 최근 24시간 Production 일일 점검 실행을 `operations:maintenance-evidence -- --compile`이 검증한다. `docs/maintenance.md`, 불변 release SHA, 운영자 identity, frontend/API/DB health·5xx·로그인 실패 급증·백업 6종의 순서·PASS·고유 receipt, 24시간 안의 다음 일정을 모두 강제하며 실제 점검을 실행하지 않고 저장소 밖에 원자적으로 1회만 쓴다.
+- 개선 큐 실제 문서는 `P7_IMPROVEMENT_QUEUE_INPUT_CONTRACT.json`의 전용 GitHub operations Issue export를 `operations:improvement-queue-evidence -- --compile`이 검증한다. 최근 24시간 export·7일 triage와 다음 triage, triage 책임자·receipt·미추적 finding 0건, 각 open item의 고유 Issue·source·severity·상태·담당자·수용조건·30일 후속기한을 강제하며 실제 Issue를 생성·수정하지 않고 저장소 밖에 원자적으로 1회만 쓴다.
 
 ## 상태 전이 규칙
 
