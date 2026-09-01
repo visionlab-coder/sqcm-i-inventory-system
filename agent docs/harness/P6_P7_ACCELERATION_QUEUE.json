@@ -349,6 +349,14 @@
       "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; lease/write/child zero; focused 11/11 PASS; atomic single-writer lease·owner-only release·stale lock preservation·4-digit attempts through 9999 enforced; actual activation NOT_RUN"
     },
     {
+      "id": "ACC-P7-26-PRODUCTION-OPERATIONS-RECEIPT-ROOT-OWNERSHIP-AND-NO-OVERWRITE",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "한 receipt root는 최초 승인 run에 영속 귀속되고 다른 run은 lease·child 실행 전에 차단한다. receipt 최종화 경쟁에서도 기존 증거를 교체하지 않으며 실패 시 원본과 임시파일 정리를 보존한다.",
+      "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; root claim/lease/write/child zero; failure-first 2 EXPECTED FAIL then focused 13/13 PASS; persistent hashed run ownership and hard-link no-replace receipt finalization enforced; actual activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

@@ -35,12 +35,63 @@ const ID_PATTERN = /^[A-Za-z0-9._:-]{8,200}$/;
 const SHA_PATTERN = /^[a-f0-9]{40}$/;
 const IDENTITY_PATTERN = /^identity:\/\/[A-Za-z0-9._/@:-]+$/;
 const DIGEST_PATTERN = /^[a-f0-9]{64}$/;
+const RECEIPT_ROOT_CLAIM_NAME = '.operations-activation-root.json';
 
 function waiting(status, missing = []) {
   return { status, missing, childProcessAllowed: false, approvalReadAllowed: false, receiptWriteAllowed: false };
 }
 
 function validDate(value) { return typeof value === 'string' && !Number.isNaN(Date.parse(value)); }
+
+function writeJsonNoReplace(output, value, { processId = process.pid, temporaryId = randomUUID() } = {}) {
+  const temporary = path.join(path.dirname(output), `.${path.basename(output)}.${processId}.${temporaryId}.tmp`);
+  let handle = null;
+  try {
+    handle = fs.openSync(temporary, 'wx', 0o600);
+    fs.writeFileSync(handle, `${JSON.stringify(value, null, 2)}\n`, 'utf8'); fs.fsyncSync(handle); fs.closeSync(handle); handle = null;
+    fs.linkSync(temporary, output);
+  } catch (error) {
+    if (error?.code === 'EEXIST') throw new Error('NO_REPLACE_TARGET_EXISTS');
+    throw error;
+  } finally {
+    if (handle !== null) fs.closeSync(handle);
+    if (fs.existsSync(temporary)) fs.rmSync(temporary);
+  }
+  return output;
+}
+
+function validateReceiptRootClaim(value, runIdSha256) {
+  if (value?.schemaVersion !== 1 || !DIGEST_PATTERN.test(value?.runIdSha256 ?? '') || !validDate(value?.claimedAt)
+    || value?.secretValuesRecorded !== false) throw new Error('OPERATIONS_ACTIVATION_RECEIPT_ROOT_CLAIM_INVALID');
+  if (value.runIdSha256 !== runIdSha256) throw new Error('OPERATIONS_ACTIVATION_RECEIPT_ROOT_RUN_MISMATCH');
+  return value;
+}
+
+export function claimOperationsActivationReceiptRoot(root, runId, {
+  processId = process.pid, checkedAt = new Date().toISOString(), claimId = randomUUID()
+} = {}) {
+  if (!root || !fs.existsSync(root) || !fs.statSync(root).isDirectory()) throw new Error('RECEIPT_ROOT_MISSING');
+  if (!ID_PATTERN.test(runId ?? '') || !Number.isInteger(processId) || processId < 1 || !validDate(checkedAt) || !ID_PATTERN.test(claimId ?? '')) {
+    throw new Error('OPERATIONS_ACTIVATION_RECEIPT_ROOT_CLAIM_INPUT_INVALID');
+  }
+  const runIdSha256 = createHash('sha256').update(runId, 'utf8').digest('hex');
+  const claimPath = path.join(root, RECEIPT_ROOT_CLAIM_NAME);
+  const readExisting = () => {
+    let value;
+    try { value = JSON.parse(fs.readFileSync(claimPath, 'utf8')); } catch { throw new Error('OPERATIONS_ACTIVATION_RECEIPT_ROOT_CLAIM_INVALID'); }
+    validateReceiptRootClaim(value, runIdSha256);
+    return { path: claimPath, runIdSha256, created: false };
+  };
+  if (fs.existsSync(claimPath)) return readExisting();
+  const document = { schemaVersion: 1, runIdSha256, claimedAt: checkedAt, secretValuesRecorded: false };
+  try {
+    writeJsonNoReplace(claimPath, document, { processId, temporaryId: claimId });
+    return { path: claimPath, runIdSha256, created: true };
+  } catch (error) {
+    if (error?.message === 'NO_REPLACE_TARGET_EXISTS') return readExisting();
+    throw error;
+  }
+}
 
 export function evaluateOperationsActivationGate({
   p6EvidenceComplete = false, p7InProgress = false, productionGo = false,
@@ -146,13 +197,10 @@ export function writeOperationsActivationReceiptOnce(root, receipt, { processId 
   if (!root || !fs.existsSync(root)) throw new Error('RECEIPT_ROOT_MISSING');
   if (!Number.isInteger(receipt?.attempt) || receipt.attempt < 1 || receipt.attempt > 9999) throw new Error('RECEIPT_ATTEMPT_INVALID');
   const name = `${String(receipt.sequence).padStart(2, '0')}-${receipt.stepId}-attempt-${String(receipt.attempt).padStart(4, '0')}.json`;
-  const output = path.join(root, name); const temporary = path.join(root, `.${name}.${processId}.tmp`);
+  const output = path.join(root, name);
   if (fs.existsSync(output)) throw new Error('RECEIPT_ALREADY_EXISTS');
-  try {
-    const handle = fs.openSync(temporary, 'wx', 0o600);
-    try { fs.writeFileSync(handle, `${JSON.stringify(receipt, null, 2)}\n`, 'utf8'); fs.fsyncSync(handle); } finally { fs.closeSync(handle); }
-    fs.renameSync(temporary, output);
-  } catch (error) { if (fs.existsSync(temporary)) fs.rmSync(temporary); throw error; }
+  try { writeJsonNoReplace(output, receipt, { processId }); }
+  catch (error) { if (error?.message === 'NO_REPLACE_TARGET_EXISTS') throw new Error('RECEIPT_ALREADY_EXISTS'); throw error; }
   return output;
 }
 
@@ -164,6 +212,7 @@ export function acquireOperationsActivationLease(root, runId, {
     throw new Error('OPERATIONS_ACTIVATION_LEASE_INPUT_INVALID');
   }
   const runIdSha256 = createHash('sha256').update(runId, 'utf8').digest('hex');
+  const rootClaim = claimOperationsActivationReceiptRoot(root, runId, { processId, checkedAt, claimId: leaseId });
   const leasePath = path.join(root, `.operations-activation-${runIdSha256.slice(0, 16)}.lock`);
   const document = { schemaVersion: 1, runIdSha256, leaseId, processId, acquiredAt: checkedAt, secretValuesRecorded: false };
   let handle = null; let created = false;
@@ -177,7 +226,7 @@ export function acquireOperationsActivationLease(root, runId, {
   } finally {
     if (handle !== null) fs.closeSync(handle);
   }
-  return { path: leasePath, runIdSha256, leaseId, processId };
+  return { path: leasePath, runIdSha256, leaseId, processId, rootClaim };
 }
 
 export function releaseOperationsActivationLease(lease) {

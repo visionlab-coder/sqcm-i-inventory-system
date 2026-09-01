@@ -96,6 +96,30 @@ test('single-writer lease는 동시 두 번째 실행을 차단하고 정상 해
   assert.equal(releaseOperationsActivationLease(resumed), true);
 });
 
+test('receipt root는 최초 run에 영속 귀속되어 다른 run의 재사용을 차단한다', async (t) => {
+  const { acquireOperationsActivationLease, releaseOperationsActivationLease } = await modulePromise;
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-p7-activation-root-owner-')); t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const first = acquireOperationsActivationLease(root, 'p7-activation-20261012-001', { processId: 905, checkedAt: '2026-10-12T01:00:00.000Z', leaseId: 'lease-owner-run-0001' });
+  assert.equal(releaseOperationsActivationLease(first), true);
+  assert.throws(() => acquireOperationsActivationLease(root, 'p7-activation-20261012-002', { processId: 906, checkedAt: '2026-10-12T01:00:01.000Z', leaseId: 'lease-owner-run-0002' }), /OPERATIONS_ACTIVATION_RECEIPT_ROOT_RUN_MISMATCH/);
+});
+
+test('receipt 최종화 경쟁에서도 기존 증거를 덮어쓰지 않는다', async (t) => {
+  const { OPERATIONS_ACTIVATION_STEPS, buildOperationsActivationReceipt, writeOperationsActivationReceiptOnce } = await modulePromise;
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-p7-activation-no-overwrite-')); t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const value = buildOperationsActivationReceipt({ approval: await approval(), step: OPERATIONS_ACTIVATION_STEPS[0], attempt: 1, result: { exitCode: 0, summary: { status: 'PASS_P7_SLO_30_DAY_EXPORT_CREATED' }, stdout: '', stderr: '' }, checkedAt: '2026-10-12T01:00:00.000Z' });
+  const output = path.join(root, '01-slo-collect-attempt-0001.json');
+  fs.writeFileSync(output, '{"sentinel":true}\n', 'utf8');
+  const originalExistsSync = fs.existsSync; let bypassed = false;
+  fs.existsSync = (candidate) => {
+    if (!bypassed && path.resolve(candidate) === path.resolve(output)) { bypassed = true; return false; }
+    return originalExistsSync(candidate);
+  };
+  try { assert.throws(() => writeOperationsActivationReceiptOnce(root, value, { processId: 907 }), /RECEIPT_ALREADY_EXISTS/); }
+  finally { fs.existsSync = originalExistsSync; }
+  assert.equal(fs.readFileSync(output, 'utf8'), '{"sentinel":true}\n');
+});
+
 test('다른 owner의 release 시도와 crash stale lease는 자동 삭제하지 않는다', async (t) => {
   const { acquireOperationsActivationLease, releaseOperationsActivationLease } = await modulePromise;
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-p7-activation-stale-')); t.after(() => fs.rmSync(root, { recursive: true, force: true }));

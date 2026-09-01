@@ -56,12 +56,12 @@ const gate = evaluateOperationsActivationGate({
 });
 
 let status = gate.status; let childProcessCount = 0; let receiptCreated = false; let currentStep = null; let attempt = 0; let failureCount = 0;
-let lease = null; let leaseAcquired = false; let leaseReleased = false; let leaseConflict = false;
+let lease = null; let leaseAcquired = false; let leaseReleased = false; let leaseConflict = false; let receiptRootClaimCreated = false;
 if (gate.childProcessAllowed) {
   try {
     const p6Document = JSON.parse(fs.readFileSync(p6Path, 'utf8'));
     const approval = validateOperationsActivationApproval(JSON.parse(fs.readFileSync(approvalPath, 'utf8')), { p6Document });
-    lease = acquireOperationsActivationLease(receiptRoot, approval.runId); leaseAcquired = true;
+    lease = acquireOperationsActivationLease(receiptRoot, approval.runId); leaseAcquired = true; receiptRootClaimCreated = lease.rootClaim.created;
     const selection = selectNextOperationsActivationStep(loadReceipts(receiptRoot, approval.runId));
     status = selection.status; currentStep = selection.step?.id ?? null; attempt = selection.attempt; failureCount = selection.failedAttempts;
     if (selection.step && !status.startsWith('PAUSED_')) {
@@ -86,7 +86,7 @@ if (gate.childProcessAllowed) {
 console.log(JSON.stringify({ checkedAt: new Date().toISOString(), status, currentStep, attempt, failureCount,
   requiredP6Environment: 'P7_P6_CUTOVER_EVIDENCE_FILE', requiredApprovalEnvironment: 'P7_OPERATIONS_ACTIVATION_APPROVAL_FILE',
   requiredReceiptRootEnvironment: 'P7_OPERATIONS_ACTIVATION_RECEIPT_ROOT', confirmationEnvironment: 'P7_OPERATIONS_ACTIVATION_CONFIRMATION',
-  missing: gate.missing, childProcessCount, receiptCreated, leaseAcquired, leaseReleased, leaseConflict,
+  missing: gate.missing, childProcessCount, receiptCreated, receiptRootClaimCreated, leaseAcquired, leaseReleased, leaseConflict,
   p6EvidenceComplete: p6?.status === 'evidence-complete', p7Status: p7?.status ?? null,
   secretValuesReadOrRecorded: false, productionGo: roadmap.invariants?.productionGo === true
 }, null, 2));

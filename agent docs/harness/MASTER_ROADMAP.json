@@ -348,6 +348,7 @@
           "p7-production-operations-owner-signoff-input-assembler-ready",
           "p7-production-19-step-resumable-operations-activation-orchestrator-ready",
           "p7-production-operations-activation-single-writer-lease-ready",
+          "p7-production-operations-receipt-root-ownership-no-overwrite-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],
