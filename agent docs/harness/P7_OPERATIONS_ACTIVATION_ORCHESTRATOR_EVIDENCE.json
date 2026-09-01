@@ -6,9 +6,9 @@
   "actualOperationsActivation": "NOT_RUN",
   "productionGo": false,
   "verification": {
-    "focusedTests": "13/13 PASS",
+    "focusedTests": "16/16 PASS",
     "syntaxChecks": "282/282 PASS",
-    "unitTests": "442 PASS, 1 Windows-only SKIP, 0 FAIL (443 total)",
+    "unitTests": "445 PASS, 1 Windows-only SKIP, 0 FAIL (446 total)",
     "harnessVerify": "PASS",
     "dryRunStatus": "READY_WAIT_P6_ACTUAL_CUTOVER",
     "childProcessCount": 0,
@@ -30,6 +30,8 @@
     "same-run single-writer lease with owner-only release",
     "persistent one-run ownership for each receipt root",
     "hard-link no-replace receipt finalization under TOCTOU",
+    "canonical approval SHA-256 and release SHA bound to root claim lease and every receipt",
+    "same runId cannot resume across changed approval or release",
     "crash stale lease preserved for manual review",
     "four-digit WAIT attempts through 9999",
     "terminal completion remains separately confirmed and fail-closed"

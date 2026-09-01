@@ -61,8 +61,8 @@ if (gate.childProcessAllowed) {
   try {
     const p6Document = JSON.parse(fs.readFileSync(p6Path, 'utf8'));
     const approval = validateOperationsActivationApproval(JSON.parse(fs.readFileSync(approvalPath, 'utf8')), { p6Document });
-    lease = acquireOperationsActivationLease(receiptRoot, approval.runId); leaseAcquired = true; receiptRootClaimCreated = lease.rootClaim.created;
-    const selection = selectNextOperationsActivationStep(loadReceipts(receiptRoot, approval.runId));
+    lease = acquireOperationsActivationLease(receiptRoot, approval); leaseAcquired = true; receiptRootClaimCreated = lease.rootClaim.created;
+    const selection = selectNextOperationsActivationStep(loadReceipts(receiptRoot, approval.runId), { approval });
     status = selection.status; currentStep = selection.step?.id ?? null; attempt = selection.attempt; failureCount = selection.failedAttempts;
     if (selection.step && !status.startsWith('PAUSED_')) {
       childProcessCount = 1;

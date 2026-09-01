@@ -357,6 +357,14 @@
       "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; root claim/lease/write/child zero; failure-first 2 EXPECTED FAIL then focused 13/13 PASS; persistent hashed run ownership and hard-link no-replace receipt finalization enforced; actual activation NOT_RUN"
     },
     {
+      "id": "ACC-P7-27-PRODUCTION-OPERATIONS-ACTIVATION-APPROVAL-RELEASE-PROVENANCE-BINDING",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "같은 run ID라도 승인 manifest 또는 release SHA가 바뀌면 기존 root·lease·receipt를 재사용하지 않는다. JSON key 순서와 무관한 canonical approval digest를 사용하고 모든 재개 증거가 현재 승인·릴리스와 정확히 일치해야 한다.",
+      "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; approval/root/lease/write/child zero; failure-first 2 EXPECTED FAIL then focused 16/16 PASS; schema 2 root claim·lease·receipt bind canonical approval SHA-256 and release SHA; actual activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

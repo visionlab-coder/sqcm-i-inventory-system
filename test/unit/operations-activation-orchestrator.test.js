@@ -11,8 +11,9 @@ async function approval(overrides = {}) {
   return { schemaVersion: 1, template: false, environment: 'production', activationState: 'actual', approved: true, targetUrl: 'https://inventory.safe-link.co.kr', runId: 'p7-activation-20261012-001', releaseSha: 'a'.repeat(40), authorizedByRef: 'identity://operations-owner', approvedAt: '2026-10-12T00:00:00.000Z', expiresAt: '2026-11-01T00:00:00.000Z', allowedSteps: OPERATIONS_ACTIVATION_STEPS.map((step) => step.id), authorizedActions: [...OPERATIONS_ACTIVATION_ACTIONS], ...overrides };
 }
 async function receipt(stepId, outcome = 'PASS', overrides = {}) {
-  const { OPERATIONS_ACTIVATION_STEPS } = await modulePromise; const index = OPERATIONS_ACTIVATION_STEPS.findIndex((step) => step.id === stepId); const step = OPERATIONS_ACTIVATION_STEPS[index];
-  return { schemaVersion: 1, environment: 'production', activationState: 'actual', runId: 'p7-activation-20261012-001', stepId, sequence: index + 1, attempt: 1, outcome, status: outcome === 'PASS' ? step.pass[0] : outcome === 'WAIT' ? 'READY_WAIT_INPUT' : 'FAIL_TEST', exitCode: outcome === 'FAIL' ? 1 : 0, checkedAt: '2026-10-12T01:00:00.000Z', command: { executable: 'node', script: step.script, args: [...step.args] }, stdoutSha256: 'a'.repeat(64), stderrSha256: 'b'.repeat(64), secretValuesRecorded: false, ...overrides };
+  const { OPERATIONS_ACTIVATION_STEPS, operationsActivationApprovalSha256 } = await modulePromise; const index = OPERATIONS_ACTIVATION_STEPS.findIndex((step) => step.id === stepId); const step = OPERATIONS_ACTIVATION_STEPS[index];
+  const activationApproval = await approval();
+  return { schemaVersion: 2, environment: 'production', activationState: 'actual', runId: activationApproval.runId, releaseSha: activationApproval.releaseSha, approvalSha256: operationsActivationApprovalSha256(activationApproval), stepId, sequence: index + 1, attempt: 1, outcome, status: outcome === 'PASS' ? step.pass[0] : outcome === 'WAIT' ? 'READY_WAIT_INPUT' : 'FAIL_TEST', exitCode: outcome === 'FAIL' ? 1 : 0, checkedAt: '2026-10-12T01:00:00.000Z', command: { executable: 'node', script: step.script, args: [...step.args] }, stdoutSha256: 'a'.repeat(64), stderrSha256: 'b'.repeat(64), secretValuesRecorded: false, ...overrides };
 }
 
 test('P6 actual·P7·Production GO 전에는 child·approval read·receipt write를 열지 않는다', async () => {
@@ -36,6 +37,13 @@ test('approval은 exact 19 steps·10 actions·P6 release·identity·유효기간
   assert.equal(validateOperationsActivationApproval(await approval(), { p6Document: p6(), checkedAt: '2026-10-12T01:00:00.000Z' }).approved, true);
   const altered = await approval({ releaseSha: 'b'.repeat(40), authorizedByRef: 'person', expiresAt: '2027-01-01T00:00:00.000Z', allowedSteps: [], authorizedActions: [] });
   assert.throws(() => validateOperationsActivationApproval(altered, { p6Document: p6(), checkedAt: '2026-10-12T01:00:00.000Z' }), /releaseSha.*authorizedByRef.*approvalWindow.*allowedSteps.*authorizedActions/);
+});
+
+test('approval digest는 JSON key 순서와 무관하고 승인 내용 변경을 구분한다', async () => {
+  const { operationsActivationApprovalSha256 } = await modulePromise;
+  const original = await approval(); const reordered = Object.fromEntries(Object.entries(original).reverse());
+  assert.equal(operationsActivationApprovalSha256(original), operationsActivationApprovalSha256(reordered));
+  assert.notEqual(operationsActivationApprovalSha256(original), operationsActivationApprovalSha256({ ...original, approvedAt: '2026-10-12T00:01:00.000Z' }));
 });
 
 test('PASS·WAIT·FAIL 상태를 exit code와 exact allowlist로 판정한다', async () => {
@@ -88,20 +96,39 @@ test('receipt는 stdout/stderr 원문 없이 SHA만 원자적으로 한 번 기�
 test('single-writer lease는 동시 두 번째 실행을 차단하고 정상 해제 뒤 재개한다', async (t) => {
   const { acquireOperationsActivationLease, releaseOperationsActivationLease } = await modulePromise;
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-p7-activation-lease-')); t.after(() => fs.rmSync(root, { recursive: true, force: true }));
-  const first = acquireOperationsActivationLease(root, 'p7-activation-20261012-001', { processId: 901, checkedAt: '2026-10-12T01:00:00.000Z', leaseId: 'lease-first-0001' });
+  const activationApproval = await approval();
+  const first = acquireOperationsActivationLease(root, activationApproval, { processId: 901, checkedAt: '2026-10-12T01:00:00.000Z', leaseId: 'lease-first-0001' });
   assert.equal(fs.existsSync(first.path), true);
-  assert.throws(() => acquireOperationsActivationLease(root, 'p7-activation-20261012-001', { processId: 902, checkedAt: '2026-10-12T01:00:01.000Z', leaseId: 'lease-second-0002' }), /OPERATIONS_ACTIVATION_LEASE_HELD/);
+  assert.throws(() => acquireOperationsActivationLease(root, activationApproval, { processId: 902, checkedAt: '2026-10-12T01:00:01.000Z', leaseId: 'lease-second-0002' }), /OPERATIONS_ACTIVATION_LEASE_HELD/);
   assert.equal(releaseOperationsActivationLease(first), true); assert.equal(fs.existsSync(first.path), false);
-  const resumed = acquireOperationsActivationLease(root, 'p7-activation-20261012-001', { processId: 903, checkedAt: '2026-10-12T01:00:02.000Z', leaseId: 'lease-resumed-0003' });
+  const resumed = acquireOperationsActivationLease(root, activationApproval, { processId: 903, checkedAt: '2026-10-12T01:00:02.000Z', leaseId: 'lease-resumed-0003' });
   assert.equal(releaseOperationsActivationLease(resumed), true);
 });
 
 test('receipt root는 최초 run에 영속 귀속되어 다른 run의 재사용을 차단한다', async (t) => {
   const { acquireOperationsActivationLease, releaseOperationsActivationLease } = await modulePromise;
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-p7-activation-root-owner-')); t.after(() => fs.rmSync(root, { recursive: true, force: true }));
-  const first = acquireOperationsActivationLease(root, 'p7-activation-20261012-001', { processId: 905, checkedAt: '2026-10-12T01:00:00.000Z', leaseId: 'lease-owner-run-0001' });
+  const first = acquireOperationsActivationLease(root, await approval(), { processId: 905, checkedAt: '2026-10-12T01:00:00.000Z', leaseId: 'lease-owner-run-0001' });
   assert.equal(releaseOperationsActivationLease(first), true);
-  assert.throws(() => acquireOperationsActivationLease(root, 'p7-activation-20261012-002', { processId: 906, checkedAt: '2026-10-12T01:00:01.000Z', leaseId: 'lease-owner-run-0002' }), /OPERATIONS_ACTIVATION_RECEIPT_ROOT_RUN_MISMATCH/);
+  const differentRunApproval = await approval({ runId: 'p7-activation-20261012-002' });
+  assert.throws(() => acquireOperationsActivationLease(root, differentRunApproval, { processId: 906, checkedAt: '2026-10-12T01:00:01.000Z', leaseId: 'lease-owner-run-0002' }), /OPERATIONS_ACTIVATION_RECEIPT_ROOT_RUN_MISMATCH/);
+});
+
+test('동일 run이라도 approval 또는 release가 바뀌면 receipt root 재사용을 차단한다', async (t) => {
+  const { acquireOperationsActivationLease, releaseOperationsActivationLease } = await modulePromise;
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-p7-activation-approval-owner-')); t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const firstApproval = await approval();
+  const first = acquireOperationsActivationLease(root, firstApproval, { processId: 908, checkedAt: '2026-10-12T01:00:00.000Z', leaseId: 'lease-approval-0001' });
+  assert.equal(releaseOperationsActivationLease(first), true);
+  const changedApproval = await approval({ releaseSha: 'b'.repeat(40), approvedAt: '2026-10-12T00:01:00.000Z' });
+  assert.throws(() => acquireOperationsActivationLease(root, changedApproval, { processId: 909, checkedAt: '2026-10-12T01:00:01.000Z', leaseId: 'lease-approval-0002' }), /OPERATIONS_ACTIVATION_RECEIPT_ROOT_APPROVAL_MISMATCH/);
+});
+
+test('이전 approval·release receipt를 같은 run의 새 승인 흐름에 재사용하지 않는다', async () => {
+  const { selectNextOperationsActivationStep } = await modulePromise;
+  const oldReceipt = await receipt('slo-collect');
+  const changedApproval = await approval({ releaseSha: 'b'.repeat(40), approvedAt: '2026-10-12T00:01:00.000Z' });
+  assert.throws(() => selectNextOperationsActivationStep([oldReceipt], { approval: changedApproval }), /OPERATIONS_ACTIVATION_RECEIPT_INVALID/);
 });
 
 test('receipt 최종화 경쟁에서도 기존 증거를 덮어쓰지 않는다', async (t) => {
@@ -123,10 +150,11 @@ test('receipt 최종화 경쟁에서도 기존 증거를 덮어쓰지 않는다'
 test('다른 owner의 release 시도와 crash stale lease는 자동 삭제하지 않는다', async (t) => {
   const { acquireOperationsActivationLease, releaseOperationsActivationLease } = await modulePromise;
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-p7-activation-stale-')); t.after(() => fs.rmSync(root, { recursive: true, force: true }));
-  const lease = acquireOperationsActivationLease(root, 'p7-activation-20261012-001', { processId: 910, checkedAt: '2026-10-12T01:00:00.000Z', leaseId: 'lease-owner-0010' });
+  const activationApproval = await approval();
+  const lease = acquireOperationsActivationLease(root, activationApproval, { processId: 910, checkedAt: '2026-10-12T01:00:00.000Z', leaseId: 'lease-owner-0010' });
   assert.throws(() => releaseOperationsActivationLease({ ...lease, leaseId: 'lease-other-0011' }), /OPERATIONS_ACTIVATION_LEASE_OWNERSHIP_MISMATCH/);
   assert.equal(fs.existsSync(lease.path), true);
-  assert.throws(() => acquireOperationsActivationLease(root, 'p7-activation-20261012-001', { processId: 912, checkedAt: '2026-10-13T01:00:00.000Z', leaseId: 'lease-later-0012' }), /OPERATIONS_ACTIVATION_LEASE_HELD/);
+  assert.throws(() => acquireOperationsActivationLease(root, activationApproval, { processId: 912, checkedAt: '2026-10-13T01:00:00.000Z', leaseId: 'lease-later-0012' }), /OPERATIONS_ACTIVATION_LEASE_HELD/);
   assert.equal(fs.existsSync(lease.path), true); releaseOperationsActivationLease(lease);
 });
 

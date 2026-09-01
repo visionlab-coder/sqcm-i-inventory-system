@@ -43,6 +43,16 @@ function waiting(status, missing = []) {
 
 function validDate(value) { return typeof value === 'string' && !Number.isNaN(Date.parse(value)); }
 
+function canonicalJson(value) {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map((item) => canonicalJson(item)).join(',')}]`;
+  return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(',')}}`;
+}
+
+export function operationsActivationApprovalSha256(value) {
+  return createHash('sha256').update(canonicalJson(value), 'utf8').digest('hex');
+}
+
 function writeJsonNoReplace(output, value, { processId = process.pid, temporaryId = randomUUID() } = {}) {
   const temporary = path.join(path.dirname(output), `.${path.basename(output)}.${processId}.${temporaryId}.tmp`);
   let handle = null;
@@ -60,33 +70,37 @@ function writeJsonNoReplace(output, value, { processId = process.pid, temporaryI
   return output;
 }
 
-function validateReceiptRootClaim(value, runIdSha256) {
-  if (value?.schemaVersion !== 1 || !DIGEST_PATTERN.test(value?.runIdSha256 ?? '') || !validDate(value?.claimedAt)
+function validateReceiptRootClaim(value, { runIdSha256, releaseSha, approvalSha256 }) {
+  if (value?.schemaVersion !== 2 || !DIGEST_PATTERN.test(value?.runIdSha256 ?? '') || !SHA_PATTERN.test(value?.releaseSha ?? '')
+    || !DIGEST_PATTERN.test(value?.approvalSha256 ?? '') || !validDate(value?.claimedAt)
     || value?.secretValuesRecorded !== false) throw new Error('OPERATIONS_ACTIVATION_RECEIPT_ROOT_CLAIM_INVALID');
   if (value.runIdSha256 !== runIdSha256) throw new Error('OPERATIONS_ACTIVATION_RECEIPT_ROOT_RUN_MISMATCH');
+  if (value.releaseSha !== releaseSha || value.approvalSha256 !== approvalSha256) throw new Error('OPERATIONS_ACTIVATION_RECEIPT_ROOT_APPROVAL_MISMATCH');
   return value;
 }
 
-export function claimOperationsActivationReceiptRoot(root, runId, {
+export function claimOperationsActivationReceiptRoot(root, approval, {
   processId = process.pid, checkedAt = new Date().toISOString(), claimId = randomUUID()
 } = {}) {
   if (!root || !fs.existsSync(root) || !fs.statSync(root).isDirectory()) throw new Error('RECEIPT_ROOT_MISSING');
-  if (!ID_PATTERN.test(runId ?? '') || !Number.isInteger(processId) || processId < 1 || !validDate(checkedAt) || !ID_PATTERN.test(claimId ?? '')) {
+  if (!ID_PATTERN.test(approval?.runId ?? '') || !SHA_PATTERN.test(approval?.releaseSha ?? '')
+    || !Number.isInteger(processId) || processId < 1 || !validDate(checkedAt) || !ID_PATTERN.test(claimId ?? '')) {
     throw new Error('OPERATIONS_ACTIVATION_RECEIPT_ROOT_CLAIM_INPUT_INVALID');
   }
-  const runIdSha256 = createHash('sha256').update(runId, 'utf8').digest('hex');
+  const runIdSha256 = createHash('sha256').update(approval.runId, 'utf8').digest('hex');
+  const approvalSha256 = operationsActivationApprovalSha256(approval); const releaseSha = approval.releaseSha;
   const claimPath = path.join(root, RECEIPT_ROOT_CLAIM_NAME);
   const readExisting = () => {
     let value;
     try { value = JSON.parse(fs.readFileSync(claimPath, 'utf8')); } catch { throw new Error('OPERATIONS_ACTIVATION_RECEIPT_ROOT_CLAIM_INVALID'); }
-    validateReceiptRootClaim(value, runIdSha256);
-    return { path: claimPath, runIdSha256, created: false };
+    validateReceiptRootClaim(value, { runIdSha256, releaseSha, approvalSha256 });
+    return { path: claimPath, runIdSha256, releaseSha, approvalSha256, created: false };
   };
   if (fs.existsSync(claimPath)) return readExisting();
-  const document = { schemaVersion: 1, runIdSha256, claimedAt: checkedAt, secretValuesRecorded: false };
+  const document = { schemaVersion: 2, runIdSha256, releaseSha, approvalSha256, claimedAt: checkedAt, secretValuesRecorded: false };
   try {
     writeJsonNoReplace(claimPath, document, { processId, temporaryId: claimId });
-    return { path: claimPath, runIdSha256, created: true };
+    return { path: claimPath, runIdSha256, releaseSha, approvalSha256, created: true };
   } catch (error) {
     if (error?.message === 'NO_REPLACE_TARGET_EXISTS') return readExisting();
     throw error;
@@ -141,13 +155,15 @@ export function classifyOperationsActivationStep(step, { exitCode = 0, summary =
   return 'FAIL';
 }
 
-export function selectNextOperationsActivationStep(receipts = []) {
+export function selectNextOperationsActivationStep(receipts = [], { approval = null } = {}) {
   const failures = [];
+  const expectedApprovalSha256 = approval ? operationsActivationApprovalSha256(approval) : null;
   for (const receipt of receipts) {
     const stepIndex = OPERATIONS_ACTIVATION_STEPS.findIndex((item) => item.id === receipt?.stepId);
     const step = OPERATIONS_ACTIVATION_STEPS[stepIndex];
-    if (!step || receipt?.schemaVersion !== 1 || !ID_PATTERN.test(receipt?.runId ?? '')
+    if (!step || receipt?.schemaVersion !== 2 || !ID_PATTERN.test(receipt?.runId ?? '')
       || receipt?.environment !== 'production' || receipt?.activationState !== 'actual'
+      || !SHA_PATTERN.test(receipt?.releaseSha ?? '') || !DIGEST_PATTERN.test(receipt?.approvalSha256 ?? '')
       || receipt?.sequence !== stepIndex + 1 || !Number.isInteger(receipt?.attempt) || receipt.attempt < 1 || receipt.attempt > 9999
       || !['PASS', 'WAIT', 'FAIL'].includes(receipt?.outcome) || typeof receipt?.status !== 'string'
       || !Number.isInteger(receipt?.exitCode) || !validDate(receipt?.checkedAt)
@@ -158,6 +174,10 @@ export function selectNextOperationsActivationStep(receipts = []) {
       || (step && classifyOperationsActivationStep(step, { exitCode: receipt?.exitCode, summary: { status: receipt?.status } }) !== receipt?.outcome)) failures.push('receiptContract');
   }
   if (new Set(receipts.map((receipt) => receipt.runId)).size > 1) failures.push('receiptRunId');
+  if (new Set(receipts.map((receipt) => receipt.releaseSha)).size > 1) failures.push('receiptReleaseSha');
+  if (new Set(receipts.map((receipt) => receipt.approvalSha256)).size > 1) failures.push('receiptApprovalSha256');
+  if (approval && receipts.some((receipt) => receipt.runId !== approval.runId || receipt.releaseSha !== approval.releaseSha
+    || receipt.approvalSha256 !== expectedApprovalSha256)) failures.push('receiptApprovalProvenance');
   let earlierStepsPassed = true;
   for (const step of OPERATIONS_ACTIVATION_STEPS) {
     const stepReceipts = receipts.filter((receipt) => receipt.stepId === step.id).sort((left, right) => left.attempt - right.attempt);
@@ -183,8 +203,9 @@ export function selectNextOperationsActivationStep(receipts = []) {
 export function buildOperationsActivationReceipt({ approval, step, attempt, result, checkedAt = new Date().toISOString() } = {}) {
   const outcome = classifyOperationsActivationStep(step, result);
   return {
-    schemaVersion: 1, environment: 'production', activationState: 'actual',
-    runId: approval.runId, stepId: step.id, sequence: OPERATIONS_ACTIVATION_STEPS.indexOf(step) + 1,
+    schemaVersion: 2, environment: 'production', activationState: 'actual',
+    runId: approval.runId, releaseSha: approval.releaseSha, approvalSha256: operationsActivationApprovalSha256(approval),
+    stepId: step.id, sequence: OPERATIONS_ACTIVATION_STEPS.indexOf(step) + 1,
     attempt, outcome, status: result.summary?.status ?? 'MISSING_STATUS', exitCode: result.exitCode,
     checkedAt, command: { executable: 'node', script: step.script, args: [...step.args] },
     stdoutSha256: createHash('sha256').update(result.stdout ?? '').digest('hex'),
@@ -204,17 +225,19 @@ export function writeOperationsActivationReceiptOnce(root, receipt, { processId 
   return output;
 }
 
-export function acquireOperationsActivationLease(root, runId, {
+export function acquireOperationsActivationLease(root, approval, {
   processId = process.pid, checkedAt = new Date().toISOString(), leaseId = randomUUID()
 } = {}) {
   if (!root || !fs.existsSync(root) || !fs.statSync(root).isDirectory()) throw new Error('RECEIPT_ROOT_MISSING');
-  if (!ID_PATTERN.test(runId ?? '') || !ID_PATTERN.test(leaseId ?? '') || !Number.isInteger(processId) || processId < 1 || !validDate(checkedAt)) {
+  if (!ID_PATTERN.test(approval?.runId ?? '') || !SHA_PATTERN.test(approval?.releaseSha ?? '') || !ID_PATTERN.test(leaseId ?? '')
+    || !Number.isInteger(processId) || processId < 1 || !validDate(checkedAt)) {
     throw new Error('OPERATIONS_ACTIVATION_LEASE_INPUT_INVALID');
   }
-  const runIdSha256 = createHash('sha256').update(runId, 'utf8').digest('hex');
-  const rootClaim = claimOperationsActivationReceiptRoot(root, runId, { processId, checkedAt, claimId: leaseId });
+  const runIdSha256 = createHash('sha256').update(approval.runId, 'utf8').digest('hex');
+  const releaseSha = approval.releaseSha; const approvalSha256 = operationsActivationApprovalSha256(approval);
+  const rootClaim = claimOperationsActivationReceiptRoot(root, approval, { processId, checkedAt, claimId: leaseId });
   const leasePath = path.join(root, `.operations-activation-${runIdSha256.slice(0, 16)}.lock`);
-  const document = { schemaVersion: 1, runIdSha256, leaseId, processId, acquiredAt: checkedAt, secretValuesRecorded: false };
+  const document = { schemaVersion: 2, runIdSha256, releaseSha, approvalSha256, leaseId, processId, acquiredAt: checkedAt, secretValuesRecorded: false };
   let handle = null; let created = false;
   try {
     handle = fs.openSync(leasePath, 'wx', 0o600); created = true;
@@ -226,14 +249,15 @@ export function acquireOperationsActivationLease(root, runId, {
   } finally {
     if (handle !== null) fs.closeSync(handle);
   }
-  return { path: leasePath, runIdSha256, leaseId, processId, rootClaim };
+  return { path: leasePath, runIdSha256, releaseSha, approvalSha256, leaseId, processId, rootClaim };
 }
 
 export function releaseOperationsActivationLease(lease) {
   if (!lease?.path || !fs.existsSync(lease.path)) throw new Error('OPERATIONS_ACTIVATION_LEASE_MISSING');
   let document;
   try { document = JSON.parse(fs.readFileSync(lease.path, 'utf8')); } catch { throw new Error('OPERATIONS_ACTIVATION_LEASE_INVALID'); }
-  if (document?.schemaVersion !== 1 || document?.runIdSha256 !== lease.runIdSha256 || document?.leaseId !== lease.leaseId
+  if (document?.schemaVersion !== 2 || document?.runIdSha256 !== lease.runIdSha256 || document?.releaseSha !== lease.releaseSha
+    || document?.approvalSha256 !== lease.approvalSha256 || document?.leaseId !== lease.leaseId
     || document?.processId !== lease.processId || document?.secretValuesRecorded !== false) {
     throw new Error('OPERATIONS_ACTIVATION_LEASE_OWNERSHIP_MISMATCH');
   }
