@@ -1,7 +1,7 @@
 # ACC-P7-12 Production Operations Signoff Evidence Compiler
 
-기준일: 2026-09-01  
-상태: **EVIDENCE_COMPLETE (local preparation)**  
+기준일: 2026-09-01
+상태: **EVIDENCE_COMPLETE (local preparation)**
 Phase 상태: **6 / 8, P6 진행 중, P7 미착수**
 
 ## 1. 목표
