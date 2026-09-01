@@ -9,7 +9,7 @@
     "status": "READY_WAIT_CHANGE_WINDOW",
     "localBlockers": [],
     "unitTests": "4/4 PASS",
-    "repositoryRegression": "205/205 PASS",
+    "repositoryRegression": "209/209 PASS",
     "harnessRegistered": true
   },
   "cutoverEvidenceCandidate": {
@@ -85,6 +85,7 @@
   },
   "nonfunctionalBaselineAutomation": {
     "command": "npm.cmd run production:nonfunctional-baseline",
+    "publicCommand": "npm.cmd run production:nonfunctional-baseline -- --public",
     "status": "PASS_LOOPBACK_BASELINE_READY_FOR_PUBLIC_RECHECK",
     "target": "http://127.0.0.1:3300",
     "requests": 60,
@@ -92,6 +93,9 @@
     "maxP95Ms": 1000,
     "maxErrorRate": 0,
     "checks": ["health load", "security headers", "anonymous 401", "cross-site 403"],
+    "publicTarget": "https://inventory.safe-link.co.kr",
+    "publicExecutionRequires": ["approved change window", "PRODUCTION_PUBLIC_NONFUNCTIONAL_CONFIRMATION"],
+    "publicTargetUnitTests": "4/4 PASS",
     "actualPublicNonfunctionalGate": "NOT_RUN"
   },
   "operationalHealthBaselineAutomation": {
@@ -215,13 +219,14 @@
     "CUTOVER_TEMPLATE_12_GATE_CONTRACT_VALID",
     "AUTOMATED_CUTOVER_PREFLIGHT_PASS",
     "AUTOMATED_PREFLIGHT_UNIT_TESTS_4_OF_4_PASS",
-    "REPOSITORY_UNIT_TESTS_205_OF_205_PASS",
+    "REPOSITORY_UNIT_TESTS_209_OF_209_PASS",
     "PRODUCTION_PROVIDER_PREFLIGHT_PASS",
     "PUBLIC_DNS_TLS_HEALTH_READINESS_PROBE_AUTOMATION_READY",
     "LOGS_5XX_OUTBOX_BASELINE_AND_CUTOVER_GATE_AUTOMATION_READY",
     "ROLE_CORE_SMOKE_PREFLIGHT_AUTOMATION_READY",
     "ROLE_MFA_RBAC_CORE_SMOKE_RUNNER_READY",
     "NONFUNCTIONAL_LOOPBACK_BASELINE_AND_PUBLIC_RECHECK_AUTOMATION_READY",
+    "PUBLIC_NONFUNCTIONAL_CHANGE_WINDOW_TARGET_GATE_READY",
     "OPERATIONAL_HEALTH_LOOPBACK_BASELINE_AND_POST_CUTOVER_RECHECK_AUTOMATION_READY",
     "CSRF_NEGATIVE_AND_IDEMPOTENCY_SCHEMA_BASELINE_AUTOMATION_READY",
     "AUTHENTICATED_CSRF_IDEMPOTENCY_WRITE_REPLAY_RUNNER_READY",

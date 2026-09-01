@@ -293,6 +293,7 @@
           "role-core-smoke-preflight-automation-ready",
           "role-mfa-rbac-core-smoke-runner-ready",
           "nonfunctional-loopback-baseline-and-public-recheck-automation-ready",
+          "public-nonfunctional-change-window-target-gate-ready",
           "operational-health-loopback-baseline-and-post-cutover-recheck-automation-ready",
           "csrf-negative-and-idempotency-schema-baseline-automation-ready",
           "authenticated-csrf-idempotency-write-replay-runner-ready",
