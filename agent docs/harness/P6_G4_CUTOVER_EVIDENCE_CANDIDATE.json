@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "template": false,
+  "activationState": "candidate",
+  "generatedFrom": {
+    "p6g3": "agent docs/harness/P6_G3_AI_PC_PRODUCTION_DEPLOY_ROLLBACK_EVIDENCE.json",
+    "p6g4Preflight": "agent docs/harness/P6_G4_CUTOVER_PREFLIGHT_EVIDENCE.json",
+    "p5Signoff": "agent docs/harness/P5_G2_STAGING_UAT_SIGNOFF_EVIDENCE.json"
+  },
+  "generatedAt": "2026-09-01T14:25:18+09:00",
+  "releaseTag": "sha-e238ab8dab7f4729298ceb7ecc0f874a4a08829a",
+  "targetUrl": "https://inventory.safe-link.co.kr",
+  "localGatePassCount": 3,
+  "pendingGateCount": 9,
+  "gates": [
+    {"id":"artifact","status":"PASS","evidence":"P6_G3_AI_PC_PRODUCTION_DEPLOY_ROLLBACK_EVIDENCE.json: immutable candidate SHA and backend/frontend index digests verified"},
+    {"id":"backup_restore","status":"PASS","evidence":"P6_G3_AI_PC_PRODUCTION_DEPLOY_ROLLBACK_EVIDENCE.json: logical backup SHA-256 and isolated restore 33/33 tables, migrations 25/25 verified"},
+    {"id":"migration_review","status":"PASS","evidence":"P6_G3_AI_PC_PRODUCTION_DEPLOY_ROLLBACK_EVIDENCE.json: PostgreSQL application migrations 25/25 and seeds disabled"},
+    {"id":"provider_preflight","status":"PENDING","evidence":""},
+    {"id":"health_readiness","status":"PENDING","evidence":""},
+    {"id":"core_smoke","status":"PENDING","evidence":""},
+    {"id":"logs_5xx","status":"PENDING","evidence":""},
+    {"id":"rollback","status":"PENDING","evidence":""},
+    {"id":"csrf_idempotency","status":"PENDING","evidence":""},
+    {"id":"operational_health","status":"PENDING","evidence":""},
+    {"id":"nonfunctional","status":"PENDING","evidence":""},
+    {"id":"uat_signoff","status":"PENDING","evidence":""}
+  ],
+  "pilot": {
+    "openCriticalDefects": null,
+    "openHighDefects": null,
+    "stagingBaseline": "19/19 PASS; Production validation is not run",
+    "roleResults": [
+      {"role":"employee","status":"PENDING","evidence":""},
+      {"role":"manager","status":"PENDING","evidence":""},
+      {"role":"admin","status":"PENDING","evidence":""}
+    ]
+  },
+  "approvals": {
+    "business": {"status":"PENDING","signedBy":"","signedAt":""},
+    "security": {"status":"PENDING","signedBy":"","signedAt":""},
+    "operations": {"status":"PENDING","signedBy":"","signedAt":""}
+  },
+  "productionGo": false
+}

@@ -283,7 +283,8 @@ function verify() {
         '--filter', 'label=com.docker.compose.project=seowon-inventory-production',
         '--format', '{{json .}}'
       ], validateInventoryContainers],
-      ['production-cutover-preflight', 'npm.cmd', ['run', 'production:cutover-preflight']]
+      ['production-cutover-preflight', 'npm.cmd', ['run', 'production:cutover-preflight']],
+      ['production-cutover-evidence', 'npm.cmd', ['run', 'production:cutover-evidence']]
     ]
   };
   const commands = commandSets[verifierKey];

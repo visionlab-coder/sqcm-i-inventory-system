@@ -9,7 +9,7 @@
 ## 체크리스트
 
 - [x] Harness status/check PASS, 진행 중 Phase·READY 각 1건
-- [x] 브랜치 HEAD `3f8b2f668d6ef9b9dc34dee7883058c10d22e04c` 원격 일치
+- [x] 작업 기준 브랜치 HEAD `e59d5b324bb0941d08ecf77dfbc930900e0bcce1` 원격 일치
 - [x] 배포 후보 `e238ab8dab7f4729298ceb7ecc0f874a4a08829a` 유지
 - [x] Production frontend/backend/database 3서비스 healthy
 - [x] frontend `127.0.0.1:3300`, backend/database host port 0
@@ -19,6 +19,10 @@
 - [x] cutover template 12-gate 계약 유효, 실제 승인으로 사용 불가 확인
 - [x] `npm.cmd run production:cutover-preflight` 실시간 검사기 구현·Harness 등록
 - [x] 변경창 전·변경창 내·최종 서명 READY·로컬 손상 fail-closed 회귀 4/4 PASS
+- [x] 12개 cutover Gate 증거 후보 자동 조립: 로컬 실증 3/12 PASS
+- [x] 외부 Production 검증 9/12와 서명 3건 PENDING 유지
+- [x] 후보가 Production GO를 승인하지 못하는 fail-closed 검사 PASS
+- [x] 저장소 표준 구문 135개·단위 158/158 PASS(신규 Gate 회귀 7건 포함)
 - [x] 기존 Cloudflare `sqcm-i`, `sqcm-i-inventory-staging` tunnel 각 연결 4개 보존
 - [x] 보호 포트/PID `1234/6632`, `11434/8588`, `18765/22716`, `18766/65724` 보존
 - [ ] `sqcm-i-inventory-production` 전용 tunnel — 변경창에서 생성
@@ -43,3 +47,5 @@
 P6는 아직 완료가 아니며 전체 진행률은 `6/8`, `productionGo=false`다. 다음 READY는 동일한 P6-G4다. 변경창 이전 자동 실행은 내부 health·백업·SHA·보호 서비스 드리프트만 재검사하고, 공개 tunnel·DNS·TLS는 변경하지 않는다.
 
 자동화는 더 이상 단순 상태 조회만 하지 않는다. `production:cutover-preflight`가 원격 SHA, Docker 3서비스·포트, smoke, migration·사용자 수, 백업 복원, 보호 PID, Cloudflare tunnel, DNS와 변경창을 실시간으로 판정하고 로컬 불변식 손상 시 즉시 실패한다.
+
+`npm.cmd run production:cutover-evidence`는 G3·G4·P5 정본에서 cutover 증거 후보를 조립·대조한다. 현재 `artifact`, `backup_restore`, `migration_review`만 PASS이며 나머지 9개 Gate와 Production 역할 결과·최종 서명은 PENDING이다. staging 서명이나 loopback smoke를 공개 Production 증거로 승격하지 않는다.

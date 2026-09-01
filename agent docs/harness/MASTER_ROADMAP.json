@@ -287,6 +287,9 @@
           "backup-restore-verified",
           "automated-production-cutover-preflight-pass",
           "cutover-preflight-unit-tests-4-of-4-pass",
+          "cutover-evidence-local-gates-3-of-12-pass",
+          "cutover-evidence-external-gates-9-of-12-pending",
+          "cutover-candidate-fail-closed-validator-pass",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],

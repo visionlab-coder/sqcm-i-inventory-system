@@ -4,7 +4,7 @@ import process from 'node:process';
 import { execFileSync } from 'node:child_process';
 import { resolve4, resolveCname } from 'node:dns/promises';
 import { fileURLToPath } from 'node:url';
-import { evaluateProductionCutoverPreflight, PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.js';
+import { evaluateProductionCutoverPreflight, PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
 
 const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const run = (command, args) => execFileSync(command, args, { cwd: projectDir, encoding: 'utf8', windowsHide: true }).trim();
