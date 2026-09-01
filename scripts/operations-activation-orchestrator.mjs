@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import {
   OPERATIONS_ACTIVATION_CONFIRMATION,
   acquireOperationsActivationLease,
+  buildOperationsActivationChildEnvironment,
   buildOperationsActivationReceipt,
   evaluateOperationsActivationGate,
   releaseOperationsActivationLease,
@@ -66,7 +67,7 @@ if (gate.childProcessAllowed) {
     status = selection.status; currentStep = selection.step?.id ?? null; attempt = selection.attempt; failureCount = selection.failedAttempts;
     if (selection.step && !status.startsWith('PAUSED_')) {
       childProcessCount = 1;
-      const child = spawnSync(process.execPath, [path.join(projectRoot, 'scripts', selection.step.script), ...selection.step.args], { cwd: projectRoot, env: process.env, encoding: 'utf8', shell: false, timeout: 30 * 60 * 1000, maxBuffer: 1024 * 1024 });
+      const child = spawnSync(process.execPath, [path.join(projectRoot, 'scripts', selection.step.script), ...selection.step.args], { cwd: projectRoot, env: buildOperationsActivationChildEnvironment(selection.step, process.env), encoding: 'utf8', shell: false, timeout: 30 * 60 * 1000, maxBuffer: 1024 * 1024 });
       const summaries = parseJsonObjects(child.stdout ?? ''); const summary = summaries.at(-1) ?? null;
       const receipt = buildOperationsActivationReceipt({ approval, step: selection.step, attempt, result: { exitCode: child.status ?? 1, summary, stdout: child.stdout ?? '', stderr: child.stderr ?? '' } });
       writeOperationsActivationReceiptOnce(receiptRoot, receipt); receiptCreated = true; status = receipt.outcome === 'PASS' ? 'PASS_OPERATIONS_ACTIVATION_STEP' : receipt.outcome === 'WAIT' ? 'READY_WAIT_OPERATIONS_ACTIVATION_STEP' : 'FAIL_OPERATIONS_ACTIVATION_STEP';

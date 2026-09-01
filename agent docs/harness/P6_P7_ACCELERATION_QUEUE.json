@@ -365,6 +365,14 @@
       "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; approval/root/lease/write/child zero; failure-first 2 EXPECTED FAIL then focused 16/16 PASS; schema 2 root claim·lease·receipt bind canonical approval SHA-256 and release SHA; actual activation NOT_RUN"
     },
     {
+      "id": "ACC-P7-28-OPERATIONS-ACTIVATION-CHILD-ENVIRONMENT-ALLOWLIST",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "운영 활성화 19개 child는 안전한 runtime 변수와 현재 단계에 명시된 환경변수만 받는다. 상위 프로세스의 unrelated Secret, GitHub token 또는 NODE_OPTIONS를 child에 상속하지 않는다.",
+      "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; child/write zero; failure-first 2 EXPECTED FAIL then focused 18/18 PASS; exact 19-step environment contract and filtered child environment enforced; actual activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

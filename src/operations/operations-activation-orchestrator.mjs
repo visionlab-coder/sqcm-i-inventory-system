@@ -9,6 +9,28 @@ export const OPERATIONS_ACTIVATION_ACTIONS = [
   'github-operations-read', 'local-evidence-write', 'phase-completion-state-write'
 ];
 
+const OPERATIONS_ACTIVATION_STEP_ENVIRONMENT = {
+  'slo-collect': ['P7_SLO_LEDGER_FILE', 'P7_SLO_MEASUREMENT_INPUT_FILE', 'P7_SLO_COLLECTION_CONFIRMATION'],
+  'slo-compile': ['P7_SLO_MEASUREMENT_INPUT_FILE', 'P7_SLO_EVIDENCE_OUTPUT_FILE', 'P7_SLO_EVIDENCE_CONFIRMATION'],
+  'alert-deliver': ['P7_ALERT_DELIVERY_PROVIDER_MANIFEST_FILE', 'P7_ALERT_DELIVERY_API_TOKEN_FILE', 'P7_ALERT_RECEIPT_INPUT_FILE', 'P7_ALERT_DELIVERY_CONFIRMATION'],
+  'alert-compile': ['P7_ALERT_RECEIPT_INPUT_FILE', 'P7_ALERTING_EVIDENCE_OUTPUT_FILE', 'P7_ALERTING_EVIDENCE_CONFIRMATION'],
+  'backup-restore-run': ['P7_OFFSITE_BACKUP_ROOT', 'P7_OFFSITE_STORAGE_ATTESTATION_FILE', 'P7_BACKUP_RESTORE_DRILL_INPUT_FILE', 'P7_BACKUP_RESTORE_RUNNER_CONFIRMATION'],
+  'backup-restore-compile': ['P7_BACKUP_RESTORE_DRILL_INPUT_FILE', 'P7_BACKUP_EVIDENCE_OUTPUT_FILE', 'P7_RESTORE_EVIDENCE_OUTPUT_FILE', 'P7_BACKUP_RESTORE_EVIDENCE_CONFIRMATION'],
+  'certificate-observe': ['P7_CERTIFICATE_OBSERVATION_INPUT_FILE', 'P7_CERTIFICATE_RENEWAL_OWNER_REF', 'P7_CERTIFICATE_PROVIDER_REF', 'P7_CERTIFICATE_OBSERVATION_CONFIRMATION'],
+  'certificate-compile': ['P7_CERTIFICATE_OBSERVATION_INPUT_FILE', 'P7_CERTIFICATE_EVIDENCE_OUTPUT_FILE', 'P7_CERTIFICATE_EVIDENCE_CONFIRMATION'],
+  'oncall-drill': ['P7_ONCALL_DRILL_PROVIDER_MANIFEST_FILE', 'P7_ONCALL_DRILL_API_TOKEN_FILE', 'P7_ONCALL_HANDOVER_INPUT_FILE', 'P7_ONCALL_DRILL_CONFIRMATION'],
+  'oncall-compile': ['P7_ONCALL_HANDOVER_INPUT_FILE', 'P7_ONCALL_EVIDENCE_OUTPUT_FILE', 'P7_ONCALL_EVIDENCE_CONFIRMATION'],
+  'maintenance-run': ['P7_MAINTENANCE_EXECUTION_INPUT_FILE', 'P7_MAINTENANCE_OPERATOR_REF', 'P7_MAINTENANCE_SCHEDULE_REF', 'P7_MAINTENANCE_NEXT_SCHEDULED_AT', 'P7_MAINTENANCE_RUNNER_CONFIRMATION'],
+  'maintenance-compile': ['P7_MAINTENANCE_EXECUTION_INPUT_FILE', 'P7_MAINTENANCE_EVIDENCE_OUTPUT_FILE', 'P7_MAINTENANCE_EVIDENCE_CONFIRMATION'],
+  'improvement-collect': ['P7_GITHUB_API_TOKEN_FILE', 'P7_IMPROVEMENT_QUEUE_TRIAGE_ATTESTATION_FILE', 'P7_IMPROVEMENT_QUEUE_INPUT_FILE', 'P7_IMPROVEMENT_QUEUE_COLLECTION_CONFIRMATION'],
+  'improvement-compile': ['P7_IMPROVEMENT_QUEUE_INPUT_FILE', 'P7_IMPROVEMENT_QUEUE_EVIDENCE_OUTPUT_FILE', 'P7_IMPROVEMENT_QUEUE_EVIDENCE_CONFIRMATION'],
+  'signoff-input-assemble': ['P7_P6_CUTOVER_EVIDENCE_FILE', 'P7_OPERATIONS_OWNER_APPROVAL_RECEIPT_FILE', 'P7_OPERATIONS_SIGNOFF_INPUT_FILE', 'P7_SLO_EVIDENCE_FILE', 'P7_ALERTING_EVIDENCE_FILE', 'P7_BACKUP_EVIDENCE_FILE', 'P7_RESTORE_EVIDENCE_FILE', 'P7_CERTIFICATE_EVIDENCE_FILE', 'P7_ONCALL_EVIDENCE_FILE', 'P7_MAINTENANCE_EVIDENCE_FILE', 'P7_IMPROVEMENT_QUEUE_EVIDENCE_FILE', 'P7_OPERATIONS_SIGNOFF_INPUT_ASSEMBLY_CONFIRMATION'],
+  'signoff-compile': ['P7_OPERATIONS_SIGNOFF_INPUT_FILE', 'P7_OPERATIONS_SIGNOFF_EVIDENCE_OUTPUT_FILE', 'P7_OPERATIONS_SIGNOFF_EVIDENCE_CONFIRMATION'],
+  'handover-assemble': ['P7_P6_CUTOVER_EVIDENCE_FILE', 'P7_SLO_EVIDENCE_FILE', 'P7_ALERTING_EVIDENCE_FILE', 'P7_BACKUP_EVIDENCE_FILE', 'P7_RESTORE_EVIDENCE_FILE', 'P7_CERTIFICATE_EVIDENCE_FILE', 'P7_ONCALL_EVIDENCE_FILE', 'P7_MAINTENANCE_EVIDENCE_FILE', 'P7_IMPROVEMENT_QUEUE_EVIDENCE_FILE', 'P7_OPERATIONS_SIGNOFF_EVIDENCE_FILE', 'P7_HANDOVER_MANIFEST_OUTPUT_FILE', 'P7_HANDOVER_ASSEMBLY_CONFIRMATION'],
+  'handover-finalize': ['OPERATIONS_HANDOVER_ACTUAL_EVIDENCE_FILE'],
+  'phase-complete': ['OPERATIONS_HANDOVER_ACTUAL_EVIDENCE_FILE', 'P7_COMPLETION_CONFIRMATION']
+};
+
 export const OPERATIONS_ACTIVATION_STEPS = [
   { id: 'slo-collect', script: 'operations-slo-collector.mjs', args: ['--collect'], pass: ['PASS_P7_SLO_30_DAY_EXPORT_CREATED', 'PASS_P7_SLO_30_DAY_EXPORT_ALREADY_COMPLETE'] },
   { id: 'slo-compile', script: 'operations-slo-evidence.mjs', args: ['--compile'], pass: ['PASS_SLO_EVIDENCE_COMPILED'] },
@@ -29,7 +51,7 @@ export const OPERATIONS_ACTIVATION_STEPS = [
   { id: 'handover-assemble', script: 'operations-handover-assembler.mjs', args: ['--assemble'], pass: ['PASS_HANDOVER_MANIFEST_ASSEMBLED'] },
   { id: 'handover-finalize', script: 'operations-handover-finalizer.mjs', args: [], pass: ['PASS_ACTUAL_OPERATIONS_HANDOVER_EVIDENCE'] },
   { id: 'phase-complete', script: 'operations-phase-completion.mjs', args: ['--complete'], pass: ['PASS_ALL_PHASES_COMPLETE_8_OF_8'] }
-];
+].map((step) => ({ ...step, environment: [...OPERATIONS_ACTIVATION_STEP_ENVIRONMENT[step.id]] }));
 
 const ID_PATTERN = /^[A-Za-z0-9._:-]{8,200}$/;
 const SHA_PATTERN = /^[a-f0-9]{40}$/;
@@ -51,6 +73,23 @@ function canonicalJson(value) {
 
 export function operationsActivationApprovalSha256(value) {
   return createHash('sha256').update(canonicalJson(value), 'utf8').digest('hex');
+}
+
+const SAFE_CHILD_RUNTIME_ENVIRONMENT = [
+  'PATH', 'PATHEXT', 'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'TEMP', 'TMP', 'TMPDIR',
+  'HOME', 'USERPROFILE', 'LOCALAPPDATA', 'APPDATA'
+];
+
+export function buildOperationsActivationChildEnvironment(step, sourceEnvironment = {}) {
+  const contract = OPERATIONS_ACTIVATION_STEPS.find((item) => item.id === step?.id && item.script === step?.script);
+  if (!contract) throw new Error('OPERATIONS_ACTIVATION_CHILD_ENVIRONMENT_STEP_INVALID');
+  const sourceKeys = Object.keys(sourceEnvironment); const output = {}; const copied = new Set();
+  for (const allowedName of [...SAFE_CHILD_RUNTIME_ENVIRONMENT, ...contract.environment]) {
+    const canonicalName = allowedName.toUpperCase(); if (copied.has(canonicalName)) continue;
+    const sourceKey = sourceKeys.find((key) => key.toUpperCase() === canonicalName);
+    if (sourceKey && typeof sourceEnvironment[sourceKey] === 'string') { output[sourceKey] = sourceEnvironment[sourceKey]; copied.add(canonicalName); }
+  }
+  return output;
 }
 
 function writeJsonNoReplace(output, value, { processId = process.pid, temporaryId = randomUUID() } = {}) {

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "packetId": "ACC-P7-28-OPERATIONS-ACTIVATION-CHILD-ENVIRONMENT-ALLOWLIST",
+  "status": "EVIDENCE_COMPLETE",
+  "authority": "local-autonomous",
+  "actualOperationsActivation": "NOT_RUN",
+  "productionGo": false,
+  "environmentContract": {
+    "stepCount": 19,
+    "fullParentEnvironmentForwarded": false,
+    "safeRuntimeEnvironmentPreserved": true,
+    "unrelatedSecretForwarded": false,
+    "githubTokenForwarded": false,
+    "nodeOptionsForwarded": false
+  },
+  "verification": {
+    "failureFirst": "16 PASS, 2 EXPECTED FAIL",
+    "focusedTests": "18/18 PASS",
+    "syntaxChecks": "282/282 PASS",
+    "unitTests": "447 PASS, 1 Windows-only SKIP, 0 FAIL (448 total)",
+    "harnessVerify": "PASS",
+    "dryRunStatus": "READY_WAIT_P6_ACTUAL_CUTOVER",
+    "childProcessCount": 0,
+    "externalMutationPerformed": false,
+    "protectedListeners": [
+      "1234/6632",
+      "11434/8588",
+      "18765/22716",
+      "18766/65724"
+    ]
+  },
+  "nextReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF"
+}
