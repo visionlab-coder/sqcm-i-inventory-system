@@ -1,12 +1,15 @@
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
 import {
   PRODUCTION_SIGNOFF_AREAS,
   PRODUCTION_UAT_RESULT_ROLES,
   evaluateProductionSignoffPreflight
 } from '../src/operations/production-signoff-preflight.mjs';
+import { validateSignoffReferenceSet } from '../src/operations/production-signoff-reference-runtime.mjs';
 
 const CANDIDATE_PATH = new URL('../agent docs/harness/P6_G4_CUTOVER_EVIDENCE_CANDIDATE.json', import.meta.url);
+const PROJECT_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const ROLE_REFERENCE_ENV = Object.freeze({
   ADMIN: 'PRODUCTION_UAT_ADMIN_RESULT_FILE',
   MANAGER: 'PRODUCTION_UAT_MANAGER_RESULT_FILE',
@@ -18,11 +21,6 @@ const SIGNOFF_REFERENCE_ENV = Object.freeze({
   OPERATIONS: 'PRODUCTION_OPERATIONS_SIGNOFF_FILE'
 });
 const CANDIDATE_ROLE_NAMES = Object.freeze({ ADMIN: 'admin', MANAGER: 'manager', USER: 'employee' });
-
-function isExistingFile(value) {
-  if (!value || !existsSync(value)) return false;
-  try { return statSync(value).isFile(); } catch { return false; }
-}
 
 const candidate = JSON.parse(readFileSync(CANDIDATE_PATH, 'utf8'));
 const uatGate = candidate.gates?.find((gate) => gate.id === 'uat_signoff');
@@ -38,12 +36,12 @@ const candidatePending = uatGate?.status === 'PENDING' && roleStatesPending && a
 const now = new Date();
 const insideWindow = now >= new Date(PRODUCTION_CHANGE_WINDOW.start)
   && now <= new Date(PRODUCTION_CHANGE_WINDOW.end);
-const roleResultReferences = Object.fromEntries(PRODUCTION_UAT_RESULT_ROLES.map((role) => [
-  role, isExistingFile(process.env[ROLE_REFERENCE_ENV[role]])
-]));
-const signoffReferences = Object.fromEntries(PRODUCTION_SIGNOFF_AREAS.map((area) => [
-  area, isExistingFile(process.env[SIGNOFF_REFERENCE_ENV[area]])
-]));
+const combinedReferences = validateSignoffReferenceSet(Object.fromEntries([
+  ...PRODUCTION_UAT_RESULT_ROLES.map((role) => [`ROLE_${role}`, process.env[ROLE_REFERENCE_ENV[role]]]),
+  ...PRODUCTION_SIGNOFF_AREAS.map((area) => [`SIGNOFF_${area}`, process.env[SIGNOFF_REFERENCE_ENV[area]]])
+]), { projectRoot: PROJECT_ROOT });
+const roleResultReferences = Object.fromEntries(PRODUCTION_UAT_RESULT_ROLES.map((role) => [role, combinedReferences[`ROLE_${role}`]]));
+const signoffReferences = Object.fromEntries(PRODUCTION_SIGNOFF_AREAS.map((area) => [area, combinedReferences[`SIGNOFF_${area}`]]));
 const result = evaluateProductionSignoffPreflight({
   insideWindow,
   candidatePending,
