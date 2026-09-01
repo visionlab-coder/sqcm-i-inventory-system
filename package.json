@@ -31,6 +31,7 @@
     "production:csrf-idempotency-baseline": "node scripts/production-csrf-idempotency-baseline.mjs",
     "production:authenticated-idempotency": "node scripts/production-authenticated-idempotency.mjs",
     "production:rollback-readiness": "node scripts/production-rollback-readiness.mjs",
+    "production:route-disable": "node scripts/production-route-disable.mjs",
     "production:signoff-preflight": "node scripts/production-signoff-preflight.mjs",
     "production:cutover-evidence": "node scripts/production-cutover-evidence-check.mjs",
     "production:cutover-finalizer": "node scripts/production-cutover-finalizer.mjs",

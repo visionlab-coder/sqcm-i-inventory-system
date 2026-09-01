@@ -34,7 +34,7 @@
       "status": "EVIDENCE_COMPLETE",
       "authority": "local-autonomous",
       "acceptance": "20:00 시간 Gate부터 22:00 rollback cutoff까지 12개 Gate를 순서대로 실행하고 하나라도 실패하면 route 차단 절차로 전환하는 orchestrator dry-run이 PASS한다.",
-      "evidence": "npm.cmd run production:cutover-orchestrator => PASS_CUTOVER_ORCHESTRATOR_DRY_RUN; focused 4/4 PASS; external mutation zero"
+      "evidence": "npm.cmd run production:cutover-orchestrator => PASS_CUTOVER_ORCHESTRATOR_DRY_RUN; rollback action is exact production:route-disable executor; route-disable focused 6/6 PASS and dry-run READY_WAIT_ROUTE_DISABLE_INPUTS; external mutation zero"
     },
     {
       "id": "ACC-P6-04-CUTOVER-EVIDENCE-FINALIZER",

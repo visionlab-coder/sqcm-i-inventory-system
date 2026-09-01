@@ -15,7 +15,7 @@ export const CUTOVER_GATE_COMMANDS = Object.freeze({
   logs_5xx: 'npm.cmd run production:log-gate',
   nonfunctional: 'npm.cmd run production:nonfunctional-baseline -- --public',
   operational_health: 'npm.cmd run production:operational-health-baseline -- --public',
-  rollback: 'npm.cmd run production:rollback-readiness then disable public route on any required failure',
+  rollback: 'npm.cmd run production:rollback-readiness then npm.cmd run production:route-disable -- --execute on any required failure',
   uat_signoff: 'npm.cmd run production:signoff-preflight then production:cutover-evidence'
 });
 

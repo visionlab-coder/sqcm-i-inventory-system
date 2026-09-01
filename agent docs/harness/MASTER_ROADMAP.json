@@ -302,6 +302,7 @@
           "public-authenticated-csrf-idempotency-change-window-target-gate-ready",
           "change-window-12-gate-cutover-orchestrator-dry-run-pass",
           "rollback-readiness-dry-run-automation-ready",
+          "exact-cloudflare-public-route-disable-executor-ready",
           "uat-signoff-reference-preflight-automation-ready",
           "cutover-evidence-local-gates-4-of-12-pass",
           "cutover-evidence-external-gates-8-of-12-pending",

@@ -315,6 +315,7 @@ function verify() {
       ['production-csrf-idempotency-baseline', 'npm.cmd', ['run', 'production:csrf-idempotency-baseline']],
       ['production-authenticated-idempotency', 'npm.cmd', ['run', 'production:authenticated-idempotency']],
       ['production-rollback-readiness', 'npm.cmd', ['run', 'production:rollback-readiness']],
+      ['production-route-disable', 'npm.cmd', ['run', 'production:route-disable']],
       ['production-signoff-preflight', 'npm.cmd', ['run', 'production:signoff-preflight']],
       ['production-cutover-evidence', 'npm.cmd', ['run', 'production:cutover-evidence']],
       ['production-cutover-finalizer', 'npm.cmd', ['run', 'production:cutover-finalizer']],
