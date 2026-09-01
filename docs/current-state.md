@@ -12,6 +12,11 @@
 
 ## 2026-09-01 P6-G4 공개 전환 사전점검
 
+- P6·P7 연속 진행 가속 계약을 추가했다. 외부 변경창 대기는 실패로 세지 않고, 실제 실행 실패 2회에는 동일 수용조건의 대체 경로를 적용하며 3회에만 중단한다.
+- 기계 큐 `P6_P7_ACCELERATION_QUEUE.json`은 P6의 실행 공백과 P7 준비를 순차 관리한다. P7 인수 preflight는 P6 대기 중 준비할 수 있지만 P7 상태는 P6 완료 전 미착수로 유지한다.
+- `ACC-P6-01`을 완료했다. `production:role-core-smoke`는 credential reference가 없으면 `READY_WAIT_ROLE_CREDENTIAL_REFERENCES`로 안전 대기하고, 입력이 있을 때 세 역할의 MFA challenge·오류 코드 401·유효 TOTP·역할 identity·dashboard/cost/admin 200/403·익명 401·logout을 실행한다. 실제 시험은 참조 0/3으로 `NOT_RUN`이다.
+- 가속 큐의 다음 READY는 `ACC-P6-02-AUTHENTICATED-CSRF-IDEMPOTENCY-RUNNER`다.
+
 - P6-G4는 `READY_WAIT_CHANGE_WINDOW`다. 승인된 공개 전환 창은 `2026-09-11 20:00~23:00 KST`, rollback cutoff는 22:00다.
 - 내부 Production 3서비스·smoke·migration 25/25·백업 복원은 정상이고 배포 후보와 원격 브랜치 SHA도 일치한다.
 - `inventory.safe-link.co.kr`은 A/CNAME 모두 NXDOMAIN이며 HTTPS host를 찾을 수 없다. Cloudflare에는 기존 `sqcm-i`와 `sqcm-i-inventory-staging` tunnel만 있고 Production 전용 tunnel은 없다.
@@ -28,7 +33,7 @@
 - `npm.cmd run production:rollback-readiness`는 현재 backend/frontend revision, PostgreSQL·파일 named volume 2/2, G3 실제 중지/포트폐쇄/복구 drill, backup/restore, 22:00 cutoff와 Production 전용 route 제거 순서를 대조한다. dry-run readiness는 PASS지만 공개 전환 후 실제 rollback은 `NOT_RUN`이다.
 - `npm.cmd run production:signoff-preflight`는 ADMIN·MANAGER·USER Production UAT 결과와 업무·보안·운영 서명 파일 참조 6건, cutover 후보의 PENDING 상태와 변경창을 fail-closed로 검사한다. 현재 참조 0/6, 실제 서명 `NOT_RUN`으로 `READY_WAIT_PRODUCTION_UAT_AND_SIGNOFF_REFERENCES`이며 파일 내용·Secret은 읽거나 기록하지 않는다.
 - `npm.cmd run production:cutover-evidence`는 12개 Gate 중 실제 로컬 증거가 있는 artifact·backup/restore·migration·provider preflight 4건만 PASS로 조립한다. 외부 Production 8건과 역할 결과·서명은 PENDING이며 후보는 fail-closed 검증상 Production을 승인할 수 없다.
-- 저장소 표준 검증에서 JavaScript 구문 156개와 단위 180/180이 PASS했으며 preflight·공개 probe·로그·역할·nonfunctional·operational health·CSRF/idempotency·rollback·최종 서명 Gate와 증거 조립 회귀가 검증 봉투에 포함된다.
+- 저장소 표준 검증에서 JavaScript 구문 159개와 단위 184/184가 PASS했으며 preflight·공개 probe·로그·역할 MFA/RBAC runner·nonfunctional·operational health·CSRF/idempotency·rollback·최종 서명 Gate와 증거 조립 회귀가 검증 봉투에 포함된다.
 
 ## 2026-09-01 P6-G3 AI PC Production 배포·복구
 

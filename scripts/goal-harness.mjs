@@ -9,6 +9,7 @@ const projectDir = path.resolve(scriptDir, '..');
 const roadmapPath = path.join(projectDir, 'agent docs', 'harness', 'MASTER_ROADMAP.json');
 const candidatePath = path.join(projectDir, 'agent docs', 'harness', 'P2_RELEASE_CANDIDATE.json');
 const remoteEvidencePath = path.join(projectDir, 'agent docs', 'harness', 'P2_REMOTE_EVIDENCE.json');
+const accelerationQueuePath = path.join(projectDir, 'agent docs', 'harness', 'P6_P7_ACCELERATION_QUEUE.json');
 const state = JSON.parse(readFileSync(roadmapPath, 'utf8'));
 const command = process.argv[2] ?? 'status';
 
@@ -49,6 +50,25 @@ function check() {
   }
   if (state.authority.commitPushMergeRelease !== 'explicit-approval') {
     errors.push('EXTERNAL_GIT_APPROVAL_BOUNDARY_CHANGED');
+  }
+  if (!existsSync(accelerationQueuePath)) {
+    errors.push('ACCELERATION_QUEUE_MISSING');
+  } else {
+    const queue = JSON.parse(readFileSync(accelerationQueuePath, 'utf8'));
+    const readyPackets = queue.packets?.filter((packet) => packet.status === 'READY') ?? [];
+    if (readyPackets.length !== 1) errors.push(`ACCELERATION_READY_COUNT_${readyPackets.length}`);
+    if (readyPackets[0]?.id !== queue.readyPacket) errors.push('ACCELERATION_READY_POINTER_MISMATCH');
+    if (queue.rules?.waitingIsFailure !== false) errors.push('WAITING_MUST_NOT_COUNT_AS_FAILURE');
+    if (queue.rules?.alternateAfterFailureCount !== 2 || queue.rules?.stopAfterSameFailureCount !== 3) {
+      errors.push('ALTERNATE_RETRY_LADDER_CHANGED');
+    }
+    if (queue.rules?.p7ActivationBeforeP6Complete !== false || queue.rules?.productionGo !== false) {
+      errors.push('ACCELERATION_QUEUE_FAIL_CLOSED_CHANGED');
+    }
+    const p7 = state.phases.find((item) => item.id === 'P7');
+    if (state.currentPhase === 'P6' && p7?.status !== 'not-started') {
+      errors.push('P7_ACTIVATED_BEFORE_P6_COMPLETE');
+    }
   }
   if (existsSync(candidatePath)) {
     const candidate = JSON.parse(readFileSync(candidatePath, 'utf8'));
@@ -288,6 +308,7 @@ function verify() {
       ['production-public-probe', 'npm.cmd', ['run', 'production:public-probe']],
       ['production-log-gate', 'npm.cmd', ['run', 'production:log-gate']],
       ['production-role-preflight', 'npm.cmd', ['run', 'production:role-preflight']],
+      ['production-role-core-smoke', 'npm.cmd', ['run', 'production:role-core-smoke']],
       ['production-nonfunctional-baseline', 'npm.cmd', ['run', 'production:nonfunctional-baseline']],
       ['production-operational-health-baseline', 'npm.cmd', ['run', 'production:operational-health-baseline']],
       ['production-csrf-idempotency-baseline', 'npm.cmd', ['run', 'production:csrf-idempotency-baseline']],

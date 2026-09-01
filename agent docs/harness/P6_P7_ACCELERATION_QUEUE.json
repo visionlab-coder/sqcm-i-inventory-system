@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "goal": "P6 외부 Gate를 약화하지 않고 남은 실제 실행 자동화와 P7 인수 준비를 선행해 8/8 완료 시간을 단축한다.",
+  "currentPhase": "P6",
+  "readyPacket": "ACC-P6-02-AUTHENTICATED-CSRF-IDEMPOTENCY-RUNNER",
+  "rules": {
+    "readyCount": 1,
+    "waitingIsFailure": false,
+    "alternateAfterFailureCount": 2,
+    "stopAfterSameFailureCount": 3,
+    "p7ActivationBeforeP6Complete": false,
+    "productionGo": false
+  },
+  "packets": [
+    {
+      "id": "ACC-P6-01-PRODUCTION-ROLE-CORE-SMOKE-RUNNER",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "ADMIN·MANAGER·USER의 MFA 로그인과 역할·401/403 역조건을 Secret 출력 없이 실제 Production HTTPS 또는 승인된 loopback target에서 실행하는 fail-closed runner와 단위 회귀가 존재한다.",
+      "evidence": "npm.cmd run production:role-core-smoke => READY_WAIT_ROLE_CREDENTIAL_REFERENCES; focused 4/4 PASS; repository 184/184 PASS"
+    },
+    {
+      "id": "ACC-P6-02-AUTHENTICATED-CSRF-IDEMPOTENCY-RUNNER",
+      "phase": "P6",
+      "status": "READY",
+      "authority": "local-autonomous",
+      "acceptance": "승인된 시험계정으로 정상 CSRF 쓰기와 동일 idempotency key replay를 검증하고 데이터 정리·감사 증거를 남기는 runner가 존재한다."
+    },
+    {
+      "id": "ACC-P6-03-CHANGE-WINDOW-CUTOVER-ORCHESTRATOR",
+      "phase": "P6",
+      "status": "PENDING",
+      "authority": "local-autonomous",
+      "acceptance": "20:00 시간 Gate부터 22:00 rollback cutoff까지 12개 Gate를 순서대로 실행하고 하나라도 실패하면 route 차단 절차로 전환하는 orchestrator dry-run이 PASS한다."
+    },
+    {
+      "id": "ACC-P6-04-CUTOVER-EVIDENCE-FINALIZER",
+      "phase": "P6",
+      "status": "PENDING",
+      "authority": "local-autonomous",
+      "acceptance": "실제 증거만 12개 Gate와 역할 결과·3개 서명으로 조립하며 staging·template 증거 승격을 거부한다."
+    },
+    {
+      "id": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
+      "phase": "P7_PREP",
+      "status": "PENDING",
+      "authority": "local-autonomous",
+      "acceptance": "SLO·경보·백업·복원·인증서·온콜·정기점검·개선 큐의 입력 계약과 fail-closed 검사기가 준비되며 P7 상태는 미착수로 유지된다."
+    },
+    {
+      "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
+      "phase": "P7",
+      "status": "PENDING",
+      "authority": "external-input",
+      "acceptance": "P6 완료 후 실제 경보 수신, off-site backup, 복원훈련, 온콜 인수와 운영 책임자 서명이 연결된다."
+    }
+  ]
+}

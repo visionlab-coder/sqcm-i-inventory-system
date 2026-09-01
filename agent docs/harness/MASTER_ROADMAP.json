@@ -291,6 +291,7 @@
           "public-dns-tls-health-readiness-probe-automation-ready",
           "logs-5xx-outbox-baseline-and-cutover-gate-automation-ready",
           "role-core-smoke-preflight-automation-ready",
+          "role-mfa-rbac-core-smoke-runner-ready",
           "nonfunctional-loopback-baseline-and-public-recheck-automation-ready",
           "operational-health-loopback-baseline-and-post-cutover-recheck-automation-ready",
           "csrf-negative-and-idempotency-schema-baseline-automation-ready",

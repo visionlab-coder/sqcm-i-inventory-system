@@ -24,6 +24,7 @@
     "production:public-probe": "node scripts/production-public-probe.mjs",
     "production:log-gate": "node scripts/production-log-gate.mjs",
     "production:role-preflight": "node scripts/production-role-preflight.mjs",
+    "production:role-core-smoke": "node scripts/production-role-core-smoke.mjs",
     "production:nonfunctional-baseline": "node scripts/production-nonfunctional-baseline.mjs",
     "production:operational-health-baseline": "node scripts/production-operational-health-baseline.mjs",
     "production:csrf-idempotency-baseline": "node scripts/production-csrf-idempotency-baseline.mjs",

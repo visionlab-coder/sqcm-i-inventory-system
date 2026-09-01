@@ -83,6 +83,7 @@ flowchart LR
 - 비범위: 별도 승인 없는 Production 배포·migration·DNS/TLS·Secret·commit·push·merge·release.
 - 현재 상태: 후보 `e238ab8dab7f…`의 불변 이미지, AI PC PostgreSQL 16 loopback Production 3서비스, migration 25/25, backup·restore·rollback·재기동과 공급자 5종 읽기 전용 preflight가 PASS했다. 공개 DNS·TLS·외부 health/readiness, logs/5xx·outbox, 역할별 core smoke, nonfunctional, operational health, CSRF/idempotency, rollback readiness와 최종 서명 preflight가 Harness에 준비됐으나 실제 post-cutover 실행은 `NOT_RUN`이다. 역할 preflight는 ADMIN·MANAGER·USER active/MFA 0명과 credential reference 0/3을 명시하고, 서명 preflight는 역할별 결과·업무·보안·운영 참조 0/6을 명시해 외부 입력을 기다린다. rollback readiness는 현재 이미지·볼륨·이전 drill·cutoff·route 제거 계획을 PASS했지만 실제 공개 route rollback은 남아 있다. cutover 증거는 12개 Gate 중 로컬 4건 PASS·외부 8건 PENDING이다. P6-G4는 `READY_WAIT_CHANGE_WINDOW`이며 Production hostname은 NXDOMAIN, 전용 tunnel과 실제 사용자는 0이다. 기존 staging·tunnel·보호 서비스는 보존됐고 `productionGo=false`다.
 - 다음 READY: **P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF**. 승인된 `2026-09-11 20:00~23:00 KST` 변경창에서 공개 DNS/TLS, 실제 사용자 로그인·MFA, 관측과 업무·보안·운영 최종 서명을 검증한다.
+- 가속 Packet: **ACC-P6-02-AUTHENTICATED-CSRF-IDEMPOTENCY-RUNNER**. ACC-P6-01 역할별 MFA·RBAC runner는 완료됐고 실제 시험은 credential reference 0/3으로 NOT_RUN이다. 이어 인증 사용자 쓰기·동일 key replay, cutover orchestrator, 증거 finalizer, P7 운영 인수 preflight 순서로 로컬 공백을 계속 닫는다. 대기는 실패가 아니며 동일 실행 실패 2회에는 동등한 대체 경로를 적용한다.
 
 ## 6. Phase 갱신 절차
 
