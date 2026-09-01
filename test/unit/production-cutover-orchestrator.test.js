@@ -1,0 +1,7 @@
+const test=require('node:test');const assert=require('node:assert/strict');
+const modulePromise=import('../../src/operations/production-cutover-orchestrator.mjs');
+const base={windowStart:1,rollbackCutoff:2,windowEnd:3,rollbackAction:'disable-public-route',preserveLoopback:true,productionGo:false};
+test('12개 Gate와 cutoff 계약의 dry-run은 PASS한다',async()=>{const {CUTOVER_GATE_SEQUENCE,evaluateCutoverOrchestrator}=await modulePromise;const r=evaluateCutoverOrchestrator({...base,sequence:CUTOVER_GATE_SEQUENCE,execute:false});assert.equal(r.status,'PASS_CUTOVER_ORCHESTRATOR_DRY_RUN');});
+test('Gate 순서·개수 변경은 fail-closed 한다',async()=>{const {CUTOVER_GATE_SEQUENCE,evaluateCutoverOrchestrator}=await modulePromise;const r=evaluateCutoverOrchestrator({...base,sequence:CUTOVER_GATE_SEQUENCE.slice().reverse(),execute:false});assert.ok(r.failures.includes('GATE_ORDER_INVALID'));});
+test('변경창 밖 execute는 거부한다',async()=>{const {CUTOVER_GATE_SEQUENCE,evaluateCutoverOrchestrator}=await modulePromise;const r=evaluateCutoverOrchestrator({...base,sequence:CUTOVER_GATE_SEQUENCE,execute:true,insideWindow:false,externalActionConfirmed:true});assert.equal(r.status,'FAIL_OUTSIDE_APPROVED_CHANGE_WINDOW');});
+test('변경창 안에서도 외부 실행 확인 전에는 대기한다',async()=>{const {CUTOVER_GATE_SEQUENCE,evaluateCutoverOrchestrator}=await modulePromise;const r=evaluateCutoverOrchestrator({...base,sequence:CUTOVER_GATE_SEQUENCE,execute:true,insideWindow:true,externalActionConfirmed:false});assert.equal(r.status,'READY_WAIT_EXTERNAL_CUTOVER_ACTION_CONFIRMATION');assert.equal(r.productionGo,false);});

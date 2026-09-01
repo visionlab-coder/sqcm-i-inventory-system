@@ -17,8 +17,8 @@
 - [x] 공개 probe·로그·비기능·운영 health·rollback·서명 preflight
 - [x] 실제 역할 MFA·RBAC core smoke runner — Secret 참조 0/3으로 실제 시험은 NOT_RUN, runner·회귀 4/4 완료
 - [x] 인증 사용자 CSRF/idempotency runner — 자격증명·쓰기 확인 부재로 실제 쓰기는 NOT_RUN, runner·회귀 4/4 완료
-- [ ] 변경창 12-Gate cutover orchestrator — `ACC-P6-03` READY
-- [ ] 실제 증거 finalizer — `ACC-P6-04`
+- [x] 변경창 12-Gate cutover orchestrator — 순서·22:00 cutoff·route 차단 dry-run과 회귀 4/4 완료
+- [ ] 실제 증거 finalizer — `ACC-P6-04` READY
 - [ ] 전용 tunnel·DNS/TLS·실사용자·경보·최종 서명 — 변경창/외부 입력
 
 ### P7 운영·유지보수
@@ -37,4 +37,4 @@
 
 ## 다음 READY
 
-`ACC-P6-03-CHANGE-WINDOW-CUTOVER-ORCHESTRATOR`: 20:00 시간 Gate부터 공개 probe·역할·관측·rollback cutoff·증거 finalizer까지 순서를 고정하고 dry-run에서 외부 변경 없이 실행 계획을 검증한다.
+`ACC-P6-04-CUTOVER-EVIDENCE-FINALIZER`: 12개 Gate의 실제 산출물만 허용하고 template·staging·내부 기준선이 공개 Production PASS로 승격되지 않도록 finalizer를 보완한다.

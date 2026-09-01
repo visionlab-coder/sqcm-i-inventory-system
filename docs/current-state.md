@@ -16,7 +16,8 @@
 - 기계 큐 `P6_P7_ACCELERATION_QUEUE.json`은 P6의 실행 공백과 P7 준비를 순차 관리한다. P7 인수 preflight는 P6 대기 중 준비할 수 있지만 P7 상태는 P6 완료 전 미착수로 유지한다.
 - `ACC-P6-01`을 완료했다. `production:role-core-smoke`는 credential reference가 없으면 `READY_WAIT_ROLE_CREDENTIAL_REFERENCES`로 안전 대기하고, 입력이 있을 때 세 역할의 MFA challenge·오류 코드 401·유효 TOTP·역할 identity·dashboard/cost/admin 200/403·익명 401·logout을 실행한다. 실제 시험은 참조 0/3으로 `NOT_RUN`이다.
 - `ACC-P6-02`를 완료했다. `production:authenticated-idempotency`는 ADMIN MFA 세션으로 missing-CSRF 403, 최초 쓰기 201, 동일 key replay, 다른 payload 409, DB 단일 행·감사, 테스트 자산·감사·key 정리 0건과 logout을 검증한다. 현재 credential reference와 쓰기 확인이 없어 실제 쓰기는 `NOT_RUN`이다.
-- 가속 큐의 다음 READY는 `ACC-P6-03-CHANGE-WINDOW-CUTOVER-ORCHESTRATOR`다.
+- `ACC-P6-03`을 완료했다. `production:cutover-orchestrator`가 12개 Gate 순서, 20:00~23:00 변경창, 22:00 cutoff, 필수 Gate 실패 시 public route 차단과 loopback·volume 보존을 dry-run으로 검증했다. 외부 변경은 0건이다.
+- 가속 큐의 다음 READY는 `ACC-P6-04-CUTOVER-EVIDENCE-FINALIZER`다.
 
 - P6-G4는 `READY_WAIT_CHANGE_WINDOW`다. 승인된 공개 전환 창은 `2026-09-11 20:00~23:00 KST`, rollback cutoff는 22:00다.
 - 내부 Production 3서비스·smoke·migration 25/25·백업 복원은 정상이고 배포 후보와 원격 브랜치 SHA도 일치한다.
