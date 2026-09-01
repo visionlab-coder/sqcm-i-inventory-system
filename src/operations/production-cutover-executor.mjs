@@ -19,6 +19,7 @@ import {
   writeSignoffPauseCheckpoint
 } from './production-cutover-signoff-resume.mjs';
 import {
+  ACTUAL_CUTOVER_ASSEMBLY_CONFIRMATION,
   assembleActualCutoverEvidence,
   loadJsonDocument,
   loadRunReceiptDocuments,
@@ -145,6 +146,7 @@ export async function resumeProductionCutoverSignoff({
   loadCheckpoint = loadSignoffPauseCheckpoint,
   validateReceipts = validateSignoffResumeReceipts,
   finalizeActualEvidence = false,
+  actualEvidenceConfirmation = null,
   actualEvidenceOutputPath = null,
   loadReceiptDocuments = loadRunReceiptDocuments,
   loadEvidenceDocument = loadJsonDocument,
@@ -188,12 +190,25 @@ export async function resumeProductionCutoverSignoff({
   if (resume.status !== 'READY_FOR_SAME_RUN_UAT_SIGNOFF_RESUME') {
     return { checkedAt, runId: checkpoint.runId, receiptRoot: root, ...resume, actualCutoverExecuted: false, externalMutationPerformed: false, productionGo: false };
   }
+  if (finalizeActualEvidence) {
+    const missing = [];
+    if (actualEvidenceConfirmation !== ACTUAL_CUTOVER_ASSEMBLY_CONFIRMATION) missing.push('ACTUAL_EVIDENCE_ASSEMBLY_CONFIRMATION_MISSING');
+    if (typeof actualEvidenceOutputPath !== 'string' || !actualEvidenceOutputPath.trim()) missing.push('ACTUAL_EVIDENCE_OUTPUT_MISSING');
+    if (missing.length) {
+      return {
+        checkedAt, runId: checkpoint.runId, receiptRoot: root,
+        status: 'READY_WAIT_ACTUAL_EVIDENCE_FINALIZATION_INPUTS', failures: [], missing,
+        executedGates: [], skippedGates: ['uat_signoff'], routeDisableRequired: false,
+        routeDisableVerified: false, actualCutoverExecuted: false,
+        externalMutationPerformed: false, actualEvidenceCreated: false, productionGo: false
+      };
+    }
+  }
   const gateHandler = createCutoverGateHandlers({ runStep, recordGateEvidence }).uat_signoff;
   const gateResult = await gateHandler();
   if (gateResult?.status !== 'PASS' || typeof gateResult?.evidenceRef !== 'string' || !gateResult.evidenceRef) return contain(gateResult?.reason || 'UAT_SIGNOFF_GATE_NOT_PASS');
   if (finalizeActualEvidence) {
     try {
-      if (typeof actualEvidenceOutputPath !== 'string' || !actualEvidenceOutputPath.trim()) throw new Error('ACTUAL_EVIDENCE_OUTPUT_MISSING');
       const roleResultDocuments = Object.fromEntries(['ADMIN', 'MANAGER', 'USER']
         .map((role) => [role, loadEvidenceDocument(roleResultReferences[role])]));
       const signoffDocuments = Object.fromEntries(['BUSINESS', 'SECURITY', 'OPERATIONS']

@@ -149,6 +149,14 @@
       "evidence": "resume executor same-run finalization and fail-closed route-disable integrated; focused 10/10 PASS; repository 366 PASS 1 Windows platform skip; dry-run zero mutation; actual Production finalization/route mutation NOT_RUN"
     },
     {
+      "id": "ACC-P6-18-ATOMIC-SIGNOFF-FINALIZATION-ENTRYPOINT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "실제 signoff resume CLI는 Gate 12와 actual evidence finalizer를 항상 원자 흐름으로 실행하고 두 exact 확인 문자열·저장소 밖 출력 경로를 Gate 12 전에 요구하며, 누락 시 process 0건이고 사후 실패는 exact route-disable evidence를 요구한다.",
+      "evidence": "failure-first contract reproduced; focused 11/11 PASS; repository 367 PASS 1 Windows platform skip; resume execute defaults to finalization; dual confirmation and external output preflight before Gate 12; dry-run zero mutation; actual Production execution NOT_RUN"
+    },
+    {
       "id": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
