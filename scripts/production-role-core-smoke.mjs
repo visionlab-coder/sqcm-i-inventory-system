@@ -6,6 +6,10 @@ import {
   evaluateRoleCoreSmoke,
   validateRoleCredential
 } from '../src/operations/production-role-core-smoke.mjs';
+import {
+  classifyRoleSmokeEvidence,
+  selectProductionRoleSmokeTarget
+} from '../src/operations/production-role-smoke-target.mjs';
 
 const require = createRequire(import.meta.url);
 const { totp } = require('../src/services/mfa-service');
@@ -14,13 +18,6 @@ const REFERENCE_ENV = Object.freeze({
   MANAGER: 'PRODUCTION_UAT_MANAGER_CREDENTIAL_FILE',
   USER: 'PRODUCTION_UAT_USER_CREDENTIAL_FILE'
 });
-const TARGET = String(process.env.PRODUCTION_UAT_BASE_URL || 'http://127.0.0.1:3300').replace(/\/$/, '');
-
-function allowedTarget(value) {
-  const url = new URL(value);
-  return (url.protocol === 'http:' && ['127.0.0.1', 'localhost', '::1'].includes(url.hostname))
-    || (url.protocol === 'https:' && url.hostname === 'inventory.safe-link.co.kr');
-}
 
 function existingFile(value) {
   if (!value || !existsSync(value)) return false;
@@ -36,7 +33,7 @@ async function json(response) {
 }
 
 async function post(path, session, body) {
-  const response = await fetch(`${TARGET}${path}`, {
+  const response = await fetch(`${target}${path}`, {
     method: 'POST',
     redirect: 'manual',
     headers: {
@@ -51,7 +48,7 @@ async function post(path, session, body) {
 }
 
 async function get(path, cookie = '') {
-  return fetch(`${TARGET}${path}`, { redirect: 'manual', headers: { cookie, accept: 'application/json' } });
+  return fetch(`${target}${path}`, { redirect: 'manual', headers: { cookie, accept: 'application/json' } });
 }
 
 async function loginRole(role, credential) {
@@ -86,20 +83,33 @@ async function loginRole(role, credential) {
   };
 }
 
-if (!allowedTarget(TARGET)) throw new Error('Production role smoke target is not allowlisted.');
 const now = new Date();
-const insideWindow = now >= new Date(PRODUCTION_CHANGE_WINDOW.start) && now <= new Date(PRODUCTION_CHANGE_WINDOW.end);
-const publicTarget = new URL(TARGET).hostname === 'inventory.safe-link.co.kr';
+const selection = selectProductionRoleSmokeTarget({
+  publicMode: process.argv.includes('--public'),
+  now,
+  windowStart: new Date(PRODUCTION_CHANGE_WINDOW.start),
+  windowEnd: new Date(PRODUCTION_CHANGE_WINDOW.end),
+  confirmation: process.env.PRODUCTION_PUBLIC_ROLE_SMOKE_CONFIRMATION
+});
+if (selection.status.startsWith('FAIL_')) {
+  console.error(JSON.stringify({ checkedAt: now.toISOString(), ...selection, productionGo: false }, null, 2));
+  process.exit(1);
+}
+if (!selection.target) {
+  console.log(JSON.stringify({ checkedAt: now.toISOString(), ...selection, actualRoleCoreSmoke: 'NOT_RUN', productionGo: false }, null, 2));
+  process.exit(0);
+}
+const target = selection.target;
 const referencesPresent = Object.fromEntries(ROLE_CORE_SMOKE_ROLES.map((role) => [
   role, existingFile(process.env[REFERENCE_ENV[role]])
 ]));
 const missing = ROLE_CORE_SMOKE_ROLES.filter((role) => !referencesPresent[role]);
 
-if (missing.length || (publicTarget && !insideWindow)) {
+if (missing.length) {
   console.log(JSON.stringify({
     checkedAt: now.toISOString(),
-    status: missing.length ? 'READY_WAIT_ROLE_CREDENTIAL_REFERENCES' : 'READY_WAIT_CHANGE_WINDOW_FOR_PUBLIC_ROLE_SMOKE',
-    targetKind: publicTarget ? 'production-https' : 'loopback',
+    status: 'READY_WAIT_ROLE_CREDENTIAL_REFERENCES',
+    targetKind: selection.targetKind,
     referenceEnvironment: REFERENCE_ENV,
     referencesPresent,
     actualRoleCoreSmoke: 'NOT_RUN',
@@ -118,12 +128,12 @@ const results = {};
 for (const role of ROLE_CORE_SMOKE_ROLES) results[role] = await loginRole(role, credentials[role]);
 results.anonymousItems = (await get('/api/items')).status;
 const evaluation = evaluateRoleCoreSmoke(results);
+const classification = classifyRoleSmokeEvidence(evaluation, selection.actualProductionGate);
 console.log(JSON.stringify({
   checkedAt: now.toISOString(),
-  targetKind: publicTarget ? 'production-https' : 'loopback',
+  targetKind: selection.targetKind,
   results,
-  actualRoleCoreSmoke: evaluation.status === 'PASS_PRODUCTION_ROLE_CORE_SMOKE' ? 'PASS' : 'FAIL',
   secretValuesReadOrRecorded: false,
-  ...evaluation
+  ...classification
 }, null, 2));
-if (evaluation.failures.length) process.exitCode = 1;
+if (classification.failures.length) process.exitCode = 1;

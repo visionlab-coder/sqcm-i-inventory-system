@@ -4,6 +4,21 @@ export const CUTOVER_GATE_SEQUENCE = Object.freeze([
   'nonfunctional','operational_health','rollback','uat_signoff'
 ]);
 
+export const CUTOVER_GATE_COMMANDS = Object.freeze({
+  artifact: 'verify immutable candidate SHA and remote CI',
+  backup_restore: 'npm.cmd run db:backup and verified restore evidence',
+  migration_review: 'npm.cmd run db:verify',
+  provider_preflight: 'npm.cmd run production:provider-preflight',
+  health_readiness: 'npm.cmd run production:public-probe',
+  core_smoke: 'npm.cmd run production:role-core-smoke -- --public',
+  csrf_idempotency: 'npm.cmd run production:authenticated-idempotency',
+  logs_5xx: 'npm.cmd run production:log-gate',
+  nonfunctional: 'npm.cmd run production:nonfunctional-baseline -- --public',
+  operational_health: 'npm.cmd run production:operational-health-baseline -- --public',
+  rollback: 'npm.cmd run production:rollback-readiness then disable public route on any required failure',
+  uat_signoff: 'npm.cmd run production:signoff-preflight then production:cutover-evidence'
+});
+
 export function evaluateCutoverOrchestrator(input) {
   const failures = [];
   const sequence = input.sequence || [];

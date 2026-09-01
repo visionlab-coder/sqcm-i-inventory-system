@@ -9,7 +9,7 @@
     "status": "READY_WAIT_CHANGE_WINDOW",
     "localBlockers": [],
     "unitTests": "4/4 PASS",
-    "repositoryRegression": "213/213 PASS",
+    "repositoryRegression": "220/220 PASS",
     "harnessRegistered": true
   },
   "cutoverEvidenceCandidate": {
@@ -23,7 +23,7 @@
   "cutoverOrchestratorAutomation": {
     "command": "npm.cmd run production:cutover-orchestrator",
     "status": "PASS_CUTOVER_ORCHESTRATOR_DRY_RUN",
-    "unitTests": "4/4 PASS",
+    "unitTests": "5/5 PASS",
     "requiredGateCount": 12,
     "rollbackCutoff": "22:00 KST",
     "failureAction": "disable-public-route",
@@ -75,10 +75,14 @@
   },
   "roleCoreSmokeRunnerAutomation": {
     "command": "npm.cmd run production:role-core-smoke",
+    "publicCommand": "npm.cmd run production:role-core-smoke -- --public",
     "status": "READY_WAIT_ROLE_CREDENTIAL_REFERENCES",
     "unitTests": "4/4 PASS",
+    "publicTargetUnitTests": "6/6 PASS",
     "targetKind": "loopback",
     "checks": ["MFA challenge", "invalid MFA 401", "valid TOTP", "role identity", "dashboard/cost/admin RBAC", "anonymous 401", "logout"],
+    "publicTarget": "https://inventory.safe-link.co.kr",
+    "publicExecutionRequires": ["approved change window", "PRODUCTION_PUBLIC_ROLE_SMOKE_CONFIRMATION"],
     "credentialReferencesPresent": 0,
     "actualRoleCoreSmoke": "NOT_RUN",
     "secretValuesReadOrRecorded": false
@@ -223,12 +227,13 @@
     "CUTOVER_TEMPLATE_12_GATE_CONTRACT_VALID",
     "AUTOMATED_CUTOVER_PREFLIGHT_PASS",
     "AUTOMATED_PREFLIGHT_UNIT_TESTS_4_OF_4_PASS",
-    "REPOSITORY_UNIT_TESTS_213_OF_213_PASS",
+    "REPOSITORY_UNIT_TESTS_220_OF_220_PASS",
     "PRODUCTION_PROVIDER_PREFLIGHT_PASS",
     "PUBLIC_DNS_TLS_HEALTH_READINESS_PROBE_AUTOMATION_READY",
     "LOGS_5XX_OUTBOX_BASELINE_AND_CUTOVER_GATE_AUTOMATION_READY",
     "ROLE_CORE_SMOKE_PREFLIGHT_AUTOMATION_READY",
     "ROLE_MFA_RBAC_CORE_SMOKE_RUNNER_READY",
+    "PUBLIC_ROLE_MFA_RBAC_CHANGE_WINDOW_TARGET_GATE_READY",
     "NONFUNCTIONAL_LOOPBACK_BASELINE_AND_PUBLIC_RECHECK_AUTOMATION_READY",
     "PUBLIC_NONFUNCTIONAL_CHANGE_WINDOW_TARGET_GATE_READY",
     "OPERATIONAL_HEALTH_LOOPBACK_BASELINE_AND_POST_CUTOVER_RECHECK_AUTOMATION_READY",

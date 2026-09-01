@@ -292,6 +292,7 @@
           "logs-5xx-outbox-baseline-and-cutover-gate-automation-ready",
           "role-core-smoke-preflight-automation-ready",
           "role-mfa-rbac-core-smoke-runner-ready",
+          "public-role-mfa-rbac-change-window-target-gate-ready",
           "nonfunctional-loopback-baseline-and-public-recheck-automation-ready",
           "public-nonfunctional-change-window-target-gate-ready",
           "operational-health-loopback-baseline-and-post-cutover-recheck-automation-ready",
