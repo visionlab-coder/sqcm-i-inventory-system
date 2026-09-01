@@ -1,0 +1,64 @@
+{
+  "packet": "ACC-P6-31-INGRESS-DNS-DOH-FALLBACK",
+  "status": "PASS_INGRESS_DNS_DOH_FALLBACK",
+  "trigger": {
+    "repeatedHarnessFailure": "production-ingress-publication",
+    "primaryFailureClass": "INGRESS_DNS_OBSERVATION_TIMEOUT",
+    "blindThirdRetryPerformed": false
+  },
+  "failureFirst": {
+    "expectedFailures": 4,
+    "observedFailures": 4
+  },
+  "focusedTests": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0
+  },
+  "syntaxChecks": {
+    "passed": 330,
+    "failed": 0
+  },
+  "unitTests": {
+    "total": 542,
+    "passed": 541,
+    "failed": 0,
+    "skipped": 1
+  },
+  "fallbackContract": {
+    "primary": "native A and CNAME resolver",
+    "fallback": "Cloudflare public DNS-over-HTTPS A and CNAME",
+    "fallbackOnlyAfterPrimaryFailure": true,
+    "authoritativeResponseRequired": true,
+    "publishedNxdomainConflictFailsClosed": true,
+    "bothPathsFailClosed": true,
+    "providerErrorsRedacted": true
+  },
+  "readOnlyRun": {
+    "status": "READY_WAIT_INGRESS_PUBLICATION_INPUTS",
+    "externalMutationPerformed": false,
+    "actualProductionIngress": "NOT_RUN",
+    "productionGo": false
+  },
+  "qualityCi": {
+    "runId": 33567691253,
+    "testedHeadSha": "1b1661676e9f5dbc08c45dc0c4868ea53ca38fed",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "harnessVerify": {
+    "exitCode": 0,
+    "productionIngressPublication": "PASS",
+    "productionPublicProbe": "PASS",
+    "status": "PASS"
+  },
+  "repositoryHygiene": "PASS",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

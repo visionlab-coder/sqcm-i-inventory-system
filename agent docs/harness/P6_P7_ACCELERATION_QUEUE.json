@@ -253,6 +253,22 @@
       "evidence": "failure-first 5/5 reproduced; focused 8/8 PASS; production:provider-preflight read-only PASS for PostgreSQL storage, Defender bridge, AI health/readiness and loopback event publisher; syntax 327/327; repository unit 531 PASS 1 Windows platform skip; repository hygiene PASS; account/DB/provider mutation zero"
     },
     {
+      "id": "ACC-P6-30-BOUNDED-CSRF-IDEMPOTENCY-BASELINE-RUNTIME",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production negative CSRF와 idempotency schema baseline의 HTTP·Docker·SQL을 각각 10초, process 출력을 1MiB로 제한한다. timeout·network·process·container·DB 파싱 오류는 응답·stdout/stderr 원문 없이 fail-closed하고 count/schema는 정확한 비음수 정수 계약만 허용한다.",
+      "evidence": "failure-first 6/6 reproduced; focused 6/6 PASS; production:csrf-idempotency-baseline proves 403 CSRF_INVALID, session count unchanged, schema 10/10, unique index 1, stuck/invalid zero; syntax 329/329; repository unit 537 PASS 1 Windows platform skip; repository hygiene PASS; actual authenticated replay NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-31-INGRESS-DNS-DOH-FALLBACK",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "native A·CNAME DNS 관측이 timeout·실패할 때만 Cloudflare 공개 DNS-over-HTTPS A·CNAME authoritative 응답으로 대체 관측한다. published와 NXDOMAIN 충돌, 비정상 JSON, HTTP 실패 또는 두 경로 실패는 unpublished로 추측하지 않고 fail-closed한다.",
+      "evidence": "repeated harness ingress DNS observation failure reproduced; failure-first 4/4; focused native/DoH 7/7 PASS; production:ingress-publication read-only READY_WAIT with mutation zero; syntax 330/330; repository unit 541 PASS 1 Windows platform skip; provider response raw redacted"
+    },
+    {
       "id": "ACC-P7-03-ACTUAL-HANDOVER-EVIDENCE-BUNDLE",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
