@@ -9,7 +9,7 @@
     "status": "READY_WAIT_CHANGE_WINDOW",
     "localBlockers": [],
     "unitTests": "4/4 PASS",
-    "repositoryRegression": "161/161 PASS",
+    "repositoryRegression": "165/165 PASS",
     "harnessRegistered": true
   },
   "cutoverEvidenceCandidate": {
@@ -19,6 +19,14 @@
     "productionGo": false,
     "validatorStatus": "PASS_CANDIDATE_FAIL_CLOSED",
     "validatorFailureCount": 22
+  },
+  "publicProbeAutomation": {
+    "command": "npm.cmd run production:public-probe",
+    "status": "READY_WAIT_DNS_TLS_PUBLICATION",
+    "unitTests": "4/4 PASS",
+    "expectedHttpsPaths": ["/health", "/api/health", "/api/readiness", "/api/items", "/assets/seowon-official-logo-reversed.png"],
+    "outsideWindowPublicationFailsClosed": true,
+    "actualPublicHealthReadiness": "NOT_RUN"
   },
   "source": {
     "branch": "codex/p6-ai-pc-postgres-production",
@@ -99,8 +107,9 @@
     "CUTOVER_TEMPLATE_12_GATE_CONTRACT_VALID",
     "AUTOMATED_CUTOVER_PREFLIGHT_PASS",
     "AUTOMATED_PREFLIGHT_UNIT_TESTS_4_OF_4_PASS",
-    "REPOSITORY_UNIT_TESTS_161_OF_161_PASS",
+    "REPOSITORY_UNIT_TESTS_165_OF_165_PASS",
     "PRODUCTION_PROVIDER_PREFLIGHT_PASS",
+    "PUBLIC_DNS_TLS_HEALTH_READINESS_PROBE_AUTOMATION_READY",
     "CUTOVER_EVIDENCE_LOCAL_GATES_4_OF_12_PASS",
     "CUTOVER_EVIDENCE_EXTERNAL_GATES_8_OF_12_PENDING",
     "CUTOVER_CANDIDATE_FAIL_CLOSED_VALIDATOR_PASS",

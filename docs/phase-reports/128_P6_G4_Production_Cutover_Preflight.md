@@ -20,10 +20,11 @@
 - [x] `npm.cmd run production:cutover-preflight` 실시간 검사기 구현·Harness 등록
 - [x] 변경창 전·변경창 내·최종 서명 READY·로컬 손상 fail-closed 회귀 4/4 PASS
 - [x] Production 공급자 5종 읽기 전용 preflight PASS: PostgreSQL 저장소·Defender/경보·AI health/ready·event publisher
+- [x] 공개 DNS·TLS·외부 health/readiness 5경로 자동 probe와 변경창 밖 게시 fail-closed 회귀 4/4 준비
 - [x] 12개 cutover Gate 증거 후보 자동 조립: 로컬 실증 4/12 PASS
 - [x] 외부 Production 검증 8/12와 서명 3건 PENDING 유지
 - [x] 후보가 Production GO를 승인하지 못하는 fail-closed 검사 PASS
-- [x] 저장소 표준 구문 138개·단위 161/161 PASS(공급자 preflight 회귀 3건 포함)
+- [x] 저장소 표준 구문 141개·단위 165/165 PASS(공급자·공개 probe 회귀 포함)
 - [x] 기존 Cloudflare `sqcm-i`, `sqcm-i-inventory-staging` tunnel 각 연결 4개 보존
 - [x] 보호 포트/PID `1234/6632`, `11434/8588`, `18765/22716`, `18766/65724` 보존
 - [ ] `sqcm-i-inventory-production` 전용 tunnel — 변경창에서 생성
