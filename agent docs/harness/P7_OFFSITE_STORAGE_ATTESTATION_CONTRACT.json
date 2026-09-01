@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "environment": "production",
+  "approved": false,
+  "separateFailureDomain": false,
+  "encryptedAtRest": false,
+  "retentionDays": 30,
+  "storageRef": null,
+  "ownerRef": null,
+  "rootRef": null,
+  "rootPathSha256": null
+}

@@ -53,6 +53,7 @@
     "operations:slo-collector": "node scripts/operations-slo-collector.mjs",
     "operations:alerting-evidence": "node scripts/operations-alerting-evidence.mjs",
     "operations:backup-restore-evidence": "node scripts/operations-backup-restore-evidence.mjs",
+    "operations:backup-restore-runner": "node scripts/operations-backup-restore-runner.mjs",
     "operations:certificate-evidence": "node scripts/operations-certificate-evidence.mjs",
     "operations:certificate-observer": "node scripts/operations-certificate-observer.mjs",
     "operations:oncall-evidence": "node scripts/operations-oncall-evidence.mjs",

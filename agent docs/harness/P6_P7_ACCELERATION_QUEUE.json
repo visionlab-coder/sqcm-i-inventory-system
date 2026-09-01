@@ -293,6 +293,14 @@
       "evidence": "operations:maintenance-runner => READY_WAIT_P6_ACTUAL_CUTOVER; HTTP/runtime read and write zero; focused 5/5 PASS; immutable deployed SHA·six checks·adaptive login spike·backup checksum/age·external once-only output enforced"
     },
     {
+      "id": "ACC-P7-19-PRODUCTION-OFFSITE-BACKUP-ISOLATED-RESTORE-RUNNER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 exact Production PostgreSQL의 exported repeatable-read snapshot과 counts를 사용해 승인·암호화·별도 failure-domain 저장소에 checksum backup을 쓰고 임시 격리 DB에서 33 tables·25 migrations·row counts 일치와 4시간 RTO를 검증한 compiler 호환 drill export를 생성한다.",
+      "evidence": "operations:backup-restore-runner => READY_WAIT_P6_ACTUAL_CUTOVER; Production/off-site/DB mutation zero; focused 6/6 PASS; exact snapshot·root hash attestation·30-day retention·isolated restore/drop·count/migration digest enforced"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

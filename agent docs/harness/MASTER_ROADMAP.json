@@ -341,6 +341,7 @@
           "p7-actual-https-30-day-append-only-slo-collector-ready",
           "p7-production-exact-tls-health-readiness-observer-ready",
           "p7-production-daily-maintenance-read-only-runner-ready",
+          "p7-production-consistent-snapshot-offsite-isolated-restore-runner-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],

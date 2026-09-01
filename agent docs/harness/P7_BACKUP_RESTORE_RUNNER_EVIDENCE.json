@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "packetId": "ACC-P7-19-PRODUCTION-OFFSITE-BACKUP-ISOLATED-RESTORE-RUNNER",
+  "status": "EVIDENCE_COMPLETE",
+  "authority": "local-autonomous",
+  "actualProductionBackupRestoreDrill": "NOT_RUN",
+  "productionGo": false,
+  "verification": {
+    "focusedTests": "6/6 PASS",
+    "syntaxChecks": "267/267 PASS",
+    "unitTests": "402 PASS, 1 Windows-only SKIP, 0 FAIL (403 total)",
+    "harnessVerify": "PASS",
+    "dryRunStatus": "READY_WAIT_P6_ACTUAL_CUTOVER",
+    "productionReadPerformed": false,
+    "offsiteWritePerformed": false,
+    "isolatedDatabaseMutationPerformed": false,
+    "externalMutationPerformed": false
+  },
+  "contracts": [
+    "repeatable-read exported snapshot shared by counts and pg_dump",
+    "approved encrypted separate failure-domain root bound by SHA-256",
+    "custom-format checksum backup with at least 30-day retention",
+    "random isolated restore database always removed",
+    "33 required tables, 25 migrations and all row counts must match",
+    "restore RTO must not exceed 240 minutes"
+  ],
+  "nextReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF"
+}
