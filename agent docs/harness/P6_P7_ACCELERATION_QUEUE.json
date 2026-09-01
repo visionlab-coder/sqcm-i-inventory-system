@@ -189,6 +189,14 @@
       "evidence": "failure-first 3/3 reproduced; focused 7/7 PASS; production:cutover-preflight completed with READY_WAIT_CHANGE_WINDOW, localBlockers 0, Cloudflare tunnel observation PASS, existing tunnels preserved; syntax 311/311; repository unit 492 PASS 1 Windows platform skip; repository hygiene PASS; external mutation zero"
     },
     {
+      "id": "ACC-P6-22-BOUNDED-INGRESS-PUBLICATION-ADAPTERS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "변경창의 exact Production ingress publication에서 Cloudflare CLI·PowerShell 관측은 10초·1MiB, Cloudflare API는 10초, DNS 관측은 5초 상한을 사용한다. timeout·실패·비정상 응답은 오류·Secret 원문 없이 fail-closed하며 초기 DNS 관측 실패 시 tunnel·DNS 변경 전에 중단한다.",
+      "evidence": "failure-first 4/4 reproduced; focused 11/11 PASS; production:ingress-publication dry-run READY_WAIT_INGRESS_PUBLICATION_INPUTS with external mutation zero; syntax 313/313; repository unit 496 PASS 1 Windows platform skip; repository hygiene PASS; actual Production ingress publication NOT_RUN"
+    },
+    {
       "id": "ACC-P7-03-ACTUAL-HANDOVER-EVIDENCE-BUNDLE",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
