@@ -1,6 +1,6 @@
 {
   "gate": "P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF-PREP",
-  "checkedAt": "2026-09-01T18:05:00+09:00",
+  "checkedAt": "2026-09-01T20:00:00+09:00",
   "status": "READY_WAIT_P6_COMPLETION_AND_HANDOVER_EVIDENCE",
   "packetStatus": "READY",
   "phaseStatus": "not-started",
@@ -32,6 +32,23 @@
     "overwriteAllowed": false,
     "focusedUnitTests": "6/6 PASS",
     "manifestCreated": false
+  },
+  "sloEvidenceAutomation": {
+    "command": "npm.cmd run operations:slo-evidence",
+    "executeCommand": "npm.cmd run operations:slo-evidence -- --compile",
+    "status": "READY_WAIT_P6_COMPLETION_AND_SLO_INPUT",
+    "requiredInputEnvironment": "P7_SLO_MEASUREMENT_INPUT_FILE",
+    "inputContract": "agent docs/harness/P7_SLO_MEASUREMENT_INPUT_CONTRACT.json",
+    "requiredOutputEnvironment": "P7_SLO_EVIDENCE_OUTPUT_FILE",
+    "confirmationEnvironment": "P7_SLO_EVIDENCE_CONFIRMATION=ACK-COMPILE-P7-PRODUCTION-SLO-EVIDENCE",
+    "measurementContract": "exact Production URL, 30-day window, at least 30 UTC dates, availability >= 99.5%, p95 <= 1000ms",
+    "sourceSha256Recorded": true,
+    "outputMustBeOutsideRepository": true,
+    "atomicWrite": true,
+    "overwriteAllowed": false,
+    "focusedUnitTests": "7/7 PASS",
+    "actualMeasurementPresent": false,
+    "evidenceCreated": false
   },
   "failClosedChecks": [
     "P6 actual Production cutover evidence",

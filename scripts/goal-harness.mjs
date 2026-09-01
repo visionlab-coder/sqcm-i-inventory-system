@@ -338,6 +338,7 @@ function verify() {
       ['production-cutover-evidence', 'npm.cmd', ['run', 'production:cutover-evidence']],
       ['production-cutover-finalizer', 'npm.cmd', ['run', 'production:cutover-finalizer']],
       ['operations-handover-preflight', 'npm.cmd', ['run', 'operations:handover-preflight']],
+      ['operations-slo-evidence', 'npm.cmd', ['run', 'operations:slo-evidence']],
       ['operations-handover-assembler', 'npm.cmd', ['run', 'operations:handover-assembler']],
       ['operations-handover-finalizer', 'npm.cmd', ['run', 'operations:handover-finalizer']]
     ]

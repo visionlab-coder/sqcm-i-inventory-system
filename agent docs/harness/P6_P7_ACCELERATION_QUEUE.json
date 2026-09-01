@@ -93,6 +93,14 @@
       "evidence": "npm.cmd run operations:handover-assembler => READY_WAIT_P6_COMPLETION_AND_HANDOVER_FILES; 10 inputs plus output required; focused 6/6 PASS; repository 256/256 PASS; manifest creation NOT_RUN"
     },
     {
+      "id": "ACC-P7-05-PRODUCTION-SLO-EVIDENCE-COMPILER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 완료·P7 활성화 뒤 exact Production URL의 30일 측정 원본에서 가용성·p95를 직접 계산하고, 임계치·기간·날짜 커버리지·SHA provenance를 통과한 SLO actual 문서만 저장소 밖에 원자적으로 1회 작성한다.",
+      "evidence": "npm.cmd run operations:slo-evidence => READY_WAIT_P6_COMPLETION_AND_SLO_INPUT; contract template cannot authorize actual evidence; focused 7/7 PASS; default dry-run; actual 30-day measurement and evidence creation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
