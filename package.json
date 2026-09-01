@@ -54,6 +54,7 @@
     "operations:alerting-evidence": "node scripts/operations-alerting-evidence.mjs",
     "operations:backup-restore-evidence": "node scripts/operations-backup-restore-evidence.mjs",
     "operations:certificate-evidence": "node scripts/operations-certificate-evidence.mjs",
+    "operations:certificate-observer": "node scripts/operations-certificate-observer.mjs",
     "operations:oncall-evidence": "node scripts/operations-oncall-evidence.mjs",
     "operations:maintenance-evidence": "node scripts/operations-maintenance-evidence.mjs",
     "operations:improvement-queue-evidence": "node scripts/operations-improvement-queue-evidence.mjs",

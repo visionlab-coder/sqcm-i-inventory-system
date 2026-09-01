@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "packetId": "ACC-P7-17-PRODUCTION-TLS-CERTIFICATE-OBSERVER",
+  "status": "EVIDENCE_COMPLETE",
+  "authority": "local-autonomous",
+  "actualProductionObservation": "NOT_RUN",
+  "productionGo": false,
+  "verification": {
+    "focusedTests": "5/5 PASS",
+    "syntaxChecks": "261/261 PASS",
+    "repositoryUnitTests": "391 PASS, 0 FAIL, 1 Windows platform SKIP",
+    "harnessVerify": "PASS",
+    "dryRunStatus": "READY_WAIT_P6_ACTUAL_CUTOVER",
+    "externalHttpReadPerformed": false,
+    "localEvidenceWritePerformed": false,
+    "externalMutationPerformed": false
+  },
+  "contracts": [
+    "P6 actual completion, P7 in-progress and Production GO required",
+    "exact inventory.safe-link.co.kr system-trust TLS only",
+    "health and readiness must observe the same peer certificate",
+    "TLSv1.2 or TLSv1.3 with authorized chain and hostname",
+    "health and readiness must both return HTTP 200",
+    "serial, SHA-256 fingerprint and validity timestamps required",
+    "new physical output outside repository and atomic once-only write"
+  ],
+  "nextReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF"
+}

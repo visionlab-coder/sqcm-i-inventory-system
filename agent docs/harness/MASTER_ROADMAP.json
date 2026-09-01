@@ -339,6 +339,7 @@
           "actual-operations-handover-p7-complete-8-of-8-atomic-state-promoter-ready",
           "change-window-five-reference-unarmed-input-readiness-gate-ready",
           "p7-actual-https-30-day-append-only-slo-collector-ready",
+          "p7-production-exact-tls-health-readiness-observer-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],

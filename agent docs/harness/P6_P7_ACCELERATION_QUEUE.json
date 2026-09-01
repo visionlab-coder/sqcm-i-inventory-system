@@ -277,6 +277,14 @@
       "evidence": "operations:slo-collector => READY_WAIT_P6_ACTUAL_CUTOVER; probe/write zero; focused 5/5 PASS; one UTC sample/day, physical external target, lock cleanup, 30 consecutive days and overwrite rejection enforced"
     },
     {
+      "id": "ACC-P7-17-PRODUCTION-TLS-CERTIFICATE-OBSERVER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 exact Production hostname을 신뢰 저장소 검증 TLS로 읽고 health/readiness 200과 peer certificate protocol·serial·SHA-256 fingerprint·유효기간을 compiler 호환 관측 JSON으로 저장소 밖에 원자적으로 한 번 기록한다.",
+      "evidence": "operations:certificate-observer => READY_WAIT_P6_ACTUAL_CUTOVER; external HTTP read/write zero; focused 5/5 PASS; exact hostname·verified chain·TLSv1.2/1.3·health/readiness 200·external physical one-time output enforced"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
