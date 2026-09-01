@@ -1,13 +1,9 @@
-import { spawnSync } from 'node:child_process';
 import { evaluateProductionProviderPreflight } from '../src/operations/production-provider-preflight.mjs';
-
-const containerQuery = spawnSync('docker', [
-  'ps', '--filter', 'label=com.docker.compose.project=seowon-inventory-production',
-  '--filter', 'label=com.docker.compose.service=backend', '--format', '{{.ID}}'
-], { encoding: 'utf8', windowsHide: true });
-if (containerQuery.status !== 0) throw new Error('Unable to locate the Production backend container.');
-const containerId = containerQuery.stdout.trim();
-if (!/^[a-f0-9]{12,64}$/.test(containerId)) throw new Error('Exactly one Production backend container is required.');
+import {
+  parseProductionProviderContainerId,
+  parseProductionProviderObservation,
+  runProductionProviderPreflightProcess
+} from '../src/operations/production-provider-preflight-runtime.mjs';
 
 const containerProbe = String.raw`
 (async()=>{
@@ -34,14 +30,35 @@ const containerProbe = String.raw`
       secretMaterialPrinted:false
     }));
   } finally { await pool.end(); }
-})().catch(error=>{console.error(JSON.stringify({status:'error',message:error.message}));process.exit(1);});`;
+})().catch(()=>{console.error(JSON.stringify({status:'error'}));process.exit(1);});`;
 
-const probe = spawnSync('docker', ['exec', containerId, 'node', '-e', containerProbe], {
-  encoding: 'utf8', windowsHide: true, timeout: 150_000, maxBuffer: 1024 * 1024
+async function main() {
+  const containerQuery = runProductionProviderPreflightProcess([
+    'ps', '--filter', 'label=com.docker.compose.project=seowon-inventory-production',
+    '--filter', 'label=com.docker.compose.service=backend', '--format', '{{.ID}}'
+  ]);
+  const containerId = parseProductionProviderContainerId(containerQuery.stdout);
+  const probe = runProductionProviderPreflightProcess(
+    ['exec', containerId, 'node', '-e', containerProbe],
+    { timeoutMs: 150_000 }
+  );
+  const observation = parseProductionProviderObservation(probe.stdout);
+  const result = evaluateProductionProviderPreflight(observation);
+  console.log(JSON.stringify({ checkedAt: new Date().toISOString(), ...result }, null, 2));
+  if (result.status !== 'PASS') process.exitCode = 1;
+}
+
+main().catch((error) => {
+  const failure = /^PROVIDER_PREFLIGHT_[A-Z_]+$/.test(error?.message)
+    ? error.message
+    : 'PROVIDER_PREFLIGHT_RUNTIME_FAILED';
+  console.log(JSON.stringify({
+    checkedAt: new Date().toISOString(),
+    status: 'FAIL_PROVIDER_PREFLIGHT_RUNTIME',
+    failures: [failure],
+    readOnly: true,
+    secretValuesReadOrRecorded: false,
+    productionGo: false
+  }, null, 2));
+  process.exitCode = 1;
 });
-if (probe.status !== 0) throw new Error(`Production provider probe failed: ${probe.stderr.trim() || 'unknown error'}`);
-const lines = probe.stdout.trim().split(/\r?\n/).filter(Boolean);
-const observation = JSON.parse(lines.at(-1));
-const result = evaluateProductionProviderPreflight(observation);
-console.log(JSON.stringify({ checkedAt: new Date().toISOString(), ...result }, null, 2));
-if (result.status !== 'PASS') process.exitCode = 1;
