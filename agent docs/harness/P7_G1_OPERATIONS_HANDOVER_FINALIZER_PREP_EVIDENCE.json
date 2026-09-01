@@ -1,6 +1,6 @@
 {
   "gate": "P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF-PREP",
-  "checkedAt": "2026-09-01T20:27:00+09:00",
+  "checkedAt": "2026-09-01T20:35:00+09:00",
   "status": "READY_WAIT_P6_COMPLETION_AND_HANDOVER_EVIDENCE",
   "packetStatus": "READY",
   "phaseStatus": "not-started",
@@ -84,6 +84,23 @@
     "focusedUnitTests": "7/7 PASS",
     "actualDrillPresent": false,
     "createdDocumentCount": 0
+  },
+  "certificateEvidenceAutomation": {
+    "command": "npm.cmd run operations:certificate-evidence",
+    "executeCommand": "npm.cmd run operations:certificate-evidence -- --compile",
+    "status": "READY_WAIT_P6_COMPLETION_AND_CERTIFICATE_OBSERVATION",
+    "requiredInputEnvironment": "P7_CERTIFICATE_OBSERVATION_INPUT_FILE",
+    "inputContract": "agent docs/harness/P7_CERTIFICATE_OBSERVATION_INPUT_CONTRACT.json",
+    "requiredOutputEnvironment": "P7_CERTIFICATE_EVIDENCE_OUTPUT_FILE",
+    "confirmationEnvironment": "P7_CERTIFICATE_EVIDENCE_CONFIRMATION=ACK-COMPILE-P7-PRODUCTION-CERTIFICATE-EVIDENCE",
+    "certificateContract": "exact Production hostname, verified chain, TLSv1.2/1.3, SHA-256 fingerprint, observation age <= 60 minutes, days remaining >= 30, health/readiness 200",
+    "requiredProvenance": ["renewalOwnerRef", "certificateProviderRef", "observedAt", "serialNumber", "fingerprintSha256", "validFrom", "validTo", "sourceSha256"],
+    "outputMustBeOutsideRepository": true,
+    "atomicWrite": true,
+    "overwriteAllowed": false,
+    "focusedUnitTests": "7/7 PASS",
+    "actualObservationPresent": false,
+    "evidenceCreated": false
   },
   "failClosedChecks": [
     "P6 actual Production cutover evidence",

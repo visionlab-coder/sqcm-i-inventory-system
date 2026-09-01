@@ -41,6 +41,7 @@
     "operations:slo-evidence": "node scripts/operations-slo-evidence.mjs",
     "operations:alerting-evidence": "node scripts/operations-alerting-evidence.mjs",
     "operations:backup-restore-evidence": "node scripts/operations-backup-restore-evidence.mjs",
+    "operations:certificate-evidence": "node scripts/operations-certificate-evidence.mjs",
     "operations:handover-assembler": "node scripts/operations-handover-assembler.mjs",
     "operations:handover-finalizer": "node scripts/operations-handover-finalizer.mjs",
     "operations:health": "node scripts/operational-health-check.mjs",
