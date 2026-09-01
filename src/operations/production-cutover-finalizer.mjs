@@ -1,5 +1,82 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
 import gates from './gates.js';
 import { GATE_IDS } from './production-cutover-evidence.mjs';
+
+export const ACTUAL_CUTOVER_EVIDENCE_MAX_BYTES = 4 * 1024 * 1024;
+
+function finalizerInputError(code) {
+  const error = new Error(code);
+  error.name = 'ProductionCutoverFinalizerInputError';
+  return error;
+}
+
+function pathInsideOrEqual(root, candidate) {
+  const relative = path.relative(root, candidate);
+  return relative === '' || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative));
+}
+
+export function readActualCutoverEvidenceFile(filePath, {
+  repositoryRoot = process.cwd(),
+  io = fs,
+  maxBytes = ACTUAL_CUTOVER_EVIDENCE_MAX_BYTES
+} = {}) {
+  if (typeof filePath !== 'string' || !path.isAbsolute(filePath) || path.extname(filePath).toLowerCase() !== '.json'
+    || typeof repositoryRoot !== 'string' || !repositoryRoot
+    || !Number.isInteger(maxBytes) || maxBytes < 1 || maxBytes > ACTUAL_CUTOVER_EVIDENCE_MAX_BYTES) {
+    throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_REFERENCE_INVALID');
+  }
+  const repository = path.resolve(repositoryRoot);
+  const candidate = path.resolve(filePath);
+  if (pathInsideOrEqual(repository, candidate)) throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_REFERENCE_INVALID');
+  let repositoryReal;
+  let stat;
+  try {
+    const repositoryStat = io.lstatSync(repository);
+    if (!repositoryStat.isDirectory() || repositoryStat.isSymbolicLink() || (repositoryStat.isReparsePoint?.() ?? false)) {
+      throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_REFERENCE_INVALID');
+    }
+    repositoryReal = path.resolve(io.realpathSync(repository));
+    stat = io.lstatSync(candidate);
+  } catch (error) {
+    if (error?.code === 'ENOENT') throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_NOT_FOUND');
+    if (error?.name === 'ProductionCutoverFinalizerInputError') throw error;
+    throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_REFERENCE_INVALID');
+  }
+  if (!stat.isFile() || stat.isSymbolicLink() || (stat.isReparsePoint?.() ?? false)
+    || stat.size < 1 || stat.size > maxBytes) {
+    throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_REFERENCE_INVALID');
+  }
+  let candidateReal;
+  let raw;
+  try {
+    candidateReal = path.resolve(io.realpathSync(candidate));
+    const samePhysicalPath = process.platform === 'win32'
+      ? candidateReal.toLowerCase() === candidate.toLowerCase()
+      : candidateReal === candidate;
+    if (!samePhysicalPath || pathInsideOrEqual(repositoryReal, candidateReal)) {
+      throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_REFERENCE_INVALID');
+    }
+    raw = io.readFileSync(candidateReal);
+  } catch (error) {
+    if (error?.name === 'ProductionCutoverFinalizerInputError') throw error;
+    throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_REFERENCE_INVALID');
+  }
+  if (!Buffer.isBuffer(raw) || raw.length !== stat.size || raw.length > maxBytes) {
+    throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_REFERENCE_INVALID');
+  }
+  let value;
+  try { value = JSON.parse(raw.toString('utf8')); } catch { throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_JSON_INVALID'); }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_JSON_INVALID');
+  }
+  return {
+    value,
+    bytes: raw.length,
+    sha256: createHash('sha256').update(raw).digest('hex')
+  };
+}
 
 const EXTERNAL_GATES = new Set([
   'health_readiness',

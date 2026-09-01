@@ -1,9 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { validateActualCutoverProvenance } from '../src/operations/production-cutover-finalizer.mjs';
+import {
+  readActualCutoverEvidenceFile,
+  validateActualCutoverProvenance
+} from '../src/operations/production-cutover-finalizer.mjs';
 import {
   P6_TO_P7_PROMOTION_CONFIRMATION,
   evaluateP6ToP7Promotion,
@@ -21,15 +23,7 @@ const paths = {
 };
 const evidencePath = process.env.PRODUCTION_CUTOVER_ACTUAL_EVIDENCE_FILE;
 const execute = process.argv.includes('--promote');
-const physicalExternalEvidence = () => {
-  if (!evidencePath) return null;
-  const resolved = path.resolve(evidencePath);
-  if (resolved.toLowerCase().startsWith(`${projectRoot.toLowerCase()}${path.sep}`)) throw new Error('ACTUAL_EVIDENCE_MUST_BE_EXTERNAL');
-  const stat = fs.lstatSync(resolved);
-  if (!stat.isFile() || stat.isSymbolicLink() || (stat.isReparsePoint?.() ?? false)) throw new Error('ACTUAL_EVIDENCE_NOT_PHYSICAL_FILE');
-  const raw = fs.readFileSync(resolved);
-  return { value: JSON.parse(raw.toString('utf8')), sha256: createHash('sha256').update(raw).digest('hex') };
-};
+const physicalExternalEvidence = () => readActualCutoverEvidenceFile(evidencePath, { repositoryRoot: projectRoot });
 
 if (!evidencePath || !fs.existsSync(evidencePath)) {
   console.log(JSON.stringify({ checkedAt: new Date().toISOString(), status: 'READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_FOR_PHASE_PROMOTION', requiredEnvironment: 'PRODUCTION_CUTOVER_ACTUAL_EVIDENCE_FILE', changesMade: false, productionGo: false }, null, 2));
