@@ -34,6 +34,7 @@
     "production:signoff-preflight": "node scripts/production-signoff-preflight.mjs",
     "production:cutover-evidence": "node scripts/production-cutover-evidence-check.mjs",
     "production:cutover-finalizer": "node scripts/production-cutover-finalizer.mjs",
+    "operations:handover-preflight": "node scripts/operations-handover-preflight.mjs",
     "operations:health": "node scripts/operational-health-check.mjs",
     "test:nonfunctional": "node scripts/nonfunctional-check.mjs",
     "test:recovery": "node scripts/dependency-recovery-check.mjs",

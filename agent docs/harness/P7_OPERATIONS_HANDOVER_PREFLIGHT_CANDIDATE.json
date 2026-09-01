@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "template": false,
+  "environment": "production",
+  "activationState": "preflight",
+  "p7Status": "not-started",
+  "productionGo": false,
+  "domains": {
+    "slo": { "availabilityTargetPercent": 99.5, "p95TargetMs": 1000, "measurementWindowDays": 30, "measurementEvidenceRef": null },
+    "alerting": { "requiredSignals": ["availability", "latency_p95", "http_5xx", "backup_failure", "certificate_expiry"], "receiptEvidenceRef": null, "ownerRef": null },
+    "backup": { "rpoMinutes": 1440, "retentionDays": 30, "offsiteEvidenceRef": null },
+    "restore": { "rtoMinutes": 240, "drillEvidenceRef": null },
+    "certificate": { "hostname": "inventory.safe-link.co.kr", "renewalLeadDays": 30, "expiryEvidenceRef": null, "renewalOwnerRef": null },
+    "onCall": { "primaryOwnerRef": null, "escalationOwnerRef": null },
+    "maintenance": { "scheduleContractRef": "docs/maintenance.md", "executionEvidenceRef": null },
+    "improvementQueue": { "queueRef": null, "triageOwnerRef": null }
+  }
+}

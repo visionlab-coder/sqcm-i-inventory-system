@@ -23,7 +23,7 @@
 
 ### P7 운영·유지보수
 
-- [ ] 운영 인수 preflight 검사기 — `ACC-P7-01` READY, P6 대기 중 준비 허용, P7 상태는 미착수 유지
+- [x] 운영 인수 preflight 검사기 — 8개 영역 계약 오류 0, 회귀 4/4 완료, P6 대기 중 P7 상태는 미착수 유지
 - [ ] 실제 경보 수신·off-site backup·복원훈련·온콜 인수
 - [ ] 운영 책임자 최종 서명과 `8/8` 전환
 
@@ -37,4 +37,4 @@
 
 ## 다음 READY
 
-`ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT`: SLO·경보·백업·복원·인증서·온콜·정기점검·개선 큐의 입력 계약과 fail-closed 검사기를 준비한다. P6가 완료되기 전에는 P7을 진행 중으로 승격하지 않는다.
+`ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF`: P6 G4 완료 후 실제 경보 수신·off-site backup·복원훈련·인증서·온콜·정기점검·개선 큐 증거를 연결하고 운영 책임자 서명을 검증한다. P6 완료 전에는 실행하지 않는다.

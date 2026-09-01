@@ -317,7 +317,8 @@ function verify() {
       ['production-rollback-readiness', 'npm.cmd', ['run', 'production:rollback-readiness']],
       ['production-signoff-preflight', 'npm.cmd', ['run', 'production:signoff-preflight']],
       ['production-cutover-evidence', 'npm.cmd', ['run', 'production:cutover-evidence']],
-      ['production-cutover-finalizer', 'npm.cmd', ['run', 'production:cutover-finalizer']]
+      ['production-cutover-finalizer', 'npm.cmd', ['run', 'production:cutover-finalizer']],
+      ['operations-handover-preflight', 'npm.cmd', ['run', 'operations:handover-preflight']]
     ]
   };
   const commands = commandSets[verifierKey];

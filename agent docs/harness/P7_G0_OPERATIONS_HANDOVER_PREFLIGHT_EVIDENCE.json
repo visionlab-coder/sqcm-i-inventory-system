@@ -1,0 +1,44 @@
+{
+  "gate": "P7-G0-OPERATIONS-HANDOVER-PREFLIGHT-PREP",
+  "checkedAt": "2026-09-01T18:00:00+09:00",
+  "status": "READY_WAIT_P6_COMPLETION_AND_HANDOVER_INPUTS",
+  "phaseStatus": "not-started",
+  "productionGo": false,
+  "candidate": "agent docs/harness/P7_OPERATIONS_HANDOVER_PREFLIGHT_CANDIDATE.json",
+  "automation": {
+    "command": "npm.cmd run operations:handover-preflight",
+    "domainCount": 8,
+    "contractErrorCount": 0,
+    "missingInputCount": 12,
+    "focusedUnitTests": "4/4 PASS",
+    "repositorySyntax": "171 PASS",
+    "repositoryUnitTests": "200/200 PASS",
+    "secretValuesReadOrRecorded": false
+  },
+  "domains": ["slo", "alerting", "backup", "restore", "certificate", "onCall", "maintenance", "improvementQueue"],
+  "missingInputs": [
+    "slo.measurementEvidenceRef",
+    "alerting.receiptEvidenceRef",
+    "alerting.ownerRef",
+    "backup.offsiteEvidenceRef",
+    "restore.drillEvidenceRef",
+    "certificate.expiryEvidenceRef",
+    "certificate.renewalOwnerRef",
+    "onCall.primaryOwnerRef",
+    "onCall.escalationOwnerRef",
+    "maintenance.executionEvidenceRef",
+    "improvementQueue.queueRef",
+    "improvementQueue.triageOwnerRef"
+  ],
+  "invariants": {
+    "p6EvidenceComplete": false,
+    "p7Activated": false,
+    "externalMutationPerformed": false,
+    "existingServicesPreserved": true
+  },
+  "source": {
+    "branch": "codex/p6-ai-pc-postgres-production",
+    "baseSha": "4c41415c10aa72e7e9eebde2534ed5a42fcfd14e"
+  },
+  "nextAction": "P6 G4 actual cutover evidence completion 이후 12개 운영 인수 참조를 연결하고 ACC-P7-02 실제 활성화·서명을 수행한다."
+}

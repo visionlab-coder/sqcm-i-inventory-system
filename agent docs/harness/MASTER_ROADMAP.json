@@ -303,6 +303,7 @@
           "cutover-evidence-external-gates-8-of-12-pending",
           "cutover-candidate-fail-closed-validator-pass",
           "actual-cutover-evidence-provenance-finalizer-ready",
+          "p7-operations-handover-preflight-contract-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],

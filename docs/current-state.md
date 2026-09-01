@@ -18,7 +18,8 @@
 - `ACC-P6-02`를 완료했다. `production:authenticated-idempotency`는 ADMIN MFA 세션으로 missing-CSRF 403, 최초 쓰기 201, 동일 key replay, 다른 payload 409, DB 단일 행·감사, 테스트 자산·감사·key 정리 0건과 logout을 검증한다. 현재 credential reference와 쓰기 확인이 없어 실제 쓰기는 `NOT_RUN`이다.
 - `ACC-P6-03`을 완료했다. `production:cutover-orchestrator`가 12개 Gate 순서, 20:00~23:00 변경창, 22:00 cutoff, 필수 Gate 실패 시 public route 차단과 loopback·volume 보존을 dry-run으로 검증했다. 외부 변경은 0건이다.
 - `ACC-P6-04`를 완료했다. `production:cutover-finalizer`는 실제 cutover 증거 파일이 없으면 `READY_WAIT_ACTUAL_CUTOVER_EVIDENCE`로 안전 대기하며, template·staging·loopback·baseline provenance를 Production PASS로 승격하지 않는다. 회귀 4/4가 통과했고 `productionGo=false`다.
-- 가속 큐의 다음 READY는 `ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT`다. 이는 P7 준비 작업이며 P6 완료 전 P7 상태는 미착수로 유지한다.
+- `ACC-P7-01`을 완료했다. `operations:handover-preflight`는 SLO·경보·백업·복원·인증서·온콜·정기점검·개선 큐 8개 영역을 fail-closed 검사한다. 계약 오류 0, focused 4/4, 저장소 구문 171개와 단위 200/200이 PASS했다. 실제 증거 참조 12개와 P6 완료가 없어 `READY_WAIT_P6_COMPLETION_AND_HANDOVER_INPUTS`이며 P7은 미착수다.
+- 가속 큐의 다음 READY는 `ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF`다. 이는 P6 G4 실제 완료 후에만 실행 가능한 외부 입력 Gate다.
 
 - P6-G4는 `READY_WAIT_CHANGE_WINDOW`다. 승인된 공개 전환 창은 `2026-09-11 20:00~23:00 KST`, rollback cutoff는 22:00다.
 - 내부 Production 3서비스·smoke·migration 25/25·백업 복원은 정상이고 배포 후보와 원격 브랜치 SHA도 일치한다.
@@ -36,7 +37,7 @@
 - `npm.cmd run production:rollback-readiness`는 현재 backend/frontend revision, PostgreSQL·파일 named volume 2/2, G3 실제 중지/포트폐쇄/복구 drill, backup/restore, 22:00 cutoff와 Production 전용 route 제거 순서를 대조한다. dry-run readiness는 PASS지만 공개 전환 후 실제 rollback은 `NOT_RUN`이다.
 - `npm.cmd run production:signoff-preflight`는 ADMIN·MANAGER·USER Production UAT 결과와 업무·보안·운영 서명 파일 참조 6건, cutover 후보의 PENDING 상태와 변경창을 fail-closed로 검사한다. 현재 참조 0/6, 실제 서명 `NOT_RUN`으로 `READY_WAIT_PRODUCTION_UAT_AND_SIGNOFF_REFERENCES`이며 파일 내용·Secret은 읽거나 기록하지 않는다.
 - `npm.cmd run production:cutover-evidence`는 12개 Gate 중 실제 로컬 증거가 있는 artifact·backup/restore·migration·provider preflight 4건만 PASS로 조립한다. 외부 Production 8건과 역할 결과·서명은 PENDING이며 후보는 fail-closed 검증상 Production을 승인할 수 없다.
-- 저장소 표준 검증에서 JavaScript 구문 168개와 단위 196/196이 PASS했으며 preflight·공개 probe·로그·역할 MFA/RBAC runner·nonfunctional·operational health·인증 CSRF/idempotency runner·rollback·최종 서명 Gate·증거 조립·실제 증거 provenance finalizer 회귀가 검증 봉투에 포함된다.
+- 저장소 표준 검증에서 JavaScript 구문 171개와 단위 200/200이 PASS했으며 preflight·공개 probe·로그·역할 MFA/RBAC runner·nonfunctional·operational health·인증 CSRF/idempotency runner·rollback·최종 서명 Gate·증거 조립·실제 증거 provenance finalizer·P7 운영 인수 preflight 회귀가 검증 봉투에 포함된다.
 
 ## 2026-09-01 P6-G3 AI PC Production 배포·복구
 
