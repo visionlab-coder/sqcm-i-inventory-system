@@ -151,3 +151,55 @@ test('cutoff 이후 재개는 Gate 12 대신 exact route-disable을 호출한다
   assert.deepEqual(calls, ['route-disable']);
   assert.equal(result.routeDisableVerified, true);
 });
+
+test('Gate 12 뒤 actual evidence 조립·저장이 모두 PASS해야 Production GO가 된다', async () => {
+  const { resumeProductionCutoverSignoff, SIGNOFF_RESUME_CONFIRMATION } = await modulePromise;
+  const checkpoint = {
+    schemaVersion: 1, evidenceType: 'P6_CUTOVER_SIGNOFF_PAUSE_CHECKPOINT', runId: '11111111-1111-4111-8111-111111111111', releaseSha: 'a'.repeat(40),
+    checkedAt: '2026-09-11T12:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
+    completedGates: ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'].map((gate, index) => ({ gate, evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: 'b'.repeat(64) }))
+  };
+  const references = { ADMIN: 'admin.json', MANAGER: 'manager.json', USER: 'user.json', BUSINESS: 'business.json', SECURITY: 'security.json', OPERATIONS: 'operations.json' };
+  const result = await resumeProductionCutoverSignoff({
+    execute: true, confirmation: SIGNOFF_RESUME_CONFIRMATION, runId: checkpoint.runId, releaseSha: checkpoint.releaseSha,
+    checkpointPath: 'checkpoint', roleResultReferences: references, signoffReferences: references, now: insideWindow,
+    ensureReceiptRoot: () => 'synthetic-root', loadCheckpoint: () => checkpoint,
+    validateReceipts: () => ({ status: 'PASS_SIGNOFF_RESUME_RECEIPTS', failures: [], receiptCount: 24 }),
+    createWriter: () => syntheticWriter(checkpoint.runId),
+    createRunner: ({ writeReceipt }) => async (step) => ({ exitCode: 0, status: step.acceptedStatuses[0], evidenceRef: await writeReceipt({ kind: 'step', gate: step.gate, step: step.id }) }),
+    finalizeActualEvidence: true, actualEvidenceOutputPath: 'outside/actual.json',
+    loadReceiptDocuments: () => [{ value: { runId: checkpoint.runId } }],
+    loadEvidenceDocument: (file) => ({ fileName: file, value: {} }),
+    assembleEvidence: () => ({ status: 'PASS_ACTUAL_CUTOVER_EVIDENCE_ASSEMBLY', failures: [], evidence: { productionGo: true }, productionGo: true }),
+    persistActualEvidence: (file) => file
+  });
+  assert.equal(result.status, 'PASS_ACTUAL_CUTOVER_EVIDENCE_FINALIZED');
+  assert.equal(result.actualEvidenceCreated, true);
+  assert.equal(result.productionGo, true);
+});
+
+test('Gate 12 뒤 actual evidence 조립 실패는 exact route-disable로 containment한다', async () => {
+  const { resumeProductionCutoverSignoff, SIGNOFF_RESUME_CONFIRMATION } = await modulePromise;
+  const checkpoint = {
+    schemaVersion: 1, evidenceType: 'P6_CUTOVER_SIGNOFF_PAUSE_CHECKPOINT', runId: '11111111-1111-4111-8111-111111111111', releaseSha: 'a'.repeat(40),
+    checkedAt: '2026-09-11T12:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
+    completedGates: ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'].map((gate, index) => ({ gate, evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: 'b'.repeat(64) }))
+  };
+  const references = { ADMIN: 'admin.json', MANAGER: 'manager.json', USER: 'user.json', BUSINESS: 'business.json', SECURITY: 'security.json', OPERATIONS: 'operations.json' };
+  const calls = [];
+  const result = await resumeProductionCutoverSignoff({
+    execute: true, confirmation: SIGNOFF_RESUME_CONFIRMATION, runId: checkpoint.runId, releaseSha: checkpoint.releaseSha,
+    checkpointPath: 'checkpoint', roleResultReferences: references, signoffReferences: references, now: insideWindow,
+    ensureReceiptRoot: () => 'synthetic-root', loadCheckpoint: () => checkpoint,
+    validateReceipts: () => ({ status: 'PASS_SIGNOFF_RESUME_RECEIPTS', failures: [], receiptCount: 24 }),
+    createWriter: () => syntheticWriter(checkpoint.runId),
+    createRunner: ({ writeReceipt }) => async (step) => { calls.push(step.id); return { exitCode: 0, status: step.acceptedStatuses[0], evidenceRef: await writeReceipt({ kind: 'step', gate: step.gate, step: step.id }) }; },
+    finalizeActualEvidence: true, actualEvidenceOutputPath: 'outside/actual.json',
+    loadReceiptDocuments: () => [], loadEvidenceDocument: (file) => ({ fileName: file, value: {} }),
+    assembleEvidence: () => ({ status: 'FAIL_ACTUAL_CUTOVER_EVIDENCE_ASSEMBLY', failures: ['TAMPERED'], productionGo: false })
+  });
+  assert.equal(result.status, 'PASS_ACTUAL_EVIDENCE_FINALIZATION_FAILURE_CONTAINED');
+  assert.deepEqual(calls, ['signoff-preflight', 'route-disable']);
+  assert.equal(result.routeDisableVerified, true);
+  assert.equal(result.productionGo, false);
+});

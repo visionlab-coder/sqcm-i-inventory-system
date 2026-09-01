@@ -12,15 +12,16 @@ const pauseBeforeSignoff = process.argv.includes('--pause-before-signoff');
 const candidate = JSON.parse(fs.readFileSync(new URL('../agent docs/harness/P6_G4_CUTOVER_EVIDENCE_CANDIDATE.json', import.meta.url), 'utf8'));
 const releaseSha = candidate.releaseTag.replace(/^sha-/, '');
 const exists = (value) => Boolean(value && fs.existsSync(value));
+const existingPath = (value) => exists(value) ? value : false;
 const roleResultReferences = {
-  ADMIN: exists(process.env.PRODUCTION_UAT_ADMIN_RESULT_FILE),
-  MANAGER: exists(process.env.PRODUCTION_UAT_MANAGER_RESULT_FILE),
-  USER: exists(process.env.PRODUCTION_UAT_USER_RESULT_FILE)
+  ADMIN: existingPath(process.env.PRODUCTION_UAT_ADMIN_RESULT_FILE),
+  MANAGER: existingPath(process.env.PRODUCTION_UAT_MANAGER_RESULT_FILE),
+  USER: existingPath(process.env.PRODUCTION_UAT_USER_RESULT_FILE)
 };
 const signoffReferences = {
-  BUSINESS: exists(process.env.PRODUCTION_BUSINESS_SIGNOFF_FILE),
-  SECURITY: exists(process.env.PRODUCTION_SECURITY_SIGNOFF_FILE),
-  OPERATIONS: exists(process.env.PRODUCTION_OPERATIONS_SIGNOFF_FILE)
+  BUSINESS: existingPath(process.env.PRODUCTION_BUSINESS_SIGNOFF_FILE),
+  SECURITY: existingPath(process.env.PRODUCTION_SECURITY_SIGNOFF_FILE),
+  OPERATIONS: existingPath(process.env.PRODUCTION_OPERATIONS_SIGNOFF_FILE)
 };
 const result = resumeSignoff
   ? await resumeProductionCutoverSignoff({
@@ -30,7 +31,9 @@ const result = resumeSignoff
     releaseSha,
     checkpointPath: process.env.PRODUCTION_CUTOVER_SIGNOFF_CHECKPOINT_FILE,
     roleResultReferences,
-    signoffReferences
+    signoffReferences,
+    finalizeActualEvidence: process.argv.includes('--finalize-actual-evidence'),
+    actualEvidenceOutputPath: process.env.PRODUCTION_CUTOVER_ACTUAL_EVIDENCE_FILE
   })
   : await executeProductionCutover({
     execute,
@@ -41,7 +44,7 @@ const result = resumeSignoff
 const output = {
   ...result,
   requiredEnvironment: resumeSignoff
-    ? ['PRODUCTION_CUTOVER_RUN_ID', 'PRODUCTION_CUTOVER_SIGNOFF_CHECKPOINT_FILE', 'PRODUCTION_CUTOVER_SIGNOFF_RESUME_CONFIRMATION', 'PRODUCTION_UAT_ADMIN_RESULT_FILE', 'PRODUCTION_UAT_MANAGER_RESULT_FILE', 'PRODUCTION_UAT_USER_RESULT_FILE', 'PRODUCTION_BUSINESS_SIGNOFF_FILE', 'PRODUCTION_SECURITY_SIGNOFF_FILE', 'PRODUCTION_OPERATIONS_SIGNOFF_FILE']
+    ? ['PRODUCTION_CUTOVER_RUN_ID', 'PRODUCTION_CUTOVER_SIGNOFF_CHECKPOINT_FILE', 'PRODUCTION_CUTOVER_SIGNOFF_RESUME_CONFIRMATION', 'PRODUCTION_UAT_ADMIN_RESULT_FILE', 'PRODUCTION_UAT_MANAGER_RESULT_FILE', 'PRODUCTION_UAT_USER_RESULT_FILE', 'PRODUCTION_BUSINESS_SIGNOFF_FILE', 'PRODUCTION_SECURITY_SIGNOFF_FILE', 'PRODUCTION_OPERATIONS_SIGNOFF_FILE', 'PRODUCTION_CUTOVER_ACTUAL_EVIDENCE_FILE']
     : ['PRODUCTION_CUTOVER_CONFIRMATION'],
   expectedConfirmation: resumeSignoff ? SIGNOFF_RESUME_CONFIRMATION : undefined,
   secretValuesReadOrRecorded: false

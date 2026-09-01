@@ -18,6 +18,12 @@ import {
   validateSignoffResumeReceipts,
   writeSignoffPauseCheckpoint
 } from './production-cutover-signoff-resume.mjs';
+import {
+  assembleActualCutoverEvidence,
+  loadJsonDocument,
+  loadRunReceiptDocuments,
+  writeActualCutoverEvidence
+} from './production-cutover-actual-evidence.mjs';
 
 export const PRODUCTION_CUTOVER_CONFIRMATION = 'ACK-2026-09-11-P6-G4';
 
@@ -137,7 +143,13 @@ export async function resumeProductionCutoverSignoff({
   createWriter = createRuntimeReceiptWriter,
   createRunner = createProcessStepRunner,
   loadCheckpoint = loadSignoffPauseCheckpoint,
-  validateReceipts = validateSignoffResumeReceipts
+  validateReceipts = validateSignoffResumeReceipts,
+  finalizeActualEvidence = false,
+  actualEvidenceOutputPath = null,
+  loadReceiptDocuments = loadRunReceiptDocuments,
+  loadEvidenceDocument = loadJsonDocument,
+  assembleEvidence = assembleActualCutoverEvidence,
+  persistActualEvidence = writeActualCutoverEvidence
 } = {}) {
   const checkedAtMs = Number(now());
   const checkedAt = new Date(checkedAtMs).toISOString();
@@ -154,12 +166,12 @@ export async function resumeProductionCutoverSignoff({
   const runStep = createRunner({ writeReceipt });
   const recordGateEvidence = createGateEvidenceRecorder({ writeReceipt });
   const routeDisableHandler = createCutoverRouteDisableHandler({ runStep, recordGateEvidence });
-  const contain = async (reason) => {
+  const contain = async (reason, failureStage = 'SIGNOFF_RESUME') => {
     const result = await routeDisableHandler({ failedGate: 'uat_signoff', failureReason: reason });
     const verified = result?.status === 'PASS_PUBLIC_ROUTE_DISABLED' && typeof result?.evidenceRef === 'string' && result.evidenceRef.length > 0;
     return {
       checkedAt, runId: checkpoint.runId, receiptRoot: root,
-      status: verified ? 'PASS_SIGNOFF_RESUME_FAILURE_CONTAINED' : 'BLOCKED_SIGNOFF_RESUME_FAILURE_NOT_CONTAINED',
+      status: verified ? `PASS_${failureStage}_FAILURE_CONTAINED` : `BLOCKED_${failureStage}_FAILURE_NOT_CONTAINED`,
       failures: verified ? [] : ['PUBLIC_ROUTE_DISABLE_NOT_VERIFIED'],
       executedGates: [], skippedGates: ['uat_signoff'], routeDisableRequired: true,
       routeDisableVerified: verified, routeDisableEvidenceRef: verified ? result.evidenceRef : '',
@@ -167,7 +179,11 @@ export async function resumeProductionCutoverSignoff({
     };
   };
   if (receiptValidation.status !== 'PASS_SIGNOFF_RESUME_RECEIPTS') return contain(receiptValidation.failures.join(','));
-  const resume = evaluateSignoffResume({ checkpoint, runId, releaseSha, checkedAt, confirmation, roleResultReferences, signoffReferences });
+  const resume = evaluateSignoffResume({
+    checkpoint, runId, releaseSha, checkedAt, confirmation,
+    roleResultReferences: Object.fromEntries(Object.entries(roleResultReferences).map(([key, value]) => [key, Boolean(value)])),
+    signoffReferences: Object.fromEntries(Object.entries(signoffReferences).map(([key, value]) => [key, Boolean(value)]))
+  });
   if (checkedAtMs > rollbackCutoff || resume.routeDisableRequired) return contain(resume.failures?.join(',') || 'ROLLBACK_CUTOFF_EXCEEDED');
   if (resume.status !== 'READY_FOR_SAME_RUN_UAT_SIGNOFF_RESUME') {
     return { checkedAt, runId: checkpoint.runId, receiptRoot: root, ...resume, actualCutoverExecuted: false, externalMutationPerformed: false, productionGo: false };
@@ -175,6 +191,36 @@ export async function resumeProductionCutoverSignoff({
   const gateHandler = createCutoverGateHandlers({ runStep, recordGateEvidence }).uat_signoff;
   const gateResult = await gateHandler();
   if (gateResult?.status !== 'PASS' || typeof gateResult?.evidenceRef !== 'string' || !gateResult.evidenceRef) return contain(gateResult?.reason || 'UAT_SIGNOFF_GATE_NOT_PASS');
+  if (finalizeActualEvidence) {
+    try {
+      if (typeof actualEvidenceOutputPath !== 'string' || !actualEvidenceOutputPath.trim()) throw new Error('ACTUAL_EVIDENCE_OUTPUT_MISSING');
+      const roleResultDocuments = Object.fromEntries(['ADMIN', 'MANAGER', 'USER']
+        .map((role) => [role, loadEvidenceDocument(roleResultReferences[role])]));
+      const signoffDocuments = Object.fromEntries(['BUSINESS', 'SECURITY', 'OPERATIONS']
+        .map((area) => [area, loadEvidenceDocument(signoffReferences[area])]));
+      const assembled = assembleEvidence({
+        receiptDocuments: loadReceiptDocuments(root, checkpoint.runId),
+        roleResultDocuments,
+        signoffDocuments,
+        runId: checkpoint.runId,
+        releaseSha
+      });
+      if (assembled?.status !== 'PASS_ACTUAL_CUTOVER_EVIDENCE_ASSEMBLY' || assembled?.productionGo !== true || !assembled?.evidence) {
+        throw new Error(assembled?.failures?.join(',') || 'ACTUAL_EVIDENCE_FINALIZATION_NOT_PASS');
+      }
+      const outputFile = persistActualEvidence(actualEvidenceOutputPath, assembled.evidence);
+      return {
+        checkedAt, runId: checkpoint.runId, receiptRoot: root,
+        status: 'PASS_ACTUAL_CUTOVER_EVIDENCE_FINALIZED', failures: [],
+        gateResults: [{ gate: 'uat_signoff', result: 'PASS', evidenceRef: gateResult.evidenceRef }],
+        executedGates: ['uat_signoff'], skippedGates: [], routeDisableRequired: false,
+        routeDisableVerified: false, actualCutoverExecuted: true, externalMutationPerformed: true,
+        actualEvidenceCreated: true, actualEvidenceOutputFile: path.basename(outputFile), productionGo: true
+      };
+    } catch (error) {
+      return contain(String(error?.message || 'ACTUAL_EVIDENCE_FINALIZATION_FAILED'), 'ACTUAL_EVIDENCE_FINALIZATION');
+    }
+  }
   return {
     checkedAt, runId: checkpoint.runId, receiptRoot: root,
     status: 'READY_FOR_CUTOVER_EVIDENCE_FINALIZATION', failures: [],

@@ -141,6 +141,14 @@
       "evidence": "npm.cmd run production:cutover-signoff-resume-runtime-rehearsal => PASS_SIGNOFF_RESUME_RUNTIME_REHEARSAL; same run 11+1 Gates, 14 steps, 26 receipts, 1 physical checkpoint; focused 9/9 PASS; repository 364 PASS 1 Windows platform skip; actual Production mutation NOT_RUN"
     },
     {
+      "id": "ACC-P6-17-ACTUAL-EVIDENCE-FINALIZATION-AND-ROLLBACK-CONTAINMENT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Gate 12 뒤 동일 run의 26 receipt·세 역할 결과·세 identity 서명을 actual assembler와 finalizer에 연결해 저장소 밖에 원자 기록하며 조립·검증·쓰기 실패 시 exact public route-disable evidence 없이는 격리 완료나 Production GO로 승격하지 않는다.",
+      "evidence": "resume executor same-run finalization and fail-closed route-disable integrated; focused 10/10 PASS; repository 366 PASS 1 Windows platform skip; dry-run zero mutation; actual Production finalization/route mutation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
