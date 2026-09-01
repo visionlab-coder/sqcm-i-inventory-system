@@ -45,6 +45,13 @@
     "resolvedPhysicalFileCount": 44,
     "sha256": "f4b615ff493f0768dc520a46e02bb62026e85997c69065ecc100a8b29a688c1a"
   },
+  "qualityCi": {
+    "runId": 33555754616,
+    "testedHeadSha": "3d07acd240d160676a22f63838b9e80ae9d1f411",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "conclusion": "SUCCESS"
+  },
   "actualProductionChildExecuted": false,
   "externalMutationPerformed": false,
   "secretValuesReadOrRecorded": false,

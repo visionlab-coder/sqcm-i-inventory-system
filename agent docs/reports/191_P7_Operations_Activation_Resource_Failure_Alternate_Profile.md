@@ -37,6 +37,7 @@
 - `npm.cmd run operations:activation-process-runner-rehearsal` → 물리 문서 36개, alternate 2/2, 임시 산출물 0
 - `npm.cmd run check` → syntax 309/309, unit 489 PASS·1 Windows symlink SKIP·0 FAIL
 - activation bundle → 44 physical files, SHA-256 `f4b615ff493f0768dc520a46e02bb62026e85997c69065ecc100a8b29a688c1a`
+- GitHub-hosted quality run `33555754616`, tested SHA `3d07acd240d160676a22f63838b9e80ae9d1f411` → unit·three-tier-integration 모두 SUCCESS
 
 ## 미완료 / 외부 Gate
 
