@@ -24,6 +24,7 @@
     "production:cutover-failure-matrix": "node scripts/production-cutover-failure-matrix.mjs",
     "production:cutover-execution-rehearsal": "node scripts/production-cutover-execution-rehearsal.mjs",
     "production:cutover-adapter-rehearsal": "node scripts/production-cutover-adapter-rehearsal.mjs",
+    "production:cutover-process-runner-rehearsal": "node scripts/production-cutover-process-runner-rehearsal.mjs",
     "production:ingress-publication": "node scripts/production-ingress-publication.mjs",
     "production:provider-preflight": "node scripts/production-provider-preflight.mjs",
     "production:public-probe": "node scripts/production-public-probe.mjs",

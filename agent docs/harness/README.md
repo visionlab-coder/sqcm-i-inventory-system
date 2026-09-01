@@ -38,6 +38,7 @@ npm.cmd run harness:verify
 - `production:cutover-failure-matrix`는 12개 cutover Gate를 각각 한 번씩 실패시켜 실패 Gate까지만 실행되고 이후 Gate가 모두 중단되는지 검사한다. 각 시나리오는 exact public route-disable가 확인돼야 격리 PASS하며, route-disable 미확인·결과 개수/순서/값 변조와 합성 all-pass의 Production GO 승격을 차단한다. 실제 cutover·route 변경은 수행하지 않는다.
 - `production:cutover-execution-rehearsal`은 변경창·확인·handler 계약을 선검사한 뒤 12개 Gate를 순차 실행하는 상태 머신을 합성 검증한다. cutoff·첫 실패·예외는 이후 Gate를 중단하고 route-disable evidence가 없으면 fail-closed하며, 전 Gate PASS도 actual finalizer 전에는 GO가 아니다.
 - `production:cutover-adapter-rehearsal`은 12개 Gate를 14개 실제 runner step에 연결하는 구조화 adapter를 합성 검증한다. 각 step은 exact PASS 상태와 evidence reference를 모두 요구하므로 exit 0의 `READY_WAIT_*`, 빈 evidence, adapter 순서 변조를 성공으로 오인하지 않는다.
+- `production:cutover-process-runner-rehearsal`은 14개 step의 process 결과 정규화와 저장소 밖 step·Gate receipt 26건을 합성 검증한다. receipt는 stdout·stderr·환경변수·Secret 원문을 포함하지 않고 물리 디렉터리 경계와 기존 파일 비덮어쓰기를 강제하며 실제 child process나 외부 변경은 수행하지 않는다.
 
 ## 상태 전이 규칙
 

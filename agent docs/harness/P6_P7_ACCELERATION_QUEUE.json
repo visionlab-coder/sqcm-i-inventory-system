@@ -93,6 +93,14 @@
       "evidence": "npm.cmd run production:cutover-adapter-rehearsal => PASS_CUTOVER_GATE_ADAPTER_REHEARSAL; 12 Gates/14 steps; focused 6/6 PASS; repository 333/333 PASS; WAIT/empty evidence/plan mutation fail-closed; actual external mutation zero"
     },
     {
+      "id": "ACC-P6-11-CUTOVER-PROCESS-RUNNER-AND-RUNTIME-RECEIPTS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "구조화된 14개 step을 Node child process로 실행하고 상태를 정규화하며, 저장소 밖 물리 디렉터리에 stdout·stderr·Secret을 제외한 step·Gate receipt를 원자적으로 1회 기록한다.",
+      "evidence": "npm.cmd run production:cutover-process-runner-rehearsal => PASS_CUTOVER_PROCESS_RUNNER_REHEARSAL; 12 Gates/14 steps/26 receipts; focused 2 PASS 1 platform skip; repository 335 PASS 1 platform skip; Harness PASS; actual process/external mutation zero"
+    },
+    {
       "id": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
