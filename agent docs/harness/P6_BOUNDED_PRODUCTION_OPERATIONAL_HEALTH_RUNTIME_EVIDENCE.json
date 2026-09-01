@@ -1,0 +1,75 @@
+{
+  "packet": "ACC-P6-34-BOUNDED-PRODUCTION-OPERATIONAL-HEALTH-RUNTIME",
+  "status": "PASS_BOUNDED_PRODUCTION_OPERATIONAL_HEALTH_RUNTIME",
+  "failureFirst": {
+    "expectedFailures": 7,
+    "observedFailures": 7
+  },
+  "limits": {
+    "processTimeoutMs": 10000,
+    "defaultMaxBufferBytes": 1048576,
+    "logMaxBufferBytes": 4194304,
+    "httpTimeoutMs": 10000
+  },
+  "focusedTests": {
+    "total": 11,
+    "passed": 11,
+    "failed": 0
+  },
+  "syntaxChecks": {
+    "passed": 336,
+    "failed": 0
+  },
+  "unitTests": {
+    "total": 561,
+    "passed": 560,
+    "failed": 0,
+    "skipped": 1
+  },
+  "readOnlyRun": {
+    "status": "PASS_LOOPBACK_BASELINE_READY_FOR_POST_CUTOVER_RECHECK",
+    "frontendStatus": 200,
+    "backendStatus": 200,
+    "readinessStatus": 200,
+    "pendingOutboxOld": 0,
+    "expiredSessions": 0,
+    "stuckIdempotency": 0,
+    "recent5xx": 0,
+    "backupVerified": true,
+    "backupBytes": 238533,
+    "backupAgeMinutes": 1130,
+    "restoreVerified": true,
+    "restoreDrillAgeMinutes": 1130,
+    "actualPostCutoverOperationalHealth": "NOT_RUN",
+    "productionGo": false
+  },
+  "runtimeContract": {
+    "exactSingleContainerRequired": true,
+    "threeNonNegativeCountersRequired": true,
+    "jsonObjectLogLinesRequired": true,
+    "physicalBackupPathRequired": true,
+    "streamingSha256Required": true,
+    "actualByteCountRequired": true,
+    "errorsRedacted": true
+  },
+  "qualityCi": {
+    "runId": 33570584020,
+    "testedHeadSha": "aabdde356addc991cf11f2317084579e22d680c4",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "harnessVerify": {
+    "exitCode": 0,
+    "productionOperationalHealthBaseline": "PASS",
+    "status": "PASS"
+  },
+  "repositoryHygiene": "PASS",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

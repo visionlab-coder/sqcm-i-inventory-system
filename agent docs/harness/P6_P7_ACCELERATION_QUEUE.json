@@ -285,6 +285,14 @@
       "evidence": "failure-first 6/6 reproduced; focused runtime/target 10/10 PASS; production:nonfunctional-baseline loopback 60 requests zero error p95 13ms and security contract PASS; syntax 334/334; repository unit 553 PASS 1 Windows platform skip; repository hygiene PASS; actual public nonfunctional gate NOT_RUN"
     },
     {
+      "id": "ACC-P6-34-BOUNDED-PRODUCTION-OPERATIONAL-HEALTH-RUNTIME",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production operational health의 Docker container·SQL·backend log 조회를 10초로 제한하고 process 출력은 일반 1MiB·로그 4MiB로 제한한다. container·3개 counter·JSON log를 엄격 파싱하고 backup은 physical path·actual bytes·streaming SHA-256으로 검증하며 오류 원문 없이 fail-closed한다.",
+      "evidence": "failure-first 7/7 reproduced; focused runtime/target 11/11 PASS; production:operational-health-baseline proves loopback health/readiness 200, counters and recent 5xx zero, physical 238533-byte backup checksum and restore PASS; syntax 336/336; repository unit 560 PASS 1 Windows platform skip; repository hygiene PASS; actual post-cutover operational health NOT_RUN"
+    },
+    {
       "id": "ACC-P7-03-ACTUAL-HANDOVER-EVIDENCE-BUNDLE",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
