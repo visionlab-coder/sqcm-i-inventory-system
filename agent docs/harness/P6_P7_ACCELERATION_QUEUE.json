@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "goal": "P6 외부 Gate를 약화하지 않고 남은 실제 실행 자동화와 P7 인수 준비를 선행해 8/8 완료 시간을 단축한다.",
   "currentPhase": "P6",
-  "readyPacket": "ACC-P6-04-CUTOVER-EVIDENCE-FINALIZER",
+  "readyPacket": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
   "rules": {
     "readyCount": 1,
     "waitingIsFailure": false,
@@ -39,14 +39,15 @@
     {
       "id": "ACC-P6-04-CUTOVER-EVIDENCE-FINALIZER",
       "phase": "P6",
-      "status": "READY",
+      "status": "EVIDENCE_COMPLETE",
       "authority": "local-autonomous",
-      "acceptance": "실제 증거만 12개 Gate와 역할 결과·3개 서명으로 조립하며 staging·template 증거 승격을 거부한다."
+      "acceptance": "실제 증거만 12개 Gate와 역할 결과·3개 서명으로 조립하며 staging·template 증거 승격을 거부한다.",
+      "evidence": "npm.cmd run production:cutover-finalizer => READY_WAIT_ACTUAL_CUTOVER_EVIDENCE; focused 4/4 PASS; template·staging·loopback·baseline provenance rejected; productionGo=false"
     },
     {
       "id": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
       "phase": "P7_PREP",
-      "status": "PENDING",
+      "status": "READY",
       "authority": "local-autonomous",
       "acceptance": "SLO·경보·백업·복원·인증서·온콜·정기점검·개선 큐의 입력 계약과 fail-closed 검사기가 준비되며 P7 상태는 미착수로 유지된다."
     },

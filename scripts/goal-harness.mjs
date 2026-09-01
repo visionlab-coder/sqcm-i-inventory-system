@@ -316,7 +316,8 @@ function verify() {
       ['production-authenticated-idempotency', 'npm.cmd', ['run', 'production:authenticated-idempotency']],
       ['production-rollback-readiness', 'npm.cmd', ['run', 'production:rollback-readiness']],
       ['production-signoff-preflight', 'npm.cmd', ['run', 'production:signoff-preflight']],
-      ['production-cutover-evidence', 'npm.cmd', ['run', 'production:cutover-evidence']]
+      ['production-cutover-evidence', 'npm.cmd', ['run', 'production:cutover-evidence']],
+      ['production-cutover-finalizer', 'npm.cmd', ['run', 'production:cutover-finalizer']]
     ]
   };
   const commands = commandSets[verifierKey];

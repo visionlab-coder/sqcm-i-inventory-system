@@ -1,0 +1,6 @@
+const test=require('node:test'),assert=require('node:assert/strict'),p=import('../../src/operations/production-cutover-finalizer.mjs');
+const actual={template:false,activationState:'actual',gates:[{id:'health_readiness',status:'PASS',evidence:'production HTTPS receipt 2026-09-11'}],productionGo:false};
+test('실제 Production provenance만 PASS한다',async()=>{const{validateActualCutoverProvenance}=await p;assert.equal(validateActualCutoverProvenance(actual).status,'PASS_ACTUAL_EVIDENCE_PROVENANCE');});
+test('template을 거부한다',async()=>{const{validateActualCutoverProvenance}=await p;assert.ok(validateActualCutoverProvenance({...actual,template:true}).failures.includes('ACTUAL_EVIDENCE_MUST_NOT_BE_TEMPLATE'));});
+test('staging과 loopback 기준선 승격을 거부한다',async()=>{const{validateActualCutoverProvenance}=await p;const r=validateActualCutoverProvenance({...actual,gates:[{id:'core_smoke',status:'PASS',evidence:'staging loopback baseline'}]});assert.ok(r.failures.includes('core_smoke_NON_PRODUCTION_EVIDENCE'));});
+test('actual activationState를 강제한다',async()=>{const{validateActualCutoverProvenance}=await p;assert.ok(validateActualCutoverProvenance({...actual,activationState:'candidate'}).failures.includes('ACTIVATION_STATE_NOT_ACTUAL'));});

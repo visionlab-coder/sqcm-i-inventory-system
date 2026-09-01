@@ -18,12 +18,12 @@
 - [x] 실제 역할 MFA·RBAC core smoke runner — Secret 참조 0/3으로 실제 시험은 NOT_RUN, runner·회귀 4/4 완료
 - [x] 인증 사용자 CSRF/idempotency runner — 자격증명·쓰기 확인 부재로 실제 쓰기는 NOT_RUN, runner·회귀 4/4 완료
 - [x] 변경창 12-Gate cutover orchestrator — 순서·22:00 cutoff·route 차단 dry-run과 회귀 4/4 완료
-- [ ] 실제 증거 finalizer — `ACC-P6-04` READY
+- [x] 실제 증거 finalizer — 실제 증거 파일이 없으면 안전 대기하고 template·staging·loopback·baseline 승격을 거부, 회귀 4/4 완료
 - [ ] 전용 tunnel·DNS/TLS·실사용자·경보·최종 서명 — 변경창/외부 입력
 
 ### P7 운영·유지보수
 
-- [ ] 운영 인수 preflight 검사기 — P6 대기 중 준비 허용, 상태는 미착수 유지
+- [ ] 운영 인수 preflight 검사기 — `ACC-P7-01` READY, P6 대기 중 준비 허용, P7 상태는 미착수 유지
 - [ ] 실제 경보 수신·off-site backup·복원훈련·온콜 인수
 - [ ] 운영 책임자 최종 서명과 `8/8` 전환
 
@@ -37,4 +37,4 @@
 
 ## 다음 READY
 
-`ACC-P6-04-CUTOVER-EVIDENCE-FINALIZER`: 12개 Gate의 실제 산출물만 허용하고 template·staging·내부 기준선이 공개 Production PASS로 승격되지 않도록 finalizer를 보완한다.
+`ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT`: SLO·경보·백업·복원·인증서·온콜·정기점검·개선 큐의 입력 계약과 fail-closed 검사기를 준비한다. P6가 완료되기 전에는 P7을 진행 중으로 승격하지 않는다.
