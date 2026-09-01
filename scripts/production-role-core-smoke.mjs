@@ -10,6 +10,11 @@ import {
   classifyRoleSmokeEvidence,
   selectProductionRoleSmokeTarget
 } from '../src/operations/production-role-smoke-target.mjs';
+import {
+  cleanupRoleSmokeSession,
+  readRoleSmokeJson,
+  requestRoleSmokeHttp
+} from '../src/operations/production-role-core-smoke-runtime.mjs';
 
 const require = createRequire(import.meta.url);
 const { totp } = require('../src/services/mfa-service');
@@ -29,58 +34,72 @@ function cookieFrom(response) {
 }
 
 async function json(response) {
-  return response.json().catch(() => ({}));
+  return readRoleSmokeJson(response);
 }
 
 async function post(path, session, body) {
-  const response = await fetch(`${target}${path}`, {
-    method: 'POST',
-    redirect: 'manual',
-    headers: {
-      cookie: session.cookie,
-      'content-type': 'application/json',
-      'x-csrf-token': session.token,
-      'idempotency-key': crypto.randomUUID()
-    },
-    body: JSON.stringify({ ...body, _csrf: session.token })
+  return requestRoleSmokeHttp({
+    url:`${target}${path}`,
+    options:{
+      method:'POST',
+      redirect:'manual',
+      headers:{
+        cookie:session.cookie,
+        'content-type':'application/json',
+        'x-csrf-token':session.token,
+        'idempotency-key':crypto.randomUUID()
+      },
+      body:JSON.stringify({ ...body, _csrf:session.token })
+    }
   });
-  return response;
 }
 
 async function get(path, cookie = '') {
-  return fetch(`${target}${path}`, { redirect: 'manual', headers: { cookie, accept: 'application/json' } });
+  return requestRoleSmokeHttp({
+    url:`${target}${path}`,
+    options:{ redirect:'manual',headers:{ cookie,accept:'application/json' } }
+  });
 }
 
 async function loginRole(role, credential) {
-  const csrfResponse = await get('/api/auth/csrf');
-  const csrfData = await json(csrfResponse);
-  const anonymous = { cookie: cookieFrom(csrfResponse), token: csrfData.csrfToken };
-  const passwordResponse = await post('/api/auth/login', anonymous, {
-    email: credential.email,
-    password: credential.password
-  });
-  const passwordData = await json(passwordResponse);
-  const challenge = { cookie: cookieFrom(passwordResponse), token: passwordData.csrfToken };
-  const invalidResponse = await post('/api/auth/mfa/verify', challenge, { code: '000000' });
-  const mfaResponse = await post('/api/auth/mfa/verify', challenge, { code: totp(credential.totpSecret) });
-  const mfaData = await json(mfaResponse);
-  const session = { cookie: cookieFrom(mfaResponse), token: mfaData.csrfToken };
-  const organizationId = mfaData.user?.organizationId;
-  const dashboard = await get(`/api/enterprise/dashboard?organizationId=${organizationId}`, session.cookie);
-  const cost = await get(`/api/enterprise/cost/roi?organizationId=${organizationId}`, session.cookie);
-  const admin = await get(`/api/enterprise/admin?organizationId=${organizationId}`, session.cookie);
-  const logout = await post('/api/auth/logout', session, {});
-  return {
-    passwordStatus: passwordResponse.status,
-    mfaRequired: passwordData.mfaRequired === true,
-    invalidMfaStatus: invalidResponse.status,
-    mfaStatus: mfaResponse.status,
-    actualRole: mfaData.user?.role || null,
-    dashboard: dashboard.status,
-    cost: cost.status,
-    admin: admin.status,
-    logoutStatus: logout.status
-  };
+  let activeSession = null;
+  try {
+    const csrfResponse = await get('/api/auth/csrf');
+    const csrfData = await json(csrfResponse);
+    const anonymous = { cookie:cookieFrom(csrfResponse),token:csrfData.csrfToken };
+    const passwordResponse = await post('/api/auth/login', anonymous, {
+      email:credential.email,password:credential.password
+    });
+    const passwordData = await json(passwordResponse);
+    const challenge = { cookie:cookieFrom(passwordResponse),token:passwordData.csrfToken };
+    const invalidResponse = await post('/api/auth/mfa/verify', challenge, { code:'000000' });
+    const mfaResponse = await post('/api/auth/mfa/verify', challenge, { code:totp(credential.totpSecret) });
+    const mfaData = await json(mfaResponse);
+    activeSession = { cookie:cookieFrom(mfaResponse),token:mfaData.csrfToken };
+    const organizationId = mfaData.user?.organizationId;
+    const dashboard = await get(`/api/enterprise/dashboard?organizationId=${organizationId}`, activeSession.cookie);
+    const cost = await get(`/api/enterprise/cost/roi?organizationId=${organizationId}`, activeSession.cookie);
+    const admin = await get(`/api/enterprise/admin?organizationId=${organizationId}`, activeSession.cookie);
+    const logout = await post('/api/auth/logout', activeSession, {});
+    activeSession = null;
+    return {
+      passwordStatus:passwordResponse.status,
+      mfaRequired:passwordData.mfaRequired === true,
+      invalidMfaStatus:invalidResponse.status,
+      mfaStatus:mfaResponse.status,
+      actualRole:mfaData.user?.role || null,
+      dashboard:dashboard.status,
+      cost:cost.status,
+      admin:admin.status,
+      logoutStatus:logout.status
+    };
+  } catch (error) {
+    await cleanupRoleSmokeSession({
+      session:activeSession,
+      logout:(session) => post('/api/auth/logout', session, {})
+    });
+    throw error;
+  }
 }
 
 const now = new Date();
@@ -119,21 +138,39 @@ if (missing.length) {
   process.exit(0);
 }
 
-const credentials = {};
-for (const role of ROLE_CORE_SMOKE_ROLES) {
-  credentials[role] = JSON.parse(readFileSync(process.env[REFERENCE_ENV[role]], 'utf8'));
-  if (!validateRoleCredential(credentials[role])) throw new Error(`${role} credential reference contract is invalid.`);
+async function executeRoleCoreSmoke() {
+  const credentials = {};
+  for (const role of ROLE_CORE_SMOKE_ROLES) {
+    credentials[role] = JSON.parse(readFileSync(process.env[REFERENCE_ENV[role]], 'utf8'));
+    if (!validateRoleCredential(credentials[role])) throw new Error('ROLE_SMOKE_CREDENTIAL_REFERENCE_INVALID');
+  }
+  const results = {};
+  for (const role of ROLE_CORE_SMOKE_ROLES) results[role] = await loginRole(role, credentials[role]);
+  results.anonymousItems = (await get('/api/items')).status;
+  const evaluation = evaluateRoleCoreSmoke(results);
+  const classification = classifyRoleSmokeEvidence(evaluation, selection.actualProductionGate);
+  console.log(JSON.stringify({
+    checkedAt:now.toISOString(),
+    targetKind:selection.targetKind,
+    results,
+    secretValuesReadOrRecorded:false,
+    ...classification
+  },null,2));
+  if (classification.failures.length) process.exitCode = 1;
 }
-const results = {};
-for (const role of ROLE_CORE_SMOKE_ROLES) results[role] = await loginRole(role, credentials[role]);
-results.anonymousItems = (await get('/api/items')).status;
-const evaluation = evaluateRoleCoreSmoke(results);
-const classification = classifyRoleSmokeEvidence(evaluation, selection.actualProductionGate);
-console.log(JSON.stringify({
-  checkedAt: now.toISOString(),
-  targetKind: selection.targetKind,
-  results,
-  secretValuesReadOrRecorded: false,
-  ...classification
-}, null, 2));
-if (classification.failures.length) process.exitCode = 1;
+
+executeRoleCoreSmoke().catch((error) => {
+  const allowedFailure = /^ROLE_SMOKE_[A-Z0-9_]+$/.test(error?.message ?? '')
+    ? error.message
+    : 'ROLE_SMOKE_EXECUTION_FAILED';
+  console.error(JSON.stringify({
+    checkedAt:new Date().toISOString(),
+    targetKind:selection.targetKind,
+    status:'FAIL_PRODUCTION_ROLE_CORE_SMOKE_EXECUTION',
+    failures:[allowedFailure],
+    actualRoleCoreSmoke:'FAIL',
+    secretValuesReadOrRecorded:false,
+    productionGo:false
+  },null,2));
+  process.exitCode = 1;
+});
