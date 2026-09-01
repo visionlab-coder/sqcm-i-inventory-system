@@ -1,7 +1,7 @@
 {
   "gate": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
   "evidenceType": "CHANGE_WINDOW_PREFLIGHT",
-  "checkedAt": "2026-09-01T16:08:00+09:00",
+  "checkedAt": "2026-09-01T16:23:30+09:00",
   "status": "READY_WAIT_CHANGE_WINDOW",
   "productionGo": false,
   "automatedPreflight": {
@@ -70,9 +70,16 @@
     "checks": ["health/readiness", "old outbox", "expired sessions", "stuck idempotency", "recent 5xx", "backup checksum/age", "restore drill/age"],
     "actualPostCutoverOperationalHealth": "NOT_RUN"
   },
+  "csrfIdempotencyBaselineAutomation": {
+    "command": "npm.cmd run production:csrf-idempotency-baseline",
+    "status": "PASS_NEGATIVE_AND_SCHEMA_BASELINE_READY_FOR_AUTHENTICATED_RECHECK",
+    "target": "http://127.0.0.1:3300",
+    "checks": ["missing CSRF token 403/CSRF_INVALID", "no session creation", "idempotency columns 10/10", "unique user/key index", "stuck/invalid status zero"],
+    "actualAuthenticatedIdempotentWriteReplay": "NOT_RUN"
+  },
   "source": {
     "branch": "codex/p6-ai-pc-postgres-production",
-    "headSha": "d1207cecf333c71d3f7fc225ff60f7f157e0498a",
+    "headSha": "6b6ae80f21b97e709a6e64e0bde177644aee30e6",
     "remoteShaMatched": true,
     "deployedCandidateSha": "e238ab8dab7f4729298ceb7ecc0f874a4a08829a"
   },
@@ -156,6 +163,7 @@
     "ROLE_CORE_SMOKE_PREFLIGHT_AUTOMATION_READY",
     "NONFUNCTIONAL_LOOPBACK_BASELINE_AND_PUBLIC_RECHECK_AUTOMATION_READY",
     "OPERATIONAL_HEALTH_LOOPBACK_BASELINE_AND_POST_CUTOVER_RECHECK_AUTOMATION_READY",
+    "CSRF_NEGATIVE_AND_IDEMPOTENCY_SCHEMA_BASELINE_AUTOMATION_READY",
     "CUTOVER_EVIDENCE_LOCAL_GATES_4_OF_12_PASS",
     "CUTOVER_EVIDENCE_EXTERNAL_GATES_8_OF_12_PENDING",
     "CUTOVER_CANDIDATE_FAIL_CLOSED_VALIDATOR_PASS",

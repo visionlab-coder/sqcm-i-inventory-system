@@ -26,6 +26,7 @@
     "production:role-preflight": "node scripts/production-role-preflight.mjs",
     "production:nonfunctional-baseline": "node scripts/production-nonfunctional-baseline.mjs",
     "production:operational-health-baseline": "node scripts/production-operational-health-baseline.mjs",
+    "production:csrf-idempotency-baseline": "node scripts/production-csrf-idempotency-baseline.mjs",
     "production:cutover-evidence": "node scripts/production-cutover-evidence-check.mjs",
     "operations:health": "node scripts/operational-health-check.mjs",
     "test:nonfunctional": "node scripts/nonfunctional-check.mjs",
