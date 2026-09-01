@@ -1,15 +1,19 @@
-import { spawnSync } from 'node:child_process';
 import { PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
 import { evaluateProductionLogGate } from '../src/operations/production-log-gate.mjs';
+import {
+  LOG_GATE_PROCESS_MAX_BUFFER,
+  parseProductionLogGateContainerId,
+  parseProductionLogGateOutboxCounts,
+  parseProductionLogGateRecords,
+  runProductionLogGateProcess
+} from '../src/operations/production-log-gate-runtime.mjs';
 
 function dockerContainer(service) {
-  const result = spawnSync('docker', [
+  const result = runProductionLogGateProcess([
     'ps', '--filter', 'label=com.docker.compose.project=seowon-inventory-production',
     '--filter', `label=com.docker.compose.service=${service}`, '--format', '{{.ID}}'
-  ], { encoding: 'utf8', windowsHide: true });
-  const id = result.stdout.trim();
-  if (result.status !== 0 || !/^[a-f0-9]{12,64}$/.test(id)) throw new Error(`Exactly one healthy Production ${service} container is required.`);
-  return id;
+  ]);
+  return parseProductionLogGateContainerId(result.stdout);
 }
 
 const now = new Date();
@@ -19,24 +23,21 @@ const since = insideWindow ? new Date(PRODUCTION_CHANGE_WINDOW.start) : new Date
 const backend = dockerContainer('backend');
 const database = dockerContainer('database');
 
-const logResult = spawnSync('docker', ['logs', '--since', since.toISOString(), backend], {
-  encoding: 'utf8', windowsHide: true, maxBuffer: 4 * 1024 * 1024
-});
-if (logResult.status !== 0) throw new Error('Unable to read Production backend logs.');
-const records = `${logResult.stdout}\n${logResult.stderr}`.split(/\r?\n/).filter(Boolean).flatMap((line) => {
-  try { return [JSON.parse(line)]; } catch { return []; }
-});
+const logResult = runProductionLogGateProcess(
+  ['logs', '--since', since.toISOString(), backend],
+  { maxBuffer: LOG_GATE_PROCESS_MAX_BUFFER }
+);
+const records = parseProductionLogGateRecords(logResult);
 const fatalEvents = new Set(['server_start_failed', 'database_pool_error', 'outbox_publish_error']);
 
 const sql = `select
   count(*) filter(where published_at is null and publish_attempts > 0 and dead_lettered_at is null),
   count(*) filter(where dead_lettered_at is not null)
 from outbox_events`;
-const dbResult = spawnSync('docker', ['exec', database, 'psql', '-U', 'seowon', '-d', 'seowon_inventory', '-At', '-F', ',', '-c', sql], {
-  encoding: 'utf8', windowsHide: true
-});
-if (dbResult.status !== 0) throw new Error('Unable to read Production outbox status.');
-const [outboxRetryCount, outboxDeadLetterCount] = dbResult.stdout.trim().split(',').map((value) => Number(value));
+const dbResult = runProductionLogGateProcess([
+  'exec', database, 'psql', '-U', 'seowon', '-d', 'seowon_inventory', '-At', '-F', ',', '-c', sql
+]);
+const [outboxRetryCount, outboxDeadLetterCount] = parseProductionLogGateOutboxCounts(dbResult.stdout);
 
 const observation = {
   insideWindow,
