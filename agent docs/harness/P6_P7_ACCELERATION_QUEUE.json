@@ -269,6 +269,14 @@
       "evidence": "repeated harness ingress DNS observation failure reproduced; failure-first 4/4; focused native/DoH 7/7 PASS; production:ingress-publication read-only READY_WAIT with mutation zero; syntax 330/330; repository unit 541 PASS 1 Windows platform skip; provider response raw redacted"
     },
     {
+      "id": "ACC-P6-32-BOUNDED-PRODUCTION-LOG-GATE-RUNTIME",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production log Gate의 Docker container·backend log·outbox SQL 조회를 10초로 제한하고 process 출력은 일반 1MiB·로그 4MiB로 제한한다. timeout·process·container·malformed JSON·outbox count 오류는 stdout/stderr·provider 원문 없이 fail-closed하며 outbox 결과는 정확히 두 개 비음수 정수만 허용한다.",
+      "evidence": "failure-first 6/6 reproduced; focused existing/runtime 9/9 PASS; production:log-gate read-only baseline proves 5xx/fatal/error/outbox retry/dead-letter zero and requires post-cutover recheck; syntax 332/332; repository unit 547 PASS 1 Windows platform skip; repository hygiene PASS; actual post-cutover log gate NOT_RUN"
+    },
+    {
       "id": "ACC-P7-03-ACTUAL-HANDOVER-EVIDENCE-BUNDLE",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

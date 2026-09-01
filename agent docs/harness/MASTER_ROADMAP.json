@@ -349,6 +349,7 @@
           "production-provider-preflight-query-10s-probe-150s-1mib-redacted-parser-pass",
           "production-csrf-idempotency-baseline-http-process-10s-1mib-redacted-strict-parser-pass",
           "production-ingress-dns-native-timeout-cloudflare-doh-authoritative-fallback-pass",
+          "production-log-gate-process-10s-buffer-4mib-redacted-strict-parser-pass",
           "p7-actual-https-30-day-append-only-slo-collector-ready",
           "p7-production-exact-tls-health-readiness-observer-ready",
           "p7-production-daily-maintenance-read-only-runner-ready",
