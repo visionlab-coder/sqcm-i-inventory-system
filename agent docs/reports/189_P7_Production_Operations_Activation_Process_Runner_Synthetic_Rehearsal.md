@@ -41,6 +41,7 @@
 - `npm.cmd run harness:verify` → 전체 회귀 PASS
 - GitHub-hosted quality run `33552444170` → 제품 시험 전에 runner의 고정 host port `55432` 충돌로 FAIL
 - CI 보완 → `frontend`·`backend`·`database` host port를 실행별 서로 다른 loopback 포트로 생성하고 고정 `localhost:3000` 제거; 로컬 workflow·Compose 계약 PASS
+- GitHub-hosted quality run `33553113399`, tested SHA `97cfe17748292f2d8d976a0e6514ab8061c0bd02` → unit·three-tier-integration 모두 SUCCESS
 
 ## 미완료 / 외부 Gate
 

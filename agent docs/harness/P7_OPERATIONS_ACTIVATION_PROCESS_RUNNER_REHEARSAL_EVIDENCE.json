@@ -35,8 +35,9 @@
     "remediation": "PER_RUN_DYNAMIC_LOOPBACK_PORTS",
     "fixedHostPortsRemaining": 0,
     "localContractResult": "PASS",
-    "finalRunId": null,
-    "finalResult": "PENDING"
+    "testedHeadSha": "97cfe17748292f2d8d976a0e6514ab8061c0bd02",
+    "finalRunId": 33553113399,
+    "finalResult": "SUCCESS_UNIT_AND_THREE_TIER_INTEGRATION"
   },
   "syntheticOnly": true,
   "actualActivationExecuted": false,
