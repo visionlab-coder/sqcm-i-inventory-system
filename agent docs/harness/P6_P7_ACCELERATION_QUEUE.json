@@ -429,6 +429,14 @@
       "evidence": "operations:activation-approval-to-orchestrator-rehearsal => PASS_SYNTHETIC_OPERATIONS_ACTIVATION_APPROVAL_TO_ORCHESTRATOR_REHEARSAL; 6 physical documents, approval chain and orchestrator approval verified, slo-collect receipt advances to slo-compile, 3/3 tamper rejection, temporary artifacts zero; failure-first 3 EXPECTED FAIL then focused 3/3 PASS; child/actual activation/external mutation NOT_RUN"
     },
     {
+      "id": "ACC-P7-36-OPERATIONS-ACTIVATION-19-STEP-PHYSICAL-RECEIPT-SEQUENCE-SYNTHETIC-REHEARSAL",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "동일 승인 manifest와 receipt-root에 결박된 19개 activation step PASS receipt를 정확한 순서·파일명·attempt로 물리 기록하고 마지막 선택이 PASS_OPERATIONS_ACTIVATION_SEQUENCE_COMPLETE인지 검증한다. sequence·approval provenance·완결성 변조를 차단하고 child·외부 변경은 실행하지 않는다.",
+      "evidence": "operations:activation-full-sequence-rehearsal => PASS_SYNTHETIC_OPERATIONS_ACTIVATION_FULL_SEQUENCE_REHEARSAL; 19 steps and 19 receipts, 24 physical documents, sequence complete, 3/3 tamper rejection, temporary artifacts zero; failure-first 3 EXPECTED FAIL then focused combined 6/6 PASS; child/actual activation/external mutation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

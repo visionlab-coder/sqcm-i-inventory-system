@@ -52,8 +52,8 @@ function countPhysicalFiles(root) {
   return count;
 }
 
-export function runOperationsActivationApprovalToOrchestratorRehearsal({
-  activationBundleSha256, temporaryBase = os.tmpdir()
+function runRehearsal({
+  activationBundleSha256, temporaryBase = os.tmpdir(), completeSequence = false
 } = {}) {
   if (!SHA256_PATTERN.test(activationBundleSha256 ?? '')) throw new Error('ACTIVATION_BUNDLE_SHA256_INVALID');
   const base = physicalTemporaryBase(temporaryBase);
@@ -115,24 +115,35 @@ export function runOperationsActivationApprovalToOrchestratorRehearsal({
     const rootClaim = claimOperationsActivationReceiptRoot(receiptRoot, approval, {
       processId: 943, checkedAt: '2026-09-12T02:01:00.000Z', claimId: 'synthetic-root-claim-0001'
     });
-    const firstSelection = selectNextOperationsActivationStep([], { approval });
-    const childEnvironment = buildOperationsActivationChildEnvironment(firstSelection.step, {
-      PATH: process.env.PATH ?? '', P7_SLO_LEDGER_FILE: path.join(root, 'synthetic-ledger.json'),
-      UNRELATED_SECRET: 'must-not-propagate', GITHUB_TOKEN: 'must-not-propagate', NODE_OPTIONS: '--require malicious'
-    });
-    if ('UNRELATED_SECRET' in childEnvironment || 'GITHUB_TOKEN' in childEnvironment || 'NODE_OPTIONS' in childEnvironment) {
-      throw new Error('UNRELATED_CHILD_ENVIRONMENT_PROPAGATED');
+    let selection = selectNextOperationsActivationStep([], { approval });
+    const firstSelectedStep = selection.step?.id ?? null;
+    const activationReceipts = [];
+    const receiptLimit = completeSequence ? OPERATIONS_ACTIVATION_STEPS.length : 1;
+    for (let index = 0; index < receiptLimit; index += 1) {
+      if (!selection.step) throw new Error('ACTIVATION_SEQUENCE_ENDED_EARLY');
+      const childEnvironment = buildOperationsActivationChildEnvironment(selection.step, {
+        PATH: process.env.PATH ?? '', P7_SLO_LEDGER_FILE: path.join(root, 'synthetic-ledger.json'),
+        UNRELATED_SECRET: 'must-not-propagate', GITHUB_TOKEN: 'must-not-propagate', NODE_OPTIONS: '--require malicious'
+      });
+      if ('UNRELATED_SECRET' in childEnvironment || 'GITHUB_TOKEN' in childEnvironment || 'NODE_OPTIONS' in childEnvironment) {
+        throw new Error('UNRELATED_CHILD_ENVIRONMENT_PROPAGATED');
+      }
+      const activationReceipt = buildOperationsActivationReceipt({
+        approval, step: selection.step, attempt: selection.attempt,
+        result: { exitCode: 0, summary: { status: selection.step.pass[0] }, stdout: `synthetic stdout ${selection.step.id}`, stderr: '' },
+        checkedAt: new Date(Date.parse('2026-09-12T02:02:00.000Z') + index * 60000).toISOString()
+      });
+      writeOperationsActivationReceiptOnce(receiptRoot, activationReceipt, { processId: 944 + index });
+      const receiptName = `${String(activationReceipt.sequence).padStart(2, '0')}-${activationReceipt.stepId}-attempt-0001.json`;
+      activationReceipts.push(readDocument(path.join(receiptRoot, receiptName)).value);
+      selection = selectNextOperationsActivationStep(activationReceipts, { approval });
     }
-    const activationReceipt = buildOperationsActivationReceipt({
-      approval, step: firstSelection.step, attempt: firstSelection.attempt,
-      result: { exitCode: 0, summary: { status: 'PASS_P7_SLO_30_DAY_EXPORT_CREATED' }, stdout: 'synthetic stdout', stderr: '' },
-      checkedAt: '2026-09-12T02:02:00.000Z'
-    });
-    writeOperationsActivationReceiptOnce(receiptRoot, activationReceipt, { processId: 944 });
-    const activationReceiptFile = readDocument(path.join(receiptRoot, '01-slo-collect-attempt-0001.json'));
-    const nextSelection = selectNextOperationsActivationStep([activationReceiptFile.value], { approval });
 
-    const tamperScenarios = [
+    const tamperScenarios = completeSequence ? [
+      activationReceipts.map((item, index) => index === 0 ? { ...item, sequence: 2 } : item),
+      activationReceipts.map((item, index) => index === 5 ? { ...item, approvalSha256: '9'.repeat(64) } : item),
+      activationReceipts.slice(0, -1)
+    ] : [
       { manifest: { ...manifestFile.value, approvalReceiptSha256: '9'.repeat(64) }, receipt: receiptFile.value, bundle: activationBundleSha256 },
       { manifest: manifestFile.value, receipt: { ...receiptFile.value, signedByRef: 'identity://synthetic-other-owner' }, bundle: activationBundleSha256 },
       { manifest: manifestFile.value, receipt: receiptFile.value, bundle: '8'.repeat(64) }
@@ -140,22 +151,33 @@ export function runOperationsActivationApprovalToOrchestratorRehearsal({
     let tamperRejectedCount = 0;
     for (const scenario of tamperScenarios) {
       try {
-        validateOperationsActivationApproval(scenario.manifest, {
-          p6Document: p6File.value, p6EvidenceSha256: p6File.sha256, activationBundleSha256: scenario.bundle,
-          approvalReceipt: scenario.receipt, approvalReceiptSha256: receiptFile.sha256,
-          checkedAt: '2026-09-12T02:00:00.000Z'
-        });
+        if (completeSequence) {
+          const tamperedSelection = selectNextOperationsActivationStep(scenario, { approval });
+          if (tamperedSelection.status !== 'PASS_OPERATIONS_ACTIVATION_SEQUENCE_COMPLETE') tamperRejectedCount += 1;
+        } else {
+          validateOperationsActivationApproval(scenario.manifest, {
+            p6Document: p6File.value, p6EvidenceSha256: p6File.sha256, activationBundleSha256: scenario.bundle,
+            approvalReceipt: scenario.receipt, approvalReceiptSha256: receiptFile.sha256,
+            checkedAt: '2026-09-12T02:00:00.000Z'
+          });
+        }
       } catch { tamperRejectedCount += 1; }
     }
     if (tamperRejectedCount !== tamperScenarios.length) throw new Error('TAMPER_SCENARIO_NOT_REJECTED');
     result = {
-      status: 'PASS_SYNTHETIC_OPERATIONS_ACTIVATION_APPROVAL_TO_ORCHESTRATOR_REHEARSAL',
+      status: completeSequence
+        ? 'PASS_SYNTHETIC_OPERATIONS_ACTIVATION_FULL_SEQUENCE_REHEARSAL'
+        : 'PASS_SYNTHETIC_OPERATIONS_ACTIVATION_APPROVAL_TO_ORCHESTRATOR_REHEARSAL',
       approvalChainVerified: preflight.status === 'PASS_OPERATIONS_ACTIVATION_APPROVAL_CHAIN_PREFLIGHT',
       orchestratorApprovalVerified: approval === manifestFile.value,
       receiptRootClaimCreated: rootClaim.created,
-      firstSelectedStep: firstSelection.step?.id ?? null,
-      nextSelectedStep: nextSelection.step?.id ?? null,
-      activationReceiptCount: 1, physicalDocumentCount: countPhysicalFiles(root),
+      firstSelectedStep,
+      nextSelectedStep: selection.step?.id ?? null,
+      finalSelectionStatus: selection.status,
+      sequenceComplete: selection.status === 'PASS_OPERATIONS_ACTIVATION_SEQUENCE_COMPLETE',
+      activationStepCount: activationReceipts.length,
+      activationReceiptCount: activationReceipts.length,
+      physicalDocumentCount: countPhysicalFiles(root),
       tamperScenarioCount: tamperScenarios.length, tamperRejectedCount,
       childProcessCount: 0, syntheticOnly: true,
       actualApprovalCreated: false, actualActivationExecuted: false,
@@ -167,4 +189,12 @@ export function runOperationsActivationApprovalToOrchestratorRehearsal({
   }
   result.temporaryArtifactsRetained = fs.existsSync(root);
   return result;
+}
+
+export function runOperationsActivationApprovalToOrchestratorRehearsal(options = {}) {
+  return runRehearsal({ ...options, completeSequence: false });
+}
+
+export function runOperationsActivationFullSequenceRehearsal(options = {}) {
+  return runRehearsal({ ...options, completeSequence: true });
 }
