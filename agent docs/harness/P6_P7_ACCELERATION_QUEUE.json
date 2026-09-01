@@ -397,6 +397,14 @@
       "evidence": "operations:activation-approval-request => READY_WAIT_P6_ACTUAL_CUTOVER; input read/write/approval/message zero; failure-first 4 EXPECTED FAIL then focused 4/4 PASS; exact P6 release/run/operations signoff SHA, current activation bundle, 19 steps, 10 actions, MFA and 45-day limit assembled; actual approval NOT_RUN"
     },
     {
+      "id": "ACC-P7-32-OPERATIONS-ACTIVATION-APPROVAL-MANIFEST-ASSEMBLER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 unsigned request와 별도 OPERATIONS_OWNER MFA approval receipt를 P6·현재 bundle과 교차검증해 오케스트레이터 실행용 approval manifest를 저장소 밖에 원자적으로 1회 조립한다. 승인·서명·MFA·메시지·activation은 실행하지 않는다.",
+      "evidence": "operations:activation-approval-manifest => READY_WAIT_P6_ACTUAL_CUTOVER; input read/write/approval/signature/message/activation zero; failure-first 5 EXPECTED FAIL then focused 5/5 PASS; exact request-receipt-P6-release-run-bundle-identity-19 steps-10 actions and 45-day expiry enforced; actual approval and activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
