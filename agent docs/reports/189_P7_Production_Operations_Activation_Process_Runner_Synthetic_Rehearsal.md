@@ -11,6 +11,7 @@
 - [x] 예상 밖 환경변수 전파 0건
 - [x] malformed JSON·exit 1·민감 stdout/stderr 부정 시나리오 3/3
 - [x] receipt의 Secret 원문 출현 0건
+- [x] GitHub-hosted CI 고정 포트 충돌 재현 및 실행별 동적 loopback 포트로 보완
 - [x] 실제 child·공급자·DB·GitHub·Phase 변경 0건
 - [ ] 실제 P6 cutover·OPERATIONS_OWNER MFA 승인·19개 activation child 실행
 
@@ -35,9 +36,11 @@
 - `npm.cmd run operations:activation-process-runner-rehearsal` → child 19, receipt 19, physical documents 26, sequence complete, negative 3/3, Secret occurrence 0
 - `npm.cmd run operations:activation-orchestrator` → `READY_WAIT_P6_ACTUAL_CUTOVER`, child/read/write 0
 - `npm.cmd run check:syntax` → 308/308 PASS
-- `npm.cmd run test:unit` → 482 PASS, 1 Windows-only SKIP, 0 FAIL (483 total)
+- `npm.cmd run test:unit` → 483 PASS, 1 Windows-only SKIP, 0 FAIL (484 total)
 - `npm.cmd run harness:check` → PASS
 - `npm.cmd run harness:verify` → 전체 회귀 PASS
+- GitHub-hosted quality run `33552444170` → 제품 시험 전에 runner의 고정 host port `55432` 충돌로 FAIL
+- CI 보완 → `frontend`·`backend`·`database` host port를 실행별 서로 다른 loopback 포트로 생성하고 고정 `localhost:3000` 제거; 로컬 workflow·Compose 계약 PASS
 
 ## 미완료 / 외부 Gate
 

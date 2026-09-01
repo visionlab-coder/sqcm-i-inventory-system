@@ -24,10 +24,19 @@
     "failed": 0
   },
   "unitTests": {
-    "total": 483,
-    "passed": 482,
+    "total": 484,
+    "passed": 483,
     "failed": 0,
     "skipped": 1
+  },
+  "qualityCi": {
+    "initialRunId": 33552444170,
+    "initialResult": "FAIL_CI_HOST_PORT_55432_ALREADY_IN_USE",
+    "remediation": "PER_RUN_DYNAMIC_LOOPBACK_PORTS",
+    "fixedHostPortsRemaining": 0,
+    "localContractResult": "PASS",
+    "finalRunId": null,
+    "finalResult": "PENDING"
   },
   "syntheticOnly": true,
   "actualActivationExecuted": false,
