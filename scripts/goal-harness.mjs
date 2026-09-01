@@ -321,6 +321,7 @@ function verify() {
       ], validateInventoryContainers],
       ['production-cutover-preflight', 'npm.cmd', ['run', 'production:cutover-preflight']],
       ['production-cutover-orchestrator', 'npm.cmd', ['run', 'production:cutover-orchestrator']],
+      ['production-cutover-failure-matrix', 'npm.cmd', ['run', 'production:cutover-failure-matrix']],
       ['production-ingress-publication', 'npm.cmd', ['run', 'production:ingress-publication']],
       ['production-provider-preflight', 'npm.cmd', ['run', 'production:provider-preflight']],
       ['production-public-probe', 'npm.cmd', ['run', 'production:public-probe']],

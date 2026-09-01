@@ -304,6 +304,7 @@
           "authenticated-csrf-idempotency-write-replay-runner-ready",
           "public-authenticated-csrf-idempotency-change-window-target-gate-ready",
           "change-window-12-gate-cutover-orchestrator-dry-run-pass",
+          "change-window-12-gate-failure-matrix-route-disable-rehearsal-pass",
           "rollback-readiness-dry-run-automation-ready",
           "exact-cloudflare-public-route-disable-executor-ready",
           "uat-signoff-reference-preflight-automation-ready",

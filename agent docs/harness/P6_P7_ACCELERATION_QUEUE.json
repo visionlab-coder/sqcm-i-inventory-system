@@ -69,6 +69,14 @@
       "evidence": "stale codex/fix-sidebar-accessibility corrected to codex/p6-ai-pc-postgres-production; focused 4/4 PASS; npm.cmd run harness:check PASS"
     },
     {
+      "id": "ACC-P6-08-12-GATE-FAILURE-MATRIX-REHEARSAL",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "12개 cutover Gate 각각을 단일 실패 지점으로 주입해 해당 Gate까지만 실행되고 이후 Gate가 중단되며 exact public route-disable 확인 전에는 격리 완료나 Production GO로 승격되지 않음을 합성 매트릭스로 증명한다.",
+      "evidence": "npm.cmd run production:cutover-failure-matrix => PASS_CUTOVER_12_GATE_FAILURE_MATRIX_REHEARSAL; focused 5/5 PASS; 12/12 failures contained; 12/12 route-disable verified; malformed result and unverified disable fail-closed; actual cutover/route mutation zero"
+    },
+    {
       "id": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
