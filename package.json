@@ -24,6 +24,7 @@
     "production:public-probe": "node scripts/production-public-probe.mjs",
     "production:log-gate": "node scripts/production-log-gate.mjs",
     "production:role-preflight": "node scripts/production-role-preflight.mjs",
+    "production:nonfunctional-baseline": "node scripts/production-nonfunctional-baseline.mjs",
     "production:cutover-evidence": "node scripts/production-cutover-evidence-check.mjs",
     "operations:health": "node scripts/operational-health-check.mjs",
     "test:nonfunctional": "node scripts/nonfunctional-check.mjs",

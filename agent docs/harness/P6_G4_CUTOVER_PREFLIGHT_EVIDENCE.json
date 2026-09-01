@@ -1,7 +1,7 @@
 {
   "gate": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
   "evidenceType": "CHANGE_WINDOW_PREFLIGHT",
-  "checkedAt": "2026-09-01T15:39:37+09:00",
+  "checkedAt": "2026-09-01T15:53:00+09:00",
   "status": "READY_WAIT_CHANGE_WINDOW",
   "productionGo": false,
   "automatedPreflight": {
@@ -52,9 +52,20 @@
     "actualRoleCoreSmoke": "NOT_RUN",
     "secretValuesReadOrRecorded": false
   },
+  "nonfunctionalBaselineAutomation": {
+    "command": "npm.cmd run production:nonfunctional-baseline",
+    "status": "PASS_LOOPBACK_BASELINE_READY_FOR_PUBLIC_RECHECK",
+    "target": "http://127.0.0.1:3300",
+    "requests": 60,
+    "concurrency": 6,
+    "maxP95Ms": 1000,
+    "maxErrorRate": 0,
+    "checks": ["health load", "security headers", "anonymous 401", "cross-site 403"],
+    "actualPublicNonfunctionalGate": "NOT_RUN"
+  },
   "source": {
     "branch": "codex/p6-ai-pc-postgres-production",
-    "headSha": "51a9c147efcd3a3546d9945b59ecd7685d3ad201",
+    "headSha": "8a2e720bfb206863bda3c49e4a48143a393dbf26",
     "remoteShaMatched": true,
     "deployedCandidateSha": "e238ab8dab7f4729298ceb7ecc0f874a4a08829a"
   },
@@ -136,6 +147,7 @@
     "PUBLIC_DNS_TLS_HEALTH_READINESS_PROBE_AUTOMATION_READY",
     "LOGS_5XX_OUTBOX_BASELINE_AND_CUTOVER_GATE_AUTOMATION_READY",
     "ROLE_CORE_SMOKE_PREFLIGHT_AUTOMATION_READY",
+    "NONFUNCTIONAL_LOOPBACK_BASELINE_AND_PUBLIC_RECHECK_AUTOMATION_READY",
     "CUTOVER_EVIDENCE_LOCAL_GATES_4_OF_12_PASS",
     "CUTOVER_EVIDENCE_EXTERNAL_GATES_8_OF_12_PENDING",
     "CUTOVER_CANDIDATE_FAIL_CLOSED_VALIDATOR_PASS",
