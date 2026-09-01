@@ -9,7 +9,7 @@
     "status": "READY_WAIT_CHANGE_WINDOW",
     "localBlockers": [],
     "unitTests": "4/4 PASS",
-    "repositoryRegression": "196/196 PASS",
+    "repositoryRegression": "205/205 PASS",
     "harnessRegistered": true
   },
   "cutoverEvidenceCandidate": {
@@ -34,8 +34,8 @@
   "cutoverEvidenceFinalizerAutomation": {
     "command": "npm.cmd run production:cutover-finalizer",
     "status": "READY_WAIT_ACTUAL_CUTOVER_EVIDENCE",
-    "unitTests": "4/4 PASS",
-    "checks": ["template=false", "activationState=actual", "external PASS provenance", "role results", "three signoffs"],
+    "unitTests": "5/5 PASS",
+    "checks": ["exact 12 unique PASS gates", "three Production role results", "business/security/operations approvals", "template=false", "activationState=actual", "immutable SHA release tag", "exact Production URL", "productionGo=true"],
     "rejectedProvenance": ["template", "staging", "loopback", "baseline", "not run", "pending"],
     "actualEvidencePresent": false,
     "secretValuesReadOrRecorded": false,
@@ -215,7 +215,7 @@
     "CUTOVER_TEMPLATE_12_GATE_CONTRACT_VALID",
     "AUTOMATED_CUTOVER_PREFLIGHT_PASS",
     "AUTOMATED_PREFLIGHT_UNIT_TESTS_4_OF_4_PASS",
-    "REPOSITORY_UNIT_TESTS_196_OF_196_PASS",
+    "REPOSITORY_UNIT_TESTS_205_OF_205_PASS",
     "PRODUCTION_PROVIDER_PREFLIGHT_PASS",
     "PUBLIC_DNS_TLS_HEALTH_READINESS_PROBE_AUTOMATION_READY",
     "LOGS_5XX_OUTBOX_BASELINE_AND_CUTOVER_GATE_AUTOMATION_READY",
@@ -231,7 +231,7 @@
     "CUTOVER_EVIDENCE_LOCAL_GATES_4_OF_12_PASS",
     "CUTOVER_EVIDENCE_EXTERNAL_GATES_8_OF_12_PENDING",
     "CUTOVER_CANDIDATE_FAIL_CLOSED_VALIDATOR_PASS",
-    "ACTUAL_CUTOVER_EVIDENCE_PROVENANCE_FINALIZER_READY",
+    "ACTUAL_CUTOVER_EVIDENCE_FULL_CONTRACT_FINALIZER_READY",
     "EXISTING_CLOUDFLARE_TUNNELS_PRESERVED",
     "PROTECTED_SERVICES_PRESERVED"
   ],

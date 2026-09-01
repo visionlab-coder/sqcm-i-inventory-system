@@ -83,7 +83,7 @@ flowchart LR
 - 비범위: 별도 승인 없는 Production 배포·migration·DNS/TLS·Secret·commit·push·merge·release.
 - 현재 상태: 후보 `e238ab8dab7f…`의 불변 이미지, AI PC PostgreSQL 16 loopback Production 3서비스, migration 25/25, backup·restore·rollback·재기동과 공급자 5종 읽기 전용 preflight가 PASS했다. 공개 DNS·TLS·외부 health/readiness, logs/5xx·outbox, 역할별 core smoke, nonfunctional, operational health, CSRF/idempotency, rollback readiness와 최종 서명 preflight가 Harness에 준비됐으나 실제 post-cutover 실행은 `NOT_RUN`이다. 역할 preflight는 ADMIN·MANAGER·USER active/MFA 0명과 credential reference 0/3을 명시하고, 서명 preflight는 역할별 결과·업무·보안·운영 참조 0/6을 명시해 외부 입력을 기다린다. rollback readiness는 현재 이미지·볼륨·이전 drill·cutoff·route 제거 계획을 PASS했지만 실제 공개 route rollback은 남아 있다. cutover 증거는 12개 Gate 중 로컬 4건 PASS·외부 8건 PENDING이다. P6-G4는 `READY_WAIT_CHANGE_WINDOW`이며 Production hostname은 NXDOMAIN, 전용 tunnel과 실제 사용자는 0이다. 기존 staging·tunnel·보호 서비스는 보존됐고 `productionGo=false`다.
 - 다음 READY: **P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF**. 승인된 `2026-09-11 20:00~23:00 KST` 변경창에서 공개 DNS/TLS, 실제 사용자 로그인·MFA, 관측과 업무·보안·운영 최종 서명을 검증한다.
-- 가속 Packet: **ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF**. P7 운영 인수 preflight와 실제 증거 finalizer가 준비됐다. finalizer는 P6 actual cutover·운영 8영역 PASS·Production provenance·운영 책임자 identity 서명을 강제하고 staging/template 승격을 거부한다. 실제 활성화는 P6 G4 완료와 운영 증거 이후에만 허용하며 P7 상태는 미착수로 유지한다.
+- 가속 Packet: **ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF**. P6 cutover finalizer는 정확히 12개 고유 Gate·세 역할 UAT·3개 승인·불변 SHA·정확한 URL을 강제하도록 보완됐고, P7 운영 인수 preflight와 실제 증거 finalizer도 준비됐다. 실제 활성화는 P6 G4 완료와 운영 증거 이후에만 허용하며 P7 상태는 미착수로 유지한다.
 
 ## 6. Phase 갱신 절차
 

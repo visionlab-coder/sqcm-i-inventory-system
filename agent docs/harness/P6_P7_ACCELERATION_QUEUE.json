@@ -42,7 +42,7 @@
       "status": "EVIDENCE_COMPLETE",
       "authority": "local-autonomous",
       "acceptance": "실제 증거만 12개 Gate와 역할 결과·3개 서명으로 조립하며 staging·template 증거 승격을 거부한다.",
-      "evidence": "npm.cmd run production:cutover-finalizer => READY_WAIT_ACTUAL_CUTOVER_EVIDENCE; focused 4/4 PASS; template·staging·loopback·baseline provenance rejected; productionGo=false"
+      "evidence": "npm.cmd run production:cutover-finalizer => READY_WAIT_ACTUAL_CUTOVER_EVIDENCE; focused 5/5 PASS; exact 12 unique gates·three role results·three approvals·immutable SHA·exact URL enforced; template·staging·loopback·baseline and incomplete evidence rejected"
     },
     {
       "id": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
