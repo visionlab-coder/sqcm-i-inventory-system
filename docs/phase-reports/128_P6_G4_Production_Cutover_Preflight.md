@@ -1,6 +1,6 @@
 # P6-G4 Production 공개 전환 사전점검
 
-기준일: 2026-09-01 16:39 KST
+기준일: 2026-09-01 16:56 KST
 
 ## 결과
 
@@ -9,7 +9,7 @@
 ## 체크리스트
 
 - [x] Harness status/check PASS, 진행 중 Phase·READY 각 1건
-- [x] 작업 기준 브랜치 HEAD `92489baf07aca61fed2c38c6d4ba6b99f212fb09` 원격 일치, quality run `33482230279` 성공
+- [x] 작업 기준 브랜치 HEAD `479192d8945ab3aa2d844cb2e866d5211059714c` 원격 일치, quality run `33483370863` 성공
 - [x] 배포 후보 `e238ab8dab7f4729298ceb7ecc0f874a4a08829a` 유지
 - [x] Production frontend/backend/database 3서비스 healthy
 - [x] frontend `127.0.0.1:3300`, backend/database host port 0
@@ -27,10 +27,11 @@
 - [x] loopback health/readiness·DB 운영 카운터·최근 5xx·백업 checksum/age·restore drill/age operational health 기준선 자동화 준비
 - [x] missing-CSRF 403·세션 불변·idempotency 10열/unique index·stuck/invalid 0건 기준선 자동화 준비
 - [x] 현재 이미지 revision·named volume 2/2·이전 중지/복구 drill·backup/restore·22:00 cutoff·전용 route 제거 rollback dry-run 자동화와 회귀 4/4 준비
+- [x] ADMIN·MANAGER·USER Production UAT 결과와 업무·보안·운영 서명 참조 6건, 후보 PENDING 상태, 변경창을 fail-closed 판정하는 최종 서명 preflight 자동화와 회귀 4/4 준비
 - [x] 12개 cutover Gate 증거 후보 자동 조립: 로컬 실증 4/12 PASS
 - [x] 외부 Production 검증 8/12와 서명 3건 PENDING 유지
 - [x] 후보가 Production GO를 승인하지 못하는 fail-closed 검사 PASS
-- [x] 저장소 표준 구문 153개·단위 176/176 PASS(공급자·공개 probe·로그·역할·nonfunctional·operational health·CSRF/idempotency·rollback preflight 포함)
+- [x] 저장소 표준 구문 156개·단위 180/180 PASS(공급자·공개 probe·로그·역할·nonfunctional·operational health·CSRF/idempotency·rollback·최종 서명 preflight 포함)
 - [x] 기존 Cloudflare `sqcm-i`, `sqcm-i-inventory-staging` tunnel 각 연결 4개 보존
 - [x] 보호 포트/PID `1234/6632`, `11434/8588`, `18765/22716`, `18766/65724` 보존
 - [ ] `sqcm-i-inventory-production` 전용 tunnel — 변경창에서 생성
@@ -45,6 +46,7 @@
 - [ ] 인증 사용자 CSRF 정상 쓰기·동일 idempotency key replay — 시험계정이 없어 NOT_RUN
 - [ ] 공개 전환 이후 실제 route 제거·loopback 복귀 rollback — dry-run readiness만 PASS
 - [ ] 업무·보안·운영 최종 서명 3/3 — NOT_RUN
+- [ ] 역할별 Production UAT 결과·최종 서명 파일 참조 — 현재 0/6, 파일 내용·Secret은 읽거나 기록하지 않음
 
 ## 변경창 실행 순서
 
@@ -63,3 +65,5 @@ P6는 아직 완료가 아니며 전체 진행률은 `6/8`, `productionGo=false`
 자동화는 더 이상 단순 상태 조회만 하지 않는다. `production:cutover-preflight`가 원격 SHA, Docker 3서비스·포트, smoke, migration·사용자 수, 백업 복원, 보호 PID, Cloudflare tunnel, DNS와 변경창을 실시간으로 판정하고 로컬 불변식 손상 시 즉시 실패한다.
 
 `npm.cmd run production:cutover-evidence`는 G3·G4·P5와 Production 공급자 정본에서 cutover 증거 후보를 조립·대조한다. 현재 `artifact`, `backup_restore`, `migration_review`, `provider_preflight`만 PASS이며 나머지 8개 Gate와 Production 역할 결과·최종 서명은 PENDING이다. 내부 공급자 probe나 staging 서명을 공개 Production health·smoke 증거로 승격하지 않는다.
+
+`npm.cmd run production:signoff-preflight`는 실제 Production 역할 결과와 최종 서명 참조 6건이 모두 있고 승인 변경창 안일 때만 검증 준비 상태를 연다. 현재는 0/6이므로 `READY_WAIT_PRODUCTION_UAT_AND_SIGNOFF_REFERENCES`이며 참조 파일의 존재만 확인할 뿐 실제 서명을 자동 생성하거나 완료로 승격하지 않는다.

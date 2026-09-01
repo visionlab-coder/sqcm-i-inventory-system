@@ -26,8 +26,9 @@
 - `npm.cmd run production:operational-health-baseline`은 loopback health/readiness, Production DB의 old outbox·expired session·stuck idempotency, 최근 15분 5xx, 최신 Production backup checksum/age와 restore drill/age를 한 번에 검사한다. 현재 기준선은 PASS이고 변경창 이후 재검사는 `NOT_RUN`이다.
 - `npm.cmd run production:csrf-idempotency-baseline`은 동일 출처 missing-CSRF 요청이 403/`CSRF_INVALID`이고 세션을 만들지 않는지, idempotency 테이블 10열·사용자/키 unique index와 stuck/invalid 0건을 검사한다. 실제 인증 사용자 정상 쓰기·동일 키 replay는 시험계정이 없어 `NOT_RUN`이다.
 - `npm.cmd run production:rollback-readiness`는 현재 backend/frontend revision, PostgreSQL·파일 named volume 2/2, G3 실제 중지/포트폐쇄/복구 drill, backup/restore, 22:00 cutoff와 Production 전용 route 제거 순서를 대조한다. dry-run readiness는 PASS지만 공개 전환 후 실제 rollback은 `NOT_RUN`이다.
+- `npm.cmd run production:signoff-preflight`는 ADMIN·MANAGER·USER Production UAT 결과와 업무·보안·운영 서명 파일 참조 6건, cutover 후보의 PENDING 상태와 변경창을 fail-closed로 검사한다. 현재 참조 0/6, 실제 서명 `NOT_RUN`으로 `READY_WAIT_PRODUCTION_UAT_AND_SIGNOFF_REFERENCES`이며 파일 내용·Secret은 읽거나 기록하지 않는다.
 - `npm.cmd run production:cutover-evidence`는 12개 Gate 중 실제 로컬 증거가 있는 artifact·backup/restore·migration·provider preflight 4건만 PASS로 조립한다. 외부 Production 8건과 역할 결과·서명은 PENDING이며 후보는 fail-closed 검증상 Production을 승인할 수 없다.
-- 저장소 표준 검증에서 JavaScript 구문 153개와 단위 176/176이 PASS했으며 preflight·공개 probe·로그·역할·nonfunctional·operational health·CSRF/idempotency·rollback Gate와 증거 조립 회귀가 검증 봉투에 포함된다.
+- 저장소 표준 검증에서 JavaScript 구문 156개와 단위 180/180이 PASS했으며 preflight·공개 probe·로그·역할·nonfunctional·operational health·CSRF/idempotency·rollback·최종 서명 Gate와 증거 조립 회귀가 검증 봉투에 포함된다.
 
 ## 2026-09-01 P6-G3 AI PC Production 배포·복구
 

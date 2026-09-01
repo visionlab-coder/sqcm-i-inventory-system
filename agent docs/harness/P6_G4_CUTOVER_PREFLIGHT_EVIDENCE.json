@@ -1,7 +1,7 @@
 {
   "gate": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
   "evidenceType": "CHANGE_WINDOW_PREFLIGHT",
-  "checkedAt": "2026-09-01T16:39:00+09:00",
+  "checkedAt": "2026-09-01T16:56:00+09:00",
   "status": "READY_WAIT_CHANGE_WINDOW",
   "productionGo": false,
   "automatedPreflight": {
@@ -9,7 +9,7 @@
     "status": "READY_WAIT_CHANGE_WINDOW",
     "localBlockers": [],
     "unitTests": "4/4 PASS",
-    "repositoryRegression": "176/176 PASS",
+    "repositoryRegression": "180/180 PASS",
     "harnessRegistered": true
   },
   "cutoverEvidenceCandidate": {
@@ -84,9 +84,20 @@
     "checks": ["candidate image revisions", "postgres/file volumes 2/2", "previous stop/port-close/recovery drill", "backup/restore", "22:00 cutoff", "dedicated route removal plan"],
     "actualPostCutoverRollback": "NOT_RUN"
   },
+  "signoffPreflightAutomation": {
+    "command": "npm.cmd run production:signoff-preflight",
+    "status": "READY_WAIT_PRODUCTION_UAT_AND_SIGNOFF_REFERENCES",
+    "unitTests": "4/4 PASS",
+    "requiredRoleResultReferences": ["PRODUCTION_UAT_ADMIN_RESULT_FILE", "PRODUCTION_UAT_MANAGER_RESULT_FILE", "PRODUCTION_UAT_USER_RESULT_FILE"],
+    "requiredSignoffReferences": ["PRODUCTION_BUSINESS_SIGNOFF_FILE", "PRODUCTION_SECURITY_SIGNOFF_FILE", "PRODUCTION_OPERATIONS_SIGNOFF_FILE"],
+    "referencesPresent": 0,
+    "candidatePendingStateVerified": true,
+    "actualProductionUatSignoff": "NOT_RUN",
+    "secretValuesReadOrRecorded": false
+  },
   "source": {
     "branch": "codex/p6-ai-pc-postgres-production",
-    "headSha": "92489baf07aca61fed2c38c6d4ba6b99f212fb09",
+    "headSha": "479192d8945ab3aa2d844cb2e866d5211059714c",
     "remoteShaMatched": true,
     "deployedCandidateSha": "e238ab8dab7f4729298ceb7ecc0f874a4a08829a"
   },
@@ -163,7 +174,7 @@
     "CUTOVER_TEMPLATE_12_GATE_CONTRACT_VALID",
     "AUTOMATED_CUTOVER_PREFLIGHT_PASS",
     "AUTOMATED_PREFLIGHT_UNIT_TESTS_4_OF_4_PASS",
-    "REPOSITORY_UNIT_TESTS_176_OF_176_PASS",
+    "REPOSITORY_UNIT_TESTS_180_OF_180_PASS",
     "PRODUCTION_PROVIDER_PREFLIGHT_PASS",
     "PUBLIC_DNS_TLS_HEALTH_READINESS_PROBE_AUTOMATION_READY",
     "LOGS_5XX_OUTBOX_BASELINE_AND_CUTOVER_GATE_AUTOMATION_READY",
@@ -172,6 +183,7 @@
     "OPERATIONAL_HEALTH_LOOPBACK_BASELINE_AND_POST_CUTOVER_RECHECK_AUTOMATION_READY",
     "CSRF_NEGATIVE_AND_IDEMPOTENCY_SCHEMA_BASELINE_AUTOMATION_READY",
     "ROLLBACK_READINESS_DRY_RUN_AUTOMATION_READY",
+    "UAT_SIGNOFF_REFERENCE_PREFLIGHT_AUTOMATION_READY",
     "CUTOVER_EVIDENCE_LOCAL_GATES_4_OF_12_PASS",
     "CUTOVER_EVIDENCE_EXTERNAL_GATES_8_OF_12_PENDING",
     "CUTOVER_CANDIDATE_FAIL_CLOSED_VALIDATOR_PASS",
