@@ -125,6 +125,14 @@
       "evidence": "npm.cmd run production:role-result-evidence => READY_WAIT_PRODUCTION_ROLE_RESULT_INPUTS; focused 5/5 PASS; repository 350 PASS 1 Windows platform skip; Harness verify PASS; actual role result creation/external mutation NOT_RUN"
     },
     {
+      "id": "ACC-P6-15-CUTOVER-SIGNOFF-PAUSE-AND-RESUME-CONTRACT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Gate 1~11의 동일 run·release SHA·변경창 PASS receipt만 signoff pause checkpoint로 인정하고 역할 결과 3건·identity 서명 3건·exact 확인 뒤 Gate 12 재개만 허용하며 교차 run/SHA와 rollback cutoff 이후 재개는 route-disable 필수로 차단한다.",
+      "evidence": "npm.cmd run production:cutover-signoff-resume-rehearsal => PASS_SIGNOFF_PAUSE_RESUME_CONTRACT_REHEARSAL; focused 5/5 PASS; repository 355 PASS 1 Windows platform skip; Harness verify PASS; actual pause/resume/route mutation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
