@@ -77,6 +77,14 @@
       "evidence": "npm.cmd run production:cutover-failure-matrix => PASS_CUTOVER_12_GATE_FAILURE_MATRIX_REHEARSAL; focused 5/5 PASS; 12/12 failures contained; 12/12 route-disable verified; malformed result and unverified disable fail-closed; actual cutover/route mutation zero"
     },
     {
+      "id": "ACC-P6-09-CHANGE-WINDOW-EXECUTION-ENGINE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "승인 변경창과 외부 실행 확인을 선검사하고 12개 Gate를 정확한 순서로 실행하며, cutoff 또는 첫 실패 뒤에는 이후 Gate를 중단하고 exact public route-disable 증거 전에는 격리 완료나 Production GO로 승격하지 않는다.",
+      "evidence": "npm.cmd run production:cutover-execution-rehearsal => PASS_CUTOVER_EXECUTION_ENGINE_REHEARSAL; focused 6/6 PASS; repository 327/327 PASS; outside-window/unconfirmed zero execution; first failure/cutoff stop and route-disable fail-closed; actual external mutation zero"
+    },
+    {
       "id": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

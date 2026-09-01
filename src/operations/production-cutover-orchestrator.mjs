@@ -101,3 +101,147 @@ export function runCutoverFailureMatrixRehearsal() {
     productionGo: false
   };
 }
+
+function invalidExecutionResult(status, failures) {
+  return {
+    status,
+    failures,
+    gateResults: [],
+    executedGates: [],
+    skippedGates: [...CUTOVER_GATE_SEQUENCE],
+    failedGate: null,
+    routeDisableRequired: false,
+    routeDisableVerified: false,
+    productionGo: false
+  };
+}
+
+export async function executeCutoverGateSequence({
+  gateHandlers,
+  routeDisableHandler,
+  windowStart,
+  rollbackCutoff,
+  windowEnd,
+  now = () => Date.now(),
+  externalActionConfirmed = false
+} = {}) {
+  if (![windowStart, rollbackCutoff, windowEnd].every(Number.isFinite)
+    || windowStart >= rollbackCutoff || rollbackCutoff >= windowEnd) {
+    return invalidExecutionResult('FAIL_CUTOVER_EXECUTION_WINDOW_CONTRACT', ['CHANGE_WINDOW_ORDER_INVALID']);
+  }
+  const handlerKeys = gateHandlers && typeof gateHandlers === 'object' ? Object.keys(gateHandlers) : [];
+  if (JSON.stringify(handlerKeys) !== JSON.stringify(CUTOVER_GATE_SEQUENCE)
+    || !CUTOVER_GATE_SEQUENCE.every((gate) => typeof gateHandlers?.[gate] === 'function')
+    || typeof routeDisableHandler !== 'function') {
+    return invalidExecutionResult('FAIL_CUTOVER_EXECUTION_HANDLER_CONTRACT', ['GATE_HANDLER_CONTRACT_INVALID']);
+  }
+  const startedAt = Number(now());
+  if (!Number.isFinite(startedAt) || startedAt < windowStart || startedAt > windowEnd) {
+    return invalidExecutionResult('FAIL_OUTSIDE_APPROVED_CHANGE_WINDOW', ['OUTSIDE_APPROVED_CHANGE_WINDOW']);
+  }
+  if (!externalActionConfirmed) {
+    return invalidExecutionResult('READY_WAIT_EXTERNAL_CUTOVER_ACTION_CONFIRMATION', []);
+  }
+
+  const gateResults = [];
+  let failedGate = null;
+  let failureReason = null;
+  for (const gate of CUTOVER_GATE_SEQUENCE) {
+    if (Number(now()) > rollbackCutoff) {
+      failedGate = gate;
+      failureReason = 'ROLLBACK_CUTOFF_EXCEEDED';
+      gateResults.push({ gate, result: 'FAIL', evidenceRef: '', reason: failureReason });
+      break;
+    }
+    try {
+      const gateResult = await gateHandlers[gate]();
+      const passed = gateResult?.status === 'PASS'
+        && typeof gateResult.evidenceRef === 'string'
+        && gateResult.evidenceRef.trim().length > 0;
+      gateResults.push({
+        gate,
+        result: passed ? 'PASS' : 'FAIL',
+        evidenceRef: passed ? gateResult.evidenceRef.trim() : '',
+        reason: passed ? '' : (gateResult?.reason || 'GATE_RESULT_NOT_PASS')
+      });
+      if (!passed) {
+        failedGate = gate;
+        failureReason = gateResults.at(-1).reason;
+        break;
+      }
+    } catch {
+      failedGate = gate;
+      failureReason = 'GATE_HANDLER_THROWN';
+      gateResults.push({ gate, result: 'FAIL', evidenceRef: '', reason: failureReason });
+      break;
+    }
+  }
+
+  if (failedGate === null) {
+    return {
+      status: 'READY_FOR_CUTOVER_EVIDENCE_FINALIZATION',
+      failures: [],
+      gateResults,
+      executedGates: [...CUTOVER_GATE_SEQUENCE],
+      skippedGates: [],
+      failedGate: null,
+      routeDisableRequired: false,
+      routeDisableVerified: false,
+      productionGo: false
+    };
+  }
+
+  let routeDisableResult = null;
+  try {
+    routeDisableResult = await routeDisableHandler({ failedGate, failureReason });
+  } catch {
+    routeDisableResult = { status: 'FAIL_PUBLIC_ROUTE_DISABLE_HANDLER_THROWN', evidenceRef: '' };
+  }
+  const routeDisableVerified = routeDisableResult?.status === 'PASS_PUBLIC_ROUTE_DISABLED'
+    && typeof routeDisableResult.evidenceRef === 'string'
+    && routeDisableResult.evidenceRef.trim().length > 0;
+  const failureIndex = CUTOVER_GATE_SEQUENCE.indexOf(failedGate);
+  return {
+    status: routeDisableVerified
+      ? 'PASS_CUTOVER_EXECUTION_FAILURE_CONTAINED'
+      : 'BLOCKED_CUTOVER_EXECUTION_FAILURE_NOT_CONTAINED',
+    failures: routeDisableVerified ? [] : ['PUBLIC_ROUTE_DISABLE_NOT_VERIFIED'],
+    gateResults,
+    executedGates: CUTOVER_GATE_SEQUENCE.slice(0, failureIndex + 1),
+    skippedGates: CUTOVER_GATE_SEQUENCE.slice(failureIndex + 1),
+    failedGate,
+    routeDisableRequired: true,
+    routeDisableVerified,
+    routeDisableEvidenceRef: routeDisableVerified ? routeDisableResult.evidenceRef.trim() : '',
+    productionGo: false
+  };
+}
+
+export async function runCutoverExecutionEngineRehearsal() {
+  const calls = [];
+  const gateHandlers = Object.fromEntries(CUTOVER_GATE_SEQUENCE.map((gate) => [gate, async () => {
+    calls.push(gate);
+    return { status: 'PASS', evidenceRef: `synthetic://${gate}` };
+  }]));
+  const result = await executeCutoverGateSequence({
+    gateHandlers,
+    routeDisableHandler: async () => ({ status: 'PASS_PUBLIC_ROUTE_DISABLED', evidenceRef: 'synthetic://route-disabled' }),
+    windowStart: 1,
+    rollbackCutoff: 3,
+    windowEnd: 4,
+    now: () => 2,
+    externalActionConfirmed: true
+  });
+  const pass = result.status === 'READY_FOR_CUTOVER_EVIDENCE_FINALIZATION'
+    && calls.length === CUTOVER_GATE_SEQUENCE.length
+    && result.gateResults.every((gate) => gate.result === 'PASS')
+    && result.productionGo === false;
+  return {
+    status: pass ? 'PASS_CUTOVER_EXECUTION_ENGINE_REHEARSAL' : 'FAIL_CUTOVER_EXECUTION_ENGINE_REHEARSAL',
+    executedGateCount: calls.length,
+    gateResultCount: result.gateResults.length,
+    actualCutoverExecuted: false,
+    externalMutationPerformed: false,
+    productionGo: false
+  };
+}
