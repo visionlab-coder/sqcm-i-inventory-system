@@ -1,0 +1,69 @@
+{
+  "packet": "ACC-P6-28-BOUNDED-ROLE-PREFLIGHT-RUNTIME",
+  "status": "PASS_BOUNDED_ROLE_PREFLIGHT_RUNTIME",
+  "failureFirst": {
+    "expectedFailures": 5,
+    "observedFailures": 5
+  },
+  "limits": {
+    "processTimeoutMs": 10000,
+    "processMaxBufferBytes": 1048576
+  },
+  "focusedTests": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0
+  },
+  "syntaxChecks": {
+    "passed": 325,
+    "failed": 0
+  },
+  "unitTests": {
+    "total": 527,
+    "passed": 526,
+    "failed": 0,
+    "skipped": 1
+  },
+  "readOnlyRun": {
+    "status": "READY_WAIT_ROLE_USERS_MFA_AND_CREDENTIAL_REFERENCES",
+    "insideWindow": false,
+    "roles": {
+      "ADMIN": { "active": 0, "mfaEnabled": 0, "credentialReferencePresent": false },
+      "MANAGER": { "active": 0, "mfaEnabled": 0, "credentialReferencePresent": false },
+      "USER": { "active": 0, "mfaEnabled": 0, "credentialReferencePresent": false }
+    },
+    "readOnlyProcessExecutions": 2,
+    "databaseWrites": 0,
+    "accountMutations": 0,
+    "actualRoleCoreSmoke": "NOT_RUN",
+    "productionGo": false
+  },
+  "parserContract": {
+    "malformedRowsFailClosed": true,
+    "duplicateRolesFailClosed": true,
+    "unknownRolesFailClosed": true,
+    "errorsRedacted": true
+  },
+  "qualityCi": {
+    "runId": 33564789939,
+    "testedHeadSha": "5e7194db5c88b1528791fd95f4e312295089a674",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "repositoryHygiene": "PASS",
+  "harnessVerify": {
+    "initialExitCode": 1,
+    "targetedReadOnlyRechecks": "PASS",
+    "diagnosticRerunExitCode": 0,
+    "persistentFailureReproduced": false,
+    "status": "PASS"
+  },
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

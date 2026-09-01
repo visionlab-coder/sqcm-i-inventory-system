@@ -237,6 +237,14 @@
       "evidence": "failure-first 5/5 reproduced; focused 12/12 PASS; production:uat-actor-provision dry-run READY_WAIT_UAT_ACTOR_PROVISION_INPUTS with process/account/DB mutation zero; syntax 323/323; repository unit 521 PASS 1 Windows platform skip; repository hygiene PASS; actual Production actor provisioning NOT_RUN"
     },
     {
+      "id": "ACC-P6-28-BOUNDED-ROLE-PREFLIGHT-RUNTIME",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production role preflight의 Docker container·role/MFA SQL 조회를 각각 10초·1MiB로 제한한다. timeout·process·container·SQL 파싱 오류는 stdout/stderr 원문 없이 fail-closed하고 malformed·duplicate·unknown role 행을 준비 미완료 0명으로 오인하지 않는다.",
+      "evidence": "failure-first 5/5 reproduced; focused 9/9 PASS; production:role-preflight READY_WAIT_ROLE_USERS_MFA_AND_CREDENTIAL_REFERENCES with ADMIN/MANAGER/USER active and MFA zero, credential references 0/3, read-only Docker queries 2 and DB writes zero; syntax 325/325; repository unit 526 PASS 1 Windows platform skip; repository hygiene PASS; actual role core smoke NOT_RUN"
+    },
+    {
       "id": "ACC-P7-03-ACTUAL-HANDOVER-EVIDENCE-BUNDLE",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
