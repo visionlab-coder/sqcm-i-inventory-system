@@ -221,6 +221,14 @@
       "evidence": "failure-first 4/4 reproduced; focused 15/15 PASS; production:role-core-smoke dry-run READY_WAIT_ROLE_CREDENTIAL_REFERENCES with actual login NOT_RUN; syntax 319/319; repository unit 509 PASS 1 Windows platform skip; repository hygiene PASS; actual Production role smoke NOT_RUN"
     },
     {
+      "id": "ACC-P6-26-BOUNDED-AUTHENTICATED-IDEMPOTENCY-RUNTIME",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Gate 7 authenticated CSRF/idempotency의 HTTP 요청과 Docker 조회·SQL을 각각 10초로 제한하고 process 출력은 1MiB로 제한한다. timeout·network·process·JSON 오류는 credential·provider·stdout/stderr 원문 없이 fail-closed하며 중간 실패에도 합성 자산·idempotency DB 정리와 logout을 독립적으로 모두 시도한다.",
+      "evidence": "failure-first 5/5 reproduced; focused 16/16 PASS; production:authenticated-idempotency dry-run READY_WAIT_ADMIN_CREDENTIAL_AND_WRITE_CONFIRMATION with HTTP/process/DB mutation zero; syntax 321/321; repository unit 516 PASS 1 Windows platform skip; repository hygiene PASS; actual authenticated write NOT_RUN"
+    },
+    {
       "id": "ACC-P7-03-ACTUAL-HANDOVER-EVIDENCE-BUNDLE",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
