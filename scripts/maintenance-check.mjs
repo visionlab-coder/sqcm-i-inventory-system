@@ -54,9 +54,9 @@ try {
      WHERE table_schema = 'public'
        AND table_name = ANY($1::text[])
      ORDER BY table_name
-  `, [["api_idempotency_keys","asset_assignments","asset_files","asset_status_histories","assets","audit_logs","departments","disposal_requests","file_records","inspection_assets","inspections","item_categories","item_models","items","loans","locations","organizations","outbox_events","password_reset_tokens","purchase_orders","receipts","schema_migrations","service_tickets","stocktake_items","stocktakes","user_invitations","user_oidc_identities","user_role_scopes","user_sessions","users","vendors","workflow_requests"]]);
+  `, [["api_idempotency_keys","asset_assignments","asset_files","asset_status_histories","assets","audit_logs","departments","disposal_requests","file_blobs","file_records","inspection_assets","inspections","item_categories","item_models","items","loans","locations","organizations","outbox_events","password_reset_tokens","purchase_orders","receipts","schema_migrations","service_tickets","stocktake_items","stocktakes","user_invitations","user_oidc_identities","user_role_scopes","user_sessions","users","vendors","workflow_requests"]]);
 
-  if (tableRows.length !== 32) throw new Error(`required table count mismatch: ${tableRows.length}/32`);
+  if (tableRows.length !== 33) throw new Error(`required table count mismatch: ${tableRows.length}/33`);
 
   console.log(JSON.stringify({
     checkedAt: new Date().toISOString(),

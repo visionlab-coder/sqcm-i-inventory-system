@@ -26,6 +26,8 @@
     "db:restore-drill": "node scripts/db-restore-drill.mjs",
     "db:migrate": "node scripts/db-migrate.mjs",
     "db:verify": "node scripts/db-verify-migrations.mjs",
+    "postgres:contract": "node scripts/postgres-production-contract-check.mjs",
+    "ai-pc:production-contract": "node scripts/ai-pc-production-contract-check.mjs",
     "automation:worker": "node scripts/automation-worker.mjs",
     "ui:contract": "node scripts/ui-contract-check.mjs",
     "compose:contract": "node scripts/compose-contract-check.mjs",

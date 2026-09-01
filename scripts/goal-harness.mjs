@@ -202,6 +202,56 @@ function verify() {
         '--filter', 'label=com.docker.compose.project=seowon-inventory-staging',
         '--format', '{{json .}}'
       ], validateInventoryContainers]
+    ],
+    'P6/P6-G1-PRODUCTION-TARGET-CHANGE-WINDOW-AND-PROVIDER-INPUT': [
+      ['git-diff-check', 'git', ['diff', '--check']],
+      ['quality', 'npm.cmd', ['run', 'check']],
+      ['postgres-production-contract', 'npm.cmd', ['run', 'postgres:contract']],
+      ['compose-contract', 'npm.cmd', ['run', 'compose:contract']],
+      ['ui-contract', 'npm.cmd', ['run', 'ui:contract']],
+      ['docker-health-staging', 'docker', [
+        'ps',
+        '--filter', 'label=com.docker.compose.project=seowon-inventory-staging',
+        '--format', '{{json .}}'
+      ], validateInventoryContainers]
+    ],
+    'P6/P6-G1-OCI-ACCOUNT-SEOUL-HOME-REGION-AND-BILLING-GUARD': [
+      ['git-diff-check', 'git', ['diff', '--check']],
+      ['quality', 'npm.cmd', ['run', 'check']],
+      ['postgres-production-contract', 'npm.cmd', ['run', 'postgres:contract']],
+      ['compose-contract', 'npm.cmd', ['run', 'compose:contract']],
+      ['ui-contract', 'npm.cmd', ['run', 'ui:contract']],
+      ['docker-health-staging', 'docker', [
+        'ps',
+        '--filter', 'label=com.docker.compose.project=seowon-inventory-staging',
+        '--format', '{{json .}}'
+      ], validateInventoryContainers]
+    ],
+    'P6/P6-G1-AI-PC-LOCAL-PRODUCTION-TOPOLOGY-AND-CAPACITY-PREFLIGHT': [
+      ['git-diff-check', 'git', ['diff', '--check']],
+      ['quality', 'npm.cmd', ['run', 'check']],
+      ['postgres-production-contract', 'npm.cmd', ['run', 'postgres:contract']],
+      ['ai-pc-production-contract', 'npm.cmd', ['run', 'ai-pc:production-contract']],
+      ['compose-contract', 'npm.cmd', ['run', 'compose:contract']],
+      ['ui-contract', 'npm.cmd', ['run', 'ui:contract']],
+      ['docker-health-staging', 'docker', [
+        'ps',
+        '--filter', 'label=com.docker.compose.project=seowon-inventory-staging',
+        '--format', '{{json .}}'
+      ], validateInventoryContainers]
+    ],
+    'P6/P6-G2-RELEASE-CANDIDATE-GIT-CI-AND-IMMUTABLE-IMAGES': [
+      ['git-diff-check', 'git', ['diff', '--check']],
+      ['quality', 'npm.cmd', ['run', 'check']],
+      ['postgres-production-contract', 'npm.cmd', ['run', 'postgres:contract']],
+      ['ai-pc-production-contract', 'npm.cmd', ['run', 'ai-pc:production-contract']],
+      ['compose-contract', 'npm.cmd', ['run', 'compose:contract']],
+      ['ui-contract', 'npm.cmd', ['run', 'ui:contract']],
+      ['docker-health-staging', 'docker', [
+        'ps',
+        '--filter', 'label=com.docker.compose.project=seowon-inventory-staging',
+        '--format', '{{json .}}'
+      ], validateInventoryContainers]
     ]
   };
   const commands = commandSets[verifierKey];
