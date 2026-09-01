@@ -1,6 +1,6 @@
 # P6-G4 Production 공개 전환 사전점검
 
-기준일: 2026-09-01 15:53 KST
+기준일: 2026-09-01 16:08 KST
 
 ## 결과
 
@@ -9,7 +9,7 @@
 ## 체크리스트
 
 - [x] Harness status/check PASS, 진행 중 Phase·READY 각 1건
-- [x] 작업 기준 브랜치 HEAD `8a2e720bfb206863bda3c49e4a48143a393dbf26` 원격 일치, quality run `33478737529` 성공
+- [x] 작업 기준 브랜치 HEAD `d1207cecf333c71d3f7fc225ff60f7f157e0498a` 원격 일치, quality run `33479701973` 성공
 - [x] 배포 후보 `e238ab8dab7f4729298ceb7ecc0f874a4a08829a` 유지
 - [x] Production frontend/backend/database 3서비스 healthy
 - [x] frontend `127.0.0.1:3300`, backend/database host port 0
@@ -24,10 +24,11 @@
 - [x] backend 5xx·치명 오류·error level·outbox retry/dead-letter 기준선 및 변경창 Gate 자동화 준비
 - [x] ADMIN·MANAGER·USER active user·MFA·credential file reference를 Secret 원문 없이 판정하는 core smoke preflight 자동화와 회귀 4/4 준비
 - [x] loopback Production 60요청 부하·보안 헤더·익명 401·cross-site 403 nonfunctional 기준선 자동화 준비
+- [x] loopback health/readiness·DB 운영 카운터·최근 5xx·백업 checksum/age·restore drill/age operational health 기준선 자동화 준비
 - [x] 12개 cutover Gate 증거 후보 자동 조립: 로컬 실증 4/12 PASS
 - [x] 외부 Production 검증 8/12와 서명 3건 PENDING 유지
 - [x] 후보가 Production GO를 승인하지 못하는 fail-closed 검사 PASS
-- [x] 저장소 표준 구문 148개·단위 172/172 PASS(공급자·공개 probe·로그·역할·nonfunctional preflight 포함)
+- [x] 저장소 표준 구문 149개·단위 172/172 PASS(공급자·공개 probe·로그·역할·nonfunctional·operational health preflight 포함)
 - [x] 기존 Cloudflare `sqcm-i`, `sqcm-i-inventory-staging` tunnel 각 연결 4개 보존
 - [x] 보호 포트/PID `1234/6632`, `11434/8588`, `18765/22716`, `18766/65724` 보존
 - [ ] `sqcm-i-inventory-production` 전용 tunnel — 변경창에서 생성
@@ -38,6 +39,7 @@
 - [ ] Production 경보 receipt — NOT_RUN
 - [ ] 변경창 이후 `logs_5xx` 실제 재검사 — 기준선만 PASS
 - [ ] 공개 HTTPS 대상 nonfunctional 재검사 — loopback 기준선만 PASS
+- [ ] 변경창 이후 operational health 재검사 — loopback 기준선만 PASS
 - [ ] 업무·보안·운영 최종 서명 3/3 — NOT_RUN
 
 ## 변경창 실행 순서

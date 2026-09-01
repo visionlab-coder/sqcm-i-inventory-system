@@ -23,8 +23,9 @@
 - `npm.cmd run production:log-gate`는 최근 15분 backend 5xx·치명 오류·error level과 outbox retry/dead-letter 기준선을 검사하고, 변경창에는 20:00 이후 전체 구간을 실제 Gate로 재검사한다. 현재는 pre-cutover 기준선만 판정한다.
 - `npm.cmd run production:role-preflight`는 Production DB의 ADMIN·MANAGER·USER active/MFA 수와 역할별 credential file reference 존재만 읽어 core smoke 선행조건을 fail-closed 판정한다. 현재 각 역할 active/MFA 0명, 참조 0/3으로 `READY_WAIT_ROLE_USERS_MFA_AND_CREDENTIAL_REFERENCES`이며 Secret 원문은 읽거나 기록하지 않는다.
 - `npm.cmd run production:nonfunctional-baseline`은 `127.0.0.1:3300`에 60요청/동시성 6 부하와 보안 헤더·익명 401·cross-site 403을 검사한다. 이는 loopback 기준선이며 공개 HTTPS 대상의 변경창 재검사는 `NOT_RUN`으로 유지한다.
+- `npm.cmd run production:operational-health-baseline`은 loopback health/readiness, Production DB의 old outbox·expired session·stuck idempotency, 최근 15분 5xx, 최신 Production backup checksum/age와 restore drill/age를 한 번에 검사한다. 현재 기준선은 PASS이고 변경창 이후 재검사는 `NOT_RUN`이다.
 - `npm.cmd run production:cutover-evidence`는 12개 Gate 중 실제 로컬 증거가 있는 artifact·backup/restore·migration·provider preflight 4건만 PASS로 조립한다. 외부 Production 8건과 역할 결과·서명은 PENDING이며 후보는 fail-closed 검증상 Production을 승인할 수 없다.
-- 저장소 표준 검증에서 JavaScript 구문 148개와 단위 172/172가 PASS했으며 preflight·공개 probe·로그·역할·nonfunctional Gate와 증거 조립 회귀가 검증 봉투에 포함된다.
+- 저장소 표준 검증에서 JavaScript 구문 149개와 단위 172/172가 PASS했으며 preflight·공개 probe·로그·역할·nonfunctional·operational health Gate와 증거 조립 회귀가 검증 봉투에 포함된다.
 
 ## 2026-09-01 P6-G3 AI PC Production 배포·복구
 

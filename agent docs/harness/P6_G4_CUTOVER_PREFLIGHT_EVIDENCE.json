@@ -1,7 +1,7 @@
 {
   "gate": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
   "evidenceType": "CHANGE_WINDOW_PREFLIGHT",
-  "checkedAt": "2026-09-01T15:53:00+09:00",
+  "checkedAt": "2026-09-01T16:08:00+09:00",
   "status": "READY_WAIT_CHANGE_WINDOW",
   "productionGo": false,
   "automatedPreflight": {
@@ -63,9 +63,16 @@
     "checks": ["health load", "security headers", "anonymous 401", "cross-site 403"],
     "actualPublicNonfunctionalGate": "NOT_RUN"
   },
+  "operationalHealthBaselineAutomation": {
+    "command": "npm.cmd run production:operational-health-baseline",
+    "status": "PASS_LOOPBACK_BASELINE_READY_FOR_POST_CUTOVER_RECHECK",
+    "target": "http://127.0.0.1:3300",
+    "checks": ["health/readiness", "old outbox", "expired sessions", "stuck idempotency", "recent 5xx", "backup checksum/age", "restore drill/age"],
+    "actualPostCutoverOperationalHealth": "NOT_RUN"
+  },
   "source": {
     "branch": "codex/p6-ai-pc-postgres-production",
-    "headSha": "8a2e720bfb206863bda3c49e4a48143a393dbf26",
+    "headSha": "d1207cecf333c71d3f7fc225ff60f7f157e0498a",
     "remoteShaMatched": true,
     "deployedCandidateSha": "e238ab8dab7f4729298ceb7ecc0f874a4a08829a"
   },
@@ -148,6 +155,7 @@
     "LOGS_5XX_OUTBOX_BASELINE_AND_CUTOVER_GATE_AUTOMATION_READY",
     "ROLE_CORE_SMOKE_PREFLIGHT_AUTOMATION_READY",
     "NONFUNCTIONAL_LOOPBACK_BASELINE_AND_PUBLIC_RECHECK_AUTOMATION_READY",
+    "OPERATIONAL_HEALTH_LOOPBACK_BASELINE_AND_POST_CUTOVER_RECHECK_AUTOMATION_READY",
     "CUTOVER_EVIDENCE_LOCAL_GATES_4_OF_12_PASS",
     "CUTOVER_EVIDENCE_EXTERNAL_GATES_8_OF_12_PENDING",
     "CUTOVER_CANDIDATE_FAIL_CLOSED_VALIDATOR_PASS",

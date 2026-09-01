@@ -289,6 +289,7 @@ function verify() {
       ['production-log-gate', 'npm.cmd', ['run', 'production:log-gate']],
       ['production-role-preflight', 'npm.cmd', ['run', 'production:role-preflight']],
       ['production-nonfunctional-baseline', 'npm.cmd', ['run', 'production:nonfunctional-baseline']],
+      ['production-operational-health-baseline', 'npm.cmd', ['run', 'production:operational-health-baseline']],
       ['production-cutover-evidence', 'npm.cmd', ['run', 'production:cutover-evidence']]
     ]
   };
