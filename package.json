@@ -78,6 +78,7 @@
     "operations:activation-approval-to-orchestrator-rehearsal": "node scripts/operations-activation-approval-to-orchestrator-rehearsal.mjs",
     "operations:activation-full-sequence-rehearsal": "node scripts/operations-activation-full-sequence-rehearsal.mjs",
     "operations:activation-wait-resume-sequence-rehearsal": "node scripts/operations-activation-wait-resume-sequence-rehearsal.mjs",
+    "operations:activation-three-failure-matrix-rehearsal": "node scripts/operations-activation-three-failure-matrix-rehearsal.mjs",
     "operations:health": "node scripts/operational-health-check.mjs",
     "test:nonfunctional": "node scripts/nonfunctional-check.mjs",
     "test:recovery": "node scripts/dependency-recovery-check.mjs",

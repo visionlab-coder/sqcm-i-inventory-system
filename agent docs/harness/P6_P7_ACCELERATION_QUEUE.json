@@ -445,6 +445,14 @@
       "evidence": "operations:activation-wait-resume-sequence-rehearsal => PASS_SYNTHETIC_OPERATIONS_ACTIVATION_WAIT_RESUME_SEQUENCE_REHEARSAL; 19 WAIT and 19 PASS receipts, 19 resume verifications, 43 physical documents, sequence complete, 3/3 tamper rejection, temporary artifacts zero; failure-first 3 EXPECTED FAIL then focused combined 9/9 PASS; child/actual activation/external mutation NOT_RUN"
     },
     {
+      "id": "ACC-P7-38-OPERATIONS-ACTIVATION-19-STEP-THREE-FAILURE-CONTAINMENT-MATRIX-SYNTHETIC-REHEARSAL",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "19개 activation 단계를 각각 실패 표적으로 삼아 앞 단계 PASS 뒤 동일 FAIL receipt 3개에서 정확히 정지하고 이후 단계 receipt가 0건인지 물리 파일로 검증한다. 실패 2회·4회·교차 run 변조를 차단하고 실제 child·외부 변경은 실행하지 않는다.",
+      "evidence": "operations:activation-three-failure-matrix-rehearsal => PASS_SYNTHETIC_OPERATIONS_ACTIVATION_THREE_FAILURE_MATRIX_REHEARSAL; 19/19 contained after exactly 3 failures, 228 receipts, 251 physical documents, later-step receipts zero, 3/3 tamper rejection, temporary artifacts zero; failure-first 3 EXPECTED FAIL then focused combined 9/9 PASS; child/actual activation/external mutation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

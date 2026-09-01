@@ -223,3 +223,141 @@ export function runOperationsActivationFullSequenceRehearsal(options = {}) {
 export function runOperationsActivationWaitResumeSequenceRehearsal(options = {}) {
   return runRehearsal({ ...options, completeSequence: true, waitBeforePass: true });
 }
+
+export function runOperationsActivationThreeFailureMatrixRehearsal({
+  activationBundleSha256, temporaryBase = os.tmpdir()
+} = {}) {
+  if (!SHA256_PATTERN.test(activationBundleSha256 ?? '')) throw new Error('ACTIVATION_BUNDLE_SHA256_INVALID');
+  const base = physicalTemporaryBase(temporaryBase);
+  const root = fs.mkdtempSync(path.join(base, 'sqcmi-p7-three-failure-matrix-'));
+  const relativeRoot = path.relative(base, root);
+  if (!relativeRoot || relativeRoot.startsWith('..') || path.isAbsolute(relativeRoot)) throw new Error('TEMPORARY_ROOT_OUTSIDE_BASE');
+  let result;
+  try {
+    const repositoryRoot = path.join(root, 'repository');
+    const paths = {
+      p6: path.join(root, 'p6-cutover.json'), request: path.join(root, 'approval-request.json'),
+      receipt: path.join(root, 'approval-receipt.json'), manifest: path.join(root, 'approval-manifest.json')
+    };
+    const p6 = {
+      schemaVersion: 1, template: false, environment: 'production', activationState: 'actual',
+      evidenceType: 'P6_CUTOVER_ACTUAL', domain: 'p6-cutover', status: 'PASS', productionGo: true,
+      targetUrl: 'https://inventory.safe-link.co.kr', runId: 'synthetic-p6-cutover-three-failure-matrix',
+      releaseSha: 'a'.repeat(40),
+      approvals: { operations: { status: 'APPROVED', signedBy: 'identity://synthetic-operations-owner', signedAt: '2026-09-11T12:30:00.000Z', evidence: `production operations approval sha256:${'e'.repeat(64)}` } }
+    };
+    writeJsonOnce(paths.p6, p6); const p6File = readDocument(paths.p6);
+    const request = buildOperationsActivationApprovalRequest({
+      p6Document: p6File.value, p6EvidenceSha256: p6File.sha256,
+      activationBundleSha256, requestedAt: '2026-09-12T00:00:00.000Z'
+    });
+    writeOperationsActivationApprovalRequestOnce(paths.request, request, { repositoryRoot, processId: 1941 });
+    const requestFile = readDocument(paths.request);
+    const approvalReceipt = {
+      schemaVersion: 1, template: false, environment: 'production', activationState: 'actual',
+      evidenceType: 'P7_OPERATIONS_ACTIVATION_APPROVAL_RECEIPT', targetUrl: p6.targetUrl,
+      decision: 'APPROVED', role: 'OPERATIONS_OWNER', signedByRef: p6.approvals.operations.signedBy,
+      signedAt: '2026-09-12T01:00:00.000Z', receiptId: 'synthetic-p7-three-failure-matrix-receipt',
+      runId: request.runId, releaseSha: p6.releaseSha, activationBundleSha256,
+      p6CutoverEvidenceSha256: p6File.sha256, p6OperationsApprovalSha256: 'e'.repeat(64),
+      allowedSteps: OPERATIONS_ACTIVATION_STEPS.map((step) => step.id),
+      authorizedActions: [...OPERATIONS_ACTIVATION_ACTIONS], mfaVerified: true, blockingExceptionCount: 0
+    };
+    writeJsonOnce(paths.receipt, approvalReceipt); const receiptFile = readDocument(paths.receipt);
+    const manifest = buildOperationsActivationApprovalManifest({
+      requestDocument: requestFile.value, approvalReceipt: receiptFile.value,
+      approvalReceiptSha256: receiptFile.sha256, p6Document: p6File.value,
+      p6EvidenceSha256: p6File.sha256, activationBundleSha256,
+      checkedAt: '2026-09-12T02:00:00.000Z'
+    });
+    writeOperationsActivationApprovalManifestOnce(paths.manifest, manifest, { repositoryRoot, processId: 1942 });
+    const manifestFile = readDocument(paths.manifest);
+    verifyOperationsActivationApprovalChain({
+      p6: p6File.value, request: requestFile.value, receipt: receiptFile.value, manifest: manifestFile.value,
+      p6EvidenceSha256: p6File.sha256, approvalRequestSha256: requestFile.sha256,
+      approvalReceiptSha256: receiptFile.sha256, approvalManifestSha256: manifestFile.sha256,
+      activationBundleSha256, checkedAt: '2026-09-12T02:00:00.000Z'
+    });
+    const approval = validateOperationsActivationApproval(manifestFile.value, {
+      p6Document: p6File.value, p6EvidenceSha256: p6File.sha256, activationBundleSha256,
+      approvalReceipt: receiptFile.value, approvalReceiptSha256: receiptFile.sha256,
+      checkedAt: '2026-09-12T02:00:00.000Z'
+    });
+
+    const scenarioResults = [];
+    let totalReceiptCount = 0; let laterStepReceiptCount = 0;
+    for (let targetIndex = 0; targetIndex < OPERATIONS_ACTIVATION_STEPS.length; targetIndex += 1) {
+      const receiptRoot = path.join(root, `scenario-${String(targetIndex + 1).padStart(2, '0')}`);
+      fs.mkdirSync(receiptRoot);
+      claimOperationsActivationReceiptRoot(receiptRoot, approval, {
+        processId: 2000 + targetIndex, checkedAt: '2026-09-12T02:01:00.000Z',
+        claimId: `synthetic-three-failure-claim-${String(targetIndex + 1).padStart(2, '0')}`
+      });
+      const activationReceipts = [];
+      const persist = (step, attempt, exitCode, status) => {
+        const receipt = buildOperationsActivationReceipt({
+          approval, step, attempt,
+          result: { exitCode, summary: { status }, stdout: '', stderr: 'synthetic failure without secret values' },
+          checkedAt: new Date(Date.parse('2026-09-12T02:02:00.000Z') + activationReceipts.length * 60000).toISOString()
+        });
+        writeOperationsActivationReceiptOnce(receiptRoot, receipt, {
+          processId: 3000 + targetIndex * 32 + activationReceipts.length
+        });
+        activationReceipts.push(receipt);
+      };
+      for (let index = 0; index < targetIndex; index += 1) {
+        persist(OPERATIONS_ACTIVATION_STEPS[index], 1, 0, OPERATIONS_ACTIVATION_STEPS[index].pass[0]);
+      }
+      const target = OPERATIONS_ACTIVATION_STEPS[targetIndex];
+      for (let attempt = 1; attempt <= 3; attempt += 1) persist(target, attempt, 1, 'FAIL_SYNTHETIC_OPERATION');
+      const selection = selectNextOperationsActivationStep(activationReceipts, { approval });
+      laterStepReceiptCount += activationReceipts.filter((item) => item.sequence > targetIndex + 1).length;
+      totalReceiptCount += activationReceipts.length;
+      scenarioResults.push({ targetStepId: target.id, selection });
+    }
+
+    const firstTarget = OPERATIONS_ACTIVATION_STEPS[0];
+    const buildFailure = (attempt, overrides = {}) => ({
+      ...buildOperationsActivationReceipt({
+        approval, step: firstTarget, attempt,
+        result: { exitCode: 1, summary: { status: 'FAIL_SYNTHETIC_OPERATION' }, stdout: '', stderr: '' },
+        checkedAt: new Date(Date.parse('2026-09-12T04:00:00.000Z') + attempt * 60000).toISOString()
+      }),
+      ...overrides
+    });
+    const tamperScenarios = [
+      { receipts: [buildFailure(1), buildFailure(2)], reject: (selection) => selection.status !== 'PAUSED_OPERATIONS_ACTIVATION_STEP_FAILED_THREE_TIMES' },
+      { receipts: [buildFailure(1), buildFailure(2), buildFailure(3), buildFailure(4)], reject: null },
+      { receipts: [buildFailure(1), buildFailure(2, { runId: 'p7-activation-synthetic-other-run' }), buildFailure(3)], reject: null }
+    ];
+    let tamperRejectedCount = 0;
+    for (const scenario of tamperScenarios) {
+      try {
+        const selection = selectNextOperationsActivationStep(scenario.receipts, { approval });
+        if (scenario.reject?.(selection)) tamperRejectedCount += 1;
+      } catch { tamperRejectedCount += 1; }
+    }
+    if (tamperRejectedCount !== tamperScenarios.length) throw new Error('TAMPER_SCENARIO_NOT_REJECTED');
+    const pausedAfterThreeCount = scenarioResults.filter(({ selection }) =>
+      selection.status === 'PAUSED_OPERATIONS_ACTIVATION_STEP_FAILED_THREE_TIMES'
+      && selection.failedAttempts === 3).length;
+    const containedFailureCount = scenarioResults.filter(({ targetStepId, selection }) =>
+      selection.step?.id === targetStepId).length;
+    if (pausedAfterThreeCount !== OPERATIONS_ACTIVATION_STEPS.length
+      || containedFailureCount !== OPERATIONS_ACTIVATION_STEPS.length || laterStepReceiptCount !== 0) {
+      throw new Error('THREE_FAILURE_CONTAINMENT_MATRIX_INVALID');
+    }
+    result = {
+      status: 'PASS_SYNTHETIC_OPERATIONS_ACTIVATION_THREE_FAILURE_MATRIX_REHEARSAL',
+      scenarioCount: scenarioResults.length, containedFailureCount, pausedAfterThreeCount,
+      laterStepReceiptCount, totalReceiptCount, physicalDocumentCount: countPhysicalFiles(root),
+      tamperScenarioCount: tamperScenarios.length, tamperRejectedCount,
+      childProcessCount: 0, syntheticOnly: true, actualActivationExecuted: false,
+      externalMutationPerformed: false, secretValuesReadOrRecorded: false, productionGo: false
+    };
+  } finally {
+    if (fs.existsSync(root)) fs.rmSync(root, { recursive: true, force: true });
+  }
+  result.temporaryArtifactsRetained = fs.existsSync(root);
+  return result;
+}

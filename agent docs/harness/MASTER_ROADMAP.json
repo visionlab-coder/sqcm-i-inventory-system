@@ -360,6 +360,7 @@
           "p7-production-operations-activation-approval-to-orchestrator-synthetic-rehearsal-pass",
           "p7-production-operations-activation-19-step-physical-receipt-sequence-synthetic-rehearsal-pass",
           "p7-production-operations-activation-19-step-wait-resume-receipt-sequence-synthetic-rehearsal-pass",
+          "p7-production-operations-activation-19-step-three-failure-containment-matrix-synthetic-rehearsal-pass",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],
