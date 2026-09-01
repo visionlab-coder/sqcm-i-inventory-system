@@ -12,6 +12,15 @@ test('마지막 JSON 상태를 추출하고 migration exit 0을 명시 PASS로 �
   assert.equal(normalizeStepOutcome({ exitCode: 0, stdout: 'plain', step: { id: 'x' } }).status, 'FAIL_STATUS_NOT_RECORDED');
 });
 
+test('role smoke summary는 허용된 상태만 남기고 credential·session 값을 제거한다', async () => {
+  const { buildStepReceiptSummary } = await modulePromise;
+  const role = { passwordStatus: 202, mfaRequired: true, invalidMfaStatus: 401, mfaStatus: 200, actualRole: 'ADMIN', dashboard: 200, cost: 200, admin: 200, logoutStatus: 204, email: 'secret@example.com', password: 'SECRET', cookie: 'SESSION' };
+  const summary = buildStepReceiptSummary({ id: 'role-core-smoke' }, { status: 'PASS_PRODUCTION_ROLE_CORE_SMOKE', targetKind: 'production-https', actualRoleCoreSmoke: 'PASS', results: { ADMIN: role, MANAGER: { ...role, actualRole: 'MANAGER', admin: 403 }, USER: { ...role, actualRole: 'USER', cost: 403, admin: 403 }, anonymousItems: 401 } });
+  const raw = JSON.stringify(summary);
+  assert.equal(summary.evidenceType, 'P6_ROLE_CORE_SMOKE_SUMMARY');
+  assert.doesNotMatch(raw, /secret@example|SECRET|SESSION|"email"|"password"|"cookie"/i);
+});
+
 test('receipt는 stdout stderr Secret을 기록하지 않고 기존 파일을 덮어쓰지 않는다', async () => {
   const { createProcessStepRunner, createRuntimeReceiptWriter } = await modulePromise;
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-cutover-receipt-'));

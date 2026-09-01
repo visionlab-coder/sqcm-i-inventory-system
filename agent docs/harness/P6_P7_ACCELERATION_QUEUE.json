@@ -117,6 +117,14 @@
       "evidence": "npm.cmd run production:cutover-actual-evidence => READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_INPUTS; focused 5/5 PASS; repository 345 PASS 1 Windows platform skip; run identity rehearsal 1/1; actual assembly/output/external mutation NOT_RUN"
     },
     {
+      "id": "ACC-P6-14-AUTOMATIC-PRODUCTION-ROLE-RESULT-EVIDENCE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "role-core-smoke step receipt가 비밀값 없이 허용된 MFA·RBAC 상태만 요약하고, 동일 runId·release SHA·core_smoke Gate SHA를 검증해 ADMIN·MANAGER·USER actual 결과 3건을 저장소 밖에 원자적으로 함께 생성하며 loopback·불완전 MFA/RBAC·교차 run·덮어쓰기를 거부한다.",
+      "evidence": "npm.cmd run production:role-result-evidence => READY_WAIT_PRODUCTION_ROLE_RESULT_INPUTS; focused 5/5 PASS; repository 350 PASS 1 Windows platform skip; Harness verify PASS; actual role result creation/external mutation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

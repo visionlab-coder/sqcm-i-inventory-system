@@ -27,6 +27,7 @@
     "production:cutover-process-runner-rehearsal": "node scripts/production-cutover-process-runner-rehearsal.mjs",
     "production:cutover-execute": "node scripts/production-cutover-execute.mjs",
     "production:cutover-actual-evidence": "node scripts/production-cutover-actual-evidence.mjs",
+    "production:role-result-evidence": "node scripts/production-role-result-evidence.mjs",
     "production:ingress-publication": "node scripts/production-ingress-publication.mjs",
     "production:provider-preflight": "node scripts/production-provider-preflight.mjs",
     "production:public-probe": "node scripts/production-public-probe.mjs",

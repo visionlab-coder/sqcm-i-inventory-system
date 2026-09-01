@@ -44,6 +44,23 @@ export function normalizeStepOutcome({ exitCode, stdout, step } = {}) {
   return { exitCode: code, status: typeof parsed?.status === 'string' ? parsed.status : 'FAIL_STATUS_NOT_RECORDED' };
 }
 
+export function buildStepReceiptSummary(step, parsed) {
+  if (step?.id !== 'role-core-smoke' || parsed?.status !== 'PASS_PRODUCTION_ROLE_CORE_SMOKE') return null;
+  const roles = {};
+  for (const role of ['ADMIN', 'MANAGER', 'USER']) {
+    const value = parsed?.results?.[role] || {};
+    roles[role] = Object.fromEntries(['passwordStatus', 'mfaRequired', 'invalidMfaStatus', 'mfaStatus', 'actualRole', 'dashboard', 'cost', 'admin', 'logoutStatus']
+      .map((key) => [key, value[key]]));
+  }
+  return {
+    evidenceType: 'P6_ROLE_CORE_SMOKE_SUMMARY',
+    targetKind: parsed.targetKind,
+    actualRoleCoreSmoke: parsed.actualRoleCoreSmoke,
+    anonymousItems: parsed?.results?.anonymousItems,
+    roles
+  };
+}
+
 function assertPhysicalDirectory(root, io = fs) {
   const resolved = path.resolve(root);
   const stat = io.lstatSync(resolved);
@@ -61,7 +78,7 @@ function safeSegment(value) {
 export function createRuntimeReceiptWriter({ root = PRODUCTION_CUTOVER_RECEIPT_ROOT, io = fs, clock = () => new Date(), runId = randomUUID() } = {}) {
   if (!/^[a-f0-9]{8}-[a-f0-9-]{27,35}$/i.test(runId)) throw new Error('CUTOVER_RUN_ID_INVALID');
   let sequence = 0;
-  const writer = async ({ kind = 'step', gate, step = 'gate', status, exitCode = 0, stepEvidenceRefs = [] } = {}) => {
+  const writer = async ({ kind = 'step', gate, step = 'gate', status, exitCode = 0, stepEvidenceRefs = [], summary = null } = {}) => {
     const resolvedRoot = assertPhysicalDirectory(root, io);
     const checkedAt = clock().toISOString();
     sequence += 1;
@@ -73,6 +90,7 @@ export function createRuntimeReceiptWriter({ root = PRODUCTION_CUTOVER_RECEIPT_R
       evidenceRefs: stepEvidenceRefs.map((item) => path.basename(String(item))),
       productionGo: false
     };
+    if (summary !== null) payload.summary = summary;
     io.writeFileSync(target, `${JSON.stringify(payload, null, 2)}\n`, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
     return target;
   };
@@ -99,7 +117,8 @@ export function createProcessStepRunner({ spawnStep = spawnNodeStep, writeReceip
   return async (step) => {
     const raw = await spawnStep({ script: step.script, args: step.args, cwd });
     const outcome = normalizeStepOutcome({ ...raw, step });
-    const evidenceRef = await writeReceipt({ kind: 'step', gate: step.gate, step: step.id, status: outcome.status, exitCode: outcome.exitCode });
+    const summary = buildStepReceiptSummary(step, extractLastJsonObject(raw.stdout));
+    const evidenceRef = await writeReceipt({ kind: 'step', gate: step.gate, step: step.id, status: outcome.status, exitCode: outcome.exitCode, summary });
     return { ...outcome, evidenceRef };
   };
 }

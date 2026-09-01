@@ -330,6 +330,7 @@
           "cutover-process-runner-redacted-runtime-receipts-rehearsal-pass",
           "cutover-execution-entrypoint-window-confirmation-receipt-root-fail-closed-pass",
           "cutover-run-id-sha-actual-evidence-assembler-ready",
+          "production-role-core-smoke-redacted-summary-three-actual-role-result-compiler-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],
