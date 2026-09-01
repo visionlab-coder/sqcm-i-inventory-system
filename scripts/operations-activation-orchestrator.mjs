@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import {
   OPERATIONS_ACTIVATION_CONFIRMATION,
@@ -20,6 +21,7 @@ const roadmap = JSON.parse(fs.readFileSync(path.join(projectRoot, 'agent docs', 
 const p6 = roadmap.phases.find((phase) => phase.id === 'P6'); const p7 = roadmap.phases.find((phase) => phase.id === 'P7');
 const p6Path = process.env.P7_P6_CUTOVER_EVIDENCE_FILE ? path.resolve(process.env.P7_P6_CUTOVER_EVIDENCE_FILE) : null;
 const approvalPath = process.env.P7_OPERATIONS_ACTIVATION_APPROVAL_FILE ? path.resolve(process.env.P7_OPERATIONS_ACTIVATION_APPROVAL_FILE) : null;
+const approvalReceiptPath = process.env.P7_OPERATIONS_ACTIVATION_APPROVAL_RECEIPT_FILE ? path.resolve(process.env.P7_OPERATIONS_ACTIVATION_APPROVAL_RECEIPT_FILE) : null;
 const receiptRoot = process.env.P7_OPERATIONS_ACTIVATION_RECEIPT_ROOT ? path.resolve(process.env.P7_OPERATIONS_ACTIVATION_RECEIPT_ROOT) : null;
 
 function externalPhysicalFile(candidate) {
@@ -53,17 +55,21 @@ function loadReceipts(root, runId) {
 
 const gate = evaluateOperationsActivationGate({
   p6EvidenceComplete: p6?.status === 'evidence-complete', p7InProgress: p7?.status === 'in-progress', productionGo: roadmap.invariants?.productionGo === true,
-  p6EvidencePresent: externalPhysicalFile(p6Path), approvalPresent: externalPhysicalFile(approvalPath), receiptRootPresent: externalPhysicalDirectory(receiptRoot),
+  p6EvidencePresent: externalPhysicalFile(p6Path), approvalPresent: externalPhysicalFile(approvalPath), approvalReceiptPresent: externalPhysicalFile(approvalReceiptPath), receiptRootPresent: externalPhysicalDirectory(receiptRoot),
   execute: process.argv.includes('--execute'), confirmed: process.env.P7_OPERATIONS_ACTIVATION_CONFIRMATION === OPERATIONS_ACTIVATION_CONFIRMATION
 });
 
 let status = gate.status; let childProcessCount = 0; let receiptCreated = false; let currentStep = null; let attempt = 0; let failureCount = 0;
-let lease = null; let leaseAcquired = false; let leaseReleased = false; let leaseConflict = false; let receiptRootClaimCreated = false; let activationBundleVerified = false;
+let lease = null; let leaseAcquired = false; let leaseReleased = false; let leaseConflict = false; let receiptRootClaimCreated = false; let activationBundleVerified = false; let approvalReceiptVerified = false;
 if (gate.childProcessAllowed) {
   try {
-    const p6Document = JSON.parse(fs.readFileSync(p6Path, 'utf8'));
+    const p6Raw = fs.readFileSync(p6Path); const p6Document = JSON.parse(p6Raw.toString('utf8'));
+    const approvalReceiptRaw = fs.readFileSync(approvalReceiptPath); const approvalReceipt = JSON.parse(approvalReceiptRaw.toString('utf8'));
     const activationBundleSha256 = computeOperationsActivationBundleSha256(projectRoot);
-    const approval = validateOperationsActivationApproval(JSON.parse(fs.readFileSync(approvalPath, 'utf8')), { p6Document, activationBundleSha256 }); activationBundleVerified = true;
+    const approval = validateOperationsActivationApproval(JSON.parse(fs.readFileSync(approvalPath, 'utf8')), {
+      p6Document, p6EvidenceSha256: createHash('sha256').update(p6Raw).digest('hex'), activationBundleSha256,
+      approvalReceipt, approvalReceiptSha256: createHash('sha256').update(approvalReceiptRaw).digest('hex')
+    }); activationBundleVerified = true; approvalReceiptVerified = true;
     lease = acquireOperationsActivationLease(receiptRoot, approval); leaseAcquired = true; receiptRootClaimCreated = lease.rootClaim.created;
     const selection = selectNextOperationsActivationStep(loadReceipts(receiptRoot, approval.runId), { approval });
     status = selection.status; currentStep = selection.step?.id ?? null; attempt = selection.attempt; failureCount = selection.failedAttempts;
@@ -87,10 +93,10 @@ if (gate.childProcessAllowed) {
 }
 
 console.log(JSON.stringify({ checkedAt: new Date().toISOString(), status, currentStep, attempt, failureCount,
-  requiredP6Environment: 'P7_P6_CUTOVER_EVIDENCE_FILE', requiredApprovalEnvironment: 'P7_OPERATIONS_ACTIVATION_APPROVAL_FILE',
+  requiredP6Environment: 'P7_P6_CUTOVER_EVIDENCE_FILE', requiredApprovalEnvironment: 'P7_OPERATIONS_ACTIVATION_APPROVAL_FILE', requiredApprovalReceiptEnvironment: 'P7_OPERATIONS_ACTIVATION_APPROVAL_RECEIPT_FILE',
   requiredReceiptRootEnvironment: 'P7_OPERATIONS_ACTIVATION_RECEIPT_ROOT', confirmationEnvironment: 'P7_OPERATIONS_ACTIVATION_CONFIRMATION',
   missing: gate.missing, childProcessCount, receiptCreated, receiptRootClaimCreated, leaseAcquired, leaseReleased, leaseConflict,
-  activationBundleVerified,
+  activationBundleVerified, approvalReceiptVerified,
   p6EvidenceComplete: p6?.status === 'evidence-complete', p7Status: p7?.status ?? null,
   secretValuesReadOrRecorded: false, productionGo: roadmap.invariants?.productionGo === true
 }, null, 2));

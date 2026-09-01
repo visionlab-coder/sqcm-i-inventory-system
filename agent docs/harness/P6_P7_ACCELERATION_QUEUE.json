@@ -381,6 +381,14 @@
       "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; activation bundle not read before P6 actual; failure-first 2 EXPECTED FAIL then focused 20/20 PASS; exact physical root and transitive local dependency graph byte digest bound into approval provenance; actual activation NOT_RUN"
     },
     {
+      "id": "ACC-P7-30-OPERATIONS-ACTIVATION-MFA-APPROVAL-RECEIPT-ANCHOR",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "운영 활성화 manifest는 별도 OPERATIONS_OWNER MFA 승인 receipt의 물리 SHA-256, P6 actual cutover SHA-256과 P6 OPERATIONS 서명 SHA·동일 identity·동일 19단계/10행위/번들/run/release를 모두 연결해야 한다.",
+      "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; approval receipt read/verify zero before P6 actual; failure-first 2 EXPECTED FAIL then focused 22/22 PASS; physical approval receipt and P6 operations signoff anchoring enforced before lease child receipt; actual approval and activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

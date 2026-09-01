@@ -5,10 +5,14 @@ const os = require('node:os');
 const path = require('node:path');
 const modulePromise = import('../../src/operations/operations-activation-orchestrator.mjs');
 
-function p6() { return { schemaVersion: 1, environment: 'production', activationState: 'actual', evidenceType: 'P6_CUTOVER_ACTUAL', status: 'PASS', productionGo: true, targetUrl: 'https://inventory.safe-link.co.kr', releaseSha: 'a'.repeat(40) }; }
+function p6() { return { schemaVersion: 1, environment: 'production', activationState: 'actual', evidenceType: 'P6_CUTOVER_ACTUAL', status: 'PASS', productionGo: true, targetUrl: 'https://inventory.safe-link.co.kr', releaseSha: 'a'.repeat(40), approvals: { operations: { status: 'APPROVED', signedBy: 'identity://operations-owner', signedAt: '2026-09-11T12:30:00.000Z', evidence: `production operations approval sha256:${'e'.repeat(64)}` } } }; }
 async function approval(overrides = {}) {
   const { OPERATIONS_ACTIVATION_ACTIONS, OPERATIONS_ACTIVATION_STEPS } = await modulePromise;
-  return { schemaVersion: 1, template: false, environment: 'production', activationState: 'actual', approved: true, targetUrl: 'https://inventory.safe-link.co.kr', runId: 'p7-activation-20261012-001', releaseSha: 'a'.repeat(40), activationBundleSha256: 'c'.repeat(64), authorizedByRef: 'identity://operations-owner', approvedAt: '2026-10-12T00:00:00.000Z', expiresAt: '2026-11-01T00:00:00.000Z', allowedSteps: OPERATIONS_ACTIVATION_STEPS.map((step) => step.id), authorizedActions: [...OPERATIONS_ACTIVATION_ACTIONS], ...overrides };
+  return { schemaVersion: 1, template: false, environment: 'production', activationState: 'actual', approved: true, targetUrl: 'https://inventory.safe-link.co.kr', runId: 'p7-activation-20261012-001', releaseSha: 'a'.repeat(40), activationBundleSha256: 'c'.repeat(64), p6CutoverEvidenceSha256: 'f'.repeat(64), p6OperationsApprovalSha256: 'e'.repeat(64), approvalReceiptSha256: 'd'.repeat(64), authorizedByRef: 'identity://operations-owner', approvedAt: '2026-10-12T00:00:00.000Z', expiresAt: '2026-11-01T00:00:00.000Z', allowedSteps: OPERATIONS_ACTIVATION_STEPS.map((step) => step.id), authorizedActions: [...OPERATIONS_ACTIVATION_ACTIONS], ...overrides };
+}
+async function activationApprovalReceipt(overrides = {}) {
+  const { OPERATIONS_ACTIVATION_ACTIONS, OPERATIONS_ACTIVATION_STEPS } = await modulePromise;
+  return { schemaVersion: 1, template: false, environment: 'production', activationState: 'actual', evidenceType: 'P7_OPERATIONS_ACTIVATION_APPROVAL_RECEIPT', targetUrl: 'https://inventory.safe-link.co.kr', decision: 'APPROVED', role: 'OPERATIONS_OWNER', signedByRef: 'identity://operations-owner', signedAt: '2026-10-12T00:00:00.000Z', receiptId: 'p7-activation-approval-receipt-001', runId: 'p7-activation-20261012-001', releaseSha: 'a'.repeat(40), activationBundleSha256: 'c'.repeat(64), p6CutoverEvidenceSha256: 'f'.repeat(64), p6OperationsApprovalSha256: 'e'.repeat(64), allowedSteps: OPERATIONS_ACTIVATION_STEPS.map((step) => step.id), authorizedActions: [...OPERATIONS_ACTIVATION_ACTIONS], mfaVerified: true, blockingExceptionCount: 0, ...overrides };
 }
 async function receipt(stepId, outcome = 'PASS', overrides = {}) {
   const { OPERATIONS_ACTIVATION_STEPS, operationsActivationApprovalSha256 } = await modulePromise; const index = OPERATIONS_ACTIVATION_STEPS.findIndex((step) => step.id === stepId); const step = OPERATIONS_ACTIVATION_STEPS[index];
@@ -25,8 +29,8 @@ test('P6 actual·P7·Production GO 전에는 child·approval read·receipt write
 
 test('P6 evidence·approval·root·execute·exact confirmation을 fail-closed한다', async () => {
   const { evaluateOperationsActivationGate } = await modulePromise; const active = { p6EvidenceComplete: true, p7InProgress: true, productionGo: true };
-  assert.deepEqual(evaluateOperationsActivationGate(active).missing, ['p6CutoverEvidence', 'activationApproval', 'receiptRoot']);
-  const ready = { ...active, p6EvidencePresent: true, approvalPresent: true, receiptRootPresent: true };
+  assert.deepEqual(evaluateOperationsActivationGate(active).missing, ['p6CutoverEvidence', 'activationApproval', 'activationApprovalReceipt', 'receiptRoot']);
+  const ready = { ...active, p6EvidencePresent: true, approvalPresent: true, approvalReceiptPresent: true, receiptRootPresent: true };
   assert.equal(evaluateOperationsActivationGate(ready).status, 'PASS_OPERATIONS_ACTIVATION_DRY_RUN_READY');
   assert.equal(evaluateOperationsActivationGate({ ...ready, execute: true }).status, 'READY_WAIT_OPERATIONS_ACTIVATION_CONFIRMATION');
   assert.equal(evaluateOperationsActivationGate({ ...ready, execute: true, confirmed: true }).childProcessAllowed, true);
@@ -34,16 +38,30 @@ test('P6 evidence·approval·root·execute·exact confirmation을 fail-closed한
 
 test('approval은 exact 19 steps·10 actions·P6 release·identity·유효기간을 요구한다', async () => {
   const { validateOperationsActivationApproval } = await modulePromise;
-  assert.equal(validateOperationsActivationApproval(await approval(), { p6Document: p6(), activationBundleSha256: 'c'.repeat(64), checkedAt: '2026-10-12T01:00:00.000Z' }).approved, true);
+  const receipt = await activationApprovalReceipt();
+  assert.equal(validateOperationsActivationApproval(await approval(), { p6Document: p6(), p6EvidenceSha256: 'f'.repeat(64), activationBundleSha256: 'c'.repeat(64), approvalReceipt: receipt, approvalReceiptSha256: 'd'.repeat(64), checkedAt: '2026-10-12T01:00:00.000Z' }).approved, true);
   const altered = await approval({ releaseSha: 'b'.repeat(40), authorizedByRef: 'person', expiresAt: '2027-01-01T00:00:00.000Z', allowedSteps: [], authorizedActions: [] });
-  assert.throws(() => validateOperationsActivationApproval(altered, { p6Document: p6(), activationBundleSha256: 'c'.repeat(64), checkedAt: '2026-10-12T01:00:00.000Z' }), /releaseSha.*authorizedByRef.*approvalWindow.*allowedSteps.*authorizedActions/);
+  assert.throws(() => validateOperationsActivationApproval(altered, { p6Document: p6(), p6EvidenceSha256: 'f'.repeat(64), activationBundleSha256: 'c'.repeat(64), approvalReceipt: receipt, approvalReceiptSha256: 'd'.repeat(64), checkedAt: '2026-10-12T01:00:00.000Z' }), /releaseSha.*authorizedByRef.*approvalWindow.*allowedSteps.*authorizedActions/);
+});
+
+test('activation approval receipt는 P6 운영 서명·MFA·exact 실행 계약을 증명한다', async () => {
+  const { validateOperationsActivationApprovalReceipt } = await modulePromise;
+  assert.equal(validateOperationsActivationApprovalReceipt(await activationApprovalReceipt(), { p6Document: p6(), p6EvidenceSha256: 'f'.repeat(64), activationBundleSha256: 'c'.repeat(64), checkedAt: '2026-10-12T01:00:00.000Z' }).decision, 'APPROVED');
+  const altered = await activationApprovalReceipt({ mfaVerified: false, signedByRef: 'identity://other-owner', p6OperationsApprovalSha256: '0'.repeat(64), allowedSteps: [] });
+  assert.throws(() => validateOperationsActivationApprovalReceipt(altered, { p6Document: p6(), p6EvidenceSha256: 'f'.repeat(64), activationBundleSha256: 'c'.repeat(64), checkedAt: '2026-10-12T01:00:00.000Z' }), /signedByRef.*p6OperationsApprovalSha256.*allowedSteps.*mfaVerified/);
+});
+
+test('activation manifest는 exact approval receipt SHA와 동일 승인 내용을 요구한다', async () => {
+  const { validateOperationsActivationApproval } = await modulePromise; const receipt = await activationApprovalReceipt();
+  const altered = await approval({ approvalReceiptSha256: '0'.repeat(64), authorizedByRef: 'identity://other-owner' });
+  assert.throws(() => validateOperationsActivationApproval(altered, { p6Document: p6(), p6EvidenceSha256: 'f'.repeat(64), activationBundleSha256: 'c'.repeat(64), approvalReceipt: receipt, approvalReceiptSha256: 'd'.repeat(64), checkedAt: '2026-10-12T01:00:00.000Z' }), /approvalReceiptSha256.*approvalReceiptContent/);
 });
 
 test('approval은 현재 19단계 실행 번들의 exact SHA-256을 요구한다', async () => {
-  const { validateOperationsActivationApproval } = await modulePromise;
-  const value = await approval();
-  assert.throws(() => validateOperationsActivationApproval(value, { p6Document: p6(), activationBundleSha256: 'd'.repeat(64), checkedAt: '2026-10-12T01:00:00.000Z' }), /activationBundleSha256/);
-  assert.throws(() => validateOperationsActivationApproval(value, { p6Document: p6(), checkedAt: '2026-10-12T01:00:00.000Z' }), /activationBundleSha256/);
+  const { validateOperationsActivationApproval } = await modulePromise; const value = await approval(); const receipt = await activationApprovalReceipt();
+  const options = { p6Document: p6(), p6EvidenceSha256: 'f'.repeat(64), approvalReceipt: receipt, approvalReceiptSha256: 'd'.repeat(64), checkedAt: '2026-10-12T01:00:00.000Z' };
+  assert.throws(() => validateOperationsActivationApproval(value, { ...options, activationBundleSha256: 'd'.repeat(64) }), /activationBundleSha256/);
+  assert.throws(() => validateOperationsActivationApproval(value, options), /activationBundleSha256/);
 });
 
 test('실행 번들 SHA-256은 exact 파일 경로와 byte 변경을 구분한다', async (t) => {

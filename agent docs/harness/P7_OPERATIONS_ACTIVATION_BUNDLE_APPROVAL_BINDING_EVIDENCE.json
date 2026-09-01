@@ -18,7 +18,7 @@
   "verification": {
     "failureFirst": "18 PASS, 2 EXPECTED FAIL",
     "focusedTests": "20/20 PASS",
-    "syntaxChecks": "282/282 PASS",
+    "syntaxChecks": "283/283 PASS",
     "unitTests": "449 PASS, 1 Windows-only SKIP, 0 FAIL (450 total)",
     "harnessVerify": "PASS",
     "digestCommand": "npm.cmd run operations:activation-bundle-digest",

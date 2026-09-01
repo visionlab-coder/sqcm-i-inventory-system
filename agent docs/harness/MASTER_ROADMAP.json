@@ -352,6 +352,7 @@
           "p7-production-operations-approval-release-provenance-binding-ready",
           "p7-production-operations-child-environment-allowlist-ready",
           "p7-production-operations-activation-bundle-approval-binding-ready",
+          "p7-production-operations-activation-mfa-approval-receipt-anchor-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],

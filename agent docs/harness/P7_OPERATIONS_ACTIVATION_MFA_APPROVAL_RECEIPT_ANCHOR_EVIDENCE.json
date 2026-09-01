@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "packetId": "ACC-P7-30-OPERATIONS-ACTIVATION-MFA-APPROVAL-RECEIPT-ANCHOR",
+  "status": "EVIDENCE_COMPLETE",
+  "authority": "local-autonomous",
+  "actualOperationsActivationApproval": "NOT_RUN",
+  "actualOperationsActivation": "NOT_RUN",
+  "productionGo": false,
+  "approvalContract": {
+    "separatePhysicalReceiptRequired": true,
+    "role": "OPERATIONS_OWNER",
+    "mfaRequired": true,
+    "p6CutoverSha256Required": true,
+    "p6OperationsSignoffSha256Required": true,
+    "manifestReceiptSha256Required": true,
+    "identityRunReleaseBundleStepsActionsMustMatch": true,
+    "selfDeclaredManifestAccepted": false
+  },
+  "verification": {
+    "failureFirst": "20 PASS, 2 EXPECTED FAIL",
+    "focusedTests": "22/22 PASS",
+    "syntaxChecks": "283/283 PASS",
+    "unitTests": "451 PASS, 1 Windows-only SKIP, 0 FAIL (452 total)",
+    "harnessVerify": "PASS",
+    "dryRunStatus": "READY_WAIT_P6_ACTUAL_CUTOVER",
+    "approvalReceiptVerifiedBeforeP6Actual": false,
+    "childProcessCount": 0,
+    "externalMutationPerformed": false,
+    "protectedListeners": [
+      "1234/6632",
+      "11434/8588",
+      "18765/22716",
+      "18766/65724"
+    ]
+  },
+  "nextReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF"
+}

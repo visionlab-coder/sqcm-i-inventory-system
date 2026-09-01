@@ -34,7 +34,7 @@
 - 실제 저장소 bundle resolver → 21개 root, 42개 물리 파일
 - `npm.cmd run operations:activation-bundle-digest` → 승인 manifest용 현재 SHA-256을 읽기 전용 출력
 - `npm.cmd run operations:activation-orchestrator` → `READY_WAIT_P6_ACTUAL_CUTOVER`, bundle verification 0, child 0, receipt 0
-- `npm.cmd run check:syntax` → 282/282 PASS
+- `npm.cmd run check:syntax` → 283/283 PASS
 - `npm.cmd run test:unit` → 449 PASS, 1 Windows-only SKIP, 0 FAIL (450 total)
 - `npm.cmd run harness:verify` → PASS
 - 보호 listener → `1234/6632`, `11434/8588`, `18765/22716`, `18766/65724`

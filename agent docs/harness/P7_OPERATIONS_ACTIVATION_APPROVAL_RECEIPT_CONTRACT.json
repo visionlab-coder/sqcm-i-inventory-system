@@ -3,17 +3,18 @@
   "template": true,
   "environment": "production",
   "activationState": "actual",
-  "approved": false,
+  "evidenceType": "P7_OPERATIONS_ACTIVATION_APPROVAL_RECEIPT",
   "targetUrl": "https://inventory.safe-link.co.kr",
+  "decision": "APPROVED",
+  "role": "OPERATIONS_OWNER",
+  "signedByRef": null,
+  "signedAt": null,
+  "receiptId": null,
   "runId": null,
   "releaseSha": null,
   "activationBundleSha256": null,
   "p6CutoverEvidenceSha256": null,
   "p6OperationsApprovalSha256": null,
-  "approvalReceiptSha256": null,
-  "authorizedByRef": null,
-  "approvedAt": null,
-  "expiresAt": null,
   "allowedSteps": [
     "slo-collect",
     "slo-compile",
@@ -46,5 +47,7 @@
     "github-operations-read",
     "local-evidence-write",
     "phase-completion-state-write"
-  ]
+  ],
+  "mfaVerified": null,
+  "blockingExceptionCount": null
 }

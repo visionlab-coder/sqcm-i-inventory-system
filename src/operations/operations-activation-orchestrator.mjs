@@ -63,6 +63,8 @@ const ID_PATTERN = /^[A-Za-z0-9._:-]{8,200}$/;
 const SHA_PATTERN = /^[a-f0-9]{40}$/;
 const IDENTITY_PATTERN = /^identity:\/\/[A-Za-z0-9._/@:-]+$/;
 const DIGEST_PATTERN = /^[a-f0-9]{64}$/;
+const P6_OPERATIONS_APPROVAL_EVIDENCE_PATTERN = /^production operations approval sha256:([a-f0-9]{64})$/;
+export const OPERATIONS_ACTIVATION_APPROVAL_RECEIPT_TYPE = 'P7_OPERATIONS_ACTIVATION_APPROVAL_RECEIPT';
 const RECEIPT_ROOT_CLAIM_NAME = '.operations-activation-root.json';
 
 function waiting(status, missing = []) {
@@ -200,7 +202,7 @@ export function claimOperationsActivationReceiptRoot(root, approval, {
 
 export function evaluateOperationsActivationGate({
   p6EvidenceComplete = false, p7InProgress = false, productionGo = false,
-  p6EvidencePresent = false, approvalPresent = false, receiptRootPresent = false,
+  p6EvidencePresent = false, approvalPresent = false, approvalReceiptPresent = false, receiptRootPresent = false,
   execute = false, confirmed = false
 } = {}) {
   if (!p6EvidenceComplete) return waiting('READY_WAIT_P6_ACTUAL_CUTOVER');
@@ -209,6 +211,7 @@ export function evaluateOperationsActivationGate({
   const missing = [];
   if (!p6EvidencePresent) missing.push('p6CutoverEvidence');
   if (!approvalPresent) missing.push('activationApproval');
+  if (!approvalReceiptPresent) missing.push('activationApprovalReceipt');
   if (!receiptRootPresent) missing.push('receiptRoot');
   if (missing.length) return waiting('READY_WAIT_OPERATIONS_ACTIVATION_INPUTS', missing);
   if (!execute) return waiting('PASS_OPERATIONS_ACTIVATION_DRY_RUN_READY');
@@ -216,7 +219,38 @@ export function evaluateOperationsActivationGate({
   return { status: 'READY_EXECUTE_NEXT_OPERATIONS_ACTIVATION_STEP', missing, childProcessAllowed: true, approvalReadAllowed: true, receiptWriteAllowed: true };
 }
 
-export function validateOperationsActivationApproval(value, { p6Document, activationBundleSha256, checkedAt = new Date().toISOString() } = {}) {
+export function validateOperationsActivationApprovalReceipt(value, {
+  p6Document, p6EvidenceSha256, activationBundleSha256, checkedAt = new Date().toISOString()
+} = {}) {
+  const failures = []; const p6Approval = p6Document?.approvals?.operations ?? {};
+  const p6ApprovalMatch = P6_OPERATIONS_APPROVAL_EVIDENCE_PATTERN.exec(p6Approval?.evidence ?? '');
+  if (value?.schemaVersion !== 1 || value?.template !== false) failures.push('contract');
+  if (value?.environment !== 'production' || value?.activationState !== 'actual') failures.push('provenance');
+  if (value?.evidenceType !== OPERATIONS_ACTIVATION_APPROVAL_RECEIPT_TYPE || value?.targetUrl !== 'https://inventory.safe-link.co.kr') failures.push('typeTarget');
+  if (value?.decision !== 'APPROVED' || value?.role !== 'OPERATIONS_OWNER') failures.push('decisionRole');
+  if (!IDENTITY_PATTERN.test(value?.signedByRef ?? '') || value?.signedByRef !== p6Approval?.signedBy) failures.push('signedByRef');
+  if (!validDate(value?.signedAt) || !validDate(checkedAt) || !validDate(p6Approval?.signedAt)) failures.push('dates');
+  const signedMs = Date.parse(value?.signedAt); const checkedMs = Date.parse(checkedAt); const p6SignedMs = Date.parse(p6Approval?.signedAt);
+  if (Number.isFinite(signedMs) && Number.isFinite(checkedMs) && Number.isFinite(p6SignedMs)
+    && (signedMs > checkedMs || signedMs < p6SignedMs)) failures.push('approvalTimeline');
+  if (!ID_PATTERN.test(value?.receiptId ?? '') || !ID_PATTERN.test(value?.runId ?? '')) failures.push('identifiers');
+  if (!SHA_PATTERN.test(value?.releaseSha ?? '') || value?.releaseSha !== p6Document?.releaseSha) failures.push('releaseSha');
+  if (!DIGEST_PATTERN.test(activationBundleSha256 ?? '') || value?.activationBundleSha256 !== activationBundleSha256) failures.push('activationBundleSha256');
+  if (!DIGEST_PATTERN.test(p6EvidenceSha256 ?? '') || value?.p6CutoverEvidenceSha256 !== p6EvidenceSha256) failures.push('p6CutoverEvidenceSha256');
+  if (p6Approval?.status !== 'APPROVED' || !p6ApprovalMatch
+    || value?.p6OperationsApprovalSha256 !== p6ApprovalMatch?.[1]) failures.push('p6OperationsApprovalSha256');
+  if (JSON.stringify(value?.allowedSteps) !== JSON.stringify(OPERATIONS_ACTIVATION_STEPS.map((step) => step.id))) failures.push('allowedSteps');
+  if (JSON.stringify(value?.authorizedActions) !== JSON.stringify(OPERATIONS_ACTIVATION_ACTIONS)) failures.push('authorizedActions');
+  if (value?.mfaVerified !== true) failures.push('mfaVerified');
+  if (value?.blockingExceptionCount !== 0) failures.push('blockingExceptionCount');
+  if (failures.length) throw new Error(`OPERATIONS_ACTIVATION_APPROVAL_RECEIPT_INVALID:${[...new Set(failures)].join(',')}`);
+  return value;
+}
+
+export function validateOperationsActivationApproval(value, {
+  p6Document, p6EvidenceSha256, activationBundleSha256, approvalReceipt, approvalReceiptSha256,
+  checkedAt = new Date().toISOString()
+} = {}) {
   const failures = [];
   if (value?.schemaVersion !== 1 || value?.template !== false) failures.push('contract');
   if (value?.environment !== 'production' || value?.activationState !== 'actual' || value?.approved !== true) failures.push('provenance');
@@ -224,6 +258,10 @@ export function validateOperationsActivationApproval(value, { p6Document, activa
   if (!ID_PATTERN.test(value?.runId ?? '')) failures.push('runId');
   if (!SHA_PATTERN.test(value?.releaseSha ?? '') || value?.releaseSha !== p6Document?.releaseSha) failures.push('releaseSha');
   if (!DIGEST_PATTERN.test(activationBundleSha256 ?? '') || value?.activationBundleSha256 !== activationBundleSha256) failures.push('activationBundleSha256');
+  if (!DIGEST_PATTERN.test(p6EvidenceSha256 ?? '') || value?.p6CutoverEvidenceSha256 !== p6EvidenceSha256) failures.push('p6CutoverEvidenceSha256');
+  const p6OperationsApprovalSha256 = P6_OPERATIONS_APPROVAL_EVIDENCE_PATTERN.exec(p6Document?.approvals?.operations?.evidence ?? '')?.[1];
+  if (!DIGEST_PATTERN.test(p6OperationsApprovalSha256 ?? '') || value?.p6OperationsApprovalSha256 !== p6OperationsApprovalSha256) failures.push('p6OperationsApprovalSha256');
+  if (!DIGEST_PATTERN.test(approvalReceiptSha256 ?? '') || value?.approvalReceiptSha256 !== approvalReceiptSha256) failures.push('approvalReceiptSha256');
   if (!IDENTITY_PATTERN.test(value?.authorizedByRef ?? '')) failures.push('authorizedByRef');
   if (!validDate(value?.approvedAt) || !validDate(value?.expiresAt) || !validDate(checkedAt)) failures.push('dates');
   const checkedMs = Date.parse(checkedAt); const approvedMs = Date.parse(value?.approvedAt); const expiresMs = Date.parse(value?.expiresAt);
@@ -231,6 +269,15 @@ export function validateOperationsActivationApproval(value, { p6Document, activa
     && (approvedMs > checkedMs || expiresMs <= checkedMs || expiresMs - approvedMs > 45 * 86400000)) failures.push('approvalWindow');
   if (JSON.stringify(value?.allowedSteps) !== JSON.stringify(OPERATIONS_ACTIVATION_STEPS.map((step) => step.id))) failures.push('allowedSteps');
   if (JSON.stringify(value?.authorizedActions) !== JSON.stringify(OPERATIONS_ACTIVATION_ACTIONS)) failures.push('authorizedActions');
+  try { validateOperationsActivationApprovalReceipt(approvalReceipt, { p6Document, p6EvidenceSha256, activationBundleSha256, checkedAt }); }
+  catch { failures.push('approvalReceipt'); }
+  if (value?.authorizedByRef !== approvalReceipt?.signedByRef || value?.approvedAt !== approvalReceipt?.signedAt
+    || value?.runId !== approvalReceipt?.runId || value?.releaseSha !== approvalReceipt?.releaseSha
+    || value?.activationBundleSha256 !== approvalReceipt?.activationBundleSha256
+    || value?.p6CutoverEvidenceSha256 !== approvalReceipt?.p6CutoverEvidenceSha256
+    || value?.p6OperationsApprovalSha256 !== approvalReceipt?.p6OperationsApprovalSha256
+    || JSON.stringify(value?.allowedSteps) !== JSON.stringify(approvalReceipt?.allowedSteps)
+    || JSON.stringify(value?.authorizedActions) !== JSON.stringify(approvalReceipt?.authorizedActions)) failures.push('approvalReceiptContent');
   if (p6Document?.schemaVersion !== 1 || p6Document?.environment !== 'production' || p6Document?.activationState !== 'actual'
     || p6Document?.evidenceType !== 'P6_CUTOVER_ACTUAL' || p6Document?.status !== 'PASS'
     || p6Document?.productionGo !== true || p6Document?.targetUrl !== value?.targetUrl) failures.push('p6Evidence');
