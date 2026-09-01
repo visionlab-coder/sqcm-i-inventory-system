@@ -325,6 +325,14 @@
       "evidence": "operations:oncall-drill-runner => READY_WAIT_P6_ACTUAL_CUTOVER; message/secret/write zero; focused 7/7 PASS; approved schedule·distinct accepted owners·public HTTPS provider·deterministic role idempotency·ordered unique ACK receipts·5/15-minute limits enforced; actual drill NOT_RUN"
     },
     {
+      "id": "ACC-P7-23-PRODUCTION-OPERATIONS-SIGNOFF-INPUT-ASSEMBLER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 실제 P6 cutover와 운영 8영역 문서, 최근 OPERATIONS_OWNER 승인 receipt의 release·SHA·업무 수락을 교차검증하고 compiler 호환 signoff input을 저장소 밖에 원자적으로 1회 조립한다. 책임자 지정·서명 생성은 하지 않는다.",
+      "evidence": "operations:signoff-input-assembler => READY_WAIT_P6_ACTUAL_CUTOVER; input read/write/signature zero; focused 7/7 PASS; P6 GO·eight actual domains·immutable release·exact unique hashes·recent owner receipt·six duties·zero blocking exceptions enforced; actual signoff NOT_RUN"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

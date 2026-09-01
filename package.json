@@ -64,6 +64,7 @@
     "operations:improvement-queue-collector": "node scripts/operations-improvement-queue-collector.mjs",
     "operations:improvement-queue-evidence": "node scripts/operations-improvement-queue-evidence.mjs",
     "operations:signoff-evidence": "node scripts/operations-signoff-evidence.mjs",
+    "operations:signoff-input-assembler": "node scripts/operations-signoff-input-assembler.mjs",
     "operations:evidence-pipeline-rehearsal": "node scripts/operations-evidence-pipeline-rehearsal.mjs",
     "operations:handover-assembler": "node scripts/operations-handover-assembler.mjs",
     "operations:handover-finalizer": "node scripts/operations-handover-finalizer.mjs",
