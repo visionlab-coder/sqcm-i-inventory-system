@@ -355,6 +355,7 @@
           "p7-production-operations-activation-mfa-approval-receipt-anchor-ready",
           "p7-production-operations-activation-approval-request-assembler-ready",
           "p7-production-operations-activation-approval-manifest-assembler-ready",
+          "p7-production-operations-activation-approval-chain-read-only-preflight-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],

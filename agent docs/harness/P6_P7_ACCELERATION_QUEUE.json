@@ -405,6 +405,14 @@
       "evidence": "operations:activation-approval-manifest => READY_WAIT_P6_ACTUAL_CUTOVER; input read/write/approval/signature/message/activation zero; failure-first 5 EXPECTED FAIL then focused 5/5 PASS; exact request-receipt-P6-release-run-bundle-identity-19 steps-10 actions and 45-day expiry enforced; actual approval and activation NOT_RUN"
     },
     {
+      "id": "ACC-P7-33-OPERATIONS-ACTIVATION-APPROVAL-CHAIN-READ-ONLY-PREFLIGHT",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 P6 cutover·unsigned request·OPERATIONS_OWNER MFA receipt·실행 manifest·현재 bundle의 exact 체인을 activation 실행 전에 읽기 전용으로 검증한다. lease·child·receipt·로컬 쓰기·외부 변경은 열지 않는다.",
+      "evidence": "operations:activation-approval-preflight => READY_WAIT_P6_ACTUAL_CUTOVER; input read/lease/child/receipt/write zero; failure-first 4 EXPECTED FAIL then focused 4/4 PASS; exact request-receipt-manifest-P6-current bundle content and 45-day expiry verified before activation; actual approval and activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
