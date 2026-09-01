@@ -15,6 +15,7 @@ export function evaluateProductionIngressPublicationGate(input) {
   }
   if (input.preserveExistingTunnels !== true || input.preserveLoopbackServices !== true) failures.push('INGRESS_PRESERVATION_INVALID');
   if (!Number.isInteger(input.existingTunnelCount) || input.existingTunnelCount < 0 || input.existingTunnelCount > 1) failures.push('INGRESS_TUNNEL_IDENTITY_AMBIGUOUS');
+  if (input.dnsObservationSucceeded !== true) failures.push('INGRESS_DNS_OBSERVATION_FAILED');
   if (input.unexpectedPublicDns === true) failures.push('INGRESS_UNEXPECTED_PUBLIC_DNS_PRESENT');
   if (failures.length) return { status: 'FAIL_INGRESS_PUBLICATION_CONTRACT', failures, externalMutationPerformed: false, productionGo: false };
 

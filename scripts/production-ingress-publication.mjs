@@ -1,6 +1,5 @@
 import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs';
-import { spawn, spawnSync } from 'node:child_process';
-import { resolve4, resolveCname } from 'node:dns/promises';
+import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
@@ -11,6 +10,7 @@ import {
   classifyProductionIngressPublicationResult,
   evaluateProductionIngressPublicationGate
 } from '../src/operations/production-ingress-publication.mjs';
+import { observeProductionIngressDns, requestCloudflareJson, runIngressCommand } from '../src/operations/production-ingress-publication-runtime.mjs';
 
 const CLOUDFLARED = 'C:\\Program Files (x86)\\cloudflared\\cloudflared.exe';
 const ORIGIN_CERT = 'C:\\Users\\user\\.cloudflared\\cert.pem';
@@ -22,9 +22,9 @@ const exactFile = (value) => {
   try { return statSync(value).isFile() && !lstatSync(value).isSymbolicLink(); } catch { return false; }
 };
 const runCloudflared = (args) => {
-  const result = spawnSync(CLOUDFLARED, args, { encoding: 'utf8', windowsHide: true });
-  if (result.status !== 0) throw new Error(`cloudflared command failed: ${args.slice(0, 3).join(' ')}`);
-  return result.stdout.trim();
+  const result = runIngressCommand(CLOUDFLARED, args);
+  if (!result.ok) throw new Error(result.failure === 'COMMAND_TIMEOUT' ? 'INGRESS_CLOUDFLARED_TIMEOUT' : 'INGRESS_CLOUDFLARED_FAILED');
+  return result.stdout;
 };
 const listTunnels = () => JSON.parse(runCloudflared(['tunnel', 'list', '--output', 'json']));
 const exactTunnels = () => listTunnels().filter((item) => item.name === PRODUCTION_INGRESS_TARGET.tunnelName);
@@ -32,8 +32,7 @@ const credentialPath = (id) => path.join(CREDENTIAL_DIRECTORY, `${id}.json`);
 const expectedConfig = (id) => `tunnel: ${id}\ncredentials-file: ${credentialPath(id)}\ningress:\n  - hostname: ${PRODUCTION_INGRESS_TARGET.hostname}\n    service: ${PRODUCTION_INGRESS_TARGET.origin}\n    originRequest:\n      connectTimeout: 10s\n  - service: http_status:404\n`;
 
 async function publicDnsPublished() {
-  const [addresses, aliases] = await Promise.allSettled([resolve4(PRODUCTION_INGRESS_TARGET.hostname), resolveCname(PRODUCTION_INGRESS_TARGET.hostname)]);
-  return (addresses.status === 'fulfilled' && addresses.value.length > 0) || (aliases.status === 'fulfilled' && aliases.value.length > 0);
+  return observeProductionIngressDns({ hostname: PRODUCTION_INGRESS_TARGET.hostname });
 }
 async function originHealthy() {
   try {
@@ -42,10 +41,7 @@ async function originHealthy() {
   } catch { return false; }
 }
 async function cloudflare(token, apiPath, options = {}) {
-  const response = await fetch(`https://api.cloudflare.com/client/v4${apiPath}`, { ...options, headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json', ...(options.headers || {}) } });
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok || body.success !== true) throw new Error(`Cloudflare API request failed with HTTP ${response.status}.`);
-  return body.result;
+  return requestCloudflareJson({ url: `https://api.cloudflare.com/client/v4${apiPath}`, token, options });
 }
 function ensureRuntimeDirectory() {
   const target = path.resolve(PRODUCTION_INGRESS_TARGET.runtimeDirectory);
@@ -70,15 +66,17 @@ function startTunnel() {
 }
 function tunnelProcessAlreadyRunning() {
   const escaped = PRODUCTION_INGRESS_TARGET.configPath.replace(/'/g, "''");
-  const result = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', `Get-CimInstance Win32_Process -Filter \"Name='cloudflared.exe'\" | Where-Object { $_.CommandLine -and $_.CommandLine.Contains('${escaped}') } | Select-Object -ExpandProperty ProcessId`], { encoding: 'utf8', windowsHide: true });
-  if (result.status !== 0) throw new Error('Unable to inspect existing cloudflared processes.');
-  return result.stdout.trim().length > 0;
+  const result = runIngressCommand('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', `Get-CimInstance Win32_Process -Filter \"Name='cloudflared.exe'\" | Where-Object { $_.CommandLine -and $_.CommandLine.Contains('${escaped}') } | Select-Object -ExpandProperty ProcessId`]);
+  if (!result.ok) throw new Error(result.failure === 'COMMAND_TIMEOUT' ? 'INGRESS_PROCESS_OBSERVATION_TIMEOUT' : 'INGRESS_PROCESS_OBSERVATION_FAILED');
+  return result.stdout.length > 0;
 }
 
+async function main() {
 const execute = process.argv.includes('--execute');
 const now = new Date();
 const initialTunnels = exactTunnels();
-const initialDnsPublished = await publicDnsPublished();
+const initialDnsObservation = await publicDnsPublished();
+const initialDnsPublished = initialDnsObservation.published;
 const initialTunnelId = initialTunnels[0]?.id || null;
 const gate = evaluateProductionIngressPublicationGate({
   ...PRODUCTION_INGRESS_TARGET,
@@ -88,6 +86,7 @@ const gate = evaluateProductionIngressPublicationGate({
   tunnelCredentialPresent: initialTunnelId ? exactFile(credentialPath(initialTunnelId)) : false,
   originCertificatePresent: exactFile(ORIGIN_CERT),
   rollbackTokenReferencePresent: exactFile(process.env[TOKEN_ENV]),
+  dnsObservationSucceeded: initialDnsObservation.succeeded,
   unexpectedPublicDns: initialDnsPublished && initialTunnels.length === 0,
   execute,
   insideWindow: now >= new Date(PRODUCTION_CHANGE_WINDOW.start) && now <= new Date(PRODUCTION_CHANGE_WINDOW.end),
@@ -154,8 +153,9 @@ if (gate.status !== 'READY_INGRESS_PUBLICATION_EXECUTION') {
       records = await cloudflare(token, recordsPath);
     }
     const dnsRecordExact = records.length === 1 && records[0].type === 'CNAME' && records[0].content === expectedContent && records[0].proxied === true;
-    const classification = classifyProductionIngressPublicationResult({ configValid: true, tunnelConnected, dnsRecordExact, publicDnsPublished: await publicDnsPublished() });
-    console.log(JSON.stringify({ checkedAt: new Date().toISOString(), target: PRODUCTION_INGRESS_TARGET, tunnelId, tunnelCreated, configCreated, processStarted, dnsRecordCreated, externalMutationPerformed: tunnelCreated || configCreated || processStarted || dnsRecordCreated, preserveExistingTunnels: true, preserveLoopbackServices: true, secretValuesReadOrRecorded: false, ...classification }, null, 2));
+    const finalDnsObservation = await publicDnsPublished();
+    const classification = classifyProductionIngressPublicationResult({ configValid: true, tunnelConnected, dnsRecordExact, publicDnsPublished: finalDnsObservation.succeeded && finalDnsObservation.published });
+    console.log(JSON.stringify({ checkedAt: new Date().toISOString(), target: PRODUCTION_INGRESS_TARGET, tunnelId, tunnelCreated, configCreated, processStarted, dnsRecordCreated, dnsObservationStatus: finalDnsObservation.status, externalMutationPerformed: tunnelCreated || configCreated || processStarted || dnsRecordCreated, preserveExistingTunnels: true, preserveLoopbackServices: true, secretValuesReadOrRecorded: false, ...classification }, null, 2));
     if (classification.failures.length) process.exitCode = 1;
   } catch (error) {
     console.error(JSON.stringify({
@@ -170,3 +170,15 @@ if (gate.status !== 'READY_INGRESS_PUBLICATION_EXECUTION') {
     process.exitCode = 1;
   }
 }
+}
+
+await main().catch(() => {
+  console.error(JSON.stringify({
+    checkedAt: new Date().toISOString(),
+    status: 'FAIL_INGRESS_PUBLICATION_PREFLIGHT_OBSERVATION',
+    externalMutationPerformed: false,
+    secretValuesReadOrRecorded: false,
+    productionGo: false
+  }, null, 2));
+  process.exitCode = 1;
+});
