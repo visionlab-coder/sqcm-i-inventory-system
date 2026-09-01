@@ -58,10 +58,12 @@ function safeSegment(value) {
 }
 
 export function createRuntimeReceiptWriter({ root = PRODUCTION_CUTOVER_RECEIPT_ROOT, io = fs, clock = () => new Date() } = {}) {
+  let sequence = 0;
   return async ({ kind = 'step', gate, step = 'gate', status, exitCode = 0, stepEvidenceRefs = [] } = {}) => {
     const resolvedRoot = assertPhysicalDirectory(root, io);
     const checkedAt = clock().toISOString();
-    const fileName = `${checkedAt.replace(/[:.]/g, '-')}-${safeSegment(kind)}-${safeSegment(gate)}-${safeSegment(step)}.json`;
+    sequence += 1;
+    const fileName = `${checkedAt.replace(/[:.]/g, '-')}-${String(sequence).padStart(4, '0')}-${safeSegment(kind)}-${safeSegment(gate)}-${safeSegment(step)}.json`;
     const target = path.resolve(resolvedRoot, fileName);
     if (path.dirname(target).toLowerCase() !== resolvedRoot.toLowerCase()) throw new Error('CUTOVER_RECEIPT_PATH_ESCAPE');
     const payload = {

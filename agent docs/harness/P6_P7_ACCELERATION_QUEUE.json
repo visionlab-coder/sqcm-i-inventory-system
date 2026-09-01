@@ -101,6 +101,14 @@
       "evidence": "npm.cmd run production:cutover-process-runner-rehearsal => PASS_CUTOVER_PROCESS_RUNNER_REHEARSAL; 12 Gates/14 steps/26 receipts; focused 2 PASS 1 platform skip; repository 335 PASS 1 platform skip; Harness PASS; actual process/external mutation zero"
     },
     {
+      "id": "ACC-P6-12-CUTOVER-EXECUTION-ENTRYPOINT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "실제 실행 진입점이 변경창·exact 확인 문자열·물리 receipt root를 process handler 구성 전에 검증하고, dry-run·변경창 밖·미확인·root 실패에서는 child process와 파일 변경이 모두 0건이다.",
+      "evidence": "npm.cmd run production:cutover-execute => PASS_CUTOVER_EXECUTION_ENTRYPOINT_DRY_RUN; focused 7 PASS 1 Windows platform skip; repository 340 PASS 1 platform skip; Harness PASS; synthetic confirmed path 12 Gates/14 steps/26 receipts; actual cutover/runtime receipt/external mutation zero"
+    },
+    {
       "id": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

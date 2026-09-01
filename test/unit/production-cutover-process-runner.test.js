@@ -23,7 +23,8 @@ test('receipt는 stdout stderr Secret을 기록하지 않고 기존 파일을 �
     const raw = fs.readFileSync(outcome.evidenceRef, 'utf8');
     assert.equal(outcome.status, 'PASS');
     assert.doesNotMatch(raw, /stdout|stderr|SECRET_VALUE/);
-    await assert.rejects(() => run({ gate: 'artifact', id: 'preflight', script: 'x', args: [] }), /EEXIST/);
+    const secondWriter = createRuntimeReceiptWriter({ root, clock });
+    await assert.rejects(() => secondWriter({ kind: 'step', gate: 'artifact', step: 'preflight', status: 'PASS', exitCode: 0 }), /EEXIST/);
   } finally { fs.rmSync(root, { recursive: true }); }
 });
 

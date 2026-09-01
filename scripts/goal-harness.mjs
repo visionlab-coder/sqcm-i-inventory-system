@@ -325,6 +325,7 @@ function verify() {
       ['production-cutover-execution-rehearsal', 'npm.cmd', ['run', 'production:cutover-execution-rehearsal']],
       ['production-cutover-adapter-rehearsal', 'npm.cmd', ['run', 'production:cutover-adapter-rehearsal']],
       ['production-cutover-process-runner-rehearsal', 'npm.cmd', ['run', 'production:cutover-process-runner-rehearsal']],
+      ['production-cutover-execute-dry-run', 'npm.cmd', ['run', 'production:cutover-execute']],
       ['production-ingress-publication', 'npm.cmd', ['run', 'production:ingress-publication']],
       ['production-provider-preflight', 'npm.cmd', ['run', 'production:provider-preflight']],
       ['production-public-probe', 'npm.cmd', ['run', 'production:public-probe']],

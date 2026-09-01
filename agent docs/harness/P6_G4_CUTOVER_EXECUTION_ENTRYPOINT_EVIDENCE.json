@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-09-01T13:20:19.555Z",
+  "packet": "ACC-P6-12-CUTOVER-EXECUTION-ENTRYPOINT",
+  "status": "PASS_CUTOVER_EXECUTION_ENTRYPOINT_DRY_RUN",
+  "preconditions": [
+    "approved-change-window",
+    "exact-external-action-confirmation",
+    "physical-repository-external-receipt-root"
+  ],
+  "syntheticConfirmedPath": { "gateCount": 12, "stepCount": 14, "receiptCount": 26, "productionGo": false },
+  "focusedTests": { "passed": 7, "failed": 0, "platformSkipped": 1 },
+  "repositoryTests": { "passed": 340, "failed": 0, "platformSkipped": 1 },
+  "harnessVerify": "PASS",
+  "actualChildProcessesExecuted": false,
+  "actualRuntimeReceiptsCreated": false,
+  "actualCutoverExecuted": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false
+}

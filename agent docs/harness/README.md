@@ -39,6 +39,7 @@ npm.cmd run harness:verify
 - `production:cutover-execution-rehearsal`은 변경창·확인·handler 계약을 선검사한 뒤 12개 Gate를 순차 실행하는 상태 머신을 합성 검증한다. cutoff·첫 실패·예외는 이후 Gate를 중단하고 route-disable evidence가 없으면 fail-closed하며, 전 Gate PASS도 actual finalizer 전에는 GO가 아니다.
 - `production:cutover-adapter-rehearsal`은 12개 Gate를 14개 실제 runner step에 연결하는 구조화 adapter를 합성 검증한다. 각 step은 exact PASS 상태와 evidence reference를 모두 요구하므로 exit 0의 `READY_WAIT_*`, 빈 evidence, adapter 순서 변조를 성공으로 오인하지 않는다.
 - `production:cutover-process-runner-rehearsal`은 14개 step의 process 결과 정규화와 저장소 밖 step·Gate receipt 26건을 합성 검증한다. receipt는 stdout·stderr·환경변수·Secret 원문을 포함하지 않고 물리 디렉터리 경계와 기존 파일 비덮어쓰기를 강제하며 실제 child process나 외부 변경은 수행하지 않는다.
+- `production:cutover-execute`는 변경창 실제 실행 진입점이다. 기본 호출은 dry-run이며, `--execute`와 exact `PRODUCTION_CUTOVER_CONFIRMATION`이 모두 있고 승인 변경창 안일 때만 물리 receipt root를 준비하고 12 Gate handler를 순차 호출한다. 변경창 밖·미확인·root 실패는 handler 구성 전에 종료하므로 child process와 파일 변경이 0건이다.
 
 ## 상태 전이 규칙
 
