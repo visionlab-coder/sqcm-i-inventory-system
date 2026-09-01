@@ -1,22 +1,24 @@
 {
   "packet": "ACC-P7-39-OPERATIONS-ACTIVATION-PROCESS-RUNNER-SYNTHETIC-REHEARSAL",
   "status": "PASS_SYNTHETIC_OPERATIONS_ACTIVATION_PROCESS_RUNNER_REHEARSAL",
-  "activationBundleSha256": "0534b2fc044809d14baa1236b7342b5dfe1362c7434b6cfc9af2db8dc32816c7",
+  "activationBundleSha256": "f4b615ff493f0768dc520a46e02bb62026e85997c69065ecc100a8b29a688c1a",
   "activationStepCount": 19,
   "childProcessCount": 19,
   "activationReceiptCount": 19,
   "sequenceComplete": true,
   "finalSelectionStatus": "PASS_OPERATIONS_ACTIVATION_SEQUENCE_COMPLETE",
-  "physicalDocumentCount": 28,
+  "physicalDocumentCount": 36,
   "unexpectedEnvironmentPropagationCount": 0,
   "negativeScenarioCount": 4,
   "negativeScenarioPassCount": 4,
+  "alternateProfileScenarioCount": 2,
+  "alternateProfilePassCount": 2,
   "secretValueOccurrenceCount": 0,
   "temporaryArtifactsRetained": false,
   "focusedTests": {
     "newFailureFirstExpectedFailures": 3,
-    "combinedTotal": 27,
-    "combinedPassed": 27,
+    "combinedTotal": 31,
+    "combinedPassed": 31,
     "combinedFailed": 0
   },
   "syntaxChecks": {
@@ -24,8 +26,8 @@
     "failed": 0
   },
   "unitTests": {
-    "total": 486,
-    "passed": 485,
+    "total": 490,
+    "passed": 489,
     "failed": 0,
     "skipped": 1
   },

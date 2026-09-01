@@ -17,7 +17,7 @@ async function activationApprovalReceipt(overrides = {}) {
 async function receipt(stepId, outcome = 'PASS', overrides = {}) {
   const { OPERATIONS_ACTIVATION_STEPS, operationsActivationApprovalSha256 } = await modulePromise; const index = OPERATIONS_ACTIVATION_STEPS.findIndex((step) => step.id === stepId); const step = OPERATIONS_ACTIVATION_STEPS[index];
   const activationApproval = await approval();
-  return { schemaVersion: 2, environment: 'production', activationState: 'actual', runId: activationApproval.runId, releaseSha: activationApproval.releaseSha, approvalSha256: operationsActivationApprovalSha256(activationApproval), stepId, sequence: index + 1, attempt: 1, outcome, status: outcome === 'PASS' ? step.pass[0] : outcome === 'WAIT' ? 'READY_WAIT_INPUT' : 'FAIL_TEST', exitCode: outcome === 'FAIL' ? 1 : 0, checkedAt: '2026-10-12T01:00:00.000Z', command: { executable: 'node', script: step.script, args: [...step.args] }, stdoutSha256: 'a'.repeat(64), stderrSha256: 'b'.repeat(64), secretValuesRecorded: false, ...overrides };
+  return { schemaVersion: 2, environment: 'production', activationState: 'actual', runId: activationApproval.runId, releaseSha: activationApproval.releaseSha, approvalSha256: operationsActivationApprovalSha256(activationApproval), stepId, sequence: index + 1, attempt: 1, outcome, status: outcome === 'PASS' ? step.pass[0] : outcome === 'WAIT' ? 'READY_WAIT_INPUT' : 'FAIL_TEST', exitCode: outcome === 'FAIL' ? 1 : 0, checkedAt: '2026-10-12T01:00:00.000Z', command: { executable: 'node', script: step.script, args: [...step.args] }, executionProfile: { id: 'STANDARD', timeoutMs: 30 * 60 * 1000, maxBufferBytes: 1024 * 1024 }, stdoutSha256: 'a'.repeat(64), stderrSha256: 'b'.repeat(64), secretValuesRecorded: false, ...overrides };
 }
 
 test('P6 actual·P7·Production GO 전에는 child·approval read·receipt write를 열지 않는다', async () => {
@@ -162,6 +162,41 @@ test('동일 단계 FAIL 3회면 PAUSED하고 child 재실행을 선택하지 �
   const { selectNextOperationsActivationStep } = await modulePromise;
   const receipts = await Promise.all(Array.from({ length: 3 }, (_, index) => receipt('slo-collect', 'FAIL', { attempt: index + 1, checkedAt: `2026-10-12T01:0${index}:00.000Z` })));
   const result = selectNextOperationsActivationStep(receipts); assert.equal(result.status, 'PAUSED_OPERATIONS_ACTIVATION_STEP_FAILED_THREE_TIMES'); assert.equal(result.failedAttempts, 3);
+});
+
+test('다음 선택은 마지막 연속 동일 실패 상태와 횟수만 대체 프로필 입력으로 제공한다', async () => {
+  const { selectNextOperationsActivationStep } = await modulePromise;
+  const timeout = 'FAIL_OPERATIONS_ACTIVATION_CHILD_TIMEOUT';
+  const outputLimit = 'FAIL_OPERATIONS_ACTIVATION_CHILD_OUTPUT_LIMIT';
+  const same = await Promise.all([
+    receipt('slo-collect', 'FAIL', { attempt: 1, status: timeout }),
+    receipt('slo-collect', 'FAIL', { attempt: 2, status: timeout })
+  ]);
+  const sameSelection = selectNextOperationsActivationStep(same);
+  assert.equal(sameSelection.lastFailureStatus, timeout);
+  assert.equal(sameSelection.sameFailureCount, 2);
+
+  const mixed = [same[0], await receipt('slo-collect', 'FAIL', { attempt: 2, status: outputLimit })];
+  const mixedSelection = selectNextOperationsActivationStep(mixed);
+  assert.equal(mixedSelection.lastFailureStatus, outputLimit);
+  assert.equal(mixedSelection.sameFailureCount, 1);
+});
+
+test('세 번째 resource 실패 재시도 receipt는 계산된 대체 프로필과 정확히 일치해야 한다', async () => {
+  const { selectNextOperationsActivationStep } = await modulePromise;
+  const timeout = 'FAIL_OPERATIONS_ACTIVATION_CHILD_TIMEOUT';
+  const receipts = [
+    await receipt('slo-collect', 'FAIL', { attempt: 1, status: timeout }),
+    await receipt('slo-collect', 'FAIL', { attempt: 2, status: timeout }),
+    await receipt('slo-collect', 'PASS', {
+      attempt: 3,
+      executionProfile: { id: 'EXTENDED_TIMEOUT', timeoutMs: 4 * 60 * 60 * 1000, maxBufferBytes: 1024 * 1024 }
+    })
+  ];
+  assert.equal(selectNextOperationsActivationStep(receipts).step.id, 'slo-compile');
+  assert.throws(() => selectNextOperationsActivationStep([
+    receipts[0], receipts[1], { ...receipts[2], executionProfile: { id: 'STANDARD', timeoutMs: 30 * 60 * 1000, maxBufferBytes: 1024 * 1024 } }
+  ]), /OPERATIONS_ACTIVATION_RECEIPT_INVALID/);
 });
 
 test('receipt는 stdout/stderr 원문 없이 SHA만 원자적으로 한 번 기록한다', async (t) => {

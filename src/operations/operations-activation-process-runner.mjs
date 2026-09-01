@@ -4,6 +4,7 @@ import { extractLastJsonObject } from './production-cutover-process-runner.mjs';
 import {
   buildOperationsActivationChildEnvironment,
   buildOperationsActivationReceipt,
+  resolveOperationsActivationChildExecutionProfile,
   writeOperationsActivationReceiptOnce
 } from './operations-activation-orchestrator.mjs';
 
@@ -60,9 +61,16 @@ export function executeOperationsActivationSelection({
   }
   if (typeof spawnStep !== 'function') throw new Error('OPERATIONS_ACTIVATION_PROCESS_RUNNER_INVALID');
   const environment = buildOperationsActivationChildEnvironment(selection.step, sourceEnvironment);
+  const executionProfile = resolveOperationsActivationChildExecutionProfile(selection);
   let raw;
   try {
-    raw = spawnStep({ projectRoot, step: selection.step, environment });
+    raw = spawnStep({
+      projectRoot,
+      step: selection.step,
+      environment,
+      timeoutMs: executionProfile.timeoutMs,
+      maxBufferBytes: executionProfile.maxBufferBytes
+    });
   } catch {
     raw = { exitCode: 1, stdout: '', stderr: '', failureStatus: 'FAIL_OPERATIONS_ACTIVATION_CHILD_SPAWN_EXCEPTION' };
   }
@@ -81,7 +89,7 @@ export function executeOperationsActivationSelection({
     approval,
     step: selection.step,
     attempt: selection.attempt,
-    result: { ...execution, summary },
+    result: { ...execution, summary, executionProfile },
     checkedAt
   });
   const receiptPath = writeOperationsActivationReceiptOnce(receiptRoot, receipt, receiptWriteOptions);
@@ -90,5 +98,5 @@ export function executeOperationsActivationSelection({
     : receipt.outcome === 'WAIT'
       ? 'READY_WAIT_OPERATIONS_ACTIVATION_STEP'
       : 'FAIL_OPERATIONS_ACTIVATION_STEP';
-  return { status, receipt, receiptPath, childProcessCount: 1, environment };
+  return { status, receipt, receiptPath, childProcessCount: 1, environment, executionProfile };
 }

@@ -66,12 +66,38 @@ const DIGEST_PATTERN = /^[a-f0-9]{64}$/;
 const P6_OPERATIONS_APPROVAL_EVIDENCE_PATTERN = /^production operations approval sha256:([a-f0-9]{64})$/;
 export const OPERATIONS_ACTIVATION_APPROVAL_RECEIPT_TYPE = 'P7_OPERATIONS_ACTIVATION_APPROVAL_RECEIPT';
 const RECEIPT_ROOT_CLAIM_NAME = '.operations-activation-root.json';
+const STANDARD_CHILD_PROFILE = Object.freeze({ id: 'STANDARD', timeoutMs: 30 * 60 * 1000, maxBufferBytes: 1024 * 1024 });
 
 function waiting(status, missing = []) {
   return { status, missing, childProcessAllowed: false, approvalReadAllowed: false, receiptWriteAllowed: false };
 }
 
 function validDate(value) { return typeof value === 'string' && !Number.isNaN(Date.parse(value)); }
+
+export function resolveOperationsActivationChildExecutionProfile(selection = {}) {
+  if (selection.failedAttempts === 2 && selection.sameFailureCount === 2) {
+    if (selection.lastFailureStatus === 'FAIL_OPERATIONS_ACTIVATION_CHILD_TIMEOUT') {
+      return { ...STANDARD_CHILD_PROFILE, id: 'EXTENDED_TIMEOUT', timeoutMs: 4 * 60 * 60 * 1000 };
+    }
+    if (selection.lastFailureStatus === 'FAIL_OPERATIONS_ACTIVATION_CHILD_OUTPUT_LIMIT') {
+      return { ...STANDARD_CHILD_PROFILE, id: 'EXTENDED_OUTPUT_LIMIT', maxBufferBytes: 4 * 1024 * 1024 };
+    }
+  }
+  return { ...STANDARD_CHILD_PROFILE };
+}
+
+function operationsActivationFailureContext(stepReceipts) {
+  const failedAttempts = stepReceipts.filter((receipt) => receipt.outcome === 'FAIL').length;
+  const trailingFailures = [];
+  for (let index = stepReceipts.length - 1; index >= 0 && stepReceipts[index].outcome === 'FAIL'; index -= 1) {
+    trailingFailures.push(stepReceipts[index]);
+  }
+  const lastFailureStatus = trailingFailures[0]?.status ?? null;
+  const sameFailureCount = lastFailureStatus
+    ? trailingFailures.filter((receipt) => receipt.status === lastFailureStatus).length
+    : 0;
+  return { failedAttempts, lastFailureStatus, sameFailureCount };
+}
 
 function canonicalJson(value) {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
@@ -325,28 +351,37 @@ export function selectNextOperationsActivationStep(receipts = [], { approval = n
     const passIndexes = stepReceipts.map((receipt, index) => receipt.outcome === 'PASS' ? index : -1).filter((index) => index >= 0);
     if (passIndexes.length > 1 || (passIndexes.length === 1 && passIndexes[0] !== stepReceipts.length - 1)) failures.push('receiptTerminalPass');
     if (stepReceipts.filter((receipt) => receipt.outcome === 'FAIL').length > 3) failures.push('receiptFailureLimit');
+    for (const [index, receipt] of stepReceipts.entries()) {
+      const expectedProfile = resolveOperationsActivationChildExecutionProfile(operationsActivationFailureContext(stepReceipts.slice(0, index)));
+      if (receipt?.executionProfile?.id !== expectedProfile.id
+        || receipt?.executionProfile?.timeoutMs !== expectedProfile.timeoutMs
+        || receipt?.executionProfile?.maxBufferBytes !== expectedProfile.maxBufferBytes) failures.push('receiptExecutionProfile');
+    }
     earlierStepsPassed = earlierStepsPassed && passIndexes.length === 1;
   }
   if (failures.length) throw new Error('OPERATIONS_ACTIVATION_RECEIPT_INVALID');
   for (const step of OPERATIONS_ACTIVATION_STEPS) {
     const stepReceipts = receipts.filter((receipt) => receipt.stepId === step.id);
     if (stepReceipts.some((receipt) => receipt.outcome === 'PASS')) continue;
-    const failedAttempts = stepReceipts.filter((receipt) => receipt.outcome === 'FAIL').length;
-    if (failedAttempts >= 3) return { status: 'PAUSED_OPERATIONS_ACTIVATION_STEP_FAILED_THREE_TIMES', step, attempt: stepReceipts.length + 1, failedAttempts };
-    if (stepReceipts.length >= 9999) return { status: 'PAUSED_OPERATIONS_ACTIVATION_ATTEMPT_LIMIT', step, attempt: 10000, failedAttempts };
-    return { status: 'READY_NEXT_OPERATIONS_ACTIVATION_STEP', step, attempt: stepReceipts.length + 1, failedAttempts };
+    const { failedAttempts, lastFailureStatus, sameFailureCount } = operationsActivationFailureContext(stepReceipts);
+    const detail = { step, attempt: stepReceipts.length + 1, failedAttempts, lastFailureStatus, sameFailureCount };
+    if (failedAttempts >= 3) return { status: 'PAUSED_OPERATIONS_ACTIVATION_STEP_FAILED_THREE_TIMES', ...detail };
+    if (stepReceipts.length >= 9999) return { status: 'PAUSED_OPERATIONS_ACTIVATION_ATTEMPT_LIMIT', ...detail, attempt: 10000 };
+    return { status: 'READY_NEXT_OPERATIONS_ACTIVATION_STEP', ...detail };
   }
-  return { status: 'PASS_OPERATIONS_ACTIVATION_SEQUENCE_COMPLETE', step: null, attempt: 0, failedAttempts: 0 };
+  return { status: 'PASS_OPERATIONS_ACTIVATION_SEQUENCE_COMPLETE', step: null, attempt: 0, failedAttempts: 0, lastFailureStatus: null, sameFailureCount: 0 };
 }
 
 export function buildOperationsActivationReceipt({ approval, step, attempt, result, checkedAt = new Date().toISOString() } = {}) {
   const outcome = classifyOperationsActivationStep(step, result);
+  const executionProfile = result?.executionProfile ?? STANDARD_CHILD_PROFILE;
   return {
     schemaVersion: 2, environment: 'production', activationState: 'actual',
     runId: approval.runId, releaseSha: approval.releaseSha, approvalSha256: operationsActivationApprovalSha256(approval),
     stepId: step.id, sequence: OPERATIONS_ACTIVATION_STEPS.indexOf(step) + 1,
     attempt, outcome, status: result.summary?.status ?? 'MISSING_STATUS', exitCode: result.exitCode,
     checkedAt, command: { executable: 'node', script: step.script, args: [...step.args] },
+    executionProfile: { id: executionProfile.id, timeoutMs: executionProfile.timeoutMs, maxBufferBytes: executionProfile.maxBufferBytes },
     stdoutSha256: createHash('sha256').update(result.stdout ?? '').digest('hex'),
     stderrSha256: createHash('sha256').update(result.stderr ?? '').digest('hex'),
     secretValuesRecorded: false

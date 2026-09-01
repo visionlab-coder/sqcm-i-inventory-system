@@ -458,7 +458,7 @@
       "status": "EVIDENCE_COMPLETE",
       "authority": "local-autonomous",
       "acceptance": "실제 activation 진입점이 사용하는 process runner를 별도 모듈로 고정하고, 합성 child 결과 19개를 allowlist 환경·마지막 JSON 상태·물리 redacted receipt·sequence complete까지 연결한다. malformed JSON·exit 1·민감 stdout/stderr가 PASS 또는 원문 증거로 승격되지 않아야 하며 실제 child·외부 변경은 실행하지 않는다.",
-      "evidence": "operations:activation-process-runner-rehearsal => PASS_SYNTHETIC_OPERATIONS_ACTIVATION_PROCESS_RUNNER_REHEARSAL; 19 synthetic child calls, 19 activation receipts, 28 physical documents, sequence complete, unexpected environment propagation zero, 4/4 negative scenarios including timeout PASS-text rejection, secret occurrence zero, temporary artifacts zero; focused 27/27 PASS; actual child/activation/external mutation NOT_RUN"
+      "evidence": "operations:activation-process-runner-rehearsal => PASS_SYNTHETIC_OPERATIONS_ACTIVATION_PROCESS_RUNNER_REHEARSAL; 19 synthetic child calls, 19 activation receipts, 36 physical documents, sequence complete, unexpected environment propagation zero, 4/4 negative scenarios, bounded alternate profiles 2/2, secret occurrence zero, temporary artifacts zero; focused 31/31 PASS; actual child/activation/external mutation NOT_RUN"
     },
     {
       "id": "ACC-P7-40-OPERATIONS-ACTIVATION-CHILD-TERMINATION-DIAGNOSTICS",
@@ -467,6 +467,14 @@
       "authority": "local-autonomous",
       "acceptance": "실제 activation child의 timeout·출력 한도 초과·spawn 오류·signal 종료를 원문 오류나 stdout/stderr 없이 제한된 실패 상태로 정규화하고, PASS 형태 출력이 있어도 비정상 종료를 FAIL receipt로 고정해 동일 실패의 대체 경로 판단 근거를 보존한다.",
       "evidence": "actual Node child timeout and maxBuffer overflow normalized to bounded failure states; timeout with PASS-shaped stdout remains FAIL receipt; focused 27/27 PASS; syntax 309/309; repository unit 485 PASS 1 Windows platform skip; activation bundle 44 physical files sha256 0534b2fc044809d14baa1236b7342b5dfe1362c7434b6cfc9af2db8dc32816c7; actual Production child/external mutation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-41-OPERATIONS-ACTIVATION-RESOURCE-FAILURE-ALTERNATE-PROFILE",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "동일 timeout 또는 출력 한도 실패가 연속 2회 발생한 경우에만 세 번째 시도에 bounded 대체 실행 프로필을 한 번 적용하고, receipt에 기록된 프로필을 이전 실패 체인에서 재계산해 변조를 거부한다. 혼합·spawn·signal 실패에는 자원이나 권한을 확대하지 않는다.",
+      "evidence": "failure-first 3/3 reproduced; timeout alternate 4-hour cap and output alternate 4-MiB cap selected only at exact two same consecutive failures; physical receipts prove two FAIL then alternate PASS and profile tamper rejection; mixed/non-resource failures remain STANDARD; focused 31/31 PASS; syntax 309/309; repository unit 489 PASS 1 Windows platform skip; bundle 44 files sha256 f4b615ff493f0768dc520a46e02bb62026e85997c69065ecc100a8b29a688c1a; actual Production child/external mutation NOT_RUN"
     },
     {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",

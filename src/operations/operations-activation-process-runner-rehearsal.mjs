@@ -4,8 +4,10 @@ import path from 'node:path';
 import {
   OPERATIONS_ACTIVATION_ACTIONS,
   OPERATIONS_ACTIVATION_STEPS,
+  buildOperationsActivationReceipt,
   claimOperationsActivationReceiptRoot,
-  selectNextOperationsActivationStep
+  selectNextOperationsActivationStep,
+  writeOperationsActivationReceiptOnce
 } from './operations-activation-orchestrator.mjs';
 import { executeOperationsActivationSelection } from './operations-activation-process-runner.mjs';
 
@@ -120,11 +122,60 @@ export function runOperationsActivationProcessRunnerRehearsal({ temporaryBase = 
         && occurrences === 0) negativeScenarioPassCount += 1;
     }
 
+    const alternateProfiles = [
+      { name: 'extended-timeout', lastFailureStatus: 'FAIL_OPERATIONS_ACTIVATION_CHILD_TIMEOUT', expectedId: 'EXTENDED_TIMEOUT', expectedTimeoutMs: 4 * 60 * 60 * 1000, expectedMaxBufferBytes: 1024 * 1024 },
+      { name: 'extended-output', lastFailureStatus: 'FAIL_OPERATIONS_ACTIVATION_CHILD_OUTPUT_LIMIT', expectedId: 'EXTENDED_OUTPUT_LIMIT', expectedTimeoutMs: 30 * 60 * 1000, expectedMaxBufferBytes: 4 * 1024 * 1024 }
+    ];
+    let alternateProfilePassCount = 0;
+    for (const [index, scenario] of alternateProfiles.entries()) {
+      const alternateRoot = createClaimedRoot(root, scenario.name, approval, 5400 + index);
+      const alternateReceipts = [];
+      for (let attempt = 1; attempt <= 2; attempt += 1) {
+        const failureReceipt = buildOperationsActivationReceipt({
+          approval,
+          step: OPERATIONS_ACTIVATION_STEPS[0],
+          attempt,
+          result: {
+            exitCode: 1,
+            summary: { status: scenario.lastFailureStatus },
+            stdout: '',
+            stderr: '',
+            executionProfile: { id: 'STANDARD', timeoutMs: 30 * 60 * 1000, maxBufferBytes: 1024 * 1024 }
+          },
+          checkedAt: new Date(Date.parse('2026-09-12T01:30:00.000Z') + attempt * 60000).toISOString()
+        });
+        writeOperationsActivationReceiptOnce(alternateRoot, failureReceipt, { processId: 5450 + index * 10 + attempt });
+        alternateReceipts.push(failureReceipt);
+      }
+      const alternateSelection = selectNextOperationsActivationStep(alternateReceipts, { approval });
+      const output = executeOperationsActivationSelection({
+        projectRoot: root,
+        selection: alternateSelection,
+        approval,
+        receiptRoot: alternateRoot,
+        sourceEnvironment: { PATH: process.env.PATH ?? '' },
+        spawnStep: ({ step, timeoutMs, maxBufferBytes }) => ({
+          exitCode: timeoutMs === scenario.expectedTimeoutMs && maxBufferBytes === scenario.expectedMaxBufferBytes ? 0 : 1,
+          stdout: JSON.stringify({ status: step.pass[0] }),
+          stderr: ''
+        }),
+        checkedAt: new Date(Date.parse('2026-09-12T02:00:00.000Z') + index * 60000).toISOString(),
+        receiptWriteOptions: { processId: 5500 + index }
+      });
+      alternateReceipts.push(output.receipt);
+      const resumedSelection = selectNextOperationsActivationStep(alternateReceipts, { approval });
+      if (output.executionProfile.id === scenario.expectedId
+        && output.receipt.executionProfile.id === scenario.expectedId
+        && output.receipt.outcome === 'PASS'
+        && resumedSelection.step?.id === 'slo-compile') alternateProfilePassCount += 1;
+    }
+
     if (selection.status !== 'PASS_OPERATIONS_ACTIVATION_SEQUENCE_COMPLETE'
       || receipts.length !== OPERATIONS_ACTIVATION_STEPS.length
       || childProcessCount !== OPERATIONS_ACTIVATION_STEPS.length
       || unexpectedEnvironmentPropagationCount !== 0
       || negativeScenarioPassCount !== negativeScenarios.length
+      || alternateProfilePassCount !== alternateProfiles.length
       || secretValueOccurrenceCount !== 0) throw new Error('OPERATIONS_ACTIVATION_PROCESS_RUNNER_REHEARSAL_INVALID');
     result = {
       status: 'PASS_SYNTHETIC_OPERATIONS_ACTIVATION_PROCESS_RUNNER_REHEARSAL',
@@ -137,6 +188,8 @@ export function runOperationsActivationProcessRunnerRehearsal({ temporaryBase = 
       unexpectedEnvironmentPropagationCount,
       negativeScenarioCount: negativeScenarios.length,
       negativeScenarioPassCount,
+      alternateProfileScenarioCount: alternateProfiles.length,
+      alternateProfilePassCount,
       secretValueOccurrenceCount,
       syntheticOnly: true,
       actualActivationExecuted: false,

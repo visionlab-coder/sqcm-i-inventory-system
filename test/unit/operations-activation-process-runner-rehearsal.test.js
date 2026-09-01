@@ -15,8 +15,10 @@ test('실제 process runner 계약으로 19개 단계를 물리 receipt에 연�
   assert.equal(result.childProcessCount, 19);
   assert.equal(result.activationReceiptCount, 19);
   assert.equal(result.sequenceComplete, true);
-  assert.equal(result.physicalDocumentCount, 28);
+  assert.equal(result.physicalDocumentCount, 36);
   assert.equal(result.unexpectedEnvironmentPropagationCount, 0);
+  assert.equal(result.alternateProfileScenarioCount, 2);
+  assert.equal(result.alternateProfilePassCount, 2);
 });
 
 test('malformed JSON·exit 1·민감 stdout을 FAIL 또는 redacted receipt로 고정한다', async () => {
