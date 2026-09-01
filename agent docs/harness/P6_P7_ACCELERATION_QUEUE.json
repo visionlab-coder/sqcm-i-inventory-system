@@ -597,6 +597,14 @@
       "evidence": "operations:phase-completion defaults to READY_WAIT_ACTUAL_HANDOVER_EVIDENCE_FOR_8_OF_8; focused 4/4 PASS; terminal Harness allows 0 in-progress and 0 READY only at 8/8; actual completion NOT_RUN"
     },
     {
+      "id": "ACC-P6-35-BOUNDED-PRODUCTION-ROLLBACK-READINESS-RUNTIME",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production rollback readiness의 Docker ps·inspect·volume ls가 10초·1MiB로 제한되고 단일 container·inspect identity·불변 revision·중복 없는 volume 결과를 엄격 파싱해 timeout·과대 출력·malformed 결과를 원문 없이 fail-closed한다.",
+      "evidence": "production:rollback-readiness => PASS_ROLLBACK_READINESS_DRY_RUN_ONLY; failure-first 6/6; focused 10/10 PASS; syntax 338/338; repository unit 566 PASS 1 Windows platform skip; actual post-cutover rollback NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

@@ -352,6 +352,7 @@
           "production-log-gate-process-10s-buffer-4mib-redacted-strict-parser-pass",
           "production-nonfunctional-child-120s-1mib-env-allowlist-strict-parser-http-10s-pass",
           "production-operational-health-process-10s-buffer-4mib-strict-parser-physical-streaming-backup-pass",
+          "production-rollback-readiness-process-10s-1mib-redacted-strict-container-inspect-volume-parser-pass",
           "p7-actual-https-30-day-append-only-slo-collector-ready",
           "p7-production-exact-tls-health-readiness-observer-ready",
           "p7-production-daily-maintenance-read-only-runner-ready",
