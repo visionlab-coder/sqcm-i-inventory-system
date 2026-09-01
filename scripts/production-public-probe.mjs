@@ -1,43 +1,50 @@
-import { resolve4, resolveCname } from 'node:dns/promises';
 import { PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
 import { evaluateProductionPublicProbe, PRODUCTION_PUBLIC_EXPECTED_RESPONSES } from '../src/operations/production-public-probe.mjs';
+import { runProductionPublicProbeObservation } from '../src/operations/production-public-probe-runtime.mjs';
 
 const hostname = 'inventory.safe-link.co.kr';
-const now = new Date();
-const insideWindow = now >= new Date(PRODUCTION_CHANGE_WINDOW.start)
-  && now <= new Date(PRODUCTION_CHANGE_WINDOW.end);
 
-const settled = await Promise.allSettled([resolve4(hostname), resolveCname(hostname)]);
-const dnsPublished = settled.some((result) => result.status === 'fulfilled' && result.value.length > 0);
-const responses = {};
-
-if (dnsPublished && insideWindow) {
-  for (const path of Object.keys(PRODUCTION_PUBLIC_EXPECTED_RESPONSES)) {
-    try {
-      const response = await fetch(`https://${hostname}${path}`, {
-        redirect: 'manual',
-        signal: AbortSignal.timeout(15_000),
-        headers: { accept: path.endsWith('.png') ? 'image/png' : 'application/json' }
-      });
-      responses[path] = {
-        status: response.status,
-        tlsVerified: true,
-        finalHostname: new URL(response.url).hostname
-      };
-    } catch {
-      responses[path] = { status: null, tlsVerified: false, finalHostname: null };
-    }
+async function main() {
+  const now = new Date();
+  const insideWindow = now >= new Date(PRODUCTION_CHANGE_WINDOW.start)
+    && now <= new Date(PRODUCTION_CHANGE_WINDOW.end);
+  const observation = await runProductionPublicProbeObservation({
+    hostname,
+    expectedResponses:PRODUCTION_PUBLIC_EXPECTED_RESPONSES,
+    insideWindow
+  });
+  if (observation.status === 'FAIL_PUBLIC_PROBE_DNS_OBSERVATION') {
+    console.error(JSON.stringify({
+      checkedAt:now.toISOString(),hostname,insideWindow,
+      expectedPaths:Object.keys(PRODUCTION_PUBLIC_EXPECTED_RESPONSES),
+      status:observation.status,failures:[observation.dnsObservationStatus],pending:[],
+      dnsPublished:false,dnsObservationStatus:observation.dnsObservationStatus,
+      endpointObservationStatus:'NOT_RUN',secretValuesReadOrRecorded:false,productionGo:false
+    },null,2));
+    process.exitCode = 1;
+    return;
   }
+
+  const result = evaluateProductionPublicProbe({
+    dnsPublished:observation.dnsPublished,
+    insideWindow,
+    responses:observation.responses
+  });
+  console.log(JSON.stringify({
+    checkedAt:now.toISOString(),hostname,dnsPublished:observation.dnsPublished,insideWindow,
+    dnsObservationStatus:observation.dnsObservationStatus,
+    endpointObservationStatus:observation.endpointObservationStatus,
+    expectedPaths:Object.keys(PRODUCTION_PUBLIC_EXPECTED_RESPONSES),
+    secretValuesReadOrRecorded:false,...result
+  },null,2));
+  if (result.status.startsWith('FAIL_')) process.exitCode = 1;
 }
 
-const result = evaluateProductionPublicProbe({ dnsPublished, insideWindow, responses });
-console.log(JSON.stringify({
-  checkedAt: now.toISOString(),
-  hostname,
-  dnsPublished,
-  insideWindow,
-  expectedPaths: Object.keys(PRODUCTION_PUBLIC_EXPECTED_RESPONSES),
-  ...result
-}, null, 2));
-
-if (result.status.startsWith('FAIL_')) process.exitCode = 1;
+main().catch(() => {
+  console.error(JSON.stringify({
+    checkedAt:new Date().toISOString(),hostname,
+    status:'FAIL_PUBLIC_PROBE_OBSERVATION',failures:['PUBLIC_PROBE_OBSERVATION_FAILED'],
+    pending:[],secretValuesReadOrRecorded:false,productionGo:false
+  },null,2));
+  process.exitCode = 1;
+});
