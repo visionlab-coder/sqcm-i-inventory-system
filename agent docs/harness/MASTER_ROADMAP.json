@@ -322,6 +322,7 @@
           "p7-production-oncall-schedule-escalation-drill-evidence-compiler-ready",
           "p7-production-daily-maintenance-execution-evidence-compiler-ready",
           "p7-production-improvement-queue-triage-evidence-compiler-ready",
+          "p7-production-operations-owner-eight-domain-signoff-evidence-compiler-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],

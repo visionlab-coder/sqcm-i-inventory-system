@@ -33,6 +33,7 @@ npm.cmd run harness:verify
 - 온콜 실제 문서는 `P7_ONCALL_HANDOVER_INPUT_CONTRACT.json`의 30일 이상 Asia/Seoul 연속 당번표와 최근 7일 escalation drill을 `operations:oncall-evidence -- --compile`이 검증한다. 서로 다른 primary·escalation 책임자의 수락, 5분·15분 이내 고유 acknowledgement receipt와 역할 일치를 모두 강제하며, 담당자를 지정하거나 메시지를 보내지 않고 저장소 밖에 원자적으로 1회만 쓴다.
 - 정기점검 실제 문서는 `P7_MAINTENANCE_EXECUTION_INPUT_CONTRACT.json`의 최근 24시간 Production 일일 점검 실행을 `operations:maintenance-evidence -- --compile`이 검증한다. `docs/maintenance.md`, 불변 release SHA, 운영자 identity, frontend/API/DB health·5xx·로그인 실패 급증·백업 6종의 순서·PASS·고유 receipt, 24시간 안의 다음 일정을 모두 강제하며 실제 점검을 실행하지 않고 저장소 밖에 원자적으로 1회만 쓴다.
 - 개선 큐 실제 문서는 `P7_IMPROVEMENT_QUEUE_INPUT_CONTRACT.json`의 전용 GitHub operations Issue export를 `operations:improvement-queue-evidence -- --compile`이 검증한다. 최근 24시간 export·7일 triage와 다음 triage, triage 책임자·receipt·미추적 finding 0건, 각 open item의 고유 Issue·source·severity·상태·담당자·수용조건·30일 후속기한을 강제하며 실제 Issue를 생성·수정하지 않고 저장소 밖에 원자적으로 1회만 쓴다.
+- 운영 책임자 실제 서명 문서는 `P7_OPERATIONS_SIGNOFF_INPUT_CONTRACT.json`의 승인 export를 `operations:signoff-evidence -- --compile`이 검증한다. exact Production URL·불변 release SHA·P6 cutover 증거 SHA, 순서가 고정된 운영 8영역의 PASS·고유 SHA, 최근 24시간 OPERATIONS_OWNER identity 승인·receipt·운영 업무 6종 수락·차단 예외 0건을 모두 강제한다. 서명을 생성하거나 책임자를 지정하지 않고 저장소 밖에 원자적으로 1회만 쓴다.
 
 ## 상태 전이 규칙
 

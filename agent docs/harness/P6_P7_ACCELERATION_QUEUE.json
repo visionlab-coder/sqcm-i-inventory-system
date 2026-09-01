@@ -149,6 +149,14 @@
       "evidence": "npm.cmd run operations:improvement-queue-evidence => READY_WAIT_P6_COMPLETION_AND_IMPROVEMENT_QUEUE_EXPORT; focused 7/7 PASS; exact repository/queue·24-hour export·7-day triage·unique issue refs·owner/acceptance/next-action·blocked dependency enforced; actual issue mutation/evidence creation NOT_RUN"
     },
     {
+      "id": "ACC-P7-12-PRODUCTION-OPERATIONS-SIGNOFF-EVIDENCE-COMPILER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 완료·P7 활성화 뒤 운영 책임자의 실제 승인 export가 exact Production URL·불변 release·P6 cutover SHA·8개 운영 영역 고유 PASS SHA·전체 운영 업무 수락·차단 예외 0건을 충족할 때만 finalizer 호환 actual signoff 문서를 저장소 밖에 원자적으로 작성한다.",
+      "evidence": "npm.cmd run operations:signoff-evidence => READY_WAIT_P6_COMPLETION_AND_OPERATIONS_SIGNOFF; focused 7/7 PASS; exact target·immutable release/P6 SHA·eight ordered unique domain attestations·operations owner identity·six duties·24-hour signoff enforced; actual signature/external mutation/evidence creation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

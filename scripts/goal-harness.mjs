@@ -345,6 +345,7 @@ function verify() {
       ['operations-oncall-evidence', 'npm.cmd', ['run', 'operations:oncall-evidence']],
       ['operations-maintenance-evidence', 'npm.cmd', ['run', 'operations:maintenance-evidence']],
       ['operations-improvement-queue-evidence', 'npm.cmd', ['run', 'operations:improvement-queue-evidence']],
+      ['operations-signoff-evidence', 'npm.cmd', ['run', 'operations:signoff-evidence']],
       ['operations-handover-assembler', 'npm.cmd', ['run', 'operations:handover-assembler']],
       ['operations-handover-finalizer', 'npm.cmd', ['run', 'operations:handover-finalizer']]
     ]

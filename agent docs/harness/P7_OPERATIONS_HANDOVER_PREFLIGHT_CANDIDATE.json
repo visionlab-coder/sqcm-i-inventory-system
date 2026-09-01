@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-09-01T21:02:30+09:00",
+  "checkedAt": "2026-09-01T21:12:45+09:00",
   "template": false,
   "environment": "production",
   "activationState": "preflight",
@@ -32,6 +32,12 @@
     "command": "npm.cmd run operations:improvement-queue-evidence -- --compile",
     "inputContract": "agent docs/harness/P7_IMPROVEMENT_QUEUE_INPUT_CONTRACT.json",
     "status": "READY_WAIT_P6_COMPLETION_AND_IMPROVEMENT_QUEUE_EXPORT",
+    "actualEvidenceCreated": false
+  },
+  "operationsSignoffEvidenceAutomation": {
+    "command": "npm.cmd run operations:signoff-evidence -- --compile",
+    "inputContract": "agent docs/harness/P7_OPERATIONS_SIGNOFF_INPUT_CONTRACT.json",
+    "status": "READY_WAIT_P6_COMPLETION_AND_OPERATIONS_SIGNOFF",
     "actualEvidenceCreated": false
   }
 }
