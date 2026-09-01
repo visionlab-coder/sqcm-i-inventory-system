@@ -20,6 +20,7 @@
     "operations:preflight": "node scripts/operations-preflight.mjs",
     "operations:cutover-gate": "node scripts/cutover-gate.mjs",
     "production:cutover-preflight": "node scripts/production-cutover-preflight.mjs",
+    "production:provider-preflight": "node scripts/production-provider-preflight.mjs",
     "production:cutover-evidence": "node scripts/production-cutover-evidence-check.mjs",
     "operations:health": "node scripts/operational-health-check.mjs",
     "test:nonfunctional": "node scripts/nonfunctional-check.mjs",

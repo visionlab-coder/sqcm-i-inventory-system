@@ -19,10 +19,11 @@
 - [x] cutover template 12-gate 계약 유효, 실제 승인으로 사용 불가 확인
 - [x] `npm.cmd run production:cutover-preflight` 실시간 검사기 구현·Harness 등록
 - [x] 변경창 전·변경창 내·최종 서명 READY·로컬 손상 fail-closed 회귀 4/4 PASS
-- [x] 12개 cutover Gate 증거 후보 자동 조립: 로컬 실증 3/12 PASS
-- [x] 외부 Production 검증 9/12와 서명 3건 PENDING 유지
+- [x] Production 공급자 5종 읽기 전용 preflight PASS: PostgreSQL 저장소·Defender/경보·AI health/ready·event publisher
+- [x] 12개 cutover Gate 증거 후보 자동 조립: 로컬 실증 4/12 PASS
+- [x] 외부 Production 검증 8/12와 서명 3건 PENDING 유지
 - [x] 후보가 Production GO를 승인하지 못하는 fail-closed 검사 PASS
-- [x] 저장소 표준 구문 135개·단위 158/158 PASS(신규 Gate 회귀 7건 포함)
+- [x] 저장소 표준 구문 138개·단위 161/161 PASS(공급자 preflight 회귀 3건 포함)
 - [x] 기존 Cloudflare `sqcm-i`, `sqcm-i-inventory-staging` tunnel 각 연결 4개 보존
 - [x] 보호 포트/PID `1234/6632`, `11434/8588`, `18765/22716`, `18766/65724` 보존
 - [ ] `sqcm-i-inventory-production` 전용 tunnel — 변경창에서 생성
@@ -48,4 +49,4 @@ P6는 아직 완료가 아니며 전체 진행률은 `6/8`, `productionGo=false`
 
 자동화는 더 이상 단순 상태 조회만 하지 않는다. `production:cutover-preflight`가 원격 SHA, Docker 3서비스·포트, smoke, migration·사용자 수, 백업 복원, 보호 PID, Cloudflare tunnel, DNS와 변경창을 실시간으로 판정하고 로컬 불변식 손상 시 즉시 실패한다.
 
-`npm.cmd run production:cutover-evidence`는 G3·G4·P5 정본에서 cutover 증거 후보를 조립·대조한다. 현재 `artifact`, `backup_restore`, `migration_review`만 PASS이며 나머지 9개 Gate와 Production 역할 결과·최종 서명은 PENDING이다. staging 서명이나 loopback smoke를 공개 Production 증거로 승격하지 않는다.
+`npm.cmd run production:cutover-evidence`는 G3·G4·P5와 Production 공급자 정본에서 cutover 증거 후보를 조립·대조한다. 현재 `artifact`, `backup_restore`, `migration_review`, `provider_preflight`만 PASS이며 나머지 8개 Gate와 Production 역할 결과·최종 서명은 PENDING이다. 내부 공급자 probe나 staging 서명을 공개 Production health·smoke 증거로 승격하지 않는다.

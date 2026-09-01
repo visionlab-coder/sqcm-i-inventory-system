@@ -9,16 +9,16 @@
     "status": "READY_WAIT_CHANGE_WINDOW",
     "localBlockers": [],
     "unitTests": "4/4 PASS",
-    "repositoryRegression": "158/158 PASS",
+    "repositoryRegression": "161/161 PASS",
     "harnessRegistered": true
   },
   "cutoverEvidenceCandidate": {
     "path": "agent docs/harness/P6_G4_CUTOVER_EVIDENCE_CANDIDATE.json",
-    "localGatePassCount": 3,
-    "pendingGateCount": 9,
+    "localGatePassCount": 4,
+    "pendingGateCount": 8,
     "productionGo": false,
     "validatorStatus": "PASS_CANDIDATE_FAIL_CLOSED",
-    "validatorFailureCount": 24
+    "validatorFailureCount": 22
   },
   "source": {
     "branch": "codex/p6-ai-pc-postgres-production",
@@ -99,9 +99,10 @@
     "CUTOVER_TEMPLATE_12_GATE_CONTRACT_VALID",
     "AUTOMATED_CUTOVER_PREFLIGHT_PASS",
     "AUTOMATED_PREFLIGHT_UNIT_TESTS_4_OF_4_PASS",
-    "REPOSITORY_UNIT_TESTS_158_OF_158_PASS",
-    "CUTOVER_EVIDENCE_LOCAL_GATES_3_OF_12_PASS",
-    "CUTOVER_EVIDENCE_EXTERNAL_GATES_9_OF_12_PENDING",
+    "REPOSITORY_UNIT_TESTS_161_OF_161_PASS",
+    "PRODUCTION_PROVIDER_PREFLIGHT_PASS",
+    "CUTOVER_EVIDENCE_LOCAL_GATES_4_OF_12_PASS",
+    "CUTOVER_EVIDENCE_EXTERNAL_GATES_8_OF_12_PENDING",
     "CUTOVER_CANDIDATE_FAIL_CLOSED_VALIDATOR_PASS",
     "EXISTING_CLOUDFLARE_TUNNELS_PRESERVED",
     "PROTECTED_SERVICES_PRESERVED"

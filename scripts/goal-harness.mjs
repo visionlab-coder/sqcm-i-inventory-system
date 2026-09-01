@@ -284,6 +284,7 @@ function verify() {
         '--format', '{{json .}}'
       ], validateInventoryContainers],
       ['production-cutover-preflight', 'npm.cmd', ['run', 'production:cutover-preflight']],
+      ['production-provider-preflight', 'npm.cmd', ['run', 'production:provider-preflight']],
       ['production-cutover-evidence', 'npm.cmd', ['run', 'production:cutover-evidence']]
     ]
   };

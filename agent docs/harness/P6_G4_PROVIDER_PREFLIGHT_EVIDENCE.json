@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "gate": "provider_preflight",
+  "checkedAt": "2026-09-01T05:54:32.428Z",
+  "status": "PASS",
+  "scope": "AI PC loopback Production provider dependencies before public cutover",
+  "providers": {
+    "fileStorage": { "status": "ok", "driver": "POSTGRES" },
+    "malware": { "status": "ok", "driver": "MICROSOFT_DEFENDER_BRIDGE" },
+    "aiHealth": { "status": "ok" },
+    "aiReadiness": { "status": "ready" },
+    "eventPublisher": { "status": "ok", "driver": "HTTP_LOOPBACK" }
+  },
+  "readOnly": true,
+  "secretMaterialPrinted": false,
+  "productionGo": false,
+  "notProven": [
+    "public DNS and TLS",
+    "external Production health and smoke",
+    "Production role login, MFA and RBAC",
+    "final business, security and operations signoff"
+  ]
+}

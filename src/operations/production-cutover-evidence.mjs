@@ -16,13 +16,17 @@ const GATE_IDS = [
 const LOCAL_PASS_EVIDENCE = Object.freeze({
   artifact: 'P6_G3_AI_PC_PRODUCTION_DEPLOY_ROLLBACK_EVIDENCE.json: immutable candidate SHA and backend/frontend index digests verified',
   backup_restore: 'P6_G3_AI_PC_PRODUCTION_DEPLOY_ROLLBACK_EVIDENCE.json: logical backup SHA-256 and isolated restore 33/33 tables, migrations 25/25 verified',
-  migration_review: 'P6_G3_AI_PC_PRODUCTION_DEPLOY_ROLLBACK_EVIDENCE.json: PostgreSQL application migrations 25/25 and seeds disabled'
+  migration_review: 'P6_G3_AI_PC_PRODUCTION_DEPLOY_ROLLBACK_EVIDENCE.json: PostgreSQL application migrations 25/25 and seeds disabled',
+  provider_preflight: 'P6_G4_PROVIDER_PREFLIGHT_EVIDENCE.json: PostgreSQL storage, Defender/alert, AI health/readiness and event publisher read-only probes verified'
 });
 
-export function assembleProductionCutoverEvidence({ g3, g4, p5 }) {
+export function assembleProductionCutoverEvidence({ g3, g4, p5, provider }) {
   if (g3.status !== 'PASS') throw new Error('P6-G3 evidence must be PASS.');
   if (g4.status !== 'READY_WAIT_CHANGE_WINDOW') throw new Error('P6-G4 preflight must be READY_WAIT_CHANGE_WINDOW.');
   if (p5.status !== 'PASS_SIGNOFF_3_OF_3') throw new Error('P5 staging signoff baseline must be PASS_SIGNOFF_3_OF_3.');
+  if (provider.status !== 'PASS' || provider.readOnly !== true || provider.secretMaterialPrinted !== false) {
+    throw new Error('P6-G4 provider preflight must be read-only PASS without Secret output.');
+  }
 
   const gates = GATE_IDS.map((id) => ({
     id,
@@ -37,7 +41,8 @@ export function assembleProductionCutoverEvidence({ g3, g4, p5 }) {
     generatedFrom: {
       p6g3: 'agent docs/harness/P6_G3_AI_PC_PRODUCTION_DEPLOY_ROLLBACK_EVIDENCE.json',
       p6g4Preflight: 'agent docs/harness/P6_G4_CUTOVER_PREFLIGHT_EVIDENCE.json',
-      p5Signoff: 'agent docs/harness/P5_G2_STAGING_UAT_SIGNOFF_EVIDENCE.json'
+      p5Signoff: 'agent docs/harness/P5_G2_STAGING_UAT_SIGNOFF_EVIDENCE.json',
+      providerPreflight: 'agent docs/harness/P6_G4_PROVIDER_PREFLIGHT_EVIDENCE.json'
     },
     generatedAt: g4.checkedAt,
     releaseTag: `sha-${g3.source.candidateSha}`,
