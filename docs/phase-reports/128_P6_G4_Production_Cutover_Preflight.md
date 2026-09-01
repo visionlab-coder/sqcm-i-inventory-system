@@ -17,6 +17,8 @@
 - [x] migration 25/25, Production 사용자 0, seed 0
 - [x] 최신 논리 백업 SHA-256·restore drill 검증 상태 유지
 - [x] cutover template 12-gate 계약 유효, 실제 승인으로 사용 불가 확인
+- [x] `npm.cmd run production:cutover-preflight` 실시간 검사기 구현·Harness 등록
+- [x] 변경창 전·변경창 내·최종 서명 READY·로컬 손상 fail-closed 회귀 4/4 PASS
 - [x] 기존 Cloudflare `sqcm-i`, `sqcm-i-inventory-staging` tunnel 각 연결 4개 보존
 - [x] 보호 포트/PID `1234/6632`, `11434/8588`, `18765/22716`, `18766/65724` 보존
 - [ ] `sqcm-i-inventory-production` 전용 tunnel — 변경창에서 생성
@@ -39,3 +41,5 @@
 ## 판정
 
 P6는 아직 완료가 아니며 전체 진행률은 `6/8`, `productionGo=false`다. 다음 READY는 동일한 P6-G4다. 변경창 이전 자동 실행은 내부 health·백업·SHA·보호 서비스 드리프트만 재검사하고, 공개 tunnel·DNS·TLS는 변경하지 않는다.
+
+자동화는 더 이상 단순 상태 조회만 하지 않는다. `production:cutover-preflight`가 원격 SHA, Docker 3서비스·포트, smoke, migration·사용자 수, 백업 복원, 보호 PID, Cloudflare tunnel, DNS와 변경창을 실시간으로 판정하고 로컬 불변식 손상 시 즉시 실패한다.

@@ -4,6 +4,13 @@
   "checkedAt": "2026-09-01T14:25:18+09:00",
   "status": "READY_WAIT_CHANGE_WINDOW",
   "productionGo": false,
+  "automatedPreflight": {
+    "command": "npm.cmd run production:cutover-preflight",
+    "status": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockers": [],
+    "unitTests": "4/4 PASS",
+    "harnessRegistered": true
+  },
   "source": {
     "branch": "codex/p6-ai-pc-postgres-production",
     "headSha": "3f8b2f668d6ef9b9dc34dee7883058c10d22e04c",
@@ -81,6 +88,8 @@
     "MIGRATIONS_25_OF_25",
     "BACKUP_RESTORE_VERIFIED",
     "CUTOVER_TEMPLATE_12_GATE_CONTRACT_VALID",
+    "AUTOMATED_CUTOVER_PREFLIGHT_PASS",
+    "AUTOMATED_PREFLIGHT_UNIT_TESTS_4_OF_4_PASS",
     "EXISTING_CLOUDFLARE_TUNNELS_PRESERVED",
     "PROTECTED_SERVICES_PRESERVED"
   ],

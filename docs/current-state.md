@@ -17,6 +17,7 @@
 - `inventory.safe-link.co.kr`은 A/CNAME 모두 NXDOMAIN이며 HTTPS host를 찾을 수 없다. Cloudflare에는 기존 `sqcm-i`와 `sqcm-i-inventory-staging` tunnel만 있고 Production 전용 tunnel은 없다.
 - Production 사용자 수는 0이다. 실제 ADMIN·MANAGER·USER 로그인·MFA·RBAC와 업무·보안·운영 서명은 `NOT_RUN`이다.
 - 변경창 전에는 기존 tunnel·DNS·TLS를 변경하지 않는다. 자동 실행은 내부 health·백업·SHA·보호 서비스 드리프트를 재검사한다.
+- `npm.cmd run production:cutover-preflight`를 추가해 원격 SHA, Production 3서비스·포트, smoke, migration·사용자 수, 백업 복원, 보호 PID, Cloudflare tunnel, DNS와 변경창을 한 번에 판정한다. 회귀 4/4와 Harness 등록이 PASS했다.
 
 ## 2026-09-01 P6-G3 AI PC Production 배포·복구
 
