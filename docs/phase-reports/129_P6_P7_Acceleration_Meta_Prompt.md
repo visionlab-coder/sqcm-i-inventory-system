@@ -16,8 +16,8 @@
 - [x] AI PC loopback Production 3서비스·migration·backup·restore·rollback
 - [x] 공개 probe·로그·비기능·운영 health·rollback·서명 preflight
 - [x] 실제 역할 MFA·RBAC core smoke runner — Secret 참조 0/3으로 실제 시험은 NOT_RUN, runner·회귀 4/4 완료
-- [ ] 인증 사용자 CSRF/idempotency runner — `ACC-P6-02` READY
-- [ ] 변경창 12-Gate cutover orchestrator — `ACC-P6-03`
+- [x] 인증 사용자 CSRF/idempotency runner — 자격증명·쓰기 확인 부재로 실제 쓰기는 NOT_RUN, runner·회귀 4/4 완료
+- [ ] 변경창 12-Gate cutover orchestrator — `ACC-P6-03` READY
 - [ ] 실제 증거 finalizer — `ACC-P6-04`
 - [ ] 전용 tunnel·DNS/TLS·실사용자·경보·최종 서명 — 변경창/외부 입력
 
@@ -37,4 +37,4 @@
 
 ## 다음 READY
 
-`ACC-P6-02-AUTHENTICATED-CSRF-IDEMPOTENCY-RUNNER`: 승인된 시험계정이 있을 때 정상 CSRF 쓰기와 동일 idempotency key replay를 검증하고, 입력이 없으면 Secret을 추측하지 않는 fail-closed runner를 구현한다.
+`ACC-P6-03-CHANGE-WINDOW-CUTOVER-ORCHESTRATOR`: 20:00 시간 Gate부터 공개 probe·역할·관측·rollback cutoff·증거 finalizer까지 순서를 고정하고 dry-run에서 외부 변경 없이 실행 계획을 검증한다.

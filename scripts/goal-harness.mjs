@@ -312,6 +312,7 @@ function verify() {
       ['production-nonfunctional-baseline', 'npm.cmd', ['run', 'production:nonfunctional-baseline']],
       ['production-operational-health-baseline', 'npm.cmd', ['run', 'production:operational-health-baseline']],
       ['production-csrf-idempotency-baseline', 'npm.cmd', ['run', 'production:csrf-idempotency-baseline']],
+      ['production-authenticated-idempotency', 'npm.cmd', ['run', 'production:authenticated-idempotency']],
       ['production-rollback-readiness', 'npm.cmd', ['run', 'production:rollback-readiness']],
       ['production-signoff-preflight', 'npm.cmd', ['run', 'production:signoff-preflight']],
       ['production-cutover-evidence', 'npm.cmd', ['run', 'production:cutover-evidence']]

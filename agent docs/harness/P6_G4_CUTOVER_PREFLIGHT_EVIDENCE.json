@@ -1,7 +1,7 @@
 {
   "gate": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
   "evidenceType": "CHANGE_WINDOW_PREFLIGHT",
-  "checkedAt": "2026-09-01T17:31:00+09:00",
+  "checkedAt": "2026-09-01T17:38:00+09:00",
   "status": "READY_WAIT_CHANGE_WINDOW",
   "productionGo": false,
   "automatedPreflight": {
@@ -9,7 +9,7 @@
     "status": "READY_WAIT_CHANGE_WINDOW",
     "localBlockers": [],
     "unitTests": "4/4 PASS",
-    "repositoryRegression": "184/184 PASS",
+    "repositoryRegression": "188/188 PASS",
     "harnessRegistered": true
   },
   "cutoverEvidenceCandidate": {
@@ -87,6 +87,16 @@
     "checks": ["missing CSRF token 403/CSRF_INVALID", "no session creation", "idempotency columns 10/10", "unique user/key index", "stuck/invalid status zero"],
     "actualAuthenticatedIdempotentWriteReplay": "NOT_RUN"
   },
+  "authenticatedCsrfIdempotencyRunnerAutomation": {
+    "command": "npm.cmd run production:authenticated-idempotency",
+    "status": "READY_WAIT_ADMIN_CREDENTIAL_AND_WRITE_CONFIRMATION",
+    "unitTests": "4/4 PASS",
+    "checks": ["missing CSRF 403/CSRF_INVALID", "first write 201", "same-key replay", "different-payload 409", "database single row and audit", "cleanup zero", "logout"],
+    "credentialReferencePresent": false,
+    "writeConfirmationPresent": false,
+    "actualAuthenticatedCsrfIdempotency": "NOT_RUN",
+    "secretValuesReadOrRecorded": false
+  },
   "rollbackReadinessAutomation": {
     "command": "npm.cmd run production:rollback-readiness",
     "status": "PASS_ROLLBACK_READINESS_DRY_RUN_ONLY",
@@ -107,7 +117,7 @@
   },
   "source": {
     "branch": "codex/p6-ai-pc-postgres-production",
-    "headSha": "90b261edb038275d163e37d273922d328f2dc84f",
+    "headSha": "a13c10ccc1bff980cd3797819d3b6576bf3ccf30",
     "remoteShaMatched": true,
     "deployedCandidateSha": "e238ab8dab7f4729298ceb7ecc0f874a4a08829a"
   },
@@ -184,7 +194,7 @@
     "CUTOVER_TEMPLATE_12_GATE_CONTRACT_VALID",
     "AUTOMATED_CUTOVER_PREFLIGHT_PASS",
     "AUTOMATED_PREFLIGHT_UNIT_TESTS_4_OF_4_PASS",
-    "REPOSITORY_UNIT_TESTS_184_OF_184_PASS",
+    "REPOSITORY_UNIT_TESTS_188_OF_188_PASS",
     "PRODUCTION_PROVIDER_PREFLIGHT_PASS",
     "PUBLIC_DNS_TLS_HEALTH_READINESS_PROBE_AUTOMATION_READY",
     "LOGS_5XX_OUTBOX_BASELINE_AND_CUTOVER_GATE_AUTOMATION_READY",
@@ -193,6 +203,7 @@
     "NONFUNCTIONAL_LOOPBACK_BASELINE_AND_PUBLIC_RECHECK_AUTOMATION_READY",
     "OPERATIONAL_HEALTH_LOOPBACK_BASELINE_AND_POST_CUTOVER_RECHECK_AUTOMATION_READY",
     "CSRF_NEGATIVE_AND_IDEMPOTENCY_SCHEMA_BASELINE_AUTOMATION_READY",
+    "AUTHENTICATED_CSRF_IDEMPOTENCY_WRITE_REPLAY_RUNNER_READY",
     "ROLLBACK_READINESS_DRY_RUN_AUTOMATION_READY",
     "UAT_SIGNOFF_REFERENCE_PREFLIGHT_AUTOMATION_READY",
     "CUTOVER_EVIDENCE_LOCAL_GATES_4_OF_12_PASS",

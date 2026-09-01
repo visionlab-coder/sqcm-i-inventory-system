@@ -295,6 +295,7 @@
           "nonfunctional-loopback-baseline-and-public-recheck-automation-ready",
           "operational-health-loopback-baseline-and-post-cutover-recheck-automation-ready",
           "csrf-negative-and-idempotency-schema-baseline-automation-ready",
+          "authenticated-csrf-idempotency-write-replay-runner-ready",
           "rollback-readiness-dry-run-automation-ready",
           "uat-signoff-reference-preflight-automation-ready",
           "cutover-evidence-local-gates-4-of-12-pass",
