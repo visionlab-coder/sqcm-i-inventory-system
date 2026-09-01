@@ -25,7 +25,9 @@ export function evaluateProductionCutoverPreflight(observation) {
   if (observation.applicationMigrations !== 25) localBlockers.push('APPLICATION_MIGRATION_COUNT_MISMATCH');
   if (!observation.backupRestoreVerified) localBlockers.push('BACKUP_RESTORE_NOT_VERIFIED');
   if (!observation.protectedServicesPreserved) localBlockers.push('PROTECTED_SERVICE_CHANGED');
-  if (!REQUIRED_TUNNELS.every((name) => (tunnelMap.get(name) || 0) > 0)) {
+  if (observation.tunnelObservationSucceeded !== true) {
+    localBlockers.push('CLOUDFLARE_TUNNEL_OBSERVATION_FAILED');
+  } else if (!REQUIRED_TUNNELS.every((name) => (tunnelMap.get(name) || 0) > 0)) {
     localBlockers.push('EXISTING_TUNNEL_NOT_PRESERVED');
   }
 

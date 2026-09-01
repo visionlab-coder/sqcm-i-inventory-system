@@ -1,13 +1,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { execFileSync } from 'node:child_process';
 import { resolve4, resolveCname } from 'node:dns/promises';
 import { fileURLToPath } from 'node:url';
 import { evaluateProductionCutoverPreflight, PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
+import { observeCloudflareTunnels, runPreflightCommand } from '../src/operations/production-cutover-preflight-runtime.mjs';
 
 const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const run = (command, args) => execFileSync(command, args, { cwd: projectDir, encoding: 'utf8', windowsHide: true }).trim();
+const run = (command, args) => {
+  const result = runPreflightCommand(command, args, { cwd: projectDir });
+  if (!result.ok) throw new Error(`PREFLIGHT_${result.failure}`);
+  return result.stdout;
+};
 const parseLines = (text) => text.split(/\r?\n/).filter(Boolean).map((line) => JSON.parse(line));
 
 const headSha = run('git', ['rev-parse', 'HEAD']);
@@ -82,8 +86,8 @@ try {
 }
 
 const cloudflared = 'C:\\Program Files (x86)\\cloudflared\\cloudflared.exe';
-const tunnelList = JSON.parse(run(cloudflared, ['tunnel', 'list', '--output', 'json']));
-const tunnels = tunnelList.map((tunnel) => ({ name: tunnel.name, connections: (tunnel.connections || []).length }));
+const tunnelObservation = observeCloudflareTunnels({ cloudflared, cwd: projectDir });
+const tunnels = tunnelObservation.tunnels;
 const actualEvidencePath = path.join(projectDir, 'agent docs', 'harness', 'P6_G4_PRODUCTION_CUTOVER_SIGNOFF_EVIDENCE.json');
 
 const observation = {
@@ -98,6 +102,7 @@ const observation = {
   productionUsers: databaseCounts[1],
   backupRestoreVerified: backupManifest.restoreVerified === true,
   protectedServicesPreserved,
+  tunnelObservationSucceeded: tunnelObservation.succeeded,
   tunnels,
   productionTunnelExists: tunnels.some((tunnel) => tunnel.name === 'sqcm-i-inventory-production' && tunnel.connections > 0),
   dnsPublished,
@@ -125,7 +130,8 @@ console.log(JSON.stringify({
     hostname: 'inventory.safe-link.co.kr',
     dnsPublished,
     productionTunnelExists: observation.productionTunnelExists,
-    existingTunnels: tunnels.map((tunnel) => tunnel.name)
+    existingTunnels: tunnels.map((tunnel) => tunnel.name),
+    tunnelObservationStatus: tunnelObservation.status
   },
   protectedServicesPreserved,
   localBlockers: result.localBlockers,

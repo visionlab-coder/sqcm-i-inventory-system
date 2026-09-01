@@ -19,6 +19,7 @@ const readyObservation = (overrides = {}) => ({
   productionUsers: 0,
   backupRestoreVerified: true,
   protectedServicesPreserved: true,
+  tunnelObservationSucceeded: true,
   tunnels: [
     { name: 'sqcm-i', connections: 4 },
     { name: 'sqcm-i-inventory-staging', connections: 4 }
@@ -67,4 +68,15 @@ test('로컬 불변식 손상은 변경창과 무관하게 fail closed 한다', 
   assert.equal(result.status, 'BLOCKED_LOCAL_PREFLIGHT');
   assert.ok(result.localBlockers.includes('PRODUCTION_THREE_SERVICES_NOT_HEALTHY'));
   assert.ok(result.localBlockers.includes('PROTECTED_SERVICE_CHANGED'));
+});
+
+test('Cloudflare tunnel 관측 실패를 보존 성공으로 승격하지 않는다', async () => {
+  const { evaluateProductionCutoverPreflight } = await preflightModule;
+  const result = evaluateProductionCutoverPreflight(readyObservation({
+    tunnelObservationSucceeded: false,
+    tunnels: []
+  }));
+  assert.equal(result.status, 'BLOCKED_LOCAL_PREFLIGHT');
+  assert.ok(result.localBlockers.includes('CLOUDFLARE_TUNNEL_OBSERVATION_FAILED'));
+  assert.equal(result.productionGo, false);
 });
