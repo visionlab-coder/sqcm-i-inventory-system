@@ -340,6 +340,7 @@
           "change-window-five-reference-unarmed-input-readiness-gate-ready",
           "p7-actual-https-30-day-append-only-slo-collector-ready",
           "p7-production-exact-tls-health-readiness-observer-ready",
+          "p7-production-daily-maintenance-read-only-runner-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],

@@ -57,6 +57,7 @@
     "operations:certificate-observer": "node scripts/operations-certificate-observer.mjs",
     "operations:oncall-evidence": "node scripts/operations-oncall-evidence.mjs",
     "operations:maintenance-evidence": "node scripts/operations-maintenance-evidence.mjs",
+    "operations:maintenance-runner": "node scripts/operations-maintenance-runner.mjs",
     "operations:improvement-queue-evidence": "node scripts/operations-improvement-queue-evidence.mjs",
     "operations:signoff-evidence": "node scripts/operations-signoff-evidence.mjs",
     "operations:evidence-pipeline-rehearsal": "node scripts/operations-evidence-pipeline-rehearsal.mjs",
