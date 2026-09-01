@@ -241,19 +241,27 @@
       "name": "Production 전환",
       "status": "in-progress",
       "readyWork": {
-        "id": "P6-G2-RELEASE-CANDIDATE-GIT-CI-AND-IMMUTABLE-IMAGES",
-        "description": "현재 로컬 변경을 정확한 allowlist로 commit·push하고 GitHub-hosted CI와 backend/frontend 불변 이미지 digest를 동일 SHA로 검증한다.",
+        "id": "P6-G3-AI-PC-PRODUCTION-SECRETS-MIGRATION-DEPLOY-AND-ROLLBACK",
+        "description": "승인된 변경창에서 AI PC 전용 Production Secret을 저장하고 digest 고정 이미지를 배포한 뒤 migration, health, smoke, 인증, backup 및 rollback을 실제 증거로 검증한다.",
         "authority": "explicit-approval",
-        "nextGate": "P6-G3-AI-PC-PRODUCTION-SECRETS-MIGRATION-DEPLOY-AND-ROLLBACK"
+        "nextGate": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF"
       },
       "lastEvidence": {
         "date": "2026-09-01",
-      "result": "PASS_LOCAL_TOPOLOGY_CONTRACT_NOT_DEPLOYED",
-      "checks": [
+        "result": "PASS_RELEASE_CANDIDATE_CI_AND_IMMUTABLE_IMAGES",
+        "checks": [
+        "p6-g2-explicit-approval-recorded",
+        "exact-allowlist-47-files-secret-signature-zero",
+        "candidate-sha-a73dda495e8365612c24cd9c9f4070a9aa8548e6",
+        "remote-branch-sha-match",
+        "draft-pr-23-open-not-merged",
+        "github-hosted-quality-run-33466804085-success",
+        "release-images-run-33466895762-success-same-sha",
+        "backend-index-digest-sha256-8de4fb1545deb2fd2bdbfbf1c7752709921f8d11914cba79d01ccecb915efd3d",
+        "frontend-index-digest-sha256-dc41a39f871289a3382e1c48bb263b656158ca92b7a94da37f111519a8e0f49d",
+        "backend-frontend-linux-amd64-linux-arm64-manifests-pass",
+        "github-provenance-attestations-created",
         "p5-prerequisite-complete-19-of-19-signoff-3-of-3",
-        "candidate-0d892f0b-remote-sha-match-local-free-postgres-changes-uncommitted",
-        "current-candidate-open-pr-zero",
-        "current-candidate-workflow-run-zero",
         "supabase-organization-sqcm-i-inventory-free-verified",
         "staging-project-iuoljos-active-healthy-singapore",
         "supabase-pro-checkout-cancelled-no-charge-free-plan-preserved",
@@ -271,7 +279,7 @@
         "syntax-128-pass-unit-149-of-149-pass",
         "application-migration-25-of-25-postgres-contract-pass",
         "ai-pc-production-compose-ui-harness-verify-pass",
-        "release-images-amd64-arm64-local-contract-pass-remote-not-run",
+        "release-images-amd64-arm64-remote-manifest-pass",
         "oci-cli-config-terraform-absent",
         "production-deploy-precheck-free-postgres-pass",
         "docker-compose-exactly-three-services-pass",
@@ -284,7 +292,7 @@
         "self-hosted-production-workflow-zero",
         "production-go-false"
       ],
-      "report": "docs/phase-reports/125_P6_G1_AI_PC_Local_PostgreSQL_Production_Topology.md"
+      "report": "docs/phase-reports/126_P6_G2_Release_Candidate_Git_CI_Immutable_Images.md"
       },
       "completionGate": "P3~P5 PASS와 승인된 cutover·rollback 증거"
     },

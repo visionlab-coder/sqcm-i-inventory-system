@@ -3,12 +3,21 @@
 기준일: 2026-09-01
 
 릴리스 기준 브랜치: `main`
-현재 작업 브랜치: `codex/fix-sidebar-accessibility` (`0d892f0b131d95524512e3658775243e50c912ff`)
+현재 작업 브랜치: `codex/p6-ai-pc-postgres-production` (배포 후보 `a73dda495e8365612c24cd9c9f4070a9aa8548e6`)
 최신 릴리스 기준 main: `79a12924106b378d2337898c76a4dd431634b78d`
 
-상태: **P5 staging UAT 19/19·서명 3/3 완료 / P6-G1 AI PC PostgreSQL Production 격리 토폴로지 PASS / P6-G2 Git·CI READY / Production NO-GO**
+상태: **P5 staging UAT 19/19·서명 3/3 완료 / P6-G2 후보 Git·CI·불변 이미지 PASS / P6-G3 Production 배포 READY / Production NO-GO**
 
 이 문서는 현재 상태의 단일 정본이다. 과거 Phase 보고서의 당시 수치와 설계 결정은 역사 증거로 보존하되 현재 판정에는 이 문서와 실제 코드·테스트 결과를 우선한다.
+
+## 2026-09-01 P6-G2 GitHub-hosted CI·불변 이미지
+
+- 정확한 47파일 allowlist를 후보 SHA `a73dda495e8365612c24cd9c9f4070a9aa8548e6`로 commit·push했고 원격 브랜치와 일치한다. 금지 파일과 Secret 서명은 각각 0건이다.
+- Draft PR [#23](https://github.com/visionlab-coder/sqcm-i-inventory-system/pull/23)을 생성했다. main merge·release는 실행하지 않았다.
+- 후보 SHA의 GitHub-hosted `quality #45` run `33466804085`와 `release-images #9` run `33466895762`가 성공했다.
+- backend OCI index digest는 `sha256:8de4fb1545deb2fd2bdbfbf1c7752709921f8d11914cba79d01ccecb915efd3d`, frontend는 `sha256:dc41a39f871289a3382e1c48bb263b656158ca92b7a94da37f111519a8e0f49d`다. 둘 다 `linux/amd64`, `linux/arm64`와 provenance attestation을 포함한다.
+- staging 3서비스와 보호 포트/PID는 보존됐다. Production Secret·migration·배포·DNS/TLS는 0이며 `productionGo=false`다.
+- 다음 READY는 `P6-G3-AI-PC-PRODUCTION-SECRETS-MIGRATION-DEPLOY-AND-ROLLBACK`이다.
 
 ## 2026-09-01 P6-G1 무료 PostgreSQL Production 오버레이
 
@@ -131,9 +140,9 @@
 
 P5는 migration 025와 staging backend 재배포 후 **19 PASS·0 FAIL·0 PENDING**, Critical/High 0, 업무·보안·운영 전자서명 3/3으로 증거 있는 완료다. 정상 PNG·EICAR 차단·MFA·승인·반납·구매·provider receipt와 USER Supabase SSO·390×844 모바일 핵심 화면·로그아웃이 통과했다.
 
-P6-G1 재검증으로 staging 후보 미고정 공백은 해소됐다. `0d892f0b…`가 commit·push되어 원격과 일치하지만 open PR·current SHA CI는 0이고 신규 불변 이미지 digest도 없다. Production manifest·actual cutover evidence·self-hosted Production workflow는 모두 0이며 template gate는 정상 fail-closed다.
+P6-G2에서 후보 `a73dda495e…`의 원격 일치, Draft PR #23, GitHub-hosted quality와 release-images 성공, backend/frontend 다중 아키텍처 digest를 같은 SHA로 확보했다. main merge·release는 실행하지 않았다.
 
-현재 유일한 READY는 **P6-G2-RELEASE-CANDIDATE-GIT-CI-AND-IMMUTABLE-IMAGES**다. 현재 로컬 변경을 정확한 allowlist로 commit·push하고 GitHub-hosted CI와 동일 SHA의 backend/frontend 이미지 digest를 검증해야 한다. 새 Git 외부 변경 승인이 필요하며 Production Secret·migration·컨테이너·DNS/TLS는 아직 없으므로 Production은 `NO-GO`다.
+현재 유일한 READY는 **P6-G3-AI-PC-PRODUCTION-SECRETS-MIGRATION-DEPLOY-AND-ROLLBACK**이다. Production 전용 Secret과 digest 고정 이미지를 사용해 migration·health·smoke·인증·backup·rollback을 승인된 변경창에서 실제 검증해야 한다. Production Secret·migration·컨테이너·DNS/TLS는 아직 없으므로 Production은 `NO-GO`다.
 # Phase 74 불변 이미지 릴리스 게이트 (2026-08-15)
 
 - GitHub Actions 외부 참조를 공식 commit SHA로 고정하고, main의 정확한 SHA로 frontend/backend 이미지를 GHCR에 발행하는 workflow를 추가했다.
