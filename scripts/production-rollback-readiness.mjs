@@ -1,35 +1,33 @@
 import fs from 'node:fs';
-import { spawnSync } from 'node:child_process';
 import { PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
 import { evaluateProductionRollbackReadiness } from '../src/operations/production-rollback-readiness.mjs';
+import {
+  parseRollbackContainerId,
+  parseRollbackInspect,
+  parseRollbackVolumes,
+  runRollbackReadinessDocker
+} from '../src/operations/production-rollback-readiness-runtime.mjs';
 
 const g3 = JSON.parse(fs.readFileSync('agent docs/harness/P6_G3_AI_PC_PRODUCTION_DEPLOY_ROLLBACK_EVIDENCE.json', 'utf8'));
 
 function composeContainer(service) {
-  const result = spawnSync('docker', [
+  const result = runRollbackReadinessDocker([
     'ps', '--filter', 'label=com.docker.compose.project=seowon-inventory-production',
     '--filter', `label=com.docker.compose.service=${service}`, '--format', '{{.ID}}'
-  ], { encoding: 'utf8', windowsHide: true });
-  const ids = result.stdout.trim().split(/\r?\n/).filter(Boolean);
-  if (result.status !== 0 || ids.length !== 1) throw new Error(`Exactly one running Production ${service} container is required.`);
-  return ids[0];
+  ]);
+  return parseRollbackContainerId(result.stdout);
 }
 
 function inspect(service) {
-  const result = spawnSync('docker', ['inspect', composeContainer(service)], { encoding: 'utf8', windowsHide: true });
-  if (result.status !== 0) throw new Error(`Unable to inspect Production ${service}.`);
-  const [container] = JSON.parse(result.stdout);
-  return {
-    revision: container.Config.Labels?.['org.opencontainers.image.revision'] || '',
-    image: container.Config.Image
-  };
+  const containerId = composeContainer(service);
+  const result = runRollbackReadinessDocker(['inspect', containerId]);
+  return parseRollbackInspect(result.stdout, containerId);
 }
 
-const volumeResult = spawnSync('docker', [
+const volumeResult = runRollbackReadinessDocker([
   'volume', 'ls', '--filter', 'label=com.docker.compose.project=seowon-inventory-production', '--format', '{{.Name}}'
-], { encoding: 'utf8', windowsHide: true });
-if (volumeResult.status !== 0) throw new Error('Unable to list Production volumes.');
-const actualVolumes = volumeResult.stdout.trim().split(/\r?\n/).filter(Boolean);
+]);
+const actualVolumes = parseRollbackVolumes(volumeResult.stdout);
 const backend = inspect('backend');
 const frontend = inspect('frontend');
 const observation = {
