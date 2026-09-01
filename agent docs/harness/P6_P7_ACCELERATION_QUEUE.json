@@ -413,6 +413,14 @@
       "evidence": "operations:activation-approval-preflight => READY_WAIT_P6_ACTUAL_CUTOVER; input read/lease/child/receipt/write zero; failure-first 4 EXPECTED FAIL then focused 4/4 PASS; exact request-receipt-manifest-P6-current bundle content and 45-day expiry verified before activation; actual approval and activation NOT_RUN"
     },
     {
+      "id": "ACC-P7-34-OPERATIONS-ACTIVATION-APPROVAL-PIPELINE-SYNTHETIC-REHEARSAL",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "request 조립·합성 MFA receipt·manifest 조립·read-only preflight를 저장소 밖 임시 물리 파일 4개로 종단 연결하고 request·receipt·manifest 변조를 모두 차단한 뒤 임시 산출물을 제거한다. 결과를 실제 승인·activation·Production GO로 승격하지 않는다.",
+      "evidence": "operations:activation-approval-pipeline-rehearsal => PASS_SYNTHETIC_OPERATIONS_ACTIVATION_APPROVAL_PIPELINE_REHEARSAL; 4 stages, 4 physical documents, 3/3 tamper rejection, temporary artifacts zero; failure-first 3 EXPECTED FAIL then focused 3/3 PASS; actual approval/activation/external mutation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

@@ -74,6 +74,7 @@
     "operations:activation-approval-request": "node scripts/operations-activation-approval-request.mjs",
     "operations:activation-approval-manifest": "node scripts/operations-activation-approval-manifest.mjs",
     "operations:activation-approval-preflight": "node scripts/operations-activation-approval-chain-preflight.mjs",
+    "operations:activation-approval-pipeline-rehearsal": "node scripts/operations-activation-approval-pipeline-rehearsal.mjs",
     "operations:health": "node scripts/operational-health-check.mjs",
     "test:nonfunctional": "node scripts/nonfunctional-check.mjs",
     "test:recovery": "node scripts/dependency-recovery-check.mjs",
