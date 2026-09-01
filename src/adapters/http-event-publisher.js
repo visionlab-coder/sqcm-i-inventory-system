@@ -12,8 +12,14 @@ function createHttpEventPublisher(config, fetchImpl = fetch) {
   const isStagingLoopback = config.env === 'staging'
     && endpoint?.protocol === 'http:'
     && stagingLoopbackHosts.has(endpoint.hostname);
-  if ((!isHttps && !isStagingLoopback) || !apiKey) {
-    throw new Error('HTTPS event publisher URL and credential are required; staging permits authenticated loopback HTTP only.');
+  const isAiPcProductionLoopback = config.env === 'production'
+    && config.fileStorageDriver === 'postgres'
+    && config.authProvider === 'local'
+    && config.localAuthMfaRequired === true
+    && endpoint?.protocol === 'http:'
+    && stagingLoopbackHosts.has(endpoint.hostname);
+  if ((!isHttps && !isStagingLoopback && !isAiPcProductionLoopback) || !apiKey) {
+    throw new Error('HTTPS event publisher URL and credential are required; staging loopback HTTP only and authenticated AI PC production loopback are permitted.');
   }
 
   async function request(body = null) {

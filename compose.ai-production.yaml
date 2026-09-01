@@ -10,9 +10,43 @@ services:
     ports: !override []
     cpus: "2.0"
     mem_limit: 2g
+    environment:
+      OPERATIONAL_ADAPTER_MODULE: /app/src/adapters/ai-pc-production-operational-adapters.js
+      AI_PROVIDER_URL: http://host.docker.internal:18766/recommend
+      AI_PROVIDER_OCR_URL: http://host.docker.internal:18766/ocr
+      AI_PROVIDER_HEALTH_URL: http://host.docker.internal:18766/health
+      AI_PROVIDER_READY_URL: http://host.docker.internal:18766/ready
+      AI_PROVIDER_API_KEY: ""
+      AI_PROVIDER_API_KEY_FILE: /run/secrets/ai_provider_api_key
+      AI_PROVIDER_MODEL: Qwen2.5-7B-Instruct-GGUF-Q4_K_M@bb5d59e
+      AI_PROVIDER_NAME: sqcmi-inventory-ai
+      AI_PROVIDER_TIMEOUT_MS: "120000"
+      MALWARE_SCANNER_URL: http://host.docker.internal:18766/security/scan
+      MALWARE_SCANNER_HEALTH_URL: http://host.docker.internal:18766/security/health
+      MALWARE_SCANNER_API_KEY: ""
+      MALWARE_SCANNER_API_KEY_FILE: /run/secrets/ai_provider_api_key
+      MALWARE_SCANNER_TIMEOUT_MS: "30000"
+      ALERTING_URL: http://host.docker.internal:18766/alerts
+      ALERTING_API_KEY: ""
+      ALERTING_API_KEY_FILE: /run/secrets/ai_provider_api_key
+      EVENT_PUBLISHER_URL: http://host.docker.internal:18766/events/publish
+      EVENT_PUBLISHER_API_KEY: ""
+      EVENT_PUBLISHER_API_KEY_FILE: /run/secrets/ai_provider_api_key
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - type: volume
+        source: production-ai-provider-secret
+        target: /run/secrets
+        read_only: true
 
   frontend:
     ports: !override
       - "127.0.0.1:${FRONTEND_PORT:-3300}:80"
     cpus: "0.50"
     mem_limit: 256m
+
+volumes:
+  production-ai-provider-secret:
+    external: true
+    name: sqcmi-inventory-production-ai-secret
