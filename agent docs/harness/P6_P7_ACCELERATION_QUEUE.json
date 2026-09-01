@@ -229,6 +229,14 @@
       "evidence": "failure-first 5/5 reproduced; focused 16/16 PASS; production:authenticated-idempotency dry-run READY_WAIT_ADMIN_CREDENTIAL_AND_WRITE_CONFIRMATION with HTTP/process/DB mutation zero; syntax 321/321; repository unit 516 PASS 1 Windows platform skip; repository hygiene PASS; actual authenticated write NOT_RUN"
     },
     {
+      "id": "ACC-P6-27-BOUNDED-UAT-ACTOR-PROVISIONING-RUNTIME",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production UAT actor provisioning의 Docker 관측·copy·cleanup은 10초, transaction worker는 60초, 모든 process 출력은 1MiB로 제한한다. timeout·process·worker JSON·cleanup 오류는 credential·stdout/stderr 원문 없이 fail-closed하고 임시 worker 삭제 완료 전에는 provisioning 성공을 출력하지 않는다.",
+      "evidence": "failure-first 5/5 reproduced; focused 12/12 PASS; production:uat-actor-provision dry-run READY_WAIT_UAT_ACTOR_PROVISION_INPUTS with process/account/DB mutation zero; syntax 323/323; repository unit 521 PASS 1 Windows platform skip; repository hygiene PASS; actual Production actor provisioning NOT_RUN"
+    },
+    {
       "id": "ACC-P7-03-ACTUAL-HANDOVER-EVIDENCE-BUNDLE",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
