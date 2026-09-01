@@ -65,7 +65,7 @@ flowchart LR
 | P4 Staging 인프라·배포 | 전용 hostname, 공급자, Secret reference, backup, staging 배포 | ✅ 증거 있는 완료 | backup→migration→불변 이미지→health/smoke→rollback PASS | non-seed·DNS/TLS·provider·OIDC·backup/migration·rollback·off-site readback·signoff 3/3 PASS |
 | P5 역할별 UAT | 19개 UAT와 업무·보안·운영 책임자 검수 | ✅ 증거 있는 완료 | staging 19개 PASS, Critical/High 0, 책임자 실제 서명 | 기술 UAT 19/19·Critical/High 0·업무/보안/운영 전자서명 3/3 |
 | P6 Production 전환 | 최종 승인, cutover, 관측·복구 확인 | 🔄 진행 중 | P3~P5 PASS, 승인된 변경 시간, cutover·rollback 증거 | 후보 `e238ab8…`의 CI·불변 이미지, AI PC loopback Production 3서비스, migration 25/25, backup·restore·rollback PASS. UAT actor transaction provision, exact Cloudflare ingress publication·route-disable, active branch provenance, 12개 Gate별 실패 격리 매트릭스, 순차 실행 상태 머신, 14-step adapter, redacted receipt runner, runId·SHA actual evidence assembler, 역할별 actual 결과 compiler, Gate 1~11→서명→Gate 12·actual finalizer 원자 재개·실패 자동 route-disable, actual 증거 기반 P6 완료/P7 활성화 전환기와 변경창 입력 5참조 미무장 준비 Gate가 준비됐고 실제 참조는 0/5, 공개 DNS/TLS·실사용자 MFA·최종 서명·actual 생성은 남음. READY `P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF` |
-| P7 운영·유지보수 활성화 | 백업, 경보, 온콜, 정기 점검, 개선 큐 | ⏳ 미착수 | 운영 백업·경보 수신·복구훈련과 책임자 인수 | 운영 8영역·책임자 서명 compiler, 10문서 합성 종단 리허설과 actual 인수 뒤 8/8 원자 완료 전환기 PASS. 실제 활성화는 P6 완료 후 시작 |
+| P7 운영·유지보수 활성화 | 백업, 경보, 온콜, 정기 점검, 개선 큐 | ⏳ 미착수 | 운영 백업·경보 수신·복구훈련과 책임자 인수 | 운영 8영역·책임자 서명 compiler, exact HTTPS 30일 append-only SLO 수집기, 10문서 합성 종단 리허설과 actual 인수 뒤 8/8 원자 완료 전환기 PASS. 실제 활성화는 P6 완료 후 시작 |
 
 ## 4. 전역지침 11단계 연결
 

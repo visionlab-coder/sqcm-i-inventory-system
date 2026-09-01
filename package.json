@@ -50,6 +50,7 @@
     "production:phase-promotion": "node scripts/production-phase-promotion.mjs",
     "operations:handover-preflight": "node scripts/operations-handover-preflight.mjs",
     "operations:slo-evidence": "node scripts/operations-slo-evidence.mjs",
+    "operations:slo-collector": "node scripts/operations-slo-collector.mjs",
     "operations:alerting-evidence": "node scripts/operations-alerting-evidence.mjs",
     "operations:backup-restore-evidence": "node scripts/operations-backup-restore-evidence.mjs",
     "operations:certificate-evidence": "node scripts/operations-certificate-evidence.mjs",
