@@ -123,7 +123,8 @@ export async function executeCutoverGateSequence({
   rollbackCutoff,
   windowEnd,
   now = () => Date.now(),
-  externalActionConfirmed = false
+  externalActionConfirmed = false,
+  pauseBeforeGate = null
 } = {}) {
   if (![windowStart, rollbackCutoff, windowEnd].every(Number.isFinite)
     || windowStart >= rollbackCutoff || rollbackCutoff >= windowEnd) {
@@ -142,11 +143,24 @@ export async function executeCutoverGateSequence({
   if (!externalActionConfirmed) {
     return invalidExecutionResult('READY_WAIT_EXTERNAL_CUTOVER_ACTION_CONFIRMATION', []);
   }
+  if (pauseBeforeGate !== null && pauseBeforeGate !== 'uat_signoff') {
+    return invalidExecutionResult('FAIL_CUTOVER_PAUSE_GATE_CONTRACT', ['CUTOVER_PAUSE_GATE_INVALID']);
+  }
 
   const gateResults = [];
   let failedGate = null;
   let failureReason = null;
   for (const gate of CUTOVER_GATE_SEQUENCE) {
+    if (gate === pauseBeforeGate) {
+      return {
+        status: 'READY_WAIT_ACTUAL_ROLE_RESULTS_AND_SIGNOFF',
+        failures: [], gateResults,
+        executedGates: CUTOVER_GATE_SEQUENCE.slice(0, gateResults.length),
+        skippedGates: CUTOVER_GATE_SEQUENCE.slice(gateResults.length),
+        failedGate: null, routeDisableRequired: false, routeDisableVerified: false,
+        productionGo: false
+      };
+    }
     if (Number(now()) > rollbackCutoff) {
       failedGate = gate;
       failureReason = 'ROLLBACK_CUTOFF_EXCEEDED';

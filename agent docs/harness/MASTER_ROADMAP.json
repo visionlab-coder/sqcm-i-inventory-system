@@ -332,6 +332,7 @@
           "cutover-run-id-sha-actual-evidence-assembler-ready",
           "production-role-core-smoke-redacted-summary-three-actual-role-result-compiler-ready",
           "same-run-gates-1-to-11-signoff-pause-gate-12-resume-contract-ready",
+          "same-run-physical-checkpoint-gate-12-resume-runtime-route-disable-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],

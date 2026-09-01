@@ -49,6 +49,32 @@ test('12개 Gate PASS 뒤에도 finalizer 전에는 Production GO가 아니다',
   assert.equal(result.productionGo, false);
 });
 
+test('Gate 1~11 뒤 uat_signoff 앞에서만 의도적으로 중단한다', async () => {
+  const { CUTOVER_GATE_SEQUENCE, executeCutoverGateSequence } = await modulePromise;
+  const calls = [];
+  const result = await executeCutoverGateSequence({
+    gateHandlers: handlers(CUTOVER_GATE_SEQUENCE, calls),
+    routeDisableHandler: async () => ({ status: 'PASS_PUBLIC_ROUTE_DISABLED', evidenceRef: 'synthetic://route' }),
+    ...windowContract, externalActionConfirmed: true, pauseBeforeGate: 'uat_signoff'
+  });
+  assert.equal(result.status, 'READY_WAIT_ACTUAL_ROLE_RESULTS_AND_SIGNOFF');
+  assert.deepEqual(calls, CUTOVER_GATE_SEQUENCE.slice(0, 11));
+  assert.deepEqual(result.skippedGates, ['uat_signoff']);
+  assert.equal(result.routeDisableRequired, false);
+});
+
+test('uat_signoff 이외 pause 위치는 실행 전에 거부한다', async () => {
+  const { CUTOVER_GATE_SEQUENCE, executeCutoverGateSequence } = await modulePromise;
+  const calls = [];
+  const result = await executeCutoverGateSequence({
+    gateHandlers: handlers(CUTOVER_GATE_SEQUENCE, calls),
+    routeDisableHandler: async () => ({ status: 'PASS_PUBLIC_ROUTE_DISABLED', evidenceRef: 'synthetic://route' }),
+    ...windowContract, externalActionConfirmed: true, pauseBeforeGate: 'core_smoke'
+  });
+  assert.equal(result.status, 'FAIL_CUTOVER_PAUSE_GATE_CONTRACT');
+  assert.deepEqual(calls, []);
+});
+
 test('첫 실패 뒤 Gate를 중단하고 route-disable 증거로만 격리한다', async () => {
   const { CUTOVER_GATE_SEQUENCE, executeCutoverGateSequence } = await modulePromise;
   const calls = [];

@@ -9,6 +9,15 @@ import {
   createProcessStepRunner,
   createRuntimeReceiptWriter
 } from './production-cutover-process-runner.mjs';
+import {
+  SIGNOFF_RESUME_CONFIRMATION,
+  createSignoffPauseCheckpoint,
+  evaluateSignoffResume,
+  loadSignoffPauseCheckpoint,
+  sha256PhysicalFile,
+  validateSignoffResumeReceipts,
+  writeSignoffPauseCheckpoint
+} from './production-cutover-signoff-resume.mjs';
 
 export const PRODUCTION_CUTOVER_CONFIRMATION = 'ACK-2026-09-11-P6-G4';
 
@@ -40,7 +49,12 @@ export async function executeProductionCutover({
   receiptRoot = PRODUCTION_CUTOVER_RECEIPT_ROOT,
   ensureReceiptRoot = ensureCutoverReceiptRoot,
   createWriter = createRuntimeReceiptWriter,
-  createRunner = createProcessStepRunner
+  createRunner = createProcessStepRunner,
+  pauseBeforeSignoff = false,
+  releaseSha = null,
+  createCheckpoint = createSignoffPauseCheckpoint,
+  persistCheckpoint = writeSignoffPauseCheckpoint,
+  hashReceipt = sha256PhysicalFile
 } = {}) {
   const startedAt = Number(now());
   const windowStart = new Date(PRODUCTION_CHANGE_WINDOW.start).getTime();
@@ -51,6 +65,9 @@ export async function executeProductionCutover({
     return waitingResult('FAIL_OUTSIDE_APPROVED_CHANGE_WINDOW', startedAt, ['OUTSIDE_APPROVED_CHANGE_WINDOW']);
   }
   if (!externalActionConfirmed) return waitingResult('READY_WAIT_EXTERNAL_CUTOVER_ACTION_CONFIRMATION', startedAt);
+  if (pauseBeforeSignoff && !/^[a-f0-9]{40}$/.test(releaseSha || '')) {
+    return waitingResult('FAIL_CUTOVER_RELEASE_SHA_INVALID', startedAt, ['CUTOVER_RELEASE_SHA_INVALID']);
+  }
 
   let root;
   try { root = ensureReceiptRoot({ root: receiptRoot }); }
@@ -58,11 +75,43 @@ export async function executeProductionCutover({
   const writeReceipt = createWriter({ root });
   const runStep = createRunner({ writeReceipt });
   const recordGateEvidence = createGateEvidenceRecorder({ writeReceipt });
+  const routeDisableHandler = createCutoverRouteDisableHandler({ runStep, recordGateEvidence });
   const result = await executeCutoverGateSequence({
     gateHandlers: createCutoverGateHandlers({ runStep, recordGateEvidence }),
-    routeDisableHandler: createCutoverRouteDisableHandler({ runStep, recordGateEvidence }),
-    windowStart, rollbackCutoff, windowEnd, now, externalActionConfirmed: true
+    routeDisableHandler,
+    windowStart, rollbackCutoff, windowEnd, now, externalActionConfirmed: true,
+    pauseBeforeGate: pauseBeforeSignoff ? 'uat_signoff' : null
   });
+  if (pauseBeforeSignoff && result.status === 'READY_WAIT_ACTUAL_ROLE_RESULTS_AND_SIGNOFF') {
+    try {
+      const gateResults = result.gateResults.map((gate) => ({
+        gate: gate.gate,
+        result: gate.result,
+        evidenceRef: path.basename(gate.evidenceRef),
+        evidenceSha256: hashReceipt(gate.evidenceRef)
+      }));
+      const pause = createCheckpoint({ runId: writeReceipt.runId, releaseSha, gateResults, checkedAt: new Date(Number(now())).toISOString() });
+      if (!pause.checkpoint) throw new Error(pause.failures?.join(',') || 'SIGNOFF_CHECKPOINT_INVALID');
+      const checkpointPath = persistCheckpoint(path.join(root, `${writeReceipt.runId}.checkpoint`), pause.checkpoint);
+      return {
+        checkedAt: new Date(startedAt).toISOString(), runId: writeReceipt.runId, receiptRoot: root,
+        checkpointPath, actualCutoverExecuted: true, externalMutationPerformed: true,
+        ...result, productionGo: false
+      };
+    } catch {
+      const containment = await routeDisableHandler({ failedGate: 'uat_signoff', failureReason: 'SIGNOFF_CHECKPOINT_NOT_RECORDED' });
+      const verified = containment?.status === 'PASS_PUBLIC_ROUTE_DISABLED' && typeof containment?.evidenceRef === 'string' && containment.evidenceRef.length > 0;
+      return {
+        checkedAt: new Date(startedAt).toISOString(), runId: writeReceipt.runId, receiptRoot: root,
+        status: verified ? 'PASS_SIGNOFF_CHECKPOINT_FAILURE_CONTAINED' : 'BLOCKED_SIGNOFF_CHECKPOINT_FAILURE_NOT_CONTAINED',
+        failures: verified ? [] : ['PUBLIC_ROUTE_DISABLE_NOT_VERIFIED'], gateResults: result.gateResults,
+        executedGates: result.executedGates, skippedGates: result.skippedGates,
+        routeDisableRequired: true, routeDisableVerified: verified,
+        routeDisableEvidenceRef: verified ? containment.evidenceRef : '',
+        actualCutoverExecuted: true, externalMutationPerformed: true, productionGo: false
+      };
+    }
+  }
   return {
     checkedAt: new Date(startedAt).toISOString(),
     runId: writeReceipt.runId || null,
@@ -73,3 +122,66 @@ export async function executeProductionCutover({
     productionGo: false
   };
 }
+
+export async function resumeProductionCutoverSignoff({
+  execute = false,
+  confirmation = null,
+  runId = null,
+  releaseSha = null,
+  checkpointPath = null,
+  roleResultReferences = {},
+  signoffReferences = {},
+  now = () => Date.now(),
+  receiptRoot = PRODUCTION_CUTOVER_RECEIPT_ROOT,
+  ensureReceiptRoot = ensureCutoverReceiptRoot,
+  createWriter = createRuntimeReceiptWriter,
+  createRunner = createProcessStepRunner,
+  loadCheckpoint = loadSignoffPauseCheckpoint,
+  validateReceipts = validateSignoffResumeReceipts
+} = {}) {
+  const checkedAtMs = Number(now());
+  const checkedAt = new Date(checkedAtMs).toISOString();
+  if (!execute) return { ...waitingResult('PASS_SIGNOFF_RESUME_ENTRYPOINT_DRY_RUN', checkedAtMs), resumeGate: 'uat_signoff' };
+  const windowStart = Date.parse(PRODUCTION_CHANGE_WINDOW.start);
+  const rollbackCutoff = Date.parse(PRODUCTION_CHANGE_WINDOW.rollbackCutoff);
+  const windowEnd = Date.parse(PRODUCTION_CHANGE_WINDOW.end);
+  if (!Number.isFinite(checkedAtMs) || checkedAtMs < windowStart || checkedAtMs > windowEnd) return waitingResult('FAIL_OUTSIDE_APPROVED_CHANGE_WINDOW', checkedAtMs, ['OUTSIDE_APPROVED_CHANGE_WINDOW']);
+  let root; let checkpoint;
+  try { root = ensureReceiptRoot({ root: receiptRoot }); checkpoint = loadCheckpoint(checkpointPath); }
+  catch { return waitingResult('FAIL_SIGNOFF_RESUME_INPUT_PREPARATION', checkedAtMs, ['SIGNOFF_RESUME_INPUT_NOT_READY']); }
+  const receiptValidation = validateReceipts({ root, checkpoint });
+  const writeReceipt = createWriter({ root, runId: checkpoint.runId, startSequence: receiptValidation.receiptCount });
+  const runStep = createRunner({ writeReceipt });
+  const recordGateEvidence = createGateEvidenceRecorder({ writeReceipt });
+  const routeDisableHandler = createCutoverRouteDisableHandler({ runStep, recordGateEvidence });
+  const contain = async (reason) => {
+    const result = await routeDisableHandler({ failedGate: 'uat_signoff', failureReason: reason });
+    const verified = result?.status === 'PASS_PUBLIC_ROUTE_DISABLED' && typeof result?.evidenceRef === 'string' && result.evidenceRef.length > 0;
+    return {
+      checkedAt, runId: checkpoint.runId, receiptRoot: root,
+      status: verified ? 'PASS_SIGNOFF_RESUME_FAILURE_CONTAINED' : 'BLOCKED_SIGNOFF_RESUME_FAILURE_NOT_CONTAINED',
+      failures: verified ? [] : ['PUBLIC_ROUTE_DISABLE_NOT_VERIFIED'],
+      executedGates: [], skippedGates: ['uat_signoff'], routeDisableRequired: true,
+      routeDisableVerified: verified, routeDisableEvidenceRef: verified ? result.evidenceRef : '',
+      actualCutoverExecuted: false, externalMutationPerformed: true, productionGo: false
+    };
+  };
+  if (receiptValidation.status !== 'PASS_SIGNOFF_RESUME_RECEIPTS') return contain(receiptValidation.failures.join(','));
+  const resume = evaluateSignoffResume({ checkpoint, runId, releaseSha, checkedAt, confirmation, roleResultReferences, signoffReferences });
+  if (checkedAtMs > rollbackCutoff || resume.routeDisableRequired) return contain(resume.failures?.join(',') || 'ROLLBACK_CUTOFF_EXCEEDED');
+  if (resume.status !== 'READY_FOR_SAME_RUN_UAT_SIGNOFF_RESUME') {
+    return { checkedAt, runId: checkpoint.runId, receiptRoot: root, ...resume, actualCutoverExecuted: false, externalMutationPerformed: false, productionGo: false };
+  }
+  const gateHandler = createCutoverGateHandlers({ runStep, recordGateEvidence }).uat_signoff;
+  const gateResult = await gateHandler();
+  if (gateResult?.status !== 'PASS' || typeof gateResult?.evidenceRef !== 'string' || !gateResult.evidenceRef) return contain(gateResult?.reason || 'UAT_SIGNOFF_GATE_NOT_PASS');
+  return {
+    checkedAt, runId: checkpoint.runId, receiptRoot: root,
+    status: 'READY_FOR_CUTOVER_EVIDENCE_FINALIZATION', failures: [],
+    gateResults: [{ gate: 'uat_signoff', result: 'PASS', evidenceRef: gateResult.evidenceRef }],
+    executedGates: ['uat_signoff'], skippedGates: [], routeDisableRequired: false,
+    routeDisableVerified: false, actualCutoverExecuted: true, externalMutationPerformed: true, productionGo: false
+  };
+}
+
+export { SIGNOFF_RESUME_CONFIRMATION };

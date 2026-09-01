@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-09-01T14:06:39.672Z",
+  "packet": "ACC-P6-16-CUTOVER-SIGNOFF-RESUME-RUNTIME-INTEGRATION",
+  "phase": "P6",
+  "status": "PASS_SIGNOFF_RESUME_RUNTIME_PREPARATION",
+  "runtime": {
+    "sameRunIdentityCount": 1,
+    "initialGateCount": 11,
+    "resumedGateCount": 1,
+    "stepCount": 14,
+    "receiptCount": 26,
+    "physicalCheckpointCount": 1,
+    "checkpointExternalAndNoOverwrite": true,
+    "receiptShaValidation": true,
+    "resumeSequenceStart": 24,
+    "cutoffRouteDisableRequired": true,
+    "routeDisableEvidenceRequired": true
+  },
+  "verification": {
+    "focusedPassed": 9,
+    "focusedFailed": 0,
+    "syntaxPassed": 246,
+    "unitPassed": 364,
+    "unitFailed": 0,
+    "platformSkipped": 1,
+    "runtimeRehearsal": "PASS_SIGNOFF_RESUME_RUNTIME_REHEARSAL",
+    "defaultDryRun": "PASS_CUTOVER_EXECUTION_ENTRYPOINT_DRY_RUN",
+    "resumeDryRun": "PASS_SIGNOFF_RESUME_ENTRYPOINT_DRY_RUN"
+  },
+  "actual": {
+    "productionCutoverExecuted": false,
+    "routeChanged": false,
+    "secretValuesReadOrRecorded": false,
+    "productionGo": false
+  },
+  "nextPacket": "ACC-P6-17-ACTUAL-EVIDENCE-FINALIZATION-AND-ROLLBACK-CONTAINMENT"
+}

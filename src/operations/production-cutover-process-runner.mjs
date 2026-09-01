@@ -75,9 +75,10 @@ function safeSegment(value) {
   return result;
 }
 
-export function createRuntimeReceiptWriter({ root = PRODUCTION_CUTOVER_RECEIPT_ROOT, io = fs, clock = () => new Date(), runId = randomUUID() } = {}) {
+export function createRuntimeReceiptWriter({ root = PRODUCTION_CUTOVER_RECEIPT_ROOT, io = fs, clock = () => new Date(), runId = randomUUID(), startSequence = 0 } = {}) {
   if (!/^[a-f0-9]{8}-[a-f0-9-]{27,35}$/i.test(runId)) throw new Error('CUTOVER_RUN_ID_INVALID');
-  let sequence = 0;
+  if (!Number.isSafeInteger(startSequence) || startSequence < 0) throw new Error('CUTOVER_RECEIPT_START_SEQUENCE_INVALID');
+  let sequence = startSequence;
   const writer = async ({ kind = 'step', gate, step = 'gate', status, exitCode = 0, stepEvidenceRefs = [], summary = null } = {}) => {
     const resolvedRoot = assertPhysicalDirectory(root, io);
     const checkedAt = clock().toISOString();

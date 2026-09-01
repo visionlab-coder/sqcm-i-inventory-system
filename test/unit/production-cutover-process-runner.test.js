@@ -38,6 +38,17 @@ test('receipt는 stdout stderr Secret을 기록하지 않고 기존 파일을 �
   } finally { fs.rmSync(root, { recursive: true }); }
 });
 
+test('동일 run 재개 writer는 검증된 sequence 다음 번호부터 기록한다', async () => {
+  const { createRuntimeReceiptWriter } = await modulePromise;
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-cutover-resume-sequence-'));
+  try {
+    const writer = createRuntimeReceiptWriter({ root, clock: () => new Date('2026-09-11T12:00:00.000Z'), runId: '11111111-1111-4111-8111-111111111111', startSequence: 24 });
+    const file = await writer({ kind: 'step', gate: 'uat_signoff', step: 'signoff-preflight', status: 'READY_FOR_UAT_SIGNOFF_VALIDATION' });
+    assert.match(path.basename(file), /-0025-step-uat_signoff-signoff-preflight\.json$/);
+    assert.throws(() => createRuntimeReceiptWriter({ root, startSequence: -1 }), /START_SEQUENCE_INVALID/);
+  } finally { fs.rmSync(root, { recursive: true }); }
+});
+
 test('symlink receipt root는 거부한다', async (t) => {
   if (process.platform === 'win32') return t.skip('Windows symlink privilege is environment-dependent');
   const { createRuntimeReceiptWriter } = await modulePromise;

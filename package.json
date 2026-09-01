@@ -29,6 +29,7 @@
     "production:cutover-actual-evidence": "node scripts/production-cutover-actual-evidence.mjs",
     "production:role-result-evidence": "node scripts/production-role-result-evidence.mjs",
     "production:cutover-signoff-resume-rehearsal": "node scripts/production-cutover-signoff-resume-rehearsal.mjs",
+    "production:cutover-signoff-resume-runtime-rehearsal": "node scripts/production-cutover-signoff-resume-runtime-rehearsal.mjs",
     "production:ingress-publication": "node scripts/production-ingress-publication.mjs",
     "production:provider-preflight": "node scripts/production-provider-preflight.mjs",
     "production:public-probe": "node scripts/production-public-probe.mjs",

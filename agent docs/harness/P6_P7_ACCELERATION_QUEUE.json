@@ -133,6 +133,14 @@
       "evidence": "npm.cmd run production:cutover-signoff-resume-rehearsal => PASS_SIGNOFF_PAUSE_RESUME_CONTRACT_REHEARSAL; focused 5/5 PASS; repository 355 PASS 1 Windows platform skip; Harness verify PASS; actual pause/resume/route mutation NOT_RUN"
     },
     {
+      "id": "ACC-P6-16-CUTOVER-SIGNOFF-RESUME-RUNTIME-INTEGRATION",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "실제 cutover 실행기가 Gate 1~11 뒤 저장소 밖 물리 checkpoint를 원자 기록하고 동일 run의 Gate/step receipt SHA와 역할 결과·서명 6건을 검증한 뒤 Gate 12만 이어 실행하며 변조·cutoff·Gate 실패에서는 exact route-disable adapter와 evidence를 요구한다.",
+      "evidence": "npm.cmd run production:cutover-signoff-resume-runtime-rehearsal => PASS_SIGNOFF_RESUME_RUNTIME_REHEARSAL; same run 11+1 Gates, 14 steps, 26 receipts, 1 physical checkpoint; focused 9/9 PASS; repository 364 PASS 1 Windows platform skip; actual Production mutation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
