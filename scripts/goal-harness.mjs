@@ -3,6 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { evaluateHarnessBranchProvenance, resolveActiveBranch } from '../src/operations/harness-branch-provenance.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const projectDir = path.resolve(scriptDir, '..');
@@ -35,7 +36,22 @@ function check() {
   const active = state.phases.filter((phase) => phase.status === 'in-progress');
   const completed = state.phases.filter((phase) => phase.status === 'evidence-complete');
   const phase = currentPhase();
+  const symbolicRef = spawnSync('git', ['symbolic-ref', '--quiet', '--short', 'HEAD'], {
+    cwd: projectDir,
+    encoding: 'utf8',
+    shell: false
+  });
+  const activeBranch = resolveActiveBranch({
+    githubHeadRef: process.env.GITHUB_HEAD_REF,
+    githubRefName: process.env.GITHUB_REF_NAME,
+    symbolicRef: symbolicRef.status === 0 ? symbolicRef.stdout : ''
+  });
+  const branchProvenance = evaluateHarnessBranchProvenance({
+    roadmapBranch: state.branch,
+    activeBranch
+  });
 
+  if (!branchProvenance.ok) errors.push(branchProvenance.error);
   if (active.length !== 1) errors.push(`IN_PROGRESS_COUNT_${active.length}`);
   if (!phase) errors.push('CURRENT_PHASE_MISSING');
   if (phase && phase.status !== 'in-progress') errors.push('CURRENT_PHASE_NOT_IN_PROGRESS');

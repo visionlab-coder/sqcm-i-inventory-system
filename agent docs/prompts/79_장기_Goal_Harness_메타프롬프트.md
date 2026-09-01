@@ -47,6 +47,7 @@ WORKFLOW:
 Inspect → Harness 계약 검사 → 현재 READY 1건 → 수용조건 → 최소 작업 → 위험 비례 검증 → 증거 보고 → 상태 정본 동기화 → 다음 READY
 
 1. 매 Loop 시작 시 `npm.cmd run harness:status`와 `npm.cmd run harness:check`를 실행한다.
+   `harness:check`는 기계 정본 branch와 실제 local/GitHub Actions branch provenance가 다르거나 해석되지 않으면 fail-closed 한다.
 2. `currentPhase`의 `readyWork` 한 건만 선택한다.
 3. 권한이 `local-autonomous`이면 사용자 입력 없이 계속 수행한다.
 4. 권한이 `explicit-approval` 또는 `external-input`이면 승인 범위 밖 외부 변경은 실행하지 않는다. 그러나 현재 Gate를 약화하지 않는 로컬 실행기·검증기·runbook·P7 사전준비 Packet은 계속 수행한다.

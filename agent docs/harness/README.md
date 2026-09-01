@@ -11,7 +11,7 @@ npm.cmd run harness:verify
 ```
 
 - `harness:status`: 현재 Phase와 READY를 JSON으로 출력한다.
-- `harness:check`: 상태 파일의 단일 진행 Phase, 완료 수, READY와 권한 불변식을 검사한다.
+- `harness:check`: 상태 파일의 단일 진행 Phase, 완료 수, READY·권한 불변식과 실제 Git branch provenance 일치를 검사한다. GitHub Actions에서는 `GITHUB_HEAD_REF`/`GITHUB_REF_NAME`, 로컬에서는 symbolic ref를 사용하며 해석 불가·불일치는 fail-closed한다.
 - `harness:verify`: 현재 READY에 등록된 비파괴 로컬 검증만 실행한다. 현재 P6에서는 Git diff, 품질·계약, staging/Production 3서비스 health와 cutover Gate 실행기를 검사한다.
 
 ## P6/P7 가속 실행 큐

@@ -61,6 +61,14 @@
       "evidence": "npm.cmd run production:uat-actor-provision => READY_WAIT_UAT_ACTOR_PROVISION_INPUTS; focused 7/7 PASS; current image worker modules and required schema 28/28 compatible; actual account/MFA/DB mutation zero"
     },
     {
+      "id": "ACC-P6-07-HARNESS-BRANCH-PROVENANCE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "MASTER_ROADMAP branch와 실제 local 또는 GitHub Actions branch가 정확히 일치하며 detached·missing·mismatch 상태를 Harness가 fail-closed 한다.",
+      "evidence": "stale codex/fix-sidebar-accessibility corrected to codex/p6-ai-pc-postgres-production; focused 4/4 PASS; npm.cmd run harness:check PASS"
+    },
+    {
       "id": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

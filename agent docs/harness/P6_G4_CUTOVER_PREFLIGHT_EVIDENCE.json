@@ -9,8 +9,16 @@
     "status": "READY_WAIT_CHANGE_WINDOW",
     "localBlockers": [],
     "unitTests": "4/4 PASS",
-    "repositoryRegression": "245/245 PASS",
+    "repositoryRegression": "249/249 PASS",
     "harnessRegistered": true
+  },
+  "harnessBranchProvenance": {
+    "roadmapBranch": "codex/p6-ai-pc-postgres-production",
+    "actualBranch": "codex/p6-ai-pc-postgres-production",
+    "status": "PASS",
+    "unitTests": "4/4 PASS",
+    "sources": ["GITHUB_HEAD_REF", "GITHUB_REF_NAME", "git symbolic-ref --short HEAD"],
+    "failClosed": ["active branch unresolved", "roadmap branch missing", "roadmap and active branch mismatch"]
   },
   "cutoverEvidenceCandidate": {
     "path": "agent docs/harness/P6_G4_CUTOVER_EVIDENCE_CANDIDATE.json",
