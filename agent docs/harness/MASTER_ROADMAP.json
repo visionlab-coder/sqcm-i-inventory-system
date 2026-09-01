@@ -304,6 +304,7 @@
           "cutover-candidate-fail-closed-validator-pass",
           "actual-cutover-evidence-provenance-finalizer-ready",
           "p7-operations-handover-preflight-contract-ready",
+          "p7-actual-operations-handover-evidence-finalizer-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],

@@ -57,7 +57,8 @@
       "phase": "P7",
       "status": "READY",
       "authority": "external-input",
-      "acceptance": "P6 완료 후 실제 경보 수신, off-site backup, 복원훈련, 온콜 인수와 운영 책임자 서명이 연결된다."
+      "acceptance": "P6 완료 후 실제 경보 수신, off-site backup, 복원훈련, 온콜 인수와 운영 책임자 서명이 연결된다.",
+      "preparationEvidence": "npm.cmd run operations:handover-finalizer => READY_WAIT_P6_COMPLETION_AND_HANDOVER_EVIDENCE; focused 4/4 PASS; actual Production provenance and operations identity signoff enforced; actual activation NOT_RUN"
     }
   ]
 }

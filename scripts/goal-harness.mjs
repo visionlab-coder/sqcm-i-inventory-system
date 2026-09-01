@@ -318,7 +318,8 @@ function verify() {
       ['production-signoff-preflight', 'npm.cmd', ['run', 'production:signoff-preflight']],
       ['production-cutover-evidence', 'npm.cmd', ['run', 'production:cutover-evidence']],
       ['production-cutover-finalizer', 'npm.cmd', ['run', 'production:cutover-finalizer']],
-      ['operations-handover-preflight', 'npm.cmd', ['run', 'operations:handover-preflight']]
+      ['operations-handover-preflight', 'npm.cmd', ['run', 'operations:handover-preflight']],
+      ['operations-handover-finalizer', 'npm.cmd', ['run', 'operations:handover-finalizer']]
     ]
   };
   const commands = commandSets[verifierKey];

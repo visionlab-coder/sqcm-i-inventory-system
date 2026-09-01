@@ -1,0 +1,28 @@
+{
+  "gate": "P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF-PREP",
+  "checkedAt": "2026-09-01T18:05:00+09:00",
+  "status": "READY_WAIT_P6_COMPLETION_AND_HANDOVER_EVIDENCE",
+  "packetStatus": "READY",
+  "phaseStatus": "not-started",
+  "productionGo": false,
+  "automation": {
+    "command": "npm.cmd run operations:handover-finalizer",
+    "requiredEnvironment": "OPERATIONS_HANDOVER_ACTUAL_EVIDENCE_FILE",
+    "actualEvidencePresent": false,
+    "p6EvidenceComplete": false,
+    "p7CompletionReady": false,
+    "focusedUnitTests": "4/4 PASS",
+    "repositorySyntax": "174 PASS",
+    "repositoryUnitTests": "204/204 PASS",
+    "secretValuesReadOrRecorded": false
+  },
+  "failClosedChecks": [
+    "P6 actual Production cutover evidence",
+    "SLO·alerting·backup·restore·certificate·onCall·maintenance·improvementQueue PASS",
+    "actual Production provenance",
+    "operations owner identity reference and signed timestamp",
+    "template·staging·loopback·baseline rejection"
+  ],
+  "externalMutationPerformed": false,
+  "nextAction": "P6 G4가 증거 있는 완료로 전환된 뒤 실제 운영 인수 증거 파일을 연결하고 finalizer를 실행한다."
+}
