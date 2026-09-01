@@ -35,11 +35,12 @@
 - `npm.cmd run production:nonfunctional-baseline`은 `127.0.0.1:3300`에 60요청/동시성 6 부하와 보안 헤더·익명 401·cross-site 403을 검사한다. 이는 loopback 기준선이며 공개 HTTPS 대상의 변경창 재검사는 `NOT_RUN`으로 유지한다.
 - `npm.cmd run production:nonfunctional-baseline -- --public`은 승인 변경창과 exact 확인 문자열이 모두 있을 때만 `https://inventory.safe-link.co.kr`을 대상으로 같은 부하·보안 검사를 실행한다. 변경창 밖 공개 실행은 fail-closed로 차단되며 회귀 4/4가 통과했다.
 - `npm.cmd run production:operational-health-baseline`은 loopback health/readiness, Production DB의 old outbox·expired session·stuck idempotency, 최근 15분 5xx, 최신 Production backup checksum/age와 restore drill/age를 한 번에 검사한다. 현재 기준선은 PASS이고 변경창 이후 재검사는 `NOT_RUN`이다.
+- `npm.cmd run production:operational-health-baseline -- --public`은 승인 변경창과 exact 확인 문자열이 있을 때 공개 `https://inventory.safe-link.co.kr` health/readiness와 같은 내부 DB·로그·백업·복원 증거를 결합한다. 변경창 밖 실행은 fail-closed로 차단되며 회귀 4/4가 통과했다.
 - `npm.cmd run production:csrf-idempotency-baseline`은 동일 출처 missing-CSRF 요청이 403/`CSRF_INVALID`이고 세션을 만들지 않는지, idempotency 테이블 10열·사용자/키 unique index와 stuck/invalid 0건을 검사한다. 실제 인증 사용자 정상 쓰기·동일 키 replay는 시험계정이 없어 `NOT_RUN`이다.
 - `npm.cmd run production:rollback-readiness`는 현재 backend/frontend revision, PostgreSQL·파일 named volume 2/2, G3 실제 중지/포트폐쇄/복구 drill, backup/restore, 22:00 cutoff와 Production 전용 route 제거 순서를 대조한다. dry-run readiness는 PASS지만 공개 전환 후 실제 rollback은 `NOT_RUN`이다.
 - `npm.cmd run production:signoff-preflight`는 ADMIN·MANAGER·USER Production UAT 결과와 업무·보안·운영 서명 파일 참조 6건, cutover 후보의 PENDING 상태와 변경창을 fail-closed로 검사한다. 현재 참조 0/6, 실제 서명 `NOT_RUN`으로 `READY_WAIT_PRODUCTION_UAT_AND_SIGNOFF_REFERENCES`이며 파일 내용·Secret은 읽거나 기록하지 않는다.
 - `npm.cmd run production:cutover-evidence`는 12개 Gate 중 실제 로컬 증거가 있는 artifact·backup/restore·migration·provider preflight 4건만 PASS로 조립한다. 외부 Production 8건과 역할 결과·서명은 PENDING이며 후보는 fail-closed 검증상 Production을 승인할 수 없다.
-- 저장소 표준 검증에서 JavaScript 구문 176개와 단위 209/209가 PASS했으며 preflight·공개 probe·로그·역할 MFA/RBAC runner·loopback 및 변경창 공개 nonfunctional·operational health·인증 CSRF/idempotency runner·rollback·최종 서명 Gate·증거 조립·실제 cutover 전체 계약 finalizer·P7 운영 인수 preflight와 finalizer 회귀가 검증 봉투에 포함된다.
+- 저장소 표준 검증에서 JavaScript 구문 178개와 단위 213/213이 PASS했으며 preflight·공개 probe·로그·역할 MFA/RBAC runner·loopback 및 변경창 공개 nonfunctional·operational health·인증 CSRF/idempotency runner·rollback·최종 서명 Gate·증거 조립·실제 cutover 전체 계약 finalizer·P7 운영 인수 preflight와 finalizer 회귀가 검증 봉투에 포함된다.
 
 ## 2026-09-01 P6-G3 AI PC Production 배포·복구
 

@@ -3,8 +3,26 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import healthPolicy from '../src/operations/health-policy.js';
+import { PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
+import { selectProductionOperationalHealthTarget } from '../src/operations/production-operational-health-target.mjs';
 
-const baseUrl = 'http://127.0.0.1:3300';
+const selection = selectProductionOperationalHealthTarget({
+  publicMode: process.argv.includes('--public'),
+  now: new Date(),
+  windowStart: new Date(PRODUCTION_CHANGE_WINDOW.start),
+  windowEnd: new Date(PRODUCTION_CHANGE_WINDOW.end),
+  confirmation: process.env.PRODUCTION_PUBLIC_OPERATIONAL_HEALTH_CONFIRMATION
+});
+if (selection.status.startsWith('FAIL_')) {
+  console.error(JSON.stringify({ ...selection, productionGo: false }, null, 2));
+  process.exit(1);
+}
+if (!selection.target) {
+  console.log(JSON.stringify({ ...selection, productionGo: false }, null, 2));
+  process.exit(0);
+}
+
+const baseUrl = selection.target;
 const backupRoot = path.resolve('artifacts', 'backups');
 
 function dockerContainer(service) {
@@ -79,11 +97,15 @@ const snapshot = {
 };
 const result = healthPolicy.evaluateOperationalSnapshot(snapshot);
 console.log(JSON.stringify({
-  status: result.ok ? 'PASS_LOOPBACK_BASELINE_READY_FOR_POST_CUTOVER_RECHECK' : 'FAIL_OPERATIONAL_HEALTH_BASELINE',
+  status: result.ok
+    ? (selection.actualPostCutoverGate
+        ? 'PASS_ACTUAL_POST_CUTOVER_OPERATIONAL_HEALTH'
+        : 'PASS_LOOPBACK_BASELINE_READY_FOR_POST_CUTOVER_RECHECK')
+    : 'FAIL_OPERATIONAL_HEALTH_BASELINE',
   target: baseUrl,
   snapshot,
   result,
-  actualPostCutoverOperationalHealth: 'NOT_RUN',
+  actualPostCutoverOperationalHealth: selection.actualPostCutoverGate ? 'PASS' : 'NOT_RUN',
   productionGo: false
 }, null, 2));
 if (!result.ok) process.exitCode = 1;

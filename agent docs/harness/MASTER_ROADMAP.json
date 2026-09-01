@@ -295,6 +295,7 @@
           "nonfunctional-loopback-baseline-and-public-recheck-automation-ready",
           "public-nonfunctional-change-window-target-gate-ready",
           "operational-health-loopback-baseline-and-post-cutover-recheck-automation-ready",
+          "public-operational-health-change-window-target-gate-ready",
           "csrf-negative-and-idempotency-schema-baseline-automation-ready",
           "authenticated-csrf-idempotency-write-replay-runner-ready",
           "change-window-12-gate-cutover-orchestrator-dry-run-pass",
