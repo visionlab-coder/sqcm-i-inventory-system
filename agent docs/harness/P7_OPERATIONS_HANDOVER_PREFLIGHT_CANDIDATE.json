@@ -1,5 +1,6 @@
 {
   "schemaVersion": 1,
+  "checkedAt": "2026-09-01T20:45:01+09:00",
   "template": false,
   "environment": "production",
   "activationState": "preflight",
@@ -11,8 +12,14 @@
     "backup": { "rpoMinutes": 1440, "retentionDays": 30, "offsiteEvidenceRef": null },
     "restore": { "rtoMinutes": 240, "drillEvidenceRef": null },
     "certificate": { "hostname": "inventory.safe-link.co.kr", "renewalLeadDays": 30, "expiryEvidenceRef": null, "renewalOwnerRef": null },
-    "onCall": { "primaryOwnerRef": null, "escalationOwnerRef": null },
+    "onCall": { "primaryOwnerRef": null, "escalationOwnerRef": null, "scheduleEvidenceRef": null, "drillEvidenceRef": null },
     "maintenance": { "scheduleContractRef": "docs/maintenance.md", "executionEvidenceRef": null },
     "improvementQueue": { "queueRef": null, "triageOwnerRef": null }
+  },
+  "onCallEvidenceAutomation": {
+    "command": "npm.cmd run operations:oncall-evidence -- --compile",
+    "inputContract": "agent docs/harness/P7_ONCALL_HANDOVER_INPUT_CONTRACT.json",
+    "status": "READY_WAIT_P6_COMPLETION_AND_ONCALL_HANDOVER",
+    "actualEvidenceCreated": false
   }
 }

@@ -342,6 +342,7 @@ function verify() {
       ['operations-alerting-evidence', 'npm.cmd', ['run', 'operations:alerting-evidence']],
       ['operations-backup-restore-evidence', 'npm.cmd', ['run', 'operations:backup-restore-evidence']],
       ['operations-certificate-evidence', 'npm.cmd', ['run', 'operations:certificate-evidence']],
+      ['operations-oncall-evidence', 'npm.cmd', ['run', 'operations:oncall-evidence']],
       ['operations-handover-assembler', 'npm.cmd', ['run', 'operations:handover-assembler']],
       ['operations-handover-finalizer', 'npm.cmd', ['run', 'operations:handover-finalizer']]
     ]

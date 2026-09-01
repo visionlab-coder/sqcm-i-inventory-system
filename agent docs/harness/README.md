@@ -30,6 +30,7 @@ npm.cmd run harness:verify
 - 경보 실제 문서는 `P7_ALERT_RECEIPT_INPUT_CONTRACT.json` 계약을 따르는 template=false Production 공급자 export에서 경보 5종의 고유 receipt·발생/수신 시각과 공급자·채널·수신자·책임자 참조를 `operations:alerting-evidence -- --compile`이 검증해 저장소 밖에 원자적으로 1회 작성한다. staging·loopback·순서 변경·미수신·중복 receipt는 actual로 승격하지 않는다.
 - 백업·복원 실제 문서는 `P7_BACKUP_RESTORE_DRILL_INPUT_CONTRACT.json`의 동일 Production drill export를 `operations:backup-restore-evidence -- --compile`이 검증해 backup·restore 2개 문서로 만든다. backup은 24시간 RPO·30일 retention·off-site 보관·checksum을, restore는 동일 backup ID·격리 DB·4시간 RTO·row-count digest·migration 일치를 강제하며 두 출력은 저장소 밖에 원자적으로 함께 쓰고 기존 파일을 덮어쓰지 않는다.
 - 인증서 실제 문서는 `P7_CERTIFICATE_OBSERVATION_INPUT_CONTRACT.json`의 최근 Production TLS 관측을 `operations:certificate-evidence -- --compile`이 검증한다. exact hostname, chain·hostname 검증, TLSv1.2/1.3, serial·SHA-256 fingerprint, 유효기간, health/readiness 200, 30일 갱신 lead와 운영 책임자 provenance가 모두 통과해야 저장소 밖에 원자적으로 1회 쓰며 기존 파일을 덮어쓰지 않는다.
+- 온콜 실제 문서는 `P7_ONCALL_HANDOVER_INPUT_CONTRACT.json`의 30일 이상 Asia/Seoul 연속 당번표와 최근 7일 escalation drill을 `operations:oncall-evidence -- --compile`이 검증한다. 서로 다른 primary·escalation 책임자의 수락, 5분·15분 이내 고유 acknowledgement receipt와 역할 일치를 모두 강제하며, 담당자를 지정하거나 메시지를 보내지 않고 저장소 밖에 원자적으로 1회만 쓴다.
 
 ## 상태 전이 규칙
 
