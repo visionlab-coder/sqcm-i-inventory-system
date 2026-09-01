@@ -205,6 +205,14 @@
       "evidence": "failure-first 4/4 reproduced; focused 10/10 PASS; production:route-disable dry-run READY_WAIT_ROUTE_DISABLE_INPUTS with tunnel observation PASS and external mutation zero; syntax 315/315; repository unit 500 PASS 1 Windows platform skip; repository hygiene PASS; actual Production route deletion NOT_RUN"
     },
     {
+      "id": "ACC-P6-24-BOUNDED-PUBLIC-DNS-HTTPS-PROBE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Gate 5 public probe의 A·CNAME 관측은 5초, exact HTTPS 5경로는 각각 10초 상한으로 동시에 실행한다. DNS 관측 timeout·실패는 HTTP 호출 0건으로 fail-closed하고 endpoint 오류·응답 원문을 기록하지 않는다.",
+      "evidence": "failure-first 4/4 reproduced; focused 8/8 PASS; production:public-probe dry-run READY_WAIT_DNS_TLS_PUBLICATION with bounded DNS observation PASS and endpoint requests NOT_RUN; syntax 317/317; repository unit 504 PASS 1 Windows platform skip; repository hygiene PASS; actual public HTTPS probe NOT_RUN"
+    },
+    {
       "id": "ACC-P7-03-ACTUAL-HANDOVER-EVIDENCE-BUNDLE",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

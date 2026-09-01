@@ -341,6 +341,7 @@
           "production-cutover-provider-observation-10s-bounded-fail-closed-pass",
           "production-ingress-cli-api-dns-observation-bounded-fail-closed-pass",
           "production-route-disable-cli-api-dns-observation-bounded-fail-closed-pass",
+          "production-public-dns-https-five-path-bounded-concurrent-fail-closed-pass",
           "p7-actual-https-30-day-append-only-slo-collector-ready",
           "p7-production-exact-tls-health-readiness-observer-ready",
           "p7-production-daily-maintenance-read-only-runner-ready",
