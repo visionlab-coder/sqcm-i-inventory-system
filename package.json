@@ -21,6 +21,7 @@
     "operations:cutover-gate": "node scripts/cutover-gate.mjs",
     "production:cutover-preflight": "node scripts/production-cutover-preflight.mjs",
     "production:cutover-orchestrator": "node scripts/production-cutover-orchestrator.mjs",
+    "production:ingress-publication": "node scripts/production-ingress-publication.mjs",
     "production:provider-preflight": "node scripts/production-provider-preflight.mjs",
     "production:public-probe": "node scripts/production-public-probe.mjs",
     "production:log-gate": "node scripts/production-log-gate.mjs",

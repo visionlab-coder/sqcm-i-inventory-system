@@ -9,7 +9,7 @@ export const CUTOVER_GATE_COMMANDS = Object.freeze({
   backup_restore: 'npm.cmd run db:backup and verified restore evidence',
   migration_review: 'npm.cmd run db:verify',
   provider_preflight: 'npm.cmd run production:provider-preflight',
-  health_readiness: 'npm.cmd run production:public-probe',
+  health_readiness: 'npm.cmd run production:ingress-publication -- --execute then npm.cmd run production:public-probe',
   core_smoke: 'npm.cmd run production:role-core-smoke -- --public',
   csrf_idempotency: 'npm.cmd run production:authenticated-idempotency -- --public',
   logs_5xx: 'npm.cmd run production:log-gate',

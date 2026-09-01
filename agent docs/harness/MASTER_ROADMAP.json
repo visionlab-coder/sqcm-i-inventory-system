@@ -289,6 +289,7 @@
           "cutover-preflight-unit-tests-4-of-4-pass",
           "production-provider-preflight-pass",
           "public-dns-tls-health-readiness-probe-automation-ready",
+          "exact-production-ingress-publication-executor-ready",
           "logs-5xx-outbox-baseline-and-cutover-gate-automation-ready",
           "role-core-smoke-preflight-automation-ready",
           "role-mfa-rbac-core-smoke-runner-ready",

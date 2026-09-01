@@ -45,6 +45,14 @@
       "evidence": "npm.cmd run production:cutover-finalizer => READY_WAIT_ACTUAL_CUTOVER_EVIDENCE; focused 5/5 PASS; exact 12 unique gates·three role results·three approvals·immutable SHA·exact URL enforced; template·staging·loopback·baseline and incomplete evidence rejected"
     },
     {
+      "id": "ACC-P6-05-PRODUCTION-INGRESS-PUBLICATION",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "승인 변경창에서만 exact Production tunnel·runtime ingress config·proxied CNAME을 만들고, rollback token과 route-disable 확인 없이는 게시하지 않는 fail-closed 실행기와 회귀가 존재한다.",
+      "evidence": "npm.cmd run production:ingress-publication => READY_WAIT_INGRESS_PUBLICATION_INPUTS; exact target and preservation contract focused 7/7 PASS; cutover Gate 5 publication then public probe; actual tunnel/config/DNS/process mutation zero"
+    },
+    {
       "id": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

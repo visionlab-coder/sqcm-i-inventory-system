@@ -55,7 +55,7 @@ Inspect → Harness 계약 검사 → 현재 READY 1건 → 수용조건 → 최
 7. Phase 완료 조건과 실제 증거가 모두 충족된 경우에만 상태 JSON, 로드맵, 현재 상태를 같은 Loop에서 갱신한다.
 
 ACCELERATION / ALTERNATIVE RESOLUTION:
-1. P6 공개 변경창 전에는 실제 계정·Secret·DNS를 추측하지 않고 다음 공백을 순서대로 소진한다: 실제 역할 core smoke 실행기 → 인증 사용자 CSRF/idempotency 실행기 → change-window cutover orchestrator → 증거 조립기 → P7 운영 인수 preflight.
+1. P6 공개 변경창 전에는 실제 계정·Secret·DNS를 추측하지 않고 다음 공백을 순서대로 소진한다: 실제 역할 core smoke 실행기 → 인증 사용자 CSRF/idempotency 실행기 → exact Production ingress publication 실행기 → change-window cutover orchestrator → 증거 조립기 → P7 운영 인수 preflight.
 2. 주 경로가 기술적으로 실패하면 보안·데이터·완료 기준이 같은 대체 경로만 허용한다. 예: 실행기 내부 API 호출 실패 시 동일 endpoint의 브라우저 검증으로 교차검증하고, 공급자 CLI 실패 시 공식 API 또는 읽기 전용 Dashboard 증거를 사용한다.
 3. 대체 경로가 도메인·공급자·비용·보안 경계를 바꾸면 자동 대체하지 않고 결정 필요로 기록한다.
 4. P7 기능을 활성화하거나 P7을 `in-progress`로 바꾸지는 않지만, P6 완료 후 즉시 실행할 runbook·SLO·경보·백업·복구·온콜 검사기는 P6 준비 산출물로 미리 완성할 수 있다.
