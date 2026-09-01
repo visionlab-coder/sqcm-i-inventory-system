@@ -7,6 +7,7 @@ import {
   acquireOperationsActivationLease,
   buildOperationsActivationChildEnvironment,
   buildOperationsActivationReceipt,
+  computeOperationsActivationBundleSha256,
   evaluateOperationsActivationGate,
   releaseOperationsActivationLease,
   selectNextOperationsActivationStep,
@@ -57,11 +58,12 @@ const gate = evaluateOperationsActivationGate({
 });
 
 let status = gate.status; let childProcessCount = 0; let receiptCreated = false; let currentStep = null; let attempt = 0; let failureCount = 0;
-let lease = null; let leaseAcquired = false; let leaseReleased = false; let leaseConflict = false; let receiptRootClaimCreated = false;
+let lease = null; let leaseAcquired = false; let leaseReleased = false; let leaseConflict = false; let receiptRootClaimCreated = false; let activationBundleVerified = false;
 if (gate.childProcessAllowed) {
   try {
     const p6Document = JSON.parse(fs.readFileSync(p6Path, 'utf8'));
-    const approval = validateOperationsActivationApproval(JSON.parse(fs.readFileSync(approvalPath, 'utf8')), { p6Document });
+    const activationBundleSha256 = computeOperationsActivationBundleSha256(projectRoot);
+    const approval = validateOperationsActivationApproval(JSON.parse(fs.readFileSync(approvalPath, 'utf8')), { p6Document, activationBundleSha256 }); activationBundleVerified = true;
     lease = acquireOperationsActivationLease(receiptRoot, approval); leaseAcquired = true; receiptRootClaimCreated = lease.rootClaim.created;
     const selection = selectNextOperationsActivationStep(loadReceipts(receiptRoot, approval.runId), { approval });
     status = selection.status; currentStep = selection.step?.id ?? null; attempt = selection.attempt; failureCount = selection.failedAttempts;
@@ -88,6 +90,7 @@ console.log(JSON.stringify({ checkedAt: new Date().toISOString(), status, curren
   requiredP6Environment: 'P7_P6_CUTOVER_EVIDENCE_FILE', requiredApprovalEnvironment: 'P7_OPERATIONS_ACTIVATION_APPROVAL_FILE',
   requiredReceiptRootEnvironment: 'P7_OPERATIONS_ACTIVATION_RECEIPT_ROOT', confirmationEnvironment: 'P7_OPERATIONS_ACTIVATION_CONFIRMATION',
   missing: gate.missing, childProcessCount, receiptCreated, receiptRootClaimCreated, leaseAcquired, leaseReleased, leaseConflict,
+  activationBundleVerified,
   p6EvidenceComplete: p6?.status === 'evidence-complete', p7Status: p7?.status ?? null,
   secretValuesReadOrRecorded: false, productionGo: roadmap.invariants?.productionGo === true
 }, null, 2));

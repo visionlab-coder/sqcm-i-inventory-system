@@ -8,7 +8,7 @@ const modulePromise = import('../../src/operations/operations-activation-orchest
 function p6() { return { schemaVersion: 1, environment: 'production', activationState: 'actual', evidenceType: 'P6_CUTOVER_ACTUAL', status: 'PASS', productionGo: true, targetUrl: 'https://inventory.safe-link.co.kr', releaseSha: 'a'.repeat(40) }; }
 async function approval(overrides = {}) {
   const { OPERATIONS_ACTIVATION_ACTIONS, OPERATIONS_ACTIVATION_STEPS } = await modulePromise;
-  return { schemaVersion: 1, template: false, environment: 'production', activationState: 'actual', approved: true, targetUrl: 'https://inventory.safe-link.co.kr', runId: 'p7-activation-20261012-001', releaseSha: 'a'.repeat(40), authorizedByRef: 'identity://operations-owner', approvedAt: '2026-10-12T00:00:00.000Z', expiresAt: '2026-11-01T00:00:00.000Z', allowedSteps: OPERATIONS_ACTIVATION_STEPS.map((step) => step.id), authorizedActions: [...OPERATIONS_ACTIVATION_ACTIONS], ...overrides };
+  return { schemaVersion: 1, template: false, environment: 'production', activationState: 'actual', approved: true, targetUrl: 'https://inventory.safe-link.co.kr', runId: 'p7-activation-20261012-001', releaseSha: 'a'.repeat(40), activationBundleSha256: 'c'.repeat(64), authorizedByRef: 'identity://operations-owner', approvedAt: '2026-10-12T00:00:00.000Z', expiresAt: '2026-11-01T00:00:00.000Z', allowedSteps: OPERATIONS_ACTIVATION_STEPS.map((step) => step.id), authorizedActions: [...OPERATIONS_ACTIVATION_ACTIONS], ...overrides };
 }
 async function receipt(stepId, outcome = 'PASS', overrides = {}) {
   const { OPERATIONS_ACTIVATION_STEPS, operationsActivationApprovalSha256 } = await modulePromise; const index = OPERATIONS_ACTIVATION_STEPS.findIndex((step) => step.id === stepId); const step = OPERATIONS_ACTIVATION_STEPS[index];
@@ -34,9 +34,31 @@ test('P6 evidence·approval·root·execute·exact confirmation을 fail-closed한
 
 test('approval은 exact 19 steps·10 actions·P6 release·identity·유효기간을 요구한다', async () => {
   const { validateOperationsActivationApproval } = await modulePromise;
-  assert.equal(validateOperationsActivationApproval(await approval(), { p6Document: p6(), checkedAt: '2026-10-12T01:00:00.000Z' }).approved, true);
+  assert.equal(validateOperationsActivationApproval(await approval(), { p6Document: p6(), activationBundleSha256: 'c'.repeat(64), checkedAt: '2026-10-12T01:00:00.000Z' }).approved, true);
   const altered = await approval({ releaseSha: 'b'.repeat(40), authorizedByRef: 'person', expiresAt: '2027-01-01T00:00:00.000Z', allowedSteps: [], authorizedActions: [] });
-  assert.throws(() => validateOperationsActivationApproval(altered, { p6Document: p6(), checkedAt: '2026-10-12T01:00:00.000Z' }), /releaseSha.*authorizedByRef.*approvalWindow.*allowedSteps.*authorizedActions/);
+  assert.throws(() => validateOperationsActivationApproval(altered, { p6Document: p6(), activationBundleSha256: 'c'.repeat(64), checkedAt: '2026-10-12T01:00:00.000Z' }), /releaseSha.*authorizedByRef.*approvalWindow.*allowedSteps.*authorizedActions/);
+});
+
+test('approval은 현재 19단계 실행 번들의 exact SHA-256을 요구한다', async () => {
+  const { validateOperationsActivationApproval } = await modulePromise;
+  const value = await approval();
+  assert.throws(() => validateOperationsActivationApproval(value, { p6Document: p6(), activationBundleSha256: 'd'.repeat(64), checkedAt: '2026-10-12T01:00:00.000Z' }), /activationBundleSha256/);
+  assert.throws(() => validateOperationsActivationApproval(value, { p6Document: p6(), checkedAt: '2026-10-12T01:00:00.000Z' }), /activationBundleSha256/);
+});
+
+test('실행 번들 SHA-256은 exact 파일 경로와 byte 변경을 구분한다', async (t) => {
+  const { OPERATIONS_ACTIVATION_BUNDLE_ENTRYPOINTS, computeOperationsActivationBundleSha256, resolveOperationsActivationBundleFiles } = await modulePromise;
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-p7-activation-bundle-')); t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  for (const [index, relativePath] of OPERATIONS_ACTIVATION_BUNDLE_ENTRYPOINTS.entries()) {
+    const output = path.join(root, ...relativePath.split('/')); fs.mkdirSync(path.dirname(output), { recursive: true }); fs.writeFileSync(output, `file-${index}\n`, 'utf8');
+  }
+  const dependency = path.join(root, 'src', 'operations', 'bundle-dependency.mjs'); fs.writeFileSync(dependency, 'export const marker = 1;\n', 'utf8');
+  fs.appendFileSync(path.join(root, ...OPERATIONS_ACTIVATION_BUNDLE_ENTRYPOINTS[0].split('/')), "import '../src/operations/bundle-dependency.mjs';\n", 'utf8');
+  const original = computeOperationsActivationBundleSha256(root);
+  assert.match(original, /^[a-f0-9]{64}$/); assert.equal(computeOperationsActivationBundleSha256(root), original);
+  assert.equal(resolveOperationsActivationBundleFiles(root).includes('src/operations/bundle-dependency.mjs'), true);
+  fs.appendFileSync(dependency, 'changed\n', 'utf8');
+  assert.notEqual(computeOperationsActivationBundleSha256(root), original);
 });
 
 test('approval digest는 JSON key 순서와 무관하고 승인 내용 변경을 구분한다', async () => {

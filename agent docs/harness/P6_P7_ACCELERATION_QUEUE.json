@@ -373,6 +373,14 @@
       "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; child/write zero; failure-first 2 EXPECTED FAIL then focused 18/18 PASS; exact 19-step environment contract and filtered child environment enforced; actual activation NOT_RUN"
     },
     {
+      "id": "ACC-P7-29-OPERATIONS-ACTIVATION-BUNDLE-APPROVAL-BINDING",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "운영 활성화 승인은 오케스트레이터 source·entrypoint, 19개 child script와 재귀 로컬 정적 의존성 graph의 exact 경로·bytes SHA-256을 고정한다. 승인 뒤 실행 번들이 바뀌면 approval read 후 lease·child·receipt 전에 거부한다.",
+      "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; activation bundle not read before P6 actual; failure-first 2 EXPECTED FAIL then focused 20/20 PASS; exact physical root and transitive local dependency graph byte digest bound into approval provenance; actual activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

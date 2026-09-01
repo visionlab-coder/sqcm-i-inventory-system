@@ -53,6 +53,12 @@ export const OPERATIONS_ACTIVATION_STEPS = [
   { id: 'phase-complete', script: 'operations-phase-completion.mjs', args: ['--complete'], pass: ['PASS_ALL_PHASES_COMPLETE_8_OF_8'] }
 ].map((step) => ({ ...step, environment: [...OPERATIONS_ACTIVATION_STEP_ENVIRONMENT[step.id]] }));
 
+export const OPERATIONS_ACTIVATION_BUNDLE_ENTRYPOINTS = [...new Set([
+  'scripts/operations-activation-orchestrator.mjs',
+  'src/operations/operations-activation-orchestrator.mjs',
+  ...OPERATIONS_ACTIVATION_STEPS.map((step) => `scripts/${step.script}`)
+])].sort();
+
 const ID_PATTERN = /^[A-Za-z0-9._:-]{8,200}$/;
 const SHA_PATTERN = /^[a-f0-9]{40}$/;
 const IDENTITY_PATTERN = /^identity:\/\/[A-Za-z0-9._/@:-]+$/;
@@ -73,6 +79,52 @@ function canonicalJson(value) {
 
 export function operationsActivationApprovalSha256(value) {
   return createHash('sha256').update(canonicalJson(value), 'utf8').digest('hex');
+}
+
+const LOCAL_MODULE_SPECIFIER_PATTERN = /(?:\bfrom\s*|\bimport\s*\(\s*|\brequire\s*\(\s*|\bimport\s*)['"](\.{1,2}\/[^'"]+)['"]/g;
+
+function resolveLocalModulePath(fromFile, specifier) {
+  const unresolved = path.resolve(path.dirname(fromFile), specifier.split(/[?#]/, 1)[0]);
+  const candidates = path.extname(unresolved)
+    ? [unresolved]
+    : [unresolved, `${unresolved}.mjs`, `${unresolved}.js`, `${unresolved}.cjs`, `${unresolved}.json`, path.join(unresolved, 'index.mjs'), path.join(unresolved, 'index.js')];
+  return candidates.find((candidate) => fs.existsSync(candidate)) ?? null;
+}
+
+export function resolveOperationsActivationBundleFiles(projectRoot) {
+  if (typeof projectRoot !== 'string' || !path.isAbsolute(projectRoot)) throw new Error('OPERATIONS_ACTIVATION_BUNDLE_ROOT_INVALID');
+  const root = path.resolve(projectRoot); const pending = [...OPERATIONS_ACTIVATION_BUNDLE_ENTRYPOINTS]; const resolved = new Set();
+  while (pending.length) {
+    const relativePath = pending.pop(); if (resolved.has(relativePath)) continue;
+    const candidate = path.resolve(root, ...relativePath.split('/')); const relative = path.relative(root, candidate);
+    if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) throw new Error('OPERATIONS_ACTIVATION_BUNDLE_PATH_INVALID');
+    let stat; let realPath;
+    try { stat = fs.lstatSync(candidate); realPath = path.resolve(fs.realpathSync(candidate)); } catch { throw new Error('OPERATIONS_ACTIVATION_BUNDLE_FILE_MISSING'); }
+    if (!stat.isFile() || stat.isSymbolicLink() || (stat.isReparsePoint?.() ?? false) || realPath.toLowerCase() !== candidate.toLowerCase()) {
+      throw new Error('OPERATIONS_ACTIVATION_BUNDLE_FILE_NOT_PHYSICAL');
+    }
+    resolved.add(relativePath);
+    if (path.extname(candidate) === '.json') continue;
+    const source = fs.readFileSync(candidate, 'utf8');
+    for (const match of source.matchAll(LOCAL_MODULE_SPECIFIER_PATTERN)) {
+      const dependency = resolveLocalModulePath(candidate, match[1]);
+      if (!dependency) throw new Error('OPERATIONS_ACTIVATION_BUNDLE_DEPENDENCY_MISSING');
+      const dependencyRelative = path.relative(root, dependency);
+      if (!dependencyRelative || dependencyRelative.startsWith('..') || path.isAbsolute(dependencyRelative)) throw new Error('OPERATIONS_ACTIVATION_BUNDLE_DEPENDENCY_OUTSIDE_ROOT');
+      pending.push(dependencyRelative.split(path.sep).join('/'));
+    }
+  }
+  return [...resolved].sort();
+}
+
+export function computeOperationsActivationBundleSha256(projectRoot) {
+  const root = path.resolve(projectRoot); const hash = createHash('sha256');
+  hash.update('SQCM-I-P7-OPERATIONS-ACTIVATION-BUNDLE-V2\0', 'utf8');
+  for (const relativePath of resolveOperationsActivationBundleFiles(root)) {
+    const candidate = path.resolve(root, ...relativePath.split('/')); const content = fs.readFileSync(candidate); const pathBytes = Buffer.byteLength(relativePath, 'utf8');
+    hash.update(`${pathBytes}:`, 'utf8'); hash.update(relativePath, 'utf8'); hash.update(`:${content.length}:`, 'utf8'); hash.update(content);
+  }
+  return hash.digest('hex');
 }
 
 const SAFE_CHILD_RUNTIME_ENVIRONMENT = [
@@ -164,13 +216,14 @@ export function evaluateOperationsActivationGate({
   return { status: 'READY_EXECUTE_NEXT_OPERATIONS_ACTIVATION_STEP', missing, childProcessAllowed: true, approvalReadAllowed: true, receiptWriteAllowed: true };
 }
 
-export function validateOperationsActivationApproval(value, { p6Document, checkedAt = new Date().toISOString() } = {}) {
+export function validateOperationsActivationApproval(value, { p6Document, activationBundleSha256, checkedAt = new Date().toISOString() } = {}) {
   const failures = [];
   if (value?.schemaVersion !== 1 || value?.template !== false) failures.push('contract');
   if (value?.environment !== 'production' || value?.activationState !== 'actual' || value?.approved !== true) failures.push('provenance');
   if (value?.targetUrl !== 'https://inventory.safe-link.co.kr') failures.push('targetUrl');
   if (!ID_PATTERN.test(value?.runId ?? '')) failures.push('runId');
   if (!SHA_PATTERN.test(value?.releaseSha ?? '') || value?.releaseSha !== p6Document?.releaseSha) failures.push('releaseSha');
+  if (!DIGEST_PATTERN.test(activationBundleSha256 ?? '') || value?.activationBundleSha256 !== activationBundleSha256) failures.push('activationBundleSha256');
   if (!IDENTITY_PATTERN.test(value?.authorizedByRef ?? '')) failures.push('authorizedByRef');
   if (!validDate(value?.approvedAt) || !validDate(value?.expiresAt) || !validDate(checkedAt)) failures.push('dates');
   const checkedMs = Date.parse(checkedAt); const approvedMs = Date.parse(value?.approvedAt); const expiresMs = Date.parse(value?.expiresAt);

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "packetId": "ACC-P7-29-OPERATIONS-ACTIVATION-BUNDLE-APPROVAL-BINDING",
+  "status": "EVIDENCE_COMPLETE",
+  "authority": "local-autonomous",
+  "actualOperationsActivation": "NOT_RUN",
+  "productionGo": false,
+  "bundleContract": {
+    "orchestratorEntrypointCount": 1,
+    "orchestratorSourceCount": 1,
+    "childStepCount": 19,
+    "rootEntrypointCount": 21,
+    "resolvedPhysicalFileCount": 42,
+    "transitiveLocalDependencyGraphIncluded": true,
+    "pathAndByteDigest": "SHA-256",
+    "postApprovalMutationAccepted": false
+  },
+  "verification": {
+    "failureFirst": "18 PASS, 2 EXPECTED FAIL",
+    "focusedTests": "20/20 PASS",
+    "syntaxChecks": "282/282 PASS",
+    "unitTests": "449 PASS, 1 Windows-only SKIP, 0 FAIL (450 total)",
+    "harnessVerify": "PASS",
+    "digestCommand": "npm.cmd run operations:activation-bundle-digest",
+    "dryRunStatus": "READY_WAIT_P6_ACTUAL_CUTOVER",
+    "bundleVerifiedBeforeP6Actual": false,
+    "childProcessCount": 0,
+    "externalMutationPerformed": false,
+    "protectedListeners": [
+      "1234/6632",
+      "11434/8588",
+      "18765/22716",
+      "18766/65724"
+    ]
+  },
+  "nextReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF"
+}
