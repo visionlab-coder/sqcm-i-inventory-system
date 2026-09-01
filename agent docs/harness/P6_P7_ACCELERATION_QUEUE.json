@@ -277,6 +277,14 @@
       "evidence": "failure-first 6/6 reproduced; focused existing/runtime 9/9 PASS; production:log-gate read-only baseline proves 5xx/fatal/error/outbox retry/dead-letter zero and requires post-cutover recheck; syntax 332/332; repository unit 547 PASS 1 Windows platform skip; repository hygiene PASS; actual post-cutover log gate NOT_RUN"
     },
     {
+      "id": "ACC-P6-33-BOUNDED-PRODUCTION-NONFUNCTIONAL-RUNTIME",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production nonfunctional baseline child를 120초·1MiB로 제한하고 unrelated Secret 환경·raw stderr를 전달하지 않는다. child exit 0뿐 아니라 exact target·60 requests·zero error·p95 1000ms 이하·security headers·anonymous 401·cross-site 403을 엄격 파싱하며 모든 HTTP는 10초 상한을 사용한다.",
+      "evidence": "failure-first 6/6 reproduced; focused runtime/target 10/10 PASS; production:nonfunctional-baseline loopback 60 requests zero error p95 13ms and security contract PASS; syntax 334/334; repository unit 553 PASS 1 Windows platform skip; repository hygiene PASS; actual public nonfunctional gate NOT_RUN"
+    },
+    {
       "id": "ACC-P7-03-ACTUAL-HANDOVER-EVIDENCE-BUNDLE",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
