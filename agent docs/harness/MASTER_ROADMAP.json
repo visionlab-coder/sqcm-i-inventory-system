@@ -294,6 +294,7 @@
           "nonfunctional-loopback-baseline-and-public-recheck-automation-ready",
           "operational-health-loopback-baseline-and-post-cutover-recheck-automation-ready",
           "csrf-negative-and-idempotency-schema-baseline-automation-ready",
+          "rollback-readiness-dry-run-automation-ready",
           "cutover-evidence-local-gates-4-of-12-pass",
           "cutover-evidence-external-gates-8-of-12-pending",
           "cutover-candidate-fail-closed-validator-pass",
