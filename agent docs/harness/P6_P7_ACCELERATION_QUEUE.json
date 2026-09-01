@@ -53,6 +53,14 @@
       "evidence": "npm.cmd run production:ingress-publication => READY_WAIT_INGRESS_PUBLICATION_INPUTS; exact target and preservation contract focused 7/7 PASS; cutover Gate 5 publication then public probe; actual tunnel/config/DNS/process mutation zero"
     },
     {
+      "id": "ACC-P6-06-PRODUCTION-UAT-ACTOR-PROVISIONING",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "승인 파일과 역할별 credential reference가 일치할 때만 변경창에서 세 Production UAT actor를 한 transaction으로 생성·갱신하고 MFA·scope·session revoke·audit를 검증한다.",
+      "evidence": "npm.cmd run production:uat-actor-provision => READY_WAIT_UAT_ACTOR_PROVISION_INPUTS; focused 7/7 PASS; current image worker modules and required schema 28/28 compatible; actual account/MFA/DB mutation zero"
+    },
+    {
       "id": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

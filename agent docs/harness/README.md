@@ -23,6 +23,7 @@ npm.cmd run harness:verify
 - 동일 실패 3회: 자동 재시도 중단과 복구조건 기록
 - P7 준비 산출물은 미리 만들 수 있지만 P6 완료 전 P7 상태를 활성화하지 않는다.
 - P6 공개 전환은 `production:ingress-publication -- --execute`로 exact tunnel·runtime config·DNS를 게시한 뒤 `production:public-probe`를 실행한다. rollback token file reference와 publication·route-disable 확인 문자열이 없으면 게시하지 않는다.
+- 역할 시험은 `production:uat-actor-provision -- --execute`로 승인된 세 actor를 transaction provision한 뒤 `production:role-core-smoke -- --public`을 실행한다. 승인 파일과 세 credential reference는 저장소 밖 보호 파일만 허용한다.
 
 ## 상태 전이 규칙
 

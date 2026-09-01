@@ -310,6 +310,7 @@ function verify() {
       ['production-public-probe', 'npm.cmd', ['run', 'production:public-probe']],
       ['production-log-gate', 'npm.cmd', ['run', 'production:log-gate']],
       ['production-role-preflight', 'npm.cmd', ['run', 'production:role-preflight']],
+      ['production-uat-actor-provision', 'npm.cmd', ['run', 'production:uat-actor-provision']],
       ['production-role-core-smoke', 'npm.cmd', ['run', 'production:role-core-smoke']],
       ['production-nonfunctional-baseline', 'npm.cmd', ['run', 'production:nonfunctional-baseline']],
       ['production-operational-health-baseline', 'npm.cmd', ['run', 'production:operational-health-baseline']],
