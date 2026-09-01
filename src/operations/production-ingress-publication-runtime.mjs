@@ -4,6 +4,7 @@ import { resolve4, resolveCname } from 'node:dns/promises';
 export const INGRESS_COMMAND_TIMEOUT_MS = 10_000;
 export const INGRESS_PROVIDER_HTTP_TIMEOUT_MS = 10_000;
 export const INGRESS_DNS_TIMEOUT_MS = 5_000;
+export const INGRESS_DNS_DOH_ENDPOINT = 'https://cloudflare-dns.com/dns-query';
 
 export function runIngressCommand(command, args, {
   timeoutMs = INGRESS_COMMAND_TIMEOUT_MS,
@@ -61,4 +62,71 @@ export async function observeProductionIngressDns({
   if (result.timedOut) return { succeeded: false, published: false, status: 'INGRESS_DNS_OBSERVATION_TIMEOUT' };
   const published = result.results.some((item) => item.status === 'fulfilled' && Array.isArray(item.value) && item.value.length > 0);
   return { succeeded: true, published, status: 'PASS_INGRESS_DNS_OBSERVATION' };
+}
+
+export async function observeProductionIngressDnsOverHttps({
+  hostname,
+  fetchImpl = fetch,
+  timeoutMs = INGRESS_DNS_TIMEOUT_MS
+} = {}) {
+  if (typeof hostname !== 'string' || !hostname || typeof fetchImpl !== 'function') {
+    return { succeeded: false, published: false, status: 'INGRESS_DNS_DOH_FAILED' };
+  }
+  if (!Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 30_000) {
+    return { succeeded: false, published: false, status: 'INGRESS_DNS_DOH_FAILED' };
+  }
+  const query = async (type) => {
+    try {
+      const url = `${INGRESS_DNS_DOH_ENDPOINT}?name=${encodeURIComponent(hostname)}&type=${type}`;
+      const response = await fetchImpl(url, {
+        headers: { accept: 'application/dns-json' },
+        signal: AbortSignal.timeout(timeoutMs)
+      });
+      if (!response?.ok) return null;
+      const body = await response.json();
+      if (body?.Status !== 0 && body?.Status !== 3) return null;
+      return {
+        nxdomain: body.Status === 3,
+        published: body.Status === 0 && Array.isArray(body.Answer) && body.Answer.length > 0
+      };
+    } catch {
+      return null;
+    }
+  };
+  const results = await Promise.all(['A', 'CNAME'].map(query));
+  const valid = results.filter(Boolean);
+  const published = valid.some((item) => item.published);
+  const nxdomain = valid.some((item) => item.nxdomain);
+  if (published && nxdomain) {
+    return { succeeded: false, published: false, status: 'INGRESS_DNS_DOH_FAILED' };
+  }
+  if (published) return { succeeded: true, published: true, status: 'PASS_INGRESS_DNS_DOH_OBSERVATION' };
+  if (nxdomain || valid.length === 2) {
+    return { succeeded: true, published: false, status: 'PASS_INGRESS_DNS_DOH_OBSERVATION' };
+  }
+  return { succeeded: false, published: false, status: 'INGRESS_DNS_DOH_FAILED' };
+}
+
+export async function observeProductionIngressDnsResilient({
+  hostname,
+  nativeObserve = ({ hostname: value }) => observeProductionIngressDns({ hostname: value }),
+  fallbackObserve = ({ hostname: value }) => observeProductionIngressDnsOverHttps({ hostname: value })
+} = {}) {
+  let primary;
+  try { primary = await nativeObserve({ hostname }); } catch { primary = null; }
+  if (primary?.succeeded === true) return primary;
+  let fallback;
+  try { fallback = await fallbackObserve({ hostname }); } catch { fallback = null; }
+  if (fallback?.succeeded === true) {
+    return {
+      succeeded: true,
+      published: fallback.published === true,
+      status: 'PASS_INGRESS_DNS_OBSERVATION_FALLBACK'
+    };
+  }
+  return {
+    succeeded: false,
+    published: false,
+    status: 'INGRESS_DNS_PRIMARY_AND_FALLBACK_FAILED'
+  };
 }

@@ -10,7 +10,7 @@ import {
   classifyProductionIngressPublicationResult,
   evaluateProductionIngressPublicationGate
 } from '../src/operations/production-ingress-publication.mjs';
-import { observeProductionIngressDns, requestCloudflareJson, runIngressCommand } from '../src/operations/production-ingress-publication-runtime.mjs';
+import { observeProductionIngressDnsResilient, requestCloudflareJson, runIngressCommand } from '../src/operations/production-ingress-publication-runtime.mjs';
 
 const CLOUDFLARED = 'C:\\Program Files (x86)\\cloudflared\\cloudflared.exe';
 const ORIGIN_CERT = 'C:\\Users\\user\\.cloudflared\\cert.pem';
@@ -32,7 +32,7 @@ const credentialPath = (id) => path.join(CREDENTIAL_DIRECTORY, `${id}.json`);
 const expectedConfig = (id) => `tunnel: ${id}\ncredentials-file: ${credentialPath(id)}\ningress:\n  - hostname: ${PRODUCTION_INGRESS_TARGET.hostname}\n    service: ${PRODUCTION_INGRESS_TARGET.origin}\n    originRequest:\n      connectTimeout: 10s\n  - service: http_status:404\n`;
 
 async function publicDnsPublished() {
-  return observeProductionIngressDns({ hostname: PRODUCTION_INGRESS_TARGET.hostname });
+  return observeProductionIngressDnsResilient({ hostname: PRODUCTION_INGRESS_TARGET.hostname });
 }
 async function originHealthy() {
   try {
