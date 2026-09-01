@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "workId": "P6-G1-OCI-FREE-VM-PROVIDER-AND-ARM64-RELEASE",
+  "checkedAt": "2026-09-01",
+  "status": "LOCAL_ARM64_CONTRACT_PASS_HOLD_OCI_ACCOUNT_AND_BILLING_GUARD",
+  "productionGo": false,
+  "providerCandidate": {
+    "provider": "Oracle Cloud Infrastructure",
+    "region": "ap-seoul-1",
+    "shape": "VM.Standard.A1.Flex",
+    "architecture": "arm64",
+    "ocpu": 2,
+    "memoryGb": 12,
+    "bootVolumeGb": 100,
+    "estimatedMonthlyComputeMemoryWithinAlwaysFreeAllowanceUsd": 0,
+    "reservedPublicIp": "NOT_CREATED",
+    "instance": "NOT_CREATED"
+  },
+  "costBoundaries": {
+    "freeOnlyTenancyLimit": "1500 OCPU hours and 9000 GB hours; equivalent to 2 OCPU and 12 GB",
+    "publishedPaidOrTrialA1AllowanceNotSelected": "3000 OCPU hours and 18000 GB hours",
+    "approvedFreeOnlyTarget": "2 OCPU and 12 GB",
+    "payAsYouGoUpgradeApproved": false,
+    "overageRisk": false,
+    "capacityRisk": true,
+    "idleReclamationRiskOnAlwaysFree": true
+  },
+  "releaseContract": {
+    "platforms": ["linux/amd64", "linux/arm64"],
+    "qemuActionPinned": true,
+    "remoteWorkflowRun": "NOT_RUN",
+    "publishedArm64Manifest": "NOT_VERIFIED"
+  },
+  "localVerification": {
+    "syntaxFiles": 126,
+    "unitTestsPassed": 148,
+    "unitTestsFailed": 0,
+    "applicationMigrations": "25/25",
+    "composeServices": 3,
+    "uiContracts": 20,
+    "harnessVerify": "PASS",
+    "repositoryHygiene": "PASS"
+  },
+  "localProviderState": {
+    "ociCliInstalled": false,
+    "ociConfigExists": false,
+    "terraformInstalled": false
+  },
+  "accountSignupPreflight": {
+    "signupPageOpened": true,
+    "nonEssentialCookiesRejected": true,
+    "billingCountry": "NOT_ENTERED",
+    "identityFields": "USER_ACTION_REQUIRED",
+    "emailVerification": "USER_ACTION_REQUIRED",
+    "paymentVerification": "USER_ACTION_REQUIRED",
+    "homeRegionRequired": "ap-seoul-1",
+    "homeRegionProvisioned": false,
+    "paidUpgradeAllowed": false,
+    "payableResourcesAllowed": false
+  },
+  "runnerRequirements": {
+    "repositoryDedicated": true,
+    "inboundPortRequired": false,
+    "outboundHttps443Required": true,
+    "dockerRequired": true,
+    "registered": false
+  },
+  "recoveryDecision": {
+    "postgresVersion": 16,
+    "walContinuousSequenceRequiredForPitr": true,
+    "walArchiveContainsSensitiveDatabaseContent": true,
+    "offsiteArchiveTarget": "NOT_ASSIGNED",
+    "rpo": "NOT_APPROVED",
+    "rto": "NOT_APPROVED"
+  },
+  "externalChangesMade": false,
+  "nextReady": "P6-G1-OCI-ACCOUNT-SEOUL-HOME-REGION-AND-BILLING-GUARD"
+}

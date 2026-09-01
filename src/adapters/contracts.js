@@ -8,9 +8,11 @@ function requireMethods(adapter, name, methods) {
 
 function validateOperationalAdapters(config, adapters = {}) {
   const result = { ...adapters };
-  if (config.fileStorageDriver === 'external') {
+  if (['external', 'postgres'].includes(config.fileStorageDriver)) {
     requireMethods(result.fileStore, 'fileStore', ['write', 'read', 'removeNew', 'healthCheck']);
-    if(String(result.fileStore.driver||'').toUpperCase()==='LOCAL') throw new Error('Production external fileStore cannot use the LOCAL driver.');
+    const driver = String(result.fileStore.driver || '').toUpperCase();
+    if (driver === 'LOCAL') throw new Error('Production fileStore cannot use the LOCAL driver.');
+    if (config.fileStorageDriver === 'postgres' && driver !== 'POSTGRES') throw new Error('PostgreSQL file storage requires the POSTGRES driver.');
   }
   if (config.malwareScanDriver === 'external') {
     requireMethods(result.malwareScanner, 'malwareScanner', ['scan', 'healthCheck']);

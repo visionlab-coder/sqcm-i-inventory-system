@@ -1,14 +1,42 @@
 # 서원토건 비품관리 시스템 최신 단일 현황
 
-기준일: 2026-08-31
+기준일: 2026-09-01
 
 릴리스 기준 브랜치: `main`
-현재 작업 브랜치: `codex/fix-sidebar-accessibility` (`dfc37e3bfa60ea69a54900678897ee6b3a0eb078`)
+현재 작업 브랜치: `codex/fix-sidebar-accessibility` (`0d892f0b131d95524512e3658775243e50c912ff`)
 최신 릴리스 기준 main: `79a12924106b378d2337898c76a4dd431634b78d`
 
-상태: **P5 staging UAT 19/19·서명 3/3 완료 / P6 Production preflight HOLD_EXTERNAL_INPUTS / Production NO-GO**
+상태: **P5 staging UAT 19/19·서명 3/3 완료 / P6-G1 AI PC PostgreSQL Production 격리 토폴로지 PASS / P6-G2 Git·CI READY / Production NO-GO**
 
 이 문서는 현재 상태의 단일 정본이다. 과거 Phase 보고서의 당시 수치와 설계 결정은 역사 증거로 보존하되 현재 판정에는 이 문서와 실제 코드·테스트 결과를 우선한다.
+
+## 2026-09-01 P6-G1 무료 PostgreSQL Production 오버레이
+
+- 사용자는 OCI 경로를 폐기하고 AI PC PostgreSQL 운영을 승인했다. OCI 계정·카드·VM은 생성하지 않으며 외부 클라우드 결제수단은 필요하지 않다.
+- AI PC는 24 logical CPU, RAM 약 64GB, D: 여유 약 1.81TB지만 관찰 시 여유 RAM은 약 12GB다. 단일 호스트 장애와 SQCM-i 37봇·다른 Docker project와의 자원 경합 위험을 수용해야 한다.
+- `compose.ai-production.yaml`은 `seowon-inventory-production` 전용 project, frontend `127.0.0.1:3300`, backend/database 호스트 포트 0, 세 서비스 합계 4.5 CPU·4.25GB 상한을 강제한다. 실제 Production 컨테이너와 볼륨은 아직 만들지 않았다.
+- 구문 128개, 단위 149/149, application migration 25/25, AI PC Production 계약, Compose 3서비스, UI 계약 20개, staging 3서비스 health와 Harness verify가 PASS해 P6-G1을 닫았다.
+- 사용자는 Supabase 유료 전환을 철회하고 무료 운영, 불가 시 PostgreSQL 전환을 결정했다. Pro checkout은 확정 전에 닫았고 조직은 Free이며 결제·카드 입력·Production project 생성은 0이다.
+- 업무 DB는 기존부터 PostgreSQL 16이므로 전용 Production VM의 `database` 서비스를 정본으로 유지한다. Supabase staging `iuoljos…`는 변경 없이 `ACTIVE_HEALTHY`로 보존한다.
+- application migration `026_postgres_file_blobs.sql`과 `PostgresFileStore`를 추가해 증빙 파일을 PostgreSQL `BYTEA`로 보관한다. backup·restore·maintenance 필수 테이블에도 `file_blobs`를 포함했다.
+- Production 로컬 인증은 `PRODUCTION_LOCAL_AUTH_MFA_REQUIRED=true`일 때만 허용하며 MFA 미등록 계정은 세션 발급 전에 차단한다. cutover 전 실제 사용자 MFA 등록·복구코드 인수가 필요하다.
+- 구문 126, 단위 148/148, application migration 25/25, PostgreSQL 파일 write/read/delete/health, Production deploy precheck, Compose 3서비스, UI 계약 20이 통과했다.
+- staging 3서비스와 LM Studio `1234/PID 6632`, Ollama `11434/PID 8588`, bridge/wslrelay `18765/PID 22716`은 보존됐다.
+- OCI Free Tier 가입 화면을 열고 비필수 쿠키를 거절했다. 무료 전용 결정을 우선해 Seoul `ap-seoul-1` Ampere A1 총 2 OCPU·12GB·100GB를 후보로 고정했다. 4 OCPU·24GB는 Free-only 한도가 아니며 Pay As You Go·유료 Add-on·과금 가능 리소스는 승인하지 않는다.
+- OCI A1 ARM64 대응을 위해 release workflow의 backend/frontend를 `linux/amd64,linux/arm64`로 보완했다. 원격 Actions·image manifest는 NOT RUN이다.
+- 남은 P6-G1 외부 입력은 OCI 법적 이름·실사용 이메일·주소·전화·카드 신원확인, Seoul home region, 실제 VM·reserved IP·runner, PostgreSQL backup/WAL·off-site·RPO/RTO다. 개인정보·카드 원문은 사용자가 화면에 직접 입력하며 저장소에 기록하지 않는다. 현재 변경은 로컬 미커밋이고 Production DNS/TLS·Secret·migration·배포·과금은 0이다.
+
+## 2026-09-01 P6-G1 Supabase 생성 시도 역사 증거
+
+- 현재 후보 `0d892f0b…`는 원격 `codex/fix-sidebar-accessibility`와 일치하고 확인 시 worktree는 clean이었다.
+- 이 SHA의 open PR과 Actions run은 각각 0이다. 이전 SHA의 성공 CI를 현재 후보 CI로 승격하지 않는다.
+- Supabase `sqcm-i-inventory` 조직은 Free plan이며 staging `iuoljos…`는 Singapore에서 `ACTIVE_HEALTHY`다. Production은 별도 project로 분리한다.
+- 신규 project의 현재 비용 조회는 USD 0/month지만 사용자의 비용 이해 확인 전 생성하지 않는다. Free plan은 Production backup/PITR 수용 증거가 아니므로 plan·retention·RPO/RTO를 별도 결정한다.
+- `inventory.safe-link.co.kr`과 Seoul region을 권장 후보로 기록했다. DNS/TLS, Production runtime/runner, 정확한 변경 시간과 실행·rollback 책임자는 아직 미확정이다.
+- Production project·Secret·DNS/TLS·PR/CI·merge·release·migration·배포 변경은 0이다.
+- USD 0/month 비용 확인 후 `sqcm-i-inventory-production` Seoul 생성을 1회 요청했으나 Owner/Admin 활성 Free project 2개 한도로 거부됐다. project·비용 발생은 0이며 다른 project pause/delete와 plan 변경은 하지 않았다.
+- `inventory.safe-link.co.kr`, `sqcm-i-inventory-prod-01` 최소 사양, 2026-09-11 20:00~23:00 KST 변경창과 22:00 rollback cutoff, 현재 사용자 실행·rollback 책임은 승인됐다.
+- 이 경로는 후속 사용자 결정으로 폐기됐다. 현재 정본은 위 무료 PostgreSQL 오버레이다.
 
 전체 순서와 한 번에 한 Phase만 진행하는 규칙은 [`docs/roadmap.md`](./roadmap.md)에서 시각화한다. P2 릴리스 기준선·CI, P3 AI PC 연동, P4 Staging 인프라·배포와 P5 역할별 UAT는 증거 있는 완료이며, 현재 실행 Phase는 **P6 Production 전환**이다. 전용 Supabase 논리 백업은 public 복구가 원본 52 tables·40 rows·3 functions와 일치했고 회사 Google Drive의 소유자 전용 폴더에서 재다운로드 SHA-256까지 일치했다.
 
@@ -28,7 +56,7 @@
 - 19개 UAT는 모두 `READY_NOT_RUN`이며 실제 실행 증거 전에는 PASS로 계산하지 않는다.
 - 열린 Critical/High는 사전 기준선 0이나 실제 UAT 중 한 건이라도 발견되면 Production NO-GO를 유지한다.
 
-장기 실행 계약은 [`agent docs/prompts/79_장기_Goal_Harness_메타프롬프트.md`](../agent%20docs/prompts/79_장기_Goal_Harness_메타프롬프트.md), 기계 상태는 [`agent docs/harness/MASTER_ROADMAP.json`](../agent%20docs/harness/MASTER_ROADMAP.json)이 소유한다. 새 격리 DB에서 application migration 23/23, 단위 133/133, 통합 20 PASS·0 FAIL, smoke 5/5와 maintenance가 통과했다. Supabase는 migration 이름·순서·정규화 본문 24/24, RLS 52/52, Data API 역할 grant 0, Security WARN·ERROR 0이다.
+장기 실행 계약은 [`agent docs/prompts/79_장기_Goal_Harness_메타프롬프트.md`](../agent%20docs/prompts/79_장기_Goal_Harness_메타프롬프트.md), 기계 상태는 [`agent docs/harness/MASTER_ROADMAP.json`](../agent%20docs/harness/MASTER_ROADMAP.json)이 소유한다. 최신 격리 DB에서 application migration 25/25와 단위 148/148이 통과했다. 기존 staging Supabase는 migration 25건과 완료된 P4·P5 증거를 보존한다.
 
 ## 2026-08-31 P4 provider binding 오버레이
 
@@ -103,9 +131,9 @@
 
 P5는 migration 025와 staging backend 재배포 후 **19 PASS·0 FAIL·0 PENDING**, Critical/High 0, 업무·보안·운영 전자서명 3/3으로 증거 있는 완료다. 정상 PNG·EICAR 차단·MFA·승인·반납·구매·provider receipt와 USER Supabase SSO·390×844 모바일 핵심 화면·로그아웃이 통과했다.
 
-P6-G0 비파괴 preflight 결과 현재 staging 후보는 미커밋이고 P2 main 이미지는 P3~P5 변경을 포함하지 않는다. Production manifest·actual cutover evidence·self-hosted Production workflow는 모두 0이며 template gate는 정상 fail-closed다.
+P6-G1 재검증으로 staging 후보 미고정 공백은 해소됐다. `0d892f0b…`가 commit·push되어 원격과 일치하지만 open PR·current SHA CI는 0이고 신규 불변 이미지 digest도 없다. Production manifest·actual cutover evidence·self-hosted Production workflow는 모두 0이며 template gate는 정상 fail-closed다.
 
-현재 유일한 READY는 **P6-G1-PRODUCTION-TARGET-CHANGE-WINDOW-AND-PROVIDER-INPUT**이다. 비품관리 전용 hostname·분리된 Production Supabase/공급자·release candidate·변경 시간/책임자·runner 입력이 필요하다. Production은 `NO-GO`다.
+현재 유일한 READY는 **P6-G2-RELEASE-CANDIDATE-GIT-CI-AND-IMMUTABLE-IMAGES**다. 현재 로컬 변경을 정확한 allowlist로 commit·push하고 GitHub-hosted CI와 동일 SHA의 backend/frontend 이미지 digest를 검증해야 한다. 새 Git 외부 변경 승인이 필요하며 Production Secret·migration·컨테이너·DNS/TLS는 아직 없으므로 Production은 `NO-GO`다.
 # Phase 74 불변 이미지 릴리스 게이트 (2026-08-15)
 
 - GitHub Actions 외부 참조를 공식 commit SHA로 고정하고, main의 정확한 SHA로 frontend/backend 이미지를 GHCR에 발행하는 workflow를 추가했다.

@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "workId": "P6-G1-AI-PC-LOCAL-PRODUCTION-TOPOLOGY-AND-CAPACITY-PREFLIGHT",
+  "checkedAt": "2026-09-01",
+  "status": "PASS_LOCAL_TOPOLOGY_CONTRACT_NOT_DEPLOYED",
+  "productionGo": false,
+  "decision": {
+    "ociPath": "ABANDONED_BY_USER",
+    "database": "PostgreSQL 16",
+    "runtimeHost": "AI_PC",
+    "cloudPaymentMethodRequired": false
+  },
+  "hostCapacity": {
+    "logicalProcessors": 24,
+    "physicalMemoryApproxGb": 64,
+    "freeMemoryObservedApproxGb": 12,
+    "dDriveFreeApproxTb": 1.81,
+    "risk": "SHARED_HOST_CAPACITY_AND_FAILURE_DOMAIN"
+  },
+  "productionTopology": {
+    "composeProject": "seowon-inventory-production",
+    "services": ["frontend", "backend", "database"],
+    "frontendHostBinding": "127.0.0.1:3300",
+    "backendHostPort": null,
+    "databaseHostPort": null,
+    "cpuLimitTotal": 4.5,
+    "memoryLimitTotal": "4.25g",
+    "volumesIsolatedByComposeProject": true,
+    "networkIsolatedByComposeProject": true
+  },
+  "existingProjectsPreserved": [
+    "seowon-inventory-local",
+    "seowon-inventory-staging",
+    "sframe-local",
+    "hermes-pilot"
+  ],
+  "protectedServices": [
+    {"port": 1234, "pid": 6632, "preserved": true},
+    {"port": 11434, "pid": 8588, "preserved": true},
+    {"port": 18765, "pid": 22716, "preserved": true}
+  ],
+  "changesMade": [
+    "added isolated AI PC production Compose overlay",
+    "added local topology contract and unit test",
+    "updated Harness and roadmap evidence"
+  ],
+  "changesNotMade": [
+    "production secrets",
+    "production containers or volumes",
+    "database migration or data copy",
+    "DNS, TLS, firewall, or public route",
+    "commit, push, CI, merge, or release"
+  ],
+  "verification": {
+    "harnessVerify": "PASS",
+    "syntaxFiles": 128,
+    "unitTestsPassed": 149,
+    "unitTestsFailed": 0,
+    "postgresProductionContract": "PASS_25_OF_25",
+    "aiPcProductionContract": "PASS",
+    "composeServices": 3,
+    "uiContracts": 20,
+    "stagingServicesHealthy": 3
+  },
+  "nextReady": "P6-G2-RELEASE-CANDIDATE-GIT-CI-AND-IMMUTABLE-IMAGES"
+}

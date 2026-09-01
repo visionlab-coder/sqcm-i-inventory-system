@@ -48,6 +48,10 @@ function apiError(req, res, status, code, message, fieldErrors = []) {
   return res.status(status).json({ code, message, fieldErrors, requestId: req.id });
 }
 
+function requiresMfaEnrollment(config, user) {
+  return config.localAuthMfaRequired === true && user?.mfa_enabled !== true;
+}
+
 function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiProvider }) {
   fileStore ||= new LocalFileStore(config.fileStorageRoot);
   malwareScanner ||= config.malwareScanDriver === 'mock' ? new MockMalwareScanner() : null;
@@ -209,6 +213,11 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiPr
       }
       await writeAudit(pool, user?.id, 'LOGIN_FAILED', 'AUTH', user?.id, { reason: locked ? 'locked' : 'invalid' }, auditTrace(req));
       return apiError(req, res, 401, 'INVALID_CREDENTIALS', '이메일 또는 비밀번호를 확인하세요.');
+    }
+
+    if (requiresMfaEnrollment(config, user)) {
+      await writeAudit(pool, user.id, 'LOGIN_BLOCKED_MFA_ENROLLMENT_REQUIRED', 'AUTH', user.id, {}, auditTrace(req));
+      return apiError(req, res, 403, 'MFA_ENROLLMENT_REQUIRED', '운영 로그인 전에 MFA 등록이 필요합니다. 관리자에게 문의하세요.');
     }
 
     await new Promise((resolve, reject) => req.session.regenerate(error => error ? reject(error) : resolve()));
@@ -441,6 +450,14 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiPr
       });
     }
 
+    if (requiresMfaEnrollment(config, user)) {
+      await writeAudit(pool, user.id, 'LOGIN_BLOCKED_MFA_ENROLLMENT_REQUIRED', 'AUTH', user.id, {}, auditTrace(req));
+      return res.status(403).render('login', {
+        title: '로그인', reason: 'mfa_enrollment_required', returnTo: safeReturnPath(req.body.returnTo),
+        flash: { type: 'error', message: '운영 로그인 전에 MFA 등록이 필요합니다. 관리자에게 문의하세요.' }
+      });
+    }
+
     if (user.mfa_enabled) {
       await writeAudit(pool, user.id, 'MFA_HTML_LOGIN_BLOCKED', 'AUTH', user.id, {}, auditTrace(req));
       return res.status(409).render('login', {
@@ -561,4 +578,4 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiPr
   return app;
 }
 
-module.exports = { createApp, safeReturnPath, apiError };
+module.exports = { createApp, safeReturnPath, apiError, requiresMfaEnrollment };

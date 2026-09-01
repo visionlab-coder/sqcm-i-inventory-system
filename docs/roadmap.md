@@ -1,6 +1,6 @@
 # SQCM-i 비품관리 시스템 전체 로드맵
 
-기준일: 2026-08-31
+기준일: 2026-09-01
 
 상태 정본: [`docs/current-state.md`](./current-state.md)
 
@@ -57,7 +57,7 @@ flowchart LR
 | P3 AI PC 연동 | 독립 bridge/runtime/model, G1~G5, fallback | ✅ 증거 있는 완료 | checksum, listener, TLS·인증, health/ready, 계약·rollback PASS | G0~G5, Pilot UAT 19/19, 승인 3/3, Defender·경보 receipt PASS |
 | P4 Staging 인프라·배포 | 전용 hostname, 공급자, Secret reference, backup, staging 배포 | ✅ 증거 있는 완료 | backup→migration→불변 이미지→health/smoke→rollback PASS | non-seed·DNS/TLS·provider·OIDC·backup/migration·rollback·off-site readback·signoff 3/3 PASS |
 | P5 역할별 UAT | 19개 UAT와 업무·보안·운영 책임자 검수 | ✅ 증거 있는 완료 | staging 19개 PASS, Critical/High 0, 책임자 실제 서명 | 기술 UAT 19/19·Critical/High 0·업무/보안/운영 전자서명 3/3 |
-| P6 Production 전환 | 최종 승인, cutover, 관측·복구 확인 | 🔄 진행 중 | P3~P5 PASS, 승인된 변경 시간, cutover·rollback 증거 | G0 preflight HOLD: 현재 후보 미고정·Production manifest/cutover/runner 0. READY `P6-G1-PRODUCTION-TARGET-CHANGE-WINDOW-AND-PROVIDER-INPUT` |
+| P6 Production 전환 | 최종 승인, cutover, 관측·복구 확인 | 🔄 진행 중 | P3~P5 PASS, 승인된 변경 시간, cutover·rollback 증거 | OCI 폐기, AI PC PostgreSQL 16 격리 토폴로지 PASS. 전용 Compose project·loopback frontend·비공개 backend/database·자원 상한 검증 완료. 불변 이미지·CI·Secret·배포가 남음. READY `P6-G2-RELEASE-CANDIDATE-GIT-CI-AND-IMMUTABLE-IMAGES` |
 | P7 운영·유지보수 활성화 | 백업, 경보, 온콜, 정기 점검, 개선 큐 | ⏳ 미착수 | 운영 백업·경보 수신·복구훈련과 책임자 인수 | P6 완료 후 시작 |
 
 ## 4. 전역지침 11단계 연결
@@ -81,8 +81,8 @@ flowchart LR
 - 목표: P3~P5 완료 증거를 바탕으로 운영 대상·불변 이미지·backup/migration·cutover·rollback·관측 계약을 실제 Production 증거로 닫는다.
 - 사전 증거: P3 AI PC 19/19·서명 3/3, P4 staging/rollback/off-site backup·서명 3/3, P5 UAT 19/19·서명 3/3.
 - 비범위: 별도 승인 없는 Production 배포·migration·DNS/TLS·Secret·commit·push·merge·release.
-- 현재 상태: G0 preflight에서 P5 선행조건은 PASS했지만 현재 staging 후보는 미커밋이고 P2 main 이미지는 P3~P5 변경 전이다. Production manifest·cutover evidence·self-hosted workflow는 각각 0이며 `productionGo=false`다.
-- 다음 READY: **P6-G1-PRODUCTION-TARGET-CHANGE-WINDOW-AND-PROVIDER-INPUT**. 전용 hostname·Production Supabase/공급자·release candidate·변경 시간/책임자·runner 입력을 확정한다.
+- 현재 상태: 유료 Supabase와 OCI 경로는 취소됐고 Free staging은 보존됐다. AI PC PostgreSQL 16, `file_blobs`, 로컬 인증 MFA 필수 구성과 다중 아키텍처 릴리스 계약은 구문 126·단위 148/148·migration 25/25·실제 BLOB 계약·3서비스 계약을 통과했다. 현재 변경은 로컬 미커밋이고 `productionGo=false`다.
+- 다음 READY: **P6-G2-RELEASE-CANDIDATE-GIT-CI-AND-IMMUTABLE-IMAGES**. 현재 로컬 변경을 Secret 없는 정확한 allowlist로 commit·push하고 GitHub-hosted CI와 동일 SHA의 backend/frontend 불변 이미지 digest를 검증한다. 이 외부 Git 변경은 새 명시 승인이 필요하다.
 
 ## 6. Phase 갱신 절차
 

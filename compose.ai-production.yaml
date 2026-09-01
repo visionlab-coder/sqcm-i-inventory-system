@@ -1,0 +1,18 @@
+name: seowon-inventory-production
+
+services:
+  database:
+    ports: !override []
+    cpus: "2.0"
+    mem_limit: 2g
+
+  backend:
+    ports: !override []
+    cpus: "2.0"
+    mem_limit: 2g
+
+  frontend:
+    ports: !override
+      - "127.0.0.1:${FRONTEND_PORT:-3300}:80"
+    cpus: "0.50"
+    mem_limit: 256m

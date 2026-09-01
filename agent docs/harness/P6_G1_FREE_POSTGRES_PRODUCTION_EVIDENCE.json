@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "workId": "P6-G1-FREE-POSTGRES-PRODUCTION-ARCHITECTURE",
+  "checkedAt": "2026-09-01T10:42:56+09:00",
+  "status": "LOCAL_CONTRACT_PASS_EXTERNAL_VM_INPUT_HOLD",
+  "phaseProgress": "6 / 8",
+  "productionGo": false,
+  "decision": {
+    "costPolicy": "ZERO_PAID_SUPABASE",
+    "productionDatabase": "dedicated-vm-postgresql-16",
+    "productionFileStorage": "postgres-bytea",
+    "productionAuthentication": "local-password-plus-mandatory-mfa",
+    "supabaseStagingPreserved": true
+  },
+  "supabase": {
+    "organizationName": "sqcm-i-inventory",
+    "organizationId": "ycuakonkjyhvyfljnfoc",
+    "plan": "free",
+    "proCheckoutCancelled": true,
+    "chargeSubmitted": false,
+    "paymentMethodSubmitted": false,
+    "productionProjectCreated": false,
+    "stagingProjectId": "iuoljosldyymkburagwj",
+    "stagingStatus": "ACTIVE_HEALTHY"
+  },
+  "localVerification": {
+    "syntaxFiles": 124,
+    "unitTests": { "passed": 147, "failed": 0 },
+    "applicationMigrations": { "expected": 25, "applied": 25 },
+    "postgresFileStore": { "write": "PASS", "read": "PASS", "delete": "PASS", "health": "PASS" },
+    "productionDeployPrecheck": "PASS",
+    "composeServices": ["frontend", "backend", "database"],
+    "uiContracts": 20,
+    "diffCheck": "PASS"
+  },
+  "preservedInvariants": {
+    "stagingDockerHealthy": 3,
+    "protectedServices": [
+      { "name": "LM Studio", "port": 1234, "pid": 6632, "preserved": true },
+      { "name": "Ollama", "port": 11434, "pid": 8588, "preserved": true },
+      { "name": "bridge/wslrelay", "port": 18765, "pid": 22716, "preserved": true }
+    ]
+  },
+  "changesMade": true,
+  "externalChangesMade": false,
+  "temporaryVerificationDatabaseRemoved": true,
+  "blockedReasons": [
+    "PRODUCTION_VM_PROVIDER_ADDRESS_COST_MISSING",
+    "PRODUCTION_RUNNER_NOT_PROVISIONED",
+    "POSTGRES_BACKUP_WAL_RPO_RTO_NOT_APPROVED",
+    "CURRENT_LOCAL_CHANGES_NOT_COMMITTED_OR_CI_VERIFIED",
+    "CLOUDFLARE_DNS_TLS_NOT_PUBLISHED"
+  ],
+  "nextReady": "P6-G1-PRODUCTION-TARGET-CHANGE-WINDOW-AND-PROVIDER-INPUT"
+}
