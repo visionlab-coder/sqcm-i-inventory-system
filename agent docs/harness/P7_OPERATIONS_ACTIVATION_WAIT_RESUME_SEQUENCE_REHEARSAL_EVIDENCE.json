@@ -1,0 +1,47 @@
+{
+  "packet": "ACC-P7-37-OPERATIONS-ACTIVATION-19-STEP-WAIT-RESUME-SEQUENCE-SYNTHETIC-REHEARSAL",
+  "status": "PASS_SYNTHETIC_OPERATIONS_ACTIVATION_WAIT_RESUME_SEQUENCE_REHEARSAL",
+  "activationBundleSha256": "83d0803eddde77293e3dfa96e89b988fc2c1512a51f32efd6de18184f8f330c2",
+  "approvalChainVerified": true,
+  "orchestratorApprovalVerified": true,
+  "receiptRootClaimCreated": true,
+  "firstSelectedStep": "slo-collect",
+  "nextSelectedStep": null,
+  "finalSelectionStatus": "PASS_OPERATIONS_ACTIVATION_SEQUENCE_COMPLETE",
+  "sequenceComplete": true,
+  "activationStepCount": 19,
+  "activationReceiptCount": 38,
+  "waitReceiptCount": 19,
+  "passReceiptCount": 19,
+  "resumeVerificationCount": 19,
+  "physicalDocumentCount": 43,
+  "tamperScenarioCount": 3,
+  "tamperRejectedCount": 3,
+  "temporaryArtifactsRetained": false,
+  "childProcessCount": 0,
+  "focusedTests": {
+    "newFailureFirstExpectedFailures": 3,
+    "combinedTotal": 9,
+    "combinedPassed": 9,
+    "combinedFailed": 0
+  },
+  "syntaxChecks": {
+    "passed": 302,
+    "failed": 0
+  },
+  "unitTests": {
+    "total": 477,
+    "passed": 476,
+    "failed": 0,
+    "skipped": 1
+  },
+  "syntheticOnly": true,
+  "actualApprovalCreated": false,
+  "actualActivationExecuted": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

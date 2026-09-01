@@ -53,7 +53,7 @@ function countPhysicalFiles(root) {
 }
 
 function runRehearsal({
-  activationBundleSha256, temporaryBase = os.tmpdir(), completeSequence = false
+  activationBundleSha256, temporaryBase = os.tmpdir(), completeSequence = false, waitBeforePass = false
 } = {}) {
   if (!SHA256_PATTERN.test(activationBundleSha256 ?? '')) throw new Error('ACTIVATION_BUNDLE_SHA256_INVALID');
   const base = physicalTemporaryBase(temporaryBase);
@@ -118,8 +118,21 @@ function runRehearsal({
     let selection = selectNextOperationsActivationStep([], { approval });
     const firstSelectedStep = selection.step?.id ?? null;
     const activationReceipts = [];
-    const receiptLimit = completeSequence ? OPERATIONS_ACTIVATION_STEPS.length : 1;
-    for (let index = 0; index < receiptLimit; index += 1) {
+    const stepLimit = completeSequence ? OPERATIONS_ACTIVATION_STEPS.length : 1;
+    let receiptOrdinal = 0; let waitReceiptCount = 0; let passReceiptCount = 0; let resumeVerificationCount = 0;
+    const persistReceipt = (step, attempt, status) => {
+      const activationReceipt = buildOperationsActivationReceipt({
+        approval, step, attempt,
+        result: { exitCode: 0, summary: { status }, stdout: `synthetic stdout ${step.id} attempt ${attempt}`, stderr: '' },
+        checkedAt: new Date(Date.parse('2026-09-12T02:02:00.000Z') + receiptOrdinal * 60000).toISOString()
+      });
+      writeOperationsActivationReceiptOnce(receiptRoot, activationReceipt, { processId: 944 + receiptOrdinal });
+      const receiptName = `${String(activationReceipt.sequence).padStart(2, '0')}-${activationReceipt.stepId}-attempt-${String(attempt).padStart(4, '0')}.json`;
+      activationReceipts.push(readDocument(path.join(receiptRoot, receiptName)).value);
+      receiptOrdinal += 1;
+      return selectNextOperationsActivationStep(activationReceipts, { approval });
+    };
+    for (let index = 0; index < stepLimit; index += 1) {
       if (!selection.step) throw new Error('ACTIVATION_SEQUENCE_ENDED_EARLY');
       const childEnvironment = buildOperationsActivationChildEnvironment(selection.step, {
         PATH: process.env.PATH ?? '', P7_SLO_LEDGER_FILE: path.join(root, 'synthetic-ledger.json'),
@@ -128,18 +141,23 @@ function runRehearsal({
       if ('UNRELATED_SECRET' in childEnvironment || 'GITHUB_TOKEN' in childEnvironment || 'NODE_OPTIONS' in childEnvironment) {
         throw new Error('UNRELATED_CHILD_ENVIRONMENT_PROPAGATED');
       }
-      const activationReceipt = buildOperationsActivationReceipt({
-        approval, step: selection.step, attempt: selection.attempt,
-        result: { exitCode: 0, summary: { status: selection.step.pass[0] }, stdout: `synthetic stdout ${selection.step.id}`, stderr: '' },
-        checkedAt: new Date(Date.parse('2026-09-12T02:02:00.000Z') + index * 60000).toISOString()
-      });
-      writeOperationsActivationReceiptOnce(receiptRoot, activationReceipt, { processId: 944 + index });
-      const receiptName = `${String(activationReceipt.sequence).padStart(2, '0')}-${activationReceipt.stepId}-attempt-0001.json`;
-      activationReceipts.push(readDocument(path.join(receiptRoot, receiptName)).value);
-      selection = selectNextOperationsActivationStep(activationReceipts, { approval });
+      const step = selection.step;
+      if (waitBeforePass) {
+        selection = persistReceipt(step, 1, 'READY_WAIT_SYNTHETIC_OPERATION_INPUT'); waitReceiptCount += 1;
+        if (selection.step?.id !== step.id || selection.attempt !== 2) throw new Error('ACTIVATION_WAIT_RESUME_SELECTION_INVALID');
+        resumeVerificationCount += 1;
+      }
+      selection = persistReceipt(step, waitBeforePass ? 2 : 1, step.pass[0]); passReceiptCount += 1;
     }
 
-    const tamperScenarios = completeSequence ? [
+    const tamperScenarios = waitBeforePass ? [
+      activationReceipts.slice(1),
+      [...activationReceipts, {
+        ...activationReceipts[1], attempt: 3, outcome: 'WAIT', status: 'READY_WAIT_SYNTHETIC_OPERATION_INPUT',
+        checkedAt: '2026-09-12T03:00:00.000Z'
+      }],
+      activationReceipts.map((item, index) => index === 10 ? { ...item, runId: 'p7-activation-synthetic-other-run' } : item)
+    ] : completeSequence ? [
       activationReceipts.map((item, index) => index === 0 ? { ...item, sequence: 2 } : item),
       activationReceipts.map((item, index) => index === 5 ? { ...item, approvalSha256: '9'.repeat(64) } : item),
       activationReceipts.slice(0, -1)
@@ -165,7 +183,9 @@ function runRehearsal({
     }
     if (tamperRejectedCount !== tamperScenarios.length) throw new Error('TAMPER_SCENARIO_NOT_REJECTED');
     result = {
-      status: completeSequence
+      status: waitBeforePass
+        ? 'PASS_SYNTHETIC_OPERATIONS_ACTIVATION_WAIT_RESUME_SEQUENCE_REHEARSAL'
+        : completeSequence
         ? 'PASS_SYNTHETIC_OPERATIONS_ACTIVATION_FULL_SEQUENCE_REHEARSAL'
         : 'PASS_SYNTHETIC_OPERATIONS_ACTIVATION_APPROVAL_TO_ORCHESTRATOR_REHEARSAL',
       approvalChainVerified: preflight.status === 'PASS_OPERATIONS_ACTIVATION_APPROVAL_CHAIN_PREFLIGHT',
@@ -175,8 +195,9 @@ function runRehearsal({
       nextSelectedStep: selection.step?.id ?? null,
       finalSelectionStatus: selection.status,
       sequenceComplete: selection.status === 'PASS_OPERATIONS_ACTIVATION_SEQUENCE_COMPLETE',
-      activationStepCount: activationReceipts.length,
+      activationStepCount: passReceiptCount,
       activationReceiptCount: activationReceipts.length,
+      waitReceiptCount, passReceiptCount, resumeVerificationCount,
       physicalDocumentCount: countPhysicalFiles(root),
       tamperScenarioCount: tamperScenarios.length, tamperRejectedCount,
       childProcessCount: 0, syntheticOnly: true,
@@ -192,9 +213,13 @@ function runRehearsal({
 }
 
 export function runOperationsActivationApprovalToOrchestratorRehearsal(options = {}) {
-  return runRehearsal({ ...options, completeSequence: false });
+  return runRehearsal({ ...options, completeSequence: false, waitBeforePass: false });
 }
 
 export function runOperationsActivationFullSequenceRehearsal(options = {}) {
-  return runRehearsal({ ...options, completeSequence: true });
+  return runRehearsal({ ...options, completeSequence: true, waitBeforePass: false });
+}
+
+export function runOperationsActivationWaitResumeSequenceRehearsal(options = {}) {
+  return runRehearsal({ ...options, completeSequence: true, waitBeforePass: true });
 }
