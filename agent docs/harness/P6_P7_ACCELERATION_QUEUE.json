@@ -26,7 +26,7 @@
       "status": "EVIDENCE_COMPLETE",
       "authority": "local-autonomous",
       "acceptance": "승인된 시험계정으로 정상 CSRF 쓰기와 동일 idempotency key replay를 검증하고 데이터 정리·감사 증거를 남기는 runner가 존재한다.",
-      "evidence": "npm.cmd run production:authenticated-idempotency => READY_WAIT_ADMIN_CREDENTIAL_AND_WRITE_CONFIRMATION; focused 4/4 PASS; actual write NOT_RUN"
+      "evidence": "default loopback and exact --public target modes separated; outside-window public write fails closed; focused 9/9 PASS; actual write NOT_RUN"
     },
     {
       "id": "ACC-P6-03-CHANGE-WINDOW-CUTOVER-ORCHESTRATOR",

@@ -299,6 +299,7 @@
           "public-operational-health-change-window-target-gate-ready",
           "csrf-negative-and-idempotency-schema-baseline-automation-ready",
           "authenticated-csrf-idempotency-write-replay-runner-ready",
+          "public-authenticated-csrf-idempotency-change-window-target-gate-ready",
           "change-window-12-gate-cutover-orchestrator-dry-run-pass",
           "rollback-readiness-dry-run-automation-ready",
           "uat-signoff-reference-preflight-automation-ready",

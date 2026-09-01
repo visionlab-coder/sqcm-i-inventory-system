@@ -9,7 +9,7 @@
     "status": "READY_WAIT_CHANGE_WINDOW",
     "localBlockers": [],
     "unitTests": "4/4 PASS",
-    "repositoryRegression": "220/220 PASS",
+    "repositoryRegression": "225/225 PASS",
     "harnessRegistered": true
   },
   "cutoverEvidenceCandidate": {
@@ -122,11 +122,15 @@
   },
   "authenticatedCsrfIdempotencyRunnerAutomation": {
     "command": "npm.cmd run production:authenticated-idempotency",
+    "publicCommand": "npm.cmd run production:authenticated-idempotency -- --public",
     "status": "READY_WAIT_ADMIN_CREDENTIAL_AND_WRITE_CONFIRMATION",
     "unitTests": "4/4 PASS",
+    "publicTargetUnitTests": "5/5 PASS",
     "checks": ["missing CSRF 403/CSRF_INVALID", "first write 201", "same-key replay", "different-payload 409", "database single row and audit", "cleanup zero", "logout"],
     "credentialReferencePresent": false,
     "writeConfirmationPresent": false,
+    "publicTarget": "https://inventory.safe-link.co.kr",
+    "publicExecutionRequires": ["approved change window", "PRODUCTION_UAT_WRITE_CONFIRMATION"],
     "actualAuthenticatedCsrfIdempotency": "NOT_RUN",
     "secretValuesReadOrRecorded": false
   },
@@ -227,7 +231,7 @@
     "CUTOVER_TEMPLATE_12_GATE_CONTRACT_VALID",
     "AUTOMATED_CUTOVER_PREFLIGHT_PASS",
     "AUTOMATED_PREFLIGHT_UNIT_TESTS_4_OF_4_PASS",
-    "REPOSITORY_UNIT_TESTS_220_OF_220_PASS",
+    "REPOSITORY_UNIT_TESTS_225_OF_225_PASS",
     "PRODUCTION_PROVIDER_PREFLIGHT_PASS",
     "PUBLIC_DNS_TLS_HEALTH_READINESS_PROBE_AUTOMATION_READY",
     "LOGS_5XX_OUTBOX_BASELINE_AND_CUTOVER_GATE_AUTOMATION_READY",
@@ -240,6 +244,7 @@
     "PUBLIC_OPERATIONAL_HEALTH_CHANGE_WINDOW_TARGET_GATE_READY",
     "CSRF_NEGATIVE_AND_IDEMPOTENCY_SCHEMA_BASELINE_AUTOMATION_READY",
     "AUTHENTICATED_CSRF_IDEMPOTENCY_WRITE_REPLAY_RUNNER_READY",
+    "PUBLIC_AUTHENTICATED_CSRF_IDEMPOTENCY_CHANGE_WINDOW_TARGET_GATE_READY",
     "CHANGE_WINDOW_12_GATE_CUTOVER_ORCHESTRATOR_DRY_RUN_PASS",
     "ROLLBACK_READINESS_DRY_RUN_AUTOMATION_READY",
     "UAT_SIGNOFF_REFERENCE_PREFLIGHT_AUTOMATION_READY",

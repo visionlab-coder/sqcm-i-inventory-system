@@ -2,20 +2,18 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { validateRoleCredential } from '../src/operations/production-role-core-smoke.mjs';
-import { evaluateAuthenticatedIdempotency } from '../src/operations/production-authenticated-idempotency.mjs';
+import {
+  AUTHENTICATED_IDEMPOTENCY_WRITE_CONFIRMATION,
+  classifyAuthenticatedIdempotencyEvidence,
+  evaluateAuthenticatedIdempotency,
+  selectAuthenticatedIdempotencyTarget
+} from '../src/operations/production-authenticated-idempotency.mjs';
+import { PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
 
 const require = createRequire(import.meta.url);
 const { totp } = require('../src/services/mfa-service');
-const TARGET = String(process.env.PRODUCTION_UAT_BASE_URL || 'http://127.0.0.1:3300').replace(/\/$/, '');
 const CREDENTIAL_ENV = 'PRODUCTION_UAT_ADMIN_CREDENTIAL_FILE';
 const CONFIRMATION_ENV = 'PRODUCTION_UAT_WRITE_CONFIRMATION';
-const REQUIRED_CONFIRMATION = 'ACK-P6-IDEMPOTENCY-UAT';
-
-function allowedTarget(value) {
-  const url = new URL(value);
-  return (url.protocol === 'http:' && ['127.0.0.1', 'localhost', '::1'].includes(url.hostname))
-    || (url.protocol === 'https:' && url.hostname === 'inventory.safe-link.co.kr');
-}
 
 function existingFile(value) {
   if (!value || !existsSync(value)) return false;
@@ -24,11 +22,11 @@ function existingFile(value) {
 
 function cookieFrom(response) { return response.headers.get('set-cookie')?.split(';')[0] || ''; }
 async function data(response) { return response.json().catch(() => ({})); }
-async function get(path, cookie = '') { return fetch(`${TARGET}${path}`, { redirect:'manual', headers:{ cookie, accept:'application/json' } }); }
+async function get(path, cookie = '') { return fetch(`${target}${path}`, { redirect:'manual', headers:{ cookie, accept:'application/json' } }); }
 async function post(path, session, body, key, includeCsrf = true) {
   const headers = { cookie:session.cookie, 'content-type':'application/json', 'idempotency-key':key };
   if (includeCsrf) headers['x-csrf-token'] = session.token;
-  return fetch(`${TARGET}${path}`, { method:'POST', redirect:'manual', headers, body:JSON.stringify(includeCsrf ? { ...body, _csrf:session.token } : body) });
+  return fetch(`${target}${path}`, { method:'POST', redirect:'manual', headers, body:JSON.stringify(includeCsrf ? { ...body, _csrf:session.token } : body) });
 }
 
 function databaseContainer() {
@@ -44,14 +42,25 @@ function sql(container, statement) {
   return result.stdout.trim();
 }
 
-if (!allowedTarget(TARGET)) throw new Error('Authenticated idempotency target is not allowlisted.');
+const now = new Date();
+const selection = selectAuthenticatedIdempotencyTarget({
+  publicMode: process.argv.includes('--public'),
+  now,
+  windowStart: new Date(PRODUCTION_CHANGE_WINDOW.start),
+  windowEnd: new Date(PRODUCTION_CHANGE_WINDOW.end)
+});
+if (selection.status.startsWith('FAIL_')) {
+  console.error(JSON.stringify({ checkedAt:now.toISOString(),...selection,productionGo:false }, null, 2));
+  process.exit(1);
+}
+const target = selection.target;
 const credentialPresent = existingFile(process.env[CREDENTIAL_ENV]);
-const writeConfirmed = process.env[CONFIRMATION_ENV] === REQUIRED_CONFIRMATION;
+const writeConfirmed = process.env[CONFIRMATION_ENV] === AUTHENTICATED_IDEMPOTENCY_WRITE_CONFIRMATION;
 if (!credentialPresent || !writeConfirmed) {
   console.log(JSON.stringify({
-    checkedAt:new Date().toISOString(),
+    checkedAt:now.toISOString(),
     status:'READY_WAIT_ADMIN_CREDENTIAL_AND_WRITE_CONFIRMATION',
-    targetKind:new URL(TARGET).hostname === 'inventory.safe-link.co.kr' ? 'production-https' : 'loopback',
+    targetKind:selection.targetKind,
     requiredEnvironment:[CREDENTIAL_ENV,CONFIRMATION_ENV],
     credentialReferencePresent:credentialPresent,
     writeConfirmationPresent:writeConfirmed,
@@ -117,8 +126,9 @@ try {
     logoutStatus:logout.status
   };
   const evaluation = evaluateAuthenticatedIdempotency(observation);
-  console.log(JSON.stringify({ checkedAt:new Date().toISOString(),targetKind:new URL(TARGET).hostname === 'inventory.safe-link.co.kr'?'production-https':'loopback',observation,actualAuthenticatedCsrfIdempotency:evaluation.status==='PASS_AUTHENTICATED_CSRF_IDEMPOTENCY'?'PASS':'FAIL',secretValuesReadOrRecorded:false,...evaluation }, null, 2));
-  if (evaluation.failures.length) process.exitCode = 1;
+  const classification = classifyAuthenticatedIdempotencyEvidence(evaluation, selection.actualProductionGate);
+  console.log(JSON.stringify({ checkedAt:new Date().toISOString(),targetKind:selection.targetKind,observation,secretValuesReadOrRecorded:false,...classification }, null, 2));
+  if (classification.failures.length) process.exitCode = 1;
 } catch (error) {
   if (Number.isInteger(assetId)) {
     try { sql(container, `begin; delete from api_idempotency_keys where idempotency_key in ('${key}','p6-csrf-${marker}'); delete from asset_status_histories where asset_id=${assetId}; delete from outbox_events where aggregate_type='ASSET' and aggregate_id='${assetId}'; delete from audit_logs where entity_type='ASSET' and entity_id='${assetId}'; delete from assets where id=${assetId}; commit;`); } catch {}

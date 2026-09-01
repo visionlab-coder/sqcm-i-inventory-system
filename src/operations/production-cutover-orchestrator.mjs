@@ -11,7 +11,7 @@ export const CUTOVER_GATE_COMMANDS = Object.freeze({
   provider_preflight: 'npm.cmd run production:provider-preflight',
   health_readiness: 'npm.cmd run production:public-probe',
   core_smoke: 'npm.cmd run production:role-core-smoke -- --public',
-  csrf_idempotency: 'npm.cmd run production:authenticated-idempotency',
+  csrf_idempotency: 'npm.cmd run production:authenticated-idempotency -- --public',
   logs_5xx: 'npm.cmd run production:log-gate',
   nonfunctional: 'npm.cmd run production:nonfunctional-baseline -- --public',
   operational_health: 'npm.cmd run production:operational-health-baseline -- --public',

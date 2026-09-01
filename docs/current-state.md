@@ -15,7 +15,7 @@
 - P6·P7 연속 진행 가속 계약을 추가했다. 외부 변경창 대기는 실패로 세지 않고, 실제 실행 실패 2회에는 동일 수용조건의 대체 경로를 적용하며 3회에만 중단한다.
 - 기계 큐 `P6_P7_ACCELERATION_QUEUE.json`은 P6의 실행 공백과 P7 준비를 순차 관리한다. P7 인수 preflight는 P6 대기 중 준비할 수 있지만 P7 상태는 P6 완료 전 미착수로 유지한다.
 - `ACC-P6-01`을 완료했다. `production:role-core-smoke`는 credential reference가 없으면 `READY_WAIT_ROLE_CREDENTIAL_REFERENCES`로 안전 대기하고, 입력이 있을 때 세 역할의 MFA challenge·오류 코드 401·유효 TOTP·역할 identity·dashboard/cost/admin 200/403·익명 401·logout을 실행한다. 기본 loopback 성공은 Production PASS로 승격하지 않는다. `--public`은 승인 변경창과 exact 확인 문자열이 모두 있을 때만 `https://inventory.safe-link.co.kr`을 사용한다. 실제 시험은 참조 0/3으로 `NOT_RUN`이다.
-- `ACC-P6-02`를 완료했다. `production:authenticated-idempotency`는 ADMIN MFA 세션으로 missing-CSRF 403, 최초 쓰기 201, 동일 key replay, 다른 payload 409, DB 단일 행·감사, 테스트 자산·감사·key 정리 0건과 logout을 검증한다. 현재 credential reference와 쓰기 확인이 없어 실제 쓰기는 `NOT_RUN`이다.
+- `ACC-P6-02`를 완료했다. `production:authenticated-idempotency`는 ADMIN MFA 세션으로 missing-CSRF 403, 최초 쓰기 201, 동일 key replay, 다른 payload 409, DB 단일 행·감사, 테스트 자산·감사·key 정리 0건과 logout을 검증한다. 기본 loopback 성공은 실제 Production PASS로 승격하지 않는다. `--public`은 승인 변경창에서 exact Production HTTPS만 사용하며 현재 credential reference와 쓰기 확인이 없어 실제 쓰기는 `NOT_RUN`이다.
 - `ACC-P6-03`을 완료했다. `production:cutover-orchestrator`가 12개 Gate 순서, 20:00~23:00 변경창, 22:00 cutoff, 필수 Gate 실패 시 public route 차단과 loopback·volume 보존을 dry-run으로 검증했다. 공개 역할·비기능·운영 health Gate는 모두 exact `--public` 명령을 사용한다. 외부 변경은 0건이다.
 - `ACC-P6-04`를 완료했고 finalizer의 fail-open 공백도 보완했다. `production:cutover-finalizer`는 실제 cutover 증거 파일이 없으면 `READY_WAIT_ACTUAL_CUTOVER_EVIDENCE`로 안전 대기한다. 실제 파일이 있더라도 정확히 12개 고유 Gate·세 역할 UAT·업무/보안/운영 승인·불변 SHA·정확한 Production URL·`productionGo=true`가 모두 없으면 실패하며 template·staging·loopback·baseline과 불완전 증거 승격을 거부한다. 회귀 5/5가 통과했다.
 - `ACC-P7-01`을 완료했다. `operations:handover-preflight`는 SLO·경보·백업·복원·인증서·온콜·정기점검·개선 큐 8개 영역을 fail-closed 검사한다. 계약 오류 0, focused 4/4, 저장소 구문 171개와 단위 200/200이 PASS했다. 실제 증거 참조 12개와 P6 완료가 없어 `READY_WAIT_P6_COMPLETION_AND_HANDOVER_INPUTS`이며 P7은 미착수다.
@@ -38,10 +38,11 @@
 - `npm.cmd run production:operational-health-baseline`은 loopback health/readiness, Production DB의 old outbox·expired session·stuck idempotency, 최근 15분 5xx, 최신 Production backup checksum/age와 restore drill/age를 한 번에 검사한다. 현재 기준선은 PASS이고 변경창 이후 재검사는 `NOT_RUN`이다.
 - `npm.cmd run production:operational-health-baseline -- --public`은 승인 변경창과 exact 확인 문자열이 있을 때 공개 `https://inventory.safe-link.co.kr` health/readiness와 같은 내부 DB·로그·백업·복원 증거를 결합한다. 변경창 밖 실행은 fail-closed로 차단되며 회귀 4/4가 통과했다.
 - `npm.cmd run production:csrf-idempotency-baseline`은 동일 출처 missing-CSRF 요청이 403/`CSRF_INVALID`이고 세션을 만들지 않는지, idempotency 테이블 10열·사용자/키 unique index와 stuck/invalid 0건을 검사한다. 실제 인증 사용자 정상 쓰기·동일 키 replay는 시험계정이 없어 `NOT_RUN`이다.
+- `npm.cmd run production:authenticated-idempotency -- --public`은 승인 변경창과 exact 쓰기 확인 문자열이 있을 때만 `https://inventory.safe-link.co.kr`의 인증 CSRF/idempotency 쓰기·replay·conflict·DB 단일 행·감사·정리를 실제 Production Gate로 판정한다. 변경창 밖 실행은 종료코드 1로 차단되며 target·증거 분리 회귀 5/5가 통과했다.
 - `npm.cmd run production:rollback-readiness`는 현재 backend/frontend revision, PostgreSQL·파일 named volume 2/2, G3 실제 중지/포트폐쇄/복구 drill, backup/restore, 22:00 cutoff와 Production 전용 route 제거 순서를 대조한다. dry-run readiness는 PASS지만 공개 전환 후 실제 rollback은 `NOT_RUN`이다.
 - `npm.cmd run production:signoff-preflight`는 ADMIN·MANAGER·USER Production UAT 결과와 업무·보안·운영 서명 파일 참조 6건, cutover 후보의 PENDING 상태와 변경창을 fail-closed로 검사한다. 현재 참조 0/6, 실제 서명 `NOT_RUN`으로 `READY_WAIT_PRODUCTION_UAT_AND_SIGNOFF_REFERENCES`이며 파일 내용·Secret은 읽거나 기록하지 않는다.
 - `npm.cmd run production:cutover-evidence`는 12개 Gate 중 실제 로컬 증거가 있는 artifact·backup/restore·migration·provider preflight 4건만 PASS로 조립한다. 외부 Production 8건과 역할 결과·서명은 PENDING이며 후보는 fail-closed 검증상 Production을 승인할 수 없다.
-- 저장소 표준 검증에서 JavaScript 구문 180개와 단위 220/220이 PASS했으며 preflight·공개 probe·로그·loopback 및 변경창 공개 역할 MFA/RBAC runner·nonfunctional·operational health·인증 CSRF/idempotency runner·rollback·최종 서명 Gate·증거 조립·실제 cutover 전체 계약 finalizer·P7 운영 인수 preflight와 finalizer 회귀가 검증 봉투에 포함된다.
+- 저장소 표준 검증에서 JavaScript 구문 180개와 단위 225/225가 PASS했으며 preflight·공개 probe·로그·loopback 및 변경창 공개 역할 MFA/RBAC·인증 CSRF/idempotency·nonfunctional·operational health runner·rollback·최종 서명 Gate·증거 조립·실제 cutover 전체 계약 finalizer·P7 운영 인수 preflight와 finalizer 회귀가 검증 봉투에 포함된다.
 
 ## 2026-09-01 P6-G3 AI PC Production 배포·복구
 
