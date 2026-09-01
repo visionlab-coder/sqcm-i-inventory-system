@@ -261,6 +261,14 @@
       "evidence": "npm.cmd run operations:evidence-pipeline-rehearsal => PASS_SYNTHETIC_OPERATIONS_EVIDENCE_PIPELINE_REHEARSAL; focused 4/4 PASS; 8 compilers·8 domains·10 verified documents·schema 2 manifest; tamper fail-closed; temporary artifacts/external mutation/actual evidence zero"
     },
     {
+      "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 actual 운영 인수 10문서가 SHA-256과 측정 계약을 통과하고 exact 확인이 있을 때만 P7을 증거 완료, Harness를 8/8 COMPLETE, READY를 0건으로 원자 전환한다.",
+      "evidence": "operations:phase-completion defaults to READY_WAIT_ACTUAL_HANDOVER_EVIDENCE_FOR_8_OF_8; focused 4/4 PASS; terminal Harness allows 0 in-progress and 0 READY only at 8/8; actual completion NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

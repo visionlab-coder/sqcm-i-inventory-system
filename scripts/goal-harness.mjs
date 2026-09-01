@@ -20,8 +20,9 @@ function currentPhase() {
 
 function status() {
   const phase = currentPhase();
+  const terminal = state.completedPhases === state.totalPhases;
   console.log(JSON.stringify({
-    status: 'ACTIVE',
+    status: terminal ? 'COMPLETE' : 'ACTIVE',
     progress: `${state.completedPhases} / ${state.totalPhases}`,
     currentPhase: phase?.id ?? null,
     phaseName: phase?.name ?? null,
@@ -36,6 +37,7 @@ function check() {
   const active = state.phases.filter((phase) => phase.status === 'in-progress');
   const completed = state.phases.filter((phase) => phase.status === 'evidence-complete');
   const phase = currentPhase();
+  const terminal = state.completedPhases === state.totalPhases;
   const symbolicRef = spawnSync('git', ['symbolic-ref', '--quiet', '--short', 'HEAD'], {
     cwd: projectDir,
     encoding: 'utf8',
@@ -52,10 +54,11 @@ function check() {
   });
 
   if (!branchProvenance.ok) errors.push(branchProvenance.error);
-  if (active.length !== 1) errors.push(`IN_PROGRESS_COUNT_${active.length}`);
+  if (active.length !== (terminal ? 0 : 1)) errors.push(`IN_PROGRESS_COUNT_${active.length}`);
   if (!phase) errors.push('CURRENT_PHASE_MISSING');
-  if (phase && phase.status !== 'in-progress') errors.push('CURRENT_PHASE_NOT_IN_PROGRESS');
-  if (phase && !phase.readyWork) errors.push('READY_WORK_MISSING');
+  if (phase && phase.status !== (terminal ? 'evidence-complete' : 'in-progress')) errors.push('CURRENT_PHASE_STATUS_INVALID');
+  if (phase && terminal && phase.readyWork !== null) errors.push('TERMINAL_READY_WORK_PRESENT');
+  if (phase && !terminal && !phase.readyWork) errors.push('READY_WORK_MISSING');
   if (completed.length !== state.completedPhases) errors.push('COMPLETED_COUNT_MISMATCH');
   if (state.totalPhases !== state.phases.length) errors.push('TOTAL_COUNT_MISMATCH');
   if (state.invariants.dockerServices.join(',') !== 'frontend,backend,database') {
@@ -72,8 +75,8 @@ function check() {
   } else {
     const queue = JSON.parse(readFileSync(accelerationQueuePath, 'utf8'));
     const readyPackets = queue.packets?.filter((packet) => packet.status === 'READY') ?? [];
-    if (readyPackets.length !== 1) errors.push(`ACCELERATION_READY_COUNT_${readyPackets.length}`);
-    if (readyPackets[0]?.id !== queue.readyPacket) errors.push('ACCELERATION_READY_POINTER_MISMATCH');
+    if (readyPackets.length !== (terminal ? 0 : 1)) errors.push(`ACCELERATION_READY_COUNT_${readyPackets.length}`);
+    if (terminal ? queue.readyPacket !== null : readyPackets[0]?.id !== queue.readyPacket) errors.push('ACCELERATION_READY_POINTER_MISMATCH');
     if (queue.rules?.waitingIsFailure !== false) errors.push('WAITING_MUST_NOT_COUNT_AS_FAILURE');
     if (queue.rules?.alternateAfterFailureCount !== 2 || queue.rules?.stopAfterSameFailureCount !== 3) {
       errors.push('ALTERNATE_RETRY_LADDER_CHANGED');
@@ -213,6 +216,19 @@ function verify() {
   check();
   if (process.exitCode) return;
   const phase = currentPhase();
+  if (state.completedPhases === state.totalPhases) {
+    const commands = [
+      ['git-diff-check', 'git', ['diff', '--check']],
+      ['quality', 'npm.cmd', ['run', 'check']],
+      ['compose-contract', 'npm.cmd', ['run', 'compose:contract']],
+      ['docker-health-production', 'docker', ['ps', '--filter', 'label=com.docker.compose.project=seowon-inventory-production', '--format', '{{json .}}'], validateInventoryContainers]
+    ];
+    const results = commands.map(([label, executable, args, validator]) => run(label, executable, args, validator));
+    const failed = results.filter((result) => result.exitCode !== 0);
+    console.log(`\n${JSON.stringify({ status: failed.length ? 'FAIL' : 'PASS', phase: phase.id, readyWork: null, terminal: true, results, changesMade: false, nextGate: 'NONE' }, null, 2)}`);
+    process.exitCode = failed.length ? 1 : 0;
+    return;
+  }
   const verifierKey = `${phase.id}/${phase.readyWork.id}`;
   const commandSets = {
     'P2/P2-LOCAL-VERIFY': [
@@ -374,7 +390,8 @@ function verify() {
       ['operations-improvement-queue-evidence', 'npm.cmd', ['run', 'operations:improvement-queue-evidence']],
       ['operations-signoff-evidence', 'npm.cmd', ['run', 'operations:signoff-evidence']],
       ['operations-handover-assembler', 'npm.cmd', ['run', 'operations:handover-assembler']],
-      ['operations-handover-finalizer', 'npm.cmd', ['run', 'operations:handover-finalizer']]
+      ['operations-handover-finalizer', 'npm.cmd', ['run', 'operations:handover-finalizer']],
+      ['operations-phase-completion', 'npm.cmd', ['run', 'operations:phase-completion']]
     ]
   };
   const commands = commandSets[verifierKey];

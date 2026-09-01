@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "packet": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
+  "status": "PASS_LOCAL_CONTRACT_ACTUAL_NOT_RUN",
+  "checkedAt": "2026-09-02T00:00:00+09:00",
+  "checks": {
+    "actualManifestRequired": true,
+    "verifiedDocumentCountRequired": 10,
+    "physicalEvidenceOutsideRepositoryRequired": true,
+    "sha256Required": true,
+    "exactConfirmationRequired": "ACK-P7-ACTUAL-HANDOVER-COMPLETE-CLOSE-8-OF-8",
+    "cleanWorktreeRequiredAtExecution": true,
+    "atomicStateFileCount": 4,
+    "terminalReadyCount": 0,
+    "terminalInProgressCount": 0
+  },
+  "actualCompletion": "NOT_RUN",
+  "changesMadeToProduction": false,
+  "secretValuesReadOrRecorded": false
+}
