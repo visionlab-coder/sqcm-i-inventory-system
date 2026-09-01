@@ -197,6 +197,14 @@
       "evidence": "failure-first 4/4 reproduced; focused 11/11 PASS; production:ingress-publication dry-run READY_WAIT_INGRESS_PUBLICATION_INPUTS with external mutation zero; syntax 313/313; repository unit 496 PASS 1 Windows platform skip; repository hygiene PASS; actual Production ingress publication NOT_RUN"
     },
     {
+      "id": "ACC-P6-23-BOUNDED-ROUTE-DISABLE-PROVIDER-ADAPTERS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "rollback 격리의 exact Production route-disable에서 Cloudflare tunnel CLI는 10초·1MiB, API는 10초, DNS 관측은 5초 상한을 사용한다. timeout·실패·비정상 응답은 오류·Secret 원문 없이 fail-closed하고 초기 tunnel 관측 실패는 token read·DNS API 전에 중단한다.",
+      "evidence": "failure-first 4/4 reproduced; focused 10/10 PASS; production:route-disable dry-run READY_WAIT_ROUTE_DISABLE_INPUTS with tunnel observation PASS and external mutation zero; syntax 315/315; repository unit 500 PASS 1 Windows platform skip; repository hygiene PASS; actual Production route deletion NOT_RUN"
+    },
+    {
       "id": "ACC-P7-03-ACTUAL-HANDOVER-EVIDENCE-BUNDLE",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
