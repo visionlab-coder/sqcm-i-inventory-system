@@ -337,6 +337,7 @@ function verify() {
         '--format', '{{json .}}'
       ], validateInventoryContainers],
       ['production-cutover-preflight', 'npm.cmd', ['run', 'production:cutover-preflight']],
+      ['production-change-window-input-readiness', 'npm.cmd', ['run', 'production:change-window-input-readiness']],
       ['production-cutover-orchestrator', 'npm.cmd', ['run', 'production:cutover-orchestrator']],
       ['production-cutover-failure-matrix', 'npm.cmd', ['run', 'production:cutover-failure-matrix']],
       ['production-cutover-execution-rehearsal', 'npm.cmd', ['run', 'production:cutover-execution-rehearsal']],

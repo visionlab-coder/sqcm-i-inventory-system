@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "packet": "ACC-P6-20-CHANGE-WINDOW-INPUT-READINESS-ENVELOPE",
+  "checkedAt": "2026-09-02T00:11:46+09:00",
+  "status": "READY_WAIT_CHANGE_WINDOW_INPUT_REFERENCES",
+  "referenceCount": 5,
+  "readyReferenceCount": 0,
+  "confirmationsArmed": 0,
+  "contractFailureCount": 0,
+  "pending": [
+    "CLOUDFLARE_PRODUCTION_DNS_API_TOKEN_FILE",
+    "PRODUCTION_UAT_ACTOR_APPROVAL_FILE",
+    "PRODUCTION_UAT_ADMIN_CREDENTIAL_FILE",
+    "PRODUCTION_UAT_MANAGER_CREDENTIAL_FILE",
+    "PRODUCTION_UAT_USER_CREDENTIAL_FILE",
+    "PRODUCTION_CUTOVER_ACTUAL_EVIDENCE_FILE"
+  ],
+  "staticPrerequisites": {
+    "cloudflaredBinary": true,
+    "originCertificate": true,
+    "productionRuntimePhysical": true
+  },
+  "secretValuesReadOrRecorded": false,
+  "externalMutationPerformed": false,
+  "productionGo": false
+}

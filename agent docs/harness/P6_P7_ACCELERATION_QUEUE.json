@@ -173,6 +173,14 @@
       "evidence": "npm.cmd run operations:handover-preflight => READY_WAIT_P6_COMPLETION_AND_HANDOVER_INPUTS; contract errors 0; focused 4/4 PASS; repository 200/200 PASS; P7 not-started"
     },
     {
+      "id": "ACC-P6-20-CHANGE-WINDOW-INPUT-READINESS-ENVELOPE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "변경창 전 Cloudflare rollback token, UAT 승인·세 역할 credential의 저장소 밖 물리 참조 5건과 actual evidence 출력 parent를 단일 판정하고, 모든 mutating 확인값은 실행 시점 전까지 미설정이어야 한다.",
+      "evidence": "production:change-window-input-readiness => READY_WAIT_CHANGE_WINDOW_INPUT_REFERENCES; reference 0/5; confirmations armed 0; failures 0; focused 5/5 PASS; external mutation zero"
+    },
+    {
       "id": "ACC-P7-03-ACTUAL-HANDOVER-EVIDENCE-BUNDLE",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

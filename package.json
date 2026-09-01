@@ -20,6 +20,7 @@
     "operations:preflight": "node scripts/operations-preflight.mjs",
     "operations:cutover-gate": "node scripts/cutover-gate.mjs",
     "production:cutover-preflight": "node scripts/production-cutover-preflight.mjs",
+    "production:change-window-input-readiness": "node scripts/production-change-window-input-readiness.mjs",
     "production:cutover-orchestrator": "node scripts/production-cutover-orchestrator.mjs",
     "production:cutover-failure-matrix": "node scripts/production-cutover-failure-matrix.mjs",
     "production:cutover-execution-rehearsal": "node scripts/production-cutover-execution-rehearsal.mjs",
