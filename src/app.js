@@ -52,10 +52,10 @@ function requiresMfaEnrollment(config, user) {
   return config.localAuthMfaRequired === true && user?.mfa_enabled !== true;
 }
 
-function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiProvider }) {
+function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiProvider, eventPublisher }) {
   fileStore ||= new LocalFileStore(config.fileStorageRoot);
   malwareScanner ||= config.malwareScanDriver === 'mock' ? new MockMalwareScanner() : null;
-  validateOperationalAdapters(config,{ fileStore,malwareScanner,oidcProvider,aiProvider });
+  validateOperationalAdapters(config,{ fileStore,malwareScanner,oidcProvider,aiProvider,eventPublisher });
   const app = express();
   const PgSession = connectPgSimple(session);
   const loginRateLimit = createLoginRateLimiter({

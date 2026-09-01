@@ -29,6 +29,12 @@ test('Production 무료 PostgreSQL 구성은 로컬 인증 MFA와 DB 파일 저�
   assert.equal(config.authProvider, 'local');
   assert.equal(config.localAuthMfaRequired, true);
   assert.equal(config.oidcRedirectUri, '');
+  const pool={on(){},query(){return Promise.resolve({rows:[]});}};
+  const fileStore={driver:'POSTGRES',async write(){},async read(){},async removeNew(){},async healthCheck(){return{status:'ok'};}};
+  const malwareScanner={driver:'MICROSOFT_DEFENDER_BRIDGE',async scan(){return{status:'clean'};},async healthCheck(){return{status:'ok'};}};
+  const aiProvider={async recommend(){return{recommendations:[]};},async healthCheck(){return{status:'ok'};},async readinessCheck(){return{status:'ready'};},ocr:{async extract(){return{fields:{},confidence:{}};}}};
+  const eventPublisher={async publish(){return{id:'receipt'};},async healthCheck(){return{status:'ok'};}};
+  assert.doesNotThrow(()=>createApp({pool,config,fileStore,malwareScanner,aiProvider,eventPublisher}));
 });
 test('migration history mode is explicit and fail-closed', () => {
   assert.equal(getConfig({ DB_MIGRATION_HISTORY_MODE: 'supabase' }).dbMigrationHistoryMode, 'supabase');
