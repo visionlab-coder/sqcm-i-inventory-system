@@ -346,6 +346,7 @@
           "production-authenticated-idempotency-http-process-10s-1mib-redacted-cleanup-pass",
           "production-uat-actor-provision-process-10s-worker-60s-1mib-redacted-cleanup-pass",
           "production-role-preflight-process-10s-1mib-redacted-strict-parser-pass",
+          "production-provider-preflight-query-10s-probe-150s-1mib-redacted-parser-pass",
           "p7-actual-https-30-day-append-only-slo-collector-ready",
           "p7-production-exact-tls-health-readiness-observer-ready",
           "p7-production-daily-maintenance-read-only-runner-ready",

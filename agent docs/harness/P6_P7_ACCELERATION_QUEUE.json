@@ -245,6 +245,14 @@
       "evidence": "failure-first 5/5 reproduced; focused 9/9 PASS; production:role-preflight READY_WAIT_ROLE_USERS_MFA_AND_CREDENTIAL_REFERENCES with ADMIN/MANAGER/USER active and MFA zero, credential references 0/3, read-only Docker queries 2 and DB writes zero; syntax 325/325; repository unit 526 PASS 1 Windows platform skip; repository hygiene PASS; actual role core smoke NOT_RUN"
     },
     {
+      "id": "ACC-P6-29-BOUNDED-PROVIDER-PREFLIGHT-RUNTIME",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production provider preflight의 backend container 조회는 10초, 5종 provider probe는 최대 150초, 모든 process 출력은 1MiB로 제한한다. timeout·process·container·observation JSON 오류는 stdout/stderr·provider 오류 원문 없이 fail-closed한다.",
+      "evidence": "failure-first 5/5 reproduced; focused 8/8 PASS; production:provider-preflight read-only PASS for PostgreSQL storage, Defender bridge, AI health/readiness and loopback event publisher; syntax 327/327; repository unit 531 PASS 1 Windows platform skip; repository hygiene PASS; account/DB/provider mutation zero"
+    },
+    {
       "id": "ACC-P7-03-ACTUAL-HANDOVER-EVIDENCE-BUNDLE",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
