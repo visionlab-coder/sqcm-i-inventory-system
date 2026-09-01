@@ -340,6 +340,7 @@ function verify() {
       ['operations-handover-preflight', 'npm.cmd', ['run', 'operations:handover-preflight']],
       ['operations-slo-evidence', 'npm.cmd', ['run', 'operations:slo-evidence']],
       ['operations-alerting-evidence', 'npm.cmd', ['run', 'operations:alerting-evidence']],
+      ['operations-backup-restore-evidence', 'npm.cmd', ['run', 'operations:backup-restore-evidence']],
       ['operations-handover-assembler', 'npm.cmd', ['run', 'operations:handover-assembler']],
       ['operations-handover-finalizer', 'npm.cmd', ['run', 'operations:handover-finalizer']]
     ]

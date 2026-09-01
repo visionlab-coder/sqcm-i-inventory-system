@@ -1,6 +1,6 @@
 {
   "gate": "P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF-PREP",
-  "checkedAt": "2026-09-01T20:13:00+09:00",
+  "checkedAt": "2026-09-01T20:27:00+09:00",
   "status": "READY_WAIT_P6_COMPLETION_AND_HANDOVER_EVIDENCE",
   "packetStatus": "READY",
   "phaseStatus": "not-started",
@@ -66,6 +66,24 @@
     "focusedUnitTests": "7/7 PASS",
     "actualReceiptCount": 0,
     "evidenceCreated": false
+  },
+  "backupRestoreEvidenceAutomation": {
+    "command": "npm.cmd run operations:backup-restore-evidence",
+    "executeCommand": "npm.cmd run operations:backup-restore-evidence -- --compile",
+    "status": "READY_WAIT_P6_COMPLETION_AND_BACKUP_RESTORE_DRILL",
+    "requiredInputEnvironment": "P7_BACKUP_RESTORE_DRILL_INPUT_FILE",
+    "inputContract": "agent docs/harness/P7_BACKUP_RESTORE_DRILL_INPUT_CONTRACT.json",
+    "requiredOutputEnvironments": ["P7_BACKUP_EVIDENCE_OUTPUT_FILE", "P7_RESTORE_EVIDENCE_OUTPUT_FILE"],
+    "confirmationEnvironment": "P7_BACKUP_RESTORE_EVIDENCE_CONFIRMATION=ACK-COMPILE-P7-PRODUCTION-BACKUP-RESTORE-EVIDENCE",
+    "backupContract": "off-site, checksum verified, age <= 1440 minutes, retention >= 30 days",
+    "restoreContract": "same backup ID, isolated target, matching row-count digest and migrations, RTO <= 240 minutes",
+    "sourceSha256Recorded": true,
+    "outputMustBeOutsideRepository": true,
+    "atomicPairWrite": true,
+    "overwriteAllowed": false,
+    "focusedUnitTests": "7/7 PASS",
+    "actualDrillPresent": false,
+    "createdDocumentCount": 0
   },
   "failClosedChecks": [
     "P6 actual Production cutover evidence",

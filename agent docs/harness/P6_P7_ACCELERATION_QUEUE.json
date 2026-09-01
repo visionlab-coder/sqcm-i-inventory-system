@@ -109,6 +109,14 @@
       "evidence": "npm.cmd run operations:alerting-evidence => READY_WAIT_P6_COMPLETION_AND_ALERT_RECEIPTS; focused 7/7 PASS; template·staging·loopback·missing/reordered/unreceived/duplicate receipt rejected; actual receipts and evidence creation NOT_RUN"
     },
     {
+      "id": "ACC-P7-07-PRODUCTION-BACKUP-RESTORE-EVIDENCE-COMPILER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 완료·P7 활성화 뒤 24시간 RPO 안의 checksum 검증된 off-site Production backup과 4시간 RTO 안의 격리 restore drill을 동일 원본·backup ID·운영 책임자·SHA provenance로 검증하고 backup·restore actual 문서 2건을 저장소 밖에 원자적으로 작성한다.",
+      "evidence": "npm.cmd run operations:backup-restore-evidence => READY_WAIT_P6_COMPLETION_AND_BACKUP_RESTORE_DRILL; focused 7/7 PASS; 30-day retention·off-site checksum·matching count digest·migration match·isolated target enforced; actual drill and evidence creation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
