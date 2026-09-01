@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-09-01T20:45:01+09:00",
+  "checkedAt": "2026-09-01T20:53:04+09:00",
   "template": false,
   "environment": "production",
   "activationState": "preflight",
@@ -20,6 +20,12 @@
     "command": "npm.cmd run operations:oncall-evidence -- --compile",
     "inputContract": "agent docs/harness/P7_ONCALL_HANDOVER_INPUT_CONTRACT.json",
     "status": "READY_WAIT_P6_COMPLETION_AND_ONCALL_HANDOVER",
+    "actualEvidenceCreated": false
+  },
+  "maintenanceEvidenceAutomation": {
+    "command": "npm.cmd run operations:maintenance-evidence -- --compile",
+    "inputContract": "agent docs/harness/P7_MAINTENANCE_EXECUTION_INPUT_CONTRACT.json",
+    "status": "READY_WAIT_P6_COMPLETION_AND_MAINTENANCE_EXECUTION",
     "actualEvidenceCreated": false
   }
 }

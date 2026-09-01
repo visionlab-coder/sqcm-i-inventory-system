@@ -133,6 +133,14 @@
       "evidence": "npm.cmd run operations:oncall-evidence => READY_WAIT_P6_COMPLETION_AND_ONCALL_HANDOVER; focused 7/7 PASS; Asia/Seoul·30-day coverage·distinct owners·5/15-minute receipts·7-day freshness enforced; actual assignment/message/drill/evidence creation NOT_RUN"
     },
     {
+      "id": "ACC-P7-10-PRODUCTION-MAINTENANCE-EVIDENCE-COMPILER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 완료·P7 활성화 뒤 docs/maintenance.md의 일일 Production 점검 6종, 불변 release SHA, 운영자, 고유 receipt, 실행·다음 일정과 차단 finding 0건을 검증하고 actual maintenance 문서를 저장소 밖에 원자적으로 작성한다.",
+      "evidence": "npm.cmd run operations:maintenance-evidence => READY_WAIT_P6_COMPLETION_AND_MAINTENANCE_EXECUTION; focused 7/7 PASS; exact target·immutable SHA·six ordered daily checks·24-hour freshness/next schedule·unique receipts enforced; actual maintenance/evidence creation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
