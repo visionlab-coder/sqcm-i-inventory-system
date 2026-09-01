@@ -51,6 +51,7 @@
     "operations:handover-preflight": "node scripts/operations-handover-preflight.mjs",
     "operations:slo-evidence": "node scripts/operations-slo-evidence.mjs",
     "operations:slo-collector": "node scripts/operations-slo-collector.mjs",
+    "operations:alert-delivery-runner": "node scripts/operations-alert-delivery-runner.mjs",
     "operations:alerting-evidence": "node scripts/operations-alerting-evidence.mjs",
     "operations:backup-restore-evidence": "node scripts/operations-backup-restore-evidence.mjs",
     "operations:backup-restore-runner": "node scripts/operations-backup-restore-runner.mjs",

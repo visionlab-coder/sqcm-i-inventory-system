@@ -309,6 +309,14 @@
       "evidence": "operations:improvement-queue-collector => READY_WAIT_P6_ACTUAL_CUTOVER; GitHub read/write/Issue mutation/secret read zero; focused 6/6 PASS; exact repository·operations label·source/severity/status label parity·owner/acceptance/triage/next-action·blocked dependency enforced"
     },
     {
+      "id": "ACC-P7-21-PRODUCTION-FIVE-SIGNAL-ALERT-DELIVERY-RUNNER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 승인된 공급자 manifest·물리 credential·exact 확인이 있을 때만 availability·latency_p95·http_5xx·backup_failure·certificate_expiry 5종 시험 경보를 고정 run 멱등키로 순차 전송하고 실제 DELIVERED receipt를 compiler 호환 export로 저장소 밖에 원자적으로 1회 기록한다.",
+      "evidence": "operations:alert-delivery-runner => READY_WAIT_P6_ACTUAL_CUTOVER; message/secret/write zero; focused 7/7 PASS; public HTTPS provider·recipient/owner provenance·deterministic idempotency·ordered unique DELIVERED receipts·5-minute latency enforced; actual delivery NOT_RUN"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

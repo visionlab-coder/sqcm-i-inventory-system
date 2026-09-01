@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "packetId": "ACC-P7-21-PRODUCTION-FIVE-SIGNAL-ALERT-DELIVERY-RUNNER",
+  "status": "EVIDENCE_COMPLETE",
+  "authority": "local-autonomous",
+  "actualAlertDeliveryDrill": "NOT_RUN",
+  "productionGo": false,
+  "verification": {
+    "focusedTests": "7/7 PASS",
+    "syntaxChecks": "273/273 PASS",
+    "unitTests": "415 PASS, 1 Windows-only SKIP, 0 FAIL (416 total)",
+    "harnessVerify": "PASS",
+    "dryRunStatus": "READY_WAIT_P6_ACTUAL_CUTOVER",
+    "requestCount": 0,
+    "deliveredReceiptCount": 0,
+    "secretValueUsed": false,
+    "localEvidenceWritePerformed": false,
+    "externalMessageSent": false,
+    "externalMutationPerformed": false
+  },
+  "contracts": [
+    "approved provider, channel, recipient and owner manifest",
+    "public HTTPS delivery endpoint and physical credential reference",
+    "five ordered required Production test signals",
+    "deterministic run and signal idempotency keys",
+    "unique provider DELIVERED receipts with matching provenance",
+    "five-minute delivery limit and atomic once-only external export"
+  ],
+  "nextReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF"
+}
