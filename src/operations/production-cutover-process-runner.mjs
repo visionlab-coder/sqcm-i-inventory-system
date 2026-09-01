@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 
 export const PRODUCTION_CUTOVER_RECEIPT_ROOT = 'D:\\seowon_runtime\\sqcm-i-inventory-production\\cutover-receipts';
 
@@ -57,9 +58,10 @@ function safeSegment(value) {
   return result;
 }
 
-export function createRuntimeReceiptWriter({ root = PRODUCTION_CUTOVER_RECEIPT_ROOT, io = fs, clock = () => new Date() } = {}) {
+export function createRuntimeReceiptWriter({ root = PRODUCTION_CUTOVER_RECEIPT_ROOT, io = fs, clock = () => new Date(), runId = randomUUID() } = {}) {
+  if (!/^[a-f0-9]{8}-[a-f0-9-]{27,35}$/i.test(runId)) throw new Error('CUTOVER_RUN_ID_INVALID');
   let sequence = 0;
-  return async ({ kind = 'step', gate, step = 'gate', status, exitCode = 0, stepEvidenceRefs = [] } = {}) => {
+  const writer = async ({ kind = 'step', gate, step = 'gate', status, exitCode = 0, stepEvidenceRefs = [] } = {}) => {
     const resolvedRoot = assertPhysicalDirectory(root, io);
     const checkedAt = clock().toISOString();
     sequence += 1;
@@ -67,13 +69,15 @@ export function createRuntimeReceiptWriter({ root = PRODUCTION_CUTOVER_RECEIPT_R
     const target = path.resolve(resolvedRoot, fileName);
     if (path.dirname(target).toLowerCase() !== resolvedRoot.toLowerCase()) throw new Error('CUTOVER_RECEIPT_PATH_ESCAPE');
     const payload = {
-      schemaVersion: 1, checkedAt, kind, gate, step, status, exitCode,
+      schemaVersion: 1, runId, checkedAt, kind, gate, step, status, exitCode,
       evidenceRefs: stepEvidenceRefs.map((item) => path.basename(String(item))),
       productionGo: false
     };
     io.writeFileSync(target, `${JSON.stringify(payload, null, 2)}\n`, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
     return target;
   };
+  Object.defineProperty(writer, 'runId', { value: runId, enumerable: true });
+  return writer;
 }
 
 export function spawnNodeStep({ script, args = [], cwd = process.cwd() } = {}) {

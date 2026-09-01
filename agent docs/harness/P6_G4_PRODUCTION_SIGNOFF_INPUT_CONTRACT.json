@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "template": true,
+  "evidenceType": "P6_CUTOVER_SIGNOFF_ACTUAL",
+  "environment": "production",
+  "activationState": "actual",
+  "targetUrl": "https://inventory.safe-link.co.kr",
+  "releaseTag": null,
+  "runId": null,
+  "area": null,
+  "decision": "NOT_RUN",
+  "signedByRef": null,
+  "signedAt": null,
+  "coreSmokeGateReceiptSha256": null
+}

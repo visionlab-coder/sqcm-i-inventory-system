@@ -65,6 +65,7 @@ export async function executeProductionCutover({
   });
   return {
     checkedAt: new Date(startedAt).toISOString(),
+    runId: writeReceipt.runId || null,
     receiptRoot: root,
     actualCutoverExecuted: result.executedGates.length > 0,
     externalMutationPerformed: result.executedGates.length > 0,

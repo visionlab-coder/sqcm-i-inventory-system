@@ -109,6 +109,14 @@
       "evidence": "npm.cmd run production:cutover-execute => PASS_CUTOVER_EXECUTION_ENTRYPOINT_DRY_RUN; focused 7 PASS 1 Windows platform skip; repository 340 PASS 1 platform skip; Harness PASS; synthetic confirmed path 12 Gates/14 steps/26 receipts; actual cutover/runtime receipt/external mutation zero"
     },
     {
+      "id": "ACC-P6-13-CUTOVER-RUN-PROVENANCE-AND-ACTUAL-EVIDENCE-ASSEMBLER",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "동일 runId의 12 Gate·14 step receipt와 SHA-256, 실제 세 역할 결과·업무/보안/운영 identity 서명을 검증해 finalizer 및 P7 호환 actual P6 증거를 저장소 밖에 원자적으로 1회 조립하며 template·변조·교차 run을 거부한다.",
+      "evidence": "npm.cmd run production:cutover-actual-evidence => READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_INPUTS; focused 5/5 PASS; repository 345 PASS 1 Windows platform skip; run identity rehearsal 1/1; actual assembly/output/external mutation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

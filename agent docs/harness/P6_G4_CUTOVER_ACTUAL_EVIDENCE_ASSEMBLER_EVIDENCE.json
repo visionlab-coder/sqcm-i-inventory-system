@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-09-01T13:31:09.500Z",
+  "packet": "ACC-P6-13-CUTOVER-RUN-PROVENANCE-AND-ACTUAL-EVIDENCE-ASSEMBLER",
+  "status": "PASS_ACTUAL_CUTOVER_EVIDENCE_ASSEMBLER_PREPARATION",
+  "requiredReceiptContract": { "runIdentityCount": 1, "gateCount": 12, "stepCount": 14, "sha256Required": true },
+  "requiredExternalDocuments": { "roleResults": 3, "identitySignoffs": 3, "templateAllowed": false },
+  "focusedTests": { "passed": 5, "failed": 0 },
+  "repositoryTests": { "passed": 345, "failed": 0, "platformSkipped": 1 },
+  "actualAssemblyStatus": "READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_INPUTS",
+  "actualEvidenceCreated": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false
+}

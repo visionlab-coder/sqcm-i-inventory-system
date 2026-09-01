@@ -24,13 +24,16 @@ try {
     windowStart: 1, rollbackCutoff: 3, windowEnd: 4, now: () => 2, externalActionConfirmed: true
   });
   const receipts = fs.readdirSync(root).map((name) => fs.readFileSync(path.join(root, name), 'utf8'));
+  const parsedReceipts = receipts.map((raw) => JSON.parse(raw));
   const expectedStepCount = Object.values(CUTOVER_GATE_ADAPTER_PLAN).flat().length;
   const pass = result.status === 'READY_FOR_CUTOVER_EVIDENCE_FINALIZATION'
     && spawnCount === expectedStepCount && receipts.length === expectedStepCount + 12
+    && new Set(parsedReceipts.map((receipt) => receipt.runId)).size === 1
     && receipts.every((raw) => !raw.includes('stdout') && !raw.includes('stderr') && !raw.includes('synthetic-secret'));
   console.log(JSON.stringify({
     checkedAt: new Date().toISOString(), status: pass ? 'PASS_CUTOVER_PROCESS_RUNNER_REHEARSAL' : 'FAIL_CUTOVER_PROCESS_RUNNER_REHEARSAL',
     gateCount: 12, stepCount: spawnCount, receiptCount: receipts.length, actualCutoverExecuted: false,
+    runIdentityCount: new Set(parsedReceipts.map((receipt) => receipt.runId)).size,
     externalMutationPerformed: false, secretValuesReadOrRecorded: false, productionGo: false
   }, null, 2));
   if (!pass) process.exitCode = 1;

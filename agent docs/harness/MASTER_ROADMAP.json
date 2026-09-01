@@ -329,6 +329,7 @@
           "p7-operations-evidence-pipeline-synthetic-end-to-end-rehearsal-pass",
           "cutover-process-runner-redacted-runtime-receipts-rehearsal-pass",
           "cutover-execution-entrypoint-window-confirmation-receipt-root-fail-closed-pass",
+          "cutover-run-id-sha-actual-evidence-assembler-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],

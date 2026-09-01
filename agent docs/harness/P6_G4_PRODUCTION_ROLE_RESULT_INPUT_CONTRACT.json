@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "template": true,
+  "evidenceType": "P6_ROLE_UAT_RESULT_ACTUAL",
+  "environment": "production",
+  "activationState": "actual",
+  "targetUrl": "https://inventory.safe-link.co.kr",
+  "releaseTag": null,
+  "runId": null,
+  "role": null,
+  "status": "NOT_RUN",
+  "actualProduction": false,
+  "coreSmokeGateReceiptSha256": null,
+  "checkedAt": null
+}

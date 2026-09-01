@@ -17,13 +17,14 @@ test('receipt는 stdout stderr Secret을 기록하지 않고 기존 파일을 �
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-cutover-receipt-'));
   try {
     const clock = () => new Date('2026-09-11T11:00:00.000Z');
-    const writeReceipt = createRuntimeReceiptWriter({ root, clock });
+    const writeReceipt = createRuntimeReceiptWriter({ root, clock, runId: '11111111-1111-4111-8111-111111111111' });
     const run = createProcessStepRunner({ writeReceipt, spawnStep: async () => ({ exitCode: 0, stdout: '{"status":"PASS"}', stderr: 'SECRET_VALUE' }) });
     const outcome = await run({ gate: 'artifact', id: 'preflight', script: 'x', args: [] });
     const raw = fs.readFileSync(outcome.evidenceRef, 'utf8');
     assert.equal(outcome.status, 'PASS');
+    assert.equal(JSON.parse(raw).runId, '11111111-1111-4111-8111-111111111111');
     assert.doesNotMatch(raw, /stdout|stderr|SECRET_VALUE/);
-    const secondWriter = createRuntimeReceiptWriter({ root, clock });
+    const secondWriter = createRuntimeReceiptWriter({ root, clock, runId: '11111111-1111-4111-8111-111111111111' });
     await assert.rejects(() => secondWriter({ kind: 'step', gate: 'artifact', step: 'preflight', status: 'PASS', exitCode: 0 }), /EEXIST/);
   } finally { fs.rmSync(root, { recursive: true }); }
 });
