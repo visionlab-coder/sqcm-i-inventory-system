@@ -213,6 +213,14 @@
       "evidence": "failure-first 4/4 reproduced; focused 8/8 PASS; production:public-probe dry-run READY_WAIT_DNS_TLS_PUBLICATION with bounded DNS observation PASS and endpoint requests NOT_RUN; syntax 317/317; repository unit 504 PASS 1 Windows platform skip; repository hygiene PASS; actual public HTTPS probe NOT_RUN"
     },
     {
+      "id": "ACC-P6-25-BOUNDED-ROLE-CORE-SMOKE-HTTP",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "ADMIN·MANAGER·USER 역할 core smoke의 모든 HTTP 요청을 10초로 제한하고 timeout·network·JSON 오류를 credential·응답 원문 없이 fail-closed한다. MFA 뒤 중간 실패는 활성 시험 세션의 bounded logout cleanup을 시도한다.",
+      "evidence": "failure-first 4/4 reproduced; focused 15/15 PASS; production:role-core-smoke dry-run READY_WAIT_ROLE_CREDENTIAL_REFERENCES with actual login NOT_RUN; syntax 319/319; repository unit 509 PASS 1 Windows platform skip; repository hygiene PASS; actual Production role smoke NOT_RUN"
+    },
+    {
       "id": "ACC-P7-03-ACTUAL-HANDOVER-EVIDENCE-BUNDLE",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
