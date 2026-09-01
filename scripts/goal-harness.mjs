@@ -78,7 +78,8 @@ function check() {
     if (queue.rules?.alternateAfterFailureCount !== 2 || queue.rules?.stopAfterSameFailureCount !== 3) {
       errors.push('ALTERNATE_RETRY_LADDER_CHANGED');
     }
-    if (queue.rules?.p7ActivationBeforeP6Complete !== false || queue.rules?.productionGo !== false) {
+    if (queue.rules?.p7ActivationBeforeP6Complete !== false
+      || queue.rules?.productionGo !== state.invariants.productionGo) {
       errors.push('ACCELERATION_QUEUE_FAIL_CLOSED_CHANGED');
     }
     const p7 = state.phases.find((item) => item.id === 'P7');
@@ -346,6 +347,7 @@ function verify() {
       ['production-signoff-preflight', 'npm.cmd', ['run', 'production:signoff-preflight']],
       ['production-cutover-evidence', 'npm.cmd', ['run', 'production:cutover-evidence']],
       ['production-cutover-finalizer', 'npm.cmd', ['run', 'production:cutover-finalizer']],
+      ['production-phase-promotion', 'npm.cmd', ['run', 'production:phase-promotion']],
       ['operations-handover-preflight', 'npm.cmd', ['run', 'operations:handover-preflight']],
       ['operations-slo-evidence', 'npm.cmd', ['run', 'operations:slo-evidence']],
       ['operations-alerting-evidence', 'npm.cmd', ['run', 'operations:alerting-evidence']],
@@ -356,6 +358,21 @@ function verify() {
       ['operations-improvement-queue-evidence', 'npm.cmd', ['run', 'operations:improvement-queue-evidence']],
       ['operations-signoff-evidence', 'npm.cmd', ['run', 'operations:signoff-evidence']],
       ['operations-evidence-pipeline-rehearsal', 'npm.cmd', ['run', 'operations:evidence-pipeline-rehearsal']],
+      ['operations-handover-assembler', 'npm.cmd', ['run', 'operations:handover-assembler']],
+      ['operations-handover-finalizer', 'npm.cmd', ['run', 'operations:handover-finalizer']]
+    ],
+    'P7/P7-G0-OPERATIONS-HANDOVER-PREFLIGHT': [
+      ['git-diff-check', 'git', ['diff', '--check']],
+      ['quality', 'npm.cmd', ['run', 'check']],
+      ['operations-handover-preflight', 'npm.cmd', ['run', 'operations:handover-preflight']],
+      ['operations-slo-evidence', 'npm.cmd', ['run', 'operations:slo-evidence']],
+      ['operations-alerting-evidence', 'npm.cmd', ['run', 'operations:alerting-evidence']],
+      ['operations-backup-restore-evidence', 'npm.cmd', ['run', 'operations:backup-restore-evidence']],
+      ['operations-certificate-evidence', 'npm.cmd', ['run', 'operations:certificate-evidence']],
+      ['operations-oncall-evidence', 'npm.cmd', ['run', 'operations:oncall-evidence']],
+      ['operations-maintenance-evidence', 'npm.cmd', ['run', 'operations:maintenance-evidence']],
+      ['operations-improvement-queue-evidence', 'npm.cmd', ['run', 'operations:improvement-queue-evidence']],
+      ['operations-signoff-evidence', 'npm.cmd', ['run', 'operations:signoff-evidence']],
       ['operations-handover-assembler', 'npm.cmd', ['run', 'operations:handover-assembler']],
       ['operations-handover-finalizer', 'npm.cmd', ['run', 'operations:handover-finalizer']]
     ]

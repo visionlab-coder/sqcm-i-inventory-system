@@ -157,6 +157,14 @@
       "evidence": "failure-first contract reproduced; focused 11/11 PASS; repository 367 PASS 1 Windows platform skip; resume execute defaults to finalization; dual confirmation and external output preflight before Gate 12; dry-run zero mutation; actual Production execution NOT_RUN"
     },
     {
+      "id": "ACC-P6-19-ACTUAL-CUTOVER-PHASE-PROMOTION",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "저장소 밖 actual P6 evidence·SHA·exact 확인·깨끗한 worktree가 모두 검증된 경우에만 P6 완료·P7 진행·7/8·Production GO와 사람용 상태 블록을 한 실행에서 갱신하며 P7 G0 Harness verifier가 즉시 존재한다.",
+      "evidence": "production:phase-promotion dry-run READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_FOR_PHASE_PROMOTION; focused 5/5 PASS; real document promotion contract PASS filesWritten 0; repository 372 PASS 1 Windows platform skip; actual promotion NOT_RUN"
+    },
+    {
       "id": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

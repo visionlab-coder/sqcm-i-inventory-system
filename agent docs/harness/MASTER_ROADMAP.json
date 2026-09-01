@@ -335,6 +335,7 @@
           "same-run-physical-checkpoint-gate-12-resume-runtime-route-disable-ready",
           "same-run-actual-evidence-finalization-failure-route-disable-ready",
           "atomic-signoff-gate12-actual-finalizer-dual-confirmation-entrypoint-ready",
+          "actual-cutover-evidence-p6-complete-p7-open-atomic-state-promoter-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],

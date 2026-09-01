@@ -46,6 +46,7 @@
     "production:signoff-preflight": "node scripts/production-signoff-preflight.mjs",
     "production:cutover-evidence": "node scripts/production-cutover-evidence-check.mjs",
     "production:cutover-finalizer": "node scripts/production-cutover-finalizer.mjs",
+    "production:phase-promotion": "node scripts/production-phase-promotion.mjs",
     "operations:handover-preflight": "node scripts/operations-handover-preflight.mjs",
     "operations:slo-evidence": "node scripts/operations-slo-evidence.mjs",
     "operations:alerting-evidence": "node scripts/operations-alerting-evidence.mjs",

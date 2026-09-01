@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "packet": "ACC-P6-19-ACTUAL-CUTOVER-PHASE-PROMOTION",
+  "status": "EVIDENCE_COMPLETE",
+  "checkedAt": "2026-09-01T14:44:29.561Z",
+  "contract": {
+    "actualExternalEvidenceRequired": true,
+    "actualEvidenceSha256Required": true,
+    "exactConfirmationRequired": true,
+    "cleanWorktreeRequired": true,
+    "p6CompletionAndP7ActivationSameRun": true,
+    "machineAndHumanStateFilesUpdatedTogether": 4,
+    "p7HarnessVerifierRegistered": true
+  },
+  "verification": {
+    "focusedUnit": "5/5 PASS",
+    "realDocumentPromotionContract": "PASS, filesWritten 0",
+    "syntax": "249/249 PASS",
+    "repositoryUnit": "372 PASS, 0 FAIL, 1 Windows symlink SKIP",
+    "dryRun": "READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_FOR_PHASE_PROMOTION",
+    "harnessCheck": "PASS",
+    "actualPromotion": "NOT_RUN"
+  },
+  "invariants": {
+    "productionGo": false,
+    "changesMade": false,
+    "externalMutationPerformed": false,
+    "secretsRecorded": false
+  },
+  "nextReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF"
+}
