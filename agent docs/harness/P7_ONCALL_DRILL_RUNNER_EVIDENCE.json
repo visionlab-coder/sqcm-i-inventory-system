@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "packetId": "ACC-P7-22-PRODUCTION-ONCALL-ESCALATION-DRILL-RUNNER",
+  "status": "EVIDENCE_COMPLETE",
+  "authority": "local-autonomous",
+  "actualOnCallEscalationDrill": "NOT_RUN",
+  "productionGo": false,
+  "verification": {
+    "focusedTests": "7/7 PASS",
+    "syntaxChecks": "276/276 PASS",
+    "unitTests": "422 PASS, 1 Windows-only SKIP, 0 FAIL (423 total)",
+    "harnessVerify": "PASS",
+    "dryRunStatus": "READY_WAIT_P6_ACTUAL_CUTOVER",
+    "requestCount": 0,
+    "acknowledgedReceiptCount": 0,
+    "secretValueUsed": false,
+    "localEvidenceWritePerformed": false,
+    "externalMessageSent": false,
+    "externalMutationPerformed": false
+  },
+  "contracts": [
+    "approved Asia/Seoul continuous 30-day schedule and distinct accepted owners",
+    "approved provider and channel with public HTTPS endpoint and physical credential",
+    "deterministic drill and role idempotency keys",
+    "ordered PRIMARY then ESCALATION acknowledgements",
+    "unique matching provider receipts within 5 and 15 minutes",
+    "compiler-compatible atomic once-only external handover export"
+  ],
+  "nextReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF"
+}

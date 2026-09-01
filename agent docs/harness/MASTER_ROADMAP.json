@@ -344,6 +344,7 @@
           "p7-production-consistent-snapshot-offsite-isolated-restore-runner-ready",
           "p7-production-github-operations-queue-read-only-collector-ready",
           "p7-production-five-signal-idempotent-alert-delivery-runner-ready",
+          "p7-production-oncall-two-role-idempotent-escalation-drill-runner-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],
