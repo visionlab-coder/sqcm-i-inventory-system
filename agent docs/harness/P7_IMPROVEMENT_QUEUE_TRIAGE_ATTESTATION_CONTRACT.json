@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "environment": "production",
+  "approved": false,
+  "repository": "visionlab-coder/sqcm-i-inventory-system",
+  "label": "operations",
+  "triageOwnerRef": null,
+  "triageReceiptId": null,
+  "lastTriagedAt": null,
+  "nextTriageAt": null,
+  "untrackedFindingCount": null
+}

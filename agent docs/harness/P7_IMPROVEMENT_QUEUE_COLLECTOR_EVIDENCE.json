@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "packetId": "ACC-P7-20-PRODUCTION-GITHUB-IMPROVEMENT-QUEUE-COLLECTOR",
+  "status": "EVIDENCE_COMPLETE",
+  "authority": "local-autonomous",
+  "actualGithubQueueCollection": "NOT_RUN",
+  "productionGo": false,
+  "verification": {
+    "focusedTests": "6/6 PASS",
+    "syntaxChecks": "270/270 PASS",
+    "unitTests": "408 PASS, 1 Windows-only SKIP, 0 FAIL (409 total)",
+    "harnessVerify": "PASS",
+    "dryRunStatus": "READY_WAIT_P6_ACTUAL_CUTOVER",
+    "githubReadPerformed": false,
+    "secretValueUsed": false,
+    "localEvidenceWritePerformed": false,
+    "externalIssueCreatedOrChanged": false,
+    "externalMutationPerformed": false
+  },
+  "contracts": [
+    "exact private repository and operations label",
+    "physical token and triage attestation references outside repository",
+    "single bounded JSON metadata block; other issue body text ignored",
+    "source, severity and status labels must match metadata",
+    "owner, acceptance, triage, next action and blocker references required",
+    "read-only GitHub API and atomic once-only external export"
+  ],
+  "nextReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF"
+}

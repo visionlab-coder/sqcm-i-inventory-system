@@ -342,6 +342,7 @@
           "p7-production-exact-tls-health-readiness-observer-ready",
           "p7-production-daily-maintenance-read-only-runner-ready",
           "p7-production-consistent-snapshot-offsite-isolated-restore-runner-ready",
+          "p7-production-github-operations-queue-read-only-collector-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],

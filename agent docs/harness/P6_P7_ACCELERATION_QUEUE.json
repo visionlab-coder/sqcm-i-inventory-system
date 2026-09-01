@@ -301,6 +301,14 @@
       "evidence": "operations:backup-restore-runner => READY_WAIT_P6_ACTUAL_CUTOVER; Production/off-site/DB mutation zero; focused 6/6 PASS; exact snapshot·root hash attestation·30-day retention·isolated restore/drop·count/migration digest enforced"
     },
     {
+      "id": "ACC-P7-20-PRODUCTION-GITHUB-IMPROVEMENT-QUEUE-COLLECTOR",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 물리 token 참조와 승인된 triage attestation을 사용해 전용 GitHub operations Issue queue를 읽기 전용 수집하고, 고정 label과 단일 bounded JSON metadata만 compiler 호환 actual export로 저장소 밖에 원자적으로 1회 기록한다.",
+      "evidence": "operations:improvement-queue-collector => READY_WAIT_P6_ACTUAL_CUTOVER; GitHub read/write/Issue mutation/secret read zero; focused 6/6 PASS; exact repository·operations label·source/severity/status label parity·owner/acceptance/triage/next-action·blocked dependency enforced"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
