@@ -1,20 +1,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import {
   OPERATIONS_ACTIVATION_CONFIRMATION,
   acquireOperationsActivationLease,
-  buildOperationsActivationChildEnvironment,
-  buildOperationsActivationReceipt,
   computeOperationsActivationBundleSha256,
   evaluateOperationsActivationGate,
   releaseOperationsActivationLease,
   selectNextOperationsActivationStep,
-  validateOperationsActivationApproval,
-  writeOperationsActivationReceiptOnce
+  validateOperationsActivationApproval
 } from '../src/operations/operations-activation-orchestrator.mjs';
+import { executeOperationsActivationSelection } from '../src/operations/operations-activation-process-runner.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const roadmap = JSON.parse(fs.readFileSync(path.join(projectRoot, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
@@ -31,17 +28,6 @@ function externalPhysicalFile(candidate) {
 function externalPhysicalDirectory(candidate) {
   if (!candidate || !path.relative(projectRoot, candidate).startsWith('..')) return false;
   try { const stat = fs.lstatSync(candidate); return stat.isDirectory() && !stat.isSymbolicLink() && !(stat.isReparsePoint?.() ?? false) && path.resolve(fs.realpathSync(candidate)).toLowerCase() === path.resolve(candidate).toLowerCase(); } catch { return false; }
-}
-function parseJsonObjects(raw) {
-  const values = []; let start = -1; let depth = 0; let quoted = false; let escaped = false;
-  for (let index = 0; index < raw.length; index += 1) {
-    const char = raw[index];
-    if (quoted) { if (escaped) escaped = false; else if (char === '\\') escaped = true; else if (char === '"') quoted = false; continue; }
-    if (char === '"') { quoted = true; continue; }
-    if (char === '{') { if (depth === 0) start = index; depth += 1; }
-    else if (char === '}' && depth > 0) { depth -= 1; if (depth === 0 && start >= 0) { try { values.push(JSON.parse(raw.slice(start, index + 1))); } catch {} start = -1; } }
-  }
-  return values;
 }
 function loadReceipts(root, runId) {
   return fs.readdirSync(root).filter((name) => /^\d{2}-[a-z0-9-]+-attempt-\d{4}\.json$/.test(name)).sort().map((name) => {
@@ -74,12 +60,9 @@ if (gate.childProcessAllowed) {
     const selection = selectNextOperationsActivationStep(loadReceipts(receiptRoot, approval.runId), { approval });
     status = selection.status; currentStep = selection.step?.id ?? null; attempt = selection.attempt; failureCount = selection.failedAttempts;
     if (selection.step && !status.startsWith('PAUSED_')) {
-      childProcessCount = 1;
-      const child = spawnSync(process.execPath, [path.join(projectRoot, 'scripts', selection.step.script), ...selection.step.args], { cwd: projectRoot, env: buildOperationsActivationChildEnvironment(selection.step, process.env), encoding: 'utf8', shell: false, timeout: 30 * 60 * 1000, maxBuffer: 1024 * 1024 });
-      const summaries = parseJsonObjects(child.stdout ?? ''); const summary = summaries.at(-1) ?? null;
-      const receipt = buildOperationsActivationReceipt({ approval, step: selection.step, attempt, result: { exitCode: child.status ?? 1, summary, stdout: child.stdout ?? '', stderr: child.stderr ?? '' } });
-      writeOperationsActivationReceiptOnce(receiptRoot, receipt); receiptCreated = true; status = receipt.outcome === 'PASS' ? 'PASS_OPERATIONS_ACTIVATION_STEP' : receipt.outcome === 'WAIT' ? 'READY_WAIT_OPERATIONS_ACTIVATION_STEP' : 'FAIL_OPERATIONS_ACTIVATION_STEP';
-      if (receipt.outcome === 'FAIL') { failureCount += 1; process.exitCode = 1; }
+      const execution = executeOperationsActivationSelection({ projectRoot, selection, approval, receiptRoot });
+      childProcessCount = execution.childProcessCount; receiptCreated = true; status = execution.status;
+      if (execution.receipt.outcome === 'FAIL') { failureCount += 1; process.exitCode = 1; }
     }
   } catch (error) {
     if (error?.message === 'OPERATIONS_ACTIVATION_LEASE_HELD') { status = 'READY_WAIT_OPERATIONS_ACTIVATION_LEASE'; leaseConflict = true; }

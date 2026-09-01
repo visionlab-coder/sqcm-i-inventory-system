@@ -1,0 +1,40 @@
+{
+  "packet": "ACC-P7-39-OPERATIONS-ACTIVATION-PROCESS-RUNNER-SYNTHETIC-REHEARSAL",
+  "status": "PASS_SYNTHETIC_OPERATIONS_ACTIVATION_PROCESS_RUNNER_REHEARSAL",
+  "activationBundleSha256": "fd96e6efe9422eaffa16b7923ca7fd1df1cee383e5e243acfda67486b00c6acb",
+  "activationStepCount": 19,
+  "childProcessCount": 19,
+  "activationReceiptCount": 19,
+  "sequenceComplete": true,
+  "finalSelectionStatus": "PASS_OPERATIONS_ACTIVATION_SEQUENCE_COMPLETE",
+  "physicalDocumentCount": 26,
+  "unexpectedEnvironmentPropagationCount": 0,
+  "negativeScenarioCount": 3,
+  "negativeScenarioPassCount": 3,
+  "secretValueOccurrenceCount": 0,
+  "temporaryArtifactsRetained": false,
+  "focusedTests": {
+    "newFailureFirstExpectedFailures": 3,
+    "combinedTotal": 25,
+    "combinedPassed": 25,
+    "combinedFailed": 0
+  },
+  "syntaxChecks": {
+    "passed": 308,
+    "failed": 0
+  },
+  "unitTests": {
+    "total": 483,
+    "passed": 482,
+    "failed": 0,
+    "skipped": 1
+  },
+  "syntheticOnly": true,
+  "actualActivationExecuted": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

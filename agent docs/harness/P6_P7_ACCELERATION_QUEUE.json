@@ -453,6 +453,14 @@
       "evidence": "operations:activation-three-failure-matrix-rehearsal => PASS_SYNTHETIC_OPERATIONS_ACTIVATION_THREE_FAILURE_MATRIX_REHEARSAL; 19/19 contained after exactly 3 failures, 228 receipts, 251 physical documents, later-step receipts zero, 3/3 tamper rejection, temporary artifacts zero; failure-first 3 EXPECTED FAIL then focused combined 9/9 PASS; child/actual activation/external mutation NOT_RUN"
     },
     {
+      "id": "ACC-P7-39-OPERATIONS-ACTIVATION-PROCESS-RUNNER-SYNTHETIC-REHEARSAL",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "실제 activation 진입점이 사용하는 process runner를 별도 모듈로 고정하고, 합성 child 결과 19개를 allowlist 환경·마지막 JSON 상태·물리 redacted receipt·sequence complete까지 연결한다. malformed JSON·exit 1·민감 stdout/stderr가 PASS 또는 원문 증거로 승격되지 않아야 하며 실제 child·외부 변경은 실행하지 않는다.",
+      "evidence": "operations:activation-process-runner-rehearsal => PASS_SYNTHETIC_OPERATIONS_ACTIVATION_PROCESS_RUNNER_REHEARSAL; 19 synthetic child calls, 19 activation receipts, 26 physical documents, sequence complete, unexpected environment propagation zero, 3/3 negative scenarios, secret occurrence zero, temporary artifacts zero; failure-first 3 EXPECTED FAIL then focused 25/25 PASS; actual child/activation/external mutation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

@@ -74,6 +74,7 @@ Production GO: **false**
 - `ACC-P7-36`을 완료했다. 동일 승인 SHA·receipt-root에서 19개 activation 단계의 합성 PASS receipt를 정확한 순서로 물리 기록해 마지막 선택이 `PASS_OPERATIONS_ACTIVATION_SEQUENCE_COMPLETE`인지 확인했다. 물리 문서 24개, sequence·approval provenance·마지막 receipt 완결성 변조 3/3 차단, 임시 산출물 0건이다. child·공급자·DB·GitHub·Phase 변경과 실제 activation은 실행하지 않았다.
 - `ACC-P7-37`을 완료했다. 19개 activation 단계마다 attempt 1 WAIT와 attempt 2 PASS를 물리 receipt로 기록하고 동일 단계 재선택 19/19 및 최종 sequence complete를 확인했다. receipt 38개·물리 문서 43개, attempt gap·terminal PASS 뒤 receipt·교차 run 변조 3/3 차단, 임시 산출물 0건이다. WAIT는 실패로 세지 않았고 실제 child·외부 변경은 실행하지 않았다.
 - `ACC-P7-38`을 완료했다. 19개 activation 단계 각각을 실패 표적으로 삼아 앞 단계 PASS 뒤 동일 FAIL 3회에서 정확히 정지하고 이후 단계 receipt 0건을 확인했다. 19/19 격리, receipt 228개·물리 문서 251개, 실패 2회·4회·교차 run 변조 3/3 차단, 임시 산출물 0건이다. 실제 child·외부 변경은 실행하지 않았다.
+- `ACC-P7-39`를 완료했다. 실제 activation 진입점의 child 실행·JSON 판정·allowlist 환경·물리 receipt 기록을 process runner 모듈로 고정하고 합성 child 19건으로 sequence complete까지 연결했다. receipt 19개·물리 문서 26개, 예상 밖 환경 전파 0건, malformed JSON·exit 1·민감 출력 부정 시나리오 3/3, Secret 원문 출현 0건, 임시 산출물 0건이다. 실제 child·외부 변경은 실행하지 않았다.
 - `ACC-P7-13`을 완료했다. `operations:evidence-pipeline-rehearsal`은 합성 전용 임시 공간에서 8개 운영 영역 compiler, 운영 서명 compiler, schema 2 manifest assembler와 finalizer를 한 흐름으로 연결해 10/10 문서 호환을 증명한다. 조립 뒤 backup/certificate 파일 변조는 SHA 불일치로 차단되고 성공·차단 경로 모두 임시 디렉터리를 남기지 않는다. focused 4/4, 저장소 구문 221개와 단위 316/316이 PASS했으며 합성 결과는 실제 증거·서명·Production GO로 승격되지 않는다.
 - 가속 큐의 다음 READY는 계속 `ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF`다. 이는 P6 G4 실제 완료 후에만 실행 가능한 외부 입력 Gate다.
 
