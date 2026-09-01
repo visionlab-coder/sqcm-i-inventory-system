@@ -346,6 +346,7 @@ function verify() {
       ['operations-maintenance-evidence', 'npm.cmd', ['run', 'operations:maintenance-evidence']],
       ['operations-improvement-queue-evidence', 'npm.cmd', ['run', 'operations:improvement-queue-evidence']],
       ['operations-signoff-evidence', 'npm.cmd', ['run', 'operations:signoff-evidence']],
+      ['operations-evidence-pipeline-rehearsal', 'npm.cmd', ['run', 'operations:evidence-pipeline-rehearsal']],
       ['operations-handover-assembler', 'npm.cmd', ['run', 'operations:handover-assembler']],
       ['operations-handover-finalizer', 'npm.cmd', ['run', 'operations:handover-finalizer']]
     ]

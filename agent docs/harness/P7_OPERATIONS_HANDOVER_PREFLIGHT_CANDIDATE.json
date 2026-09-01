@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-09-01T21:12:45+09:00",
+  "checkedAt": "2026-09-01T21:22:46+09:00",
   "template": false,
   "environment": "production",
   "activationState": "preflight",
@@ -38,6 +38,14 @@
     "command": "npm.cmd run operations:signoff-evidence -- --compile",
     "inputContract": "agent docs/harness/P7_OPERATIONS_SIGNOFF_INPUT_CONTRACT.json",
     "status": "READY_WAIT_P6_COMPLETION_AND_OPERATIONS_SIGNOFF",
+    "actualEvidenceCreated": false
+  },
+  "evidencePipelineRehearsal": {
+    "command": "npm.cmd run operations:evidence-pipeline-rehearsal",
+    "status": "PASS_SYNTHETIC_OPERATIONS_EVIDENCE_PIPELINE_REHEARSAL",
+    "compilerCount": 8,
+    "verifiedDocumentCount": 10,
+    "syntheticOnly": true,
     "actualEvidenceCreated": false
   }
 }

@@ -323,6 +323,7 @@
           "p7-production-daily-maintenance-execution-evidence-compiler-ready",
           "p7-production-improvement-queue-triage-evidence-compiler-ready",
           "p7-production-operations-owner-eight-domain-signoff-evidence-compiler-ready",
+          "p7-operations-evidence-pipeline-synthetic-end-to-end-rehearsal-pass",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],

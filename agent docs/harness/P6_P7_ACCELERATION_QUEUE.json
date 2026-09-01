@@ -157,6 +157,14 @@
       "evidence": "npm.cmd run operations:signoff-evidence => READY_WAIT_P6_COMPLETION_AND_OPERATIONS_SIGNOFF; focused 7/7 PASS; exact target·immutable release/P6 SHA·eight ordered unique domain attestations·operations owner identity·six duties·24-hour signoff enforced; actual signature/external mutation/evidence creation NOT_RUN"
     },
     {
+      "id": "ACC-P7-13-PRODUCTION-OPERATIONS-EVIDENCE-PIPELINE-REHEARSAL",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "8개 운영 영역 compiler·운영 서명 compiler·manifest assembler·10문서 finalizer를 합성 전용 임시 공간에서 종단 연결하고 SHA 변조 차단과 임시 산출물 제거를 검증하되 실제 운영 증거 또는 Production GO로 승격하지 않는다.",
+      "evidence": "npm.cmd run operations:evidence-pipeline-rehearsal => PASS_SYNTHETIC_OPERATIONS_EVIDENCE_PIPELINE_REHEARSAL; focused 4/4 PASS; 8 compilers·8 domains·10 verified documents·schema 2 manifest; tamper fail-closed; temporary artifacts/external mutation/actual evidence zero"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
