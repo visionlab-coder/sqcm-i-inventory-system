@@ -23,6 +23,7 @@
 - `ACC-P6-07`을 완료했다. 기계 정본의 과거 branch `codex/fix-sidebar-accessibility`를 실제 `codex/p6-ai-pc-postgres-production`으로 교정하고, `harness:check`가 local symbolic ref와 GitHub Actions head/ref provenance를 대조하도록 보완했다. active branch 해석 불가·누락·불일치는 fail-closed하며 회귀 4/4가 통과했다.
 - `ACC-P7-01`을 완료했다. `operations:handover-preflight`는 SLO·경보·백업·복원·인증서·온콜·정기점검·개선 큐 8개 영역을 fail-closed 검사한다. 계약 오류 0, focused 4/4, 저장소 구문 171개와 단위 200/200이 PASS했다. 실제 증거 참조 12개와 P6 완료가 없어 `READY_WAIT_P6_COMPLETION_AND_HANDOVER_INPUTS`이며 P7은 미착수다.
 - `ACC-P7-02`의 실제 증거 finalizer 준비를 완료했다. `operations:handover-finalizer`는 P6 actual cutover, 운영 8영역 PASS, Production provenance와 운영 책임자 identity 서명을 모두 요구하고 template·staging·loopback·baseline 증거를 거부한다. 현재는 `READY_WAIT_P6_COMPLETION_AND_HANDOVER_EVIDENCE`이며 실제 활성화는 `NOT_RUN`이다.
+- `ACC-P7-03`을 완료해 finalizer의 문자열 참조 fail-open을 제거했다. 이제 P6 cutover·운영 8영역·운영 서명 총 10개 실제 JSON은 path와 SHA-256이 일치해야 하며 SLO·경보 5종 receipt·off-site backup·격리 restore·TLS·온콜·maintenance·개선 큐 측정값까지 통과해야 한다. 문자열-only·누락·해시 변조·staging 증거는 차단되며 focused 5/5, 저장소 250/250이 PASS했다.
 - 가속 큐의 다음 READY는 계속 `ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF`다. 이는 P6 G4 실제 완료 후에만 실행 가능한 외부 입력 Gate다.
 
 - P6-G4는 `READY_WAIT_CHANGE_WINDOW`다. 승인된 공개 전환 창은 `2026-09-11 20:00~23:00 KST`, rollback cutoff는 22:00다.
@@ -48,7 +49,7 @@
 - `npm.cmd run production:route-disable`는 `safe-link.co.kr`의 `inventory.safe-link.co.kr` CNAME이 정확히 `sqcm-i-inventory-production` tunnel ID를 가리키는 경우만 Cloudflare API 삭제 후보로 인정한다. `--execute`는 승인 변경창과 exact 확인 문자열, 최소 권한 token file reference를 모두 요구한다. 현재 tunnel과 token reference가 없어 `READY_WAIT_ROUTE_DISABLE_INPUTS`이고 API 호출·토큰 읽기·DNS 삭제·tunnel/서비스 중지는 0건이다. 회귀 6/6이 통과했다.
 - `npm.cmd run production:signoff-preflight`는 ADMIN·MANAGER·USER Production UAT 결과와 업무·보안·운영 서명 파일 참조 6건, cutover 후보의 PENDING 상태와 변경창을 fail-closed로 검사한다. 현재 참조 0/6, 실제 서명 `NOT_RUN`으로 `READY_WAIT_PRODUCTION_UAT_AND_SIGNOFF_REFERENCES`이며 파일 내용·Secret은 읽거나 기록하지 않는다.
 - `npm.cmd run production:cutover-evidence`는 12개 Gate 중 실제 로컬 증거가 있는 artifact·backup/restore·migration·provider preflight 4건만 PASS로 조립한다. 외부 Production 8건과 역할 결과·서명은 PENDING이며 후보는 fail-closed 검증상 Production을 승인할 수 없다.
-- 저장소 표준 검증에서 JavaScript 구문 191개와 단위 249/249가 PASS했으며 active branch provenance, preflight·UAT actor transaction provision·exact ingress publication·공개 probe·로그·loopback 및 변경창 공개 역할 MFA/RBAC·인증 CSRF/idempotency·nonfunctional·operational health runner·rollback readiness·정확한 Cloudflare route disable·최종 서명 Gate·증거 조립·실제 cutover 전체 계약 finalizer·P7 운영 인수 preflight와 finalizer 회귀가 검증 봉투에 포함된다.
+- 저장소 표준 검증에서 JavaScript 구문 191개와 단위 250/250이 PASS했으며 active branch provenance, preflight·UAT actor transaction provision·exact ingress publication·공개 probe·로그·loopback 및 변경창 공개 역할 MFA/RBAC·인증 CSRF/idempotency·nonfunctional·operational health runner·rollback readiness·정확한 Cloudflare route disable·최종 서명 Gate·증거 조립·실제 cutover 전체 계약 finalizer·P7 운영 인수 10문서 SHA bundle finalizer 회귀가 검증 봉투에 포함된다.
 
 ## 2026-09-01 P6-G3 AI PC Production 배포·복구
 

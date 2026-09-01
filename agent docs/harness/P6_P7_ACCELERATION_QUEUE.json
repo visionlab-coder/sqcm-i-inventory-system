@@ -77,6 +77,14 @@
       "evidence": "npm.cmd run operations:handover-preflight => READY_WAIT_P6_COMPLETION_AND_HANDOVER_INPUTS; contract errors 0; focused 4/4 PASS; repository 200/200 PASS; P7 not-started"
     },
     {
+      "id": "ACC-P7-03-ACTUAL-HANDOVER-EVIDENCE-BUNDLE",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 완료는 P6 cutover, 운영 8영역과 운영 서명의 실제 JSON 파일 10건을 path·SHA-256·도메인 측정값으로 검증하고 문자열-only·누락·변조·staging 증거를 거부한다.",
+      "evidence": "operations:handover-finalizer requires schemaVersion 2 and 10 verified documents; focused 5/5 PASS; repository 250/250 PASS; actual activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

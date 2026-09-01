@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 2,
+  "template": true,
+  "environment": "production",
+  "activationState": "actual",
+  "p6Gate": {
+    "status": "NOT_RUN",
+    "evidenceRef": { "path": null, "sha256": null }
+  },
+  "domains": {
+    "slo": { "status": "NOT_RUN", "evidenceRef": { "path": null, "sha256": null } },
+    "alerting": { "status": "NOT_RUN", "evidenceRef": { "path": null, "sha256": null } },
+    "backup": { "status": "NOT_RUN", "evidenceRef": { "path": null, "sha256": null } },
+    "restore": { "status": "NOT_RUN", "evidenceRef": { "path": null, "sha256": null } },
+    "certificate": { "status": "NOT_RUN", "evidenceRef": { "path": null, "sha256": null } },
+    "onCall": { "status": "NOT_RUN", "evidenceRef": { "path": null, "sha256": null } },
+    "maintenance": { "status": "NOT_RUN", "evidenceRef": { "path": null, "sha256": null } },
+    "improvementQueue": { "status": "NOT_RUN", "evidenceRef": { "path": null, "sha256": null } }
+  },
+  "operationsSignoff": {
+    "status": "NOT_RUN",
+    "evidenceRef": { "path": null, "sha256": null },
+    "signedByRef": null,
+    "signedAt": null
+  }
+}

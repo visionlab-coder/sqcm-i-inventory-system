@@ -24,6 +24,7 @@ npm.cmd run harness:verify
 - P7 준비 산출물은 미리 만들 수 있지만 P6 완료 전 P7 상태를 활성화하지 않는다.
 - P6 공개 전환은 `production:ingress-publication -- --execute`로 exact tunnel·runtime config·DNS를 게시한 뒤 `production:public-probe`를 실행한다. rollback token file reference와 publication·route-disable 확인 문자열이 없으면 게시하지 않는다.
 - 역할 시험은 `production:uat-actor-provision -- --execute`로 승인된 세 actor를 transaction provision한 뒤 `production:role-core-smoke -- --public`을 실행한다. 승인 파일과 세 credential reference는 저장소 밖 보호 파일만 허용한다.
+- P7 완료 증거는 `P7_OPERATIONS_HANDOVER_ACTUAL_EVIDENCE_CONTRACT.json`의 schema 2를 따른다. P6 cutover·운영 8영역·운영 서명 총 10개 실제 JSON은 각각 `{path, sha256}`로 참조하며 `operations:handover-finalizer`가 파일 존재·SHA-256·Production provenance·도메인 측정값을 검증한다. 계약 템플릿과 문자열-only 참조는 완료 증거가 아니다.
 
 ## 상태 전이 규칙
 

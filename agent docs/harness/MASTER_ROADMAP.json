@@ -313,6 +313,7 @@
           "actual-cutover-evidence-full-contract-finalizer-ready",
           "p7-operations-handover-preflight-contract-ready",
           "p7-actual-operations-handover-evidence-finalizer-ready",
+          "p7-actual-handover-ten-document-sha-bundle-validator-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],
