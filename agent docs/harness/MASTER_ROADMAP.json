@@ -357,6 +357,7 @@
           "p7-production-operations-activation-approval-manifest-assembler-ready",
           "p7-production-operations-activation-approval-chain-read-only-preflight-ready",
           "p7-production-operations-activation-approval-pipeline-synthetic-rehearsal-pass",
+          "p7-production-operations-activation-approval-to-orchestrator-synthetic-rehearsal-pass",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],

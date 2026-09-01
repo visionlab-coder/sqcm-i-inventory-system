@@ -421,6 +421,14 @@
       "evidence": "operations:activation-approval-pipeline-rehearsal => PASS_SYNTHETIC_OPERATIONS_ACTIVATION_APPROVAL_PIPELINE_REHEARSAL; 4 stages, 4 physical documents, 3/3 tamper rejection, temporary artifacts zero; failure-first 3 EXPECTED FAIL then focused 3/3 PASS; actual approval/activation/external mutation NOT_RUN"
     },
     {
+      "id": "ACC-P7-35-OPERATIONS-ACTIVATION-APPROVAL-TO-ORCHESTRATOR-SYNTHETIC-REHEARSAL",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "물리 P6 actual·unsigned request·합성 OPERATIONS_OWNER MFA receipt·실행 manifest를 read-only preflight와 activation 오케스트레이터 승인 검증에 연속 연결하고 receipt-root 소유권·첫 PASS receipt·다음 단계 선택 호환성을 증명한다. child·외부 변경·실제 승인·Production GO는 실행하지 않는다.",
+      "evidence": "operations:activation-approval-to-orchestrator-rehearsal => PASS_SYNTHETIC_OPERATIONS_ACTIVATION_APPROVAL_TO_ORCHESTRATOR_REHEARSAL; 6 physical documents, approval chain and orchestrator approval verified, slo-collect receipt advances to slo-compile, 3/3 tamper rejection, temporary artifacts zero; failure-first 3 EXPECTED FAIL then focused 3/3 PASS; child/actual activation/external mutation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
