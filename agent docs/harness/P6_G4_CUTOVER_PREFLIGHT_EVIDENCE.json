@@ -1,0 +1,105 @@
+{
+  "gate": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "evidenceType": "CHANGE_WINDOW_PREFLIGHT",
+  "checkedAt": "2026-09-01T14:25:18+09:00",
+  "status": "READY_WAIT_CHANGE_WINDOW",
+  "productionGo": false,
+  "source": {
+    "branch": "codex/p6-ai-pc-postgres-production",
+    "headSha": "3f8b2f668d6ef9b9dc34dee7883058c10d22e04c",
+    "remoteShaMatched": true,
+    "deployedCandidateSha": "e238ab8dab7f4729298ceb7ecc0f874a4a08829a"
+  },
+  "changeWindow": {
+    "start": "2026-09-11T20:00:00+09:00",
+    "rollbackCutoff": "2026-09-11T22:00:00+09:00",
+    "end": "2026-09-11T23:00:00+09:00",
+    "insideWindow": false,
+    "publicChangesAllowedNow": false
+  },
+  "localProduction": {
+    "composeProject": "seowon-inventory-production",
+    "services": ["frontend:healthy", "backend:healthy", "database:healthy"],
+    "frontendBinding": "127.0.0.1:3300",
+    "backendHostPortCount": 0,
+    "databaseHostPortCount": 0,
+    "smoke": {
+      "/health": 200,
+      "/api/health": 200,
+      "/api/readiness": 200,
+      "/api/items": 401,
+      "/assets/seowon-official-logo-reversed.png": 200
+    },
+    "applicationMigrations": "25/25",
+    "productionUsers": 0,
+    "seedUsersCreated": false
+  },
+  "backup": {
+    "manifest": "artifacts/backups/seowon-inventory-20260901T042822Z.dump.json",
+    "bytes": 238533,
+    "sha256Present": true,
+    "restoreVerified": true,
+    "restoreDrillAt": "2026-09-01T04:28:32.812Z"
+  },
+  "publicIngress": {
+    "hostname": "inventory.safe-link.co.kr",
+    "dnsA": "NXDOMAIN",
+    "dnsCname": "NXDOMAIN",
+    "httpsHealth": "HOST_NOT_FOUND",
+    "productionTunnel": "MISSING",
+    "proposedTunnelName": "sqcm-i-inventory-production",
+    "proposedOrigin": "http://127.0.0.1:3300",
+    "existingTunnelsPreserved": [
+      {"name": "sqcm-i", "connectionCount": 4},
+      {"name": "sqcm-i-inventory-staging", "connectionCount": 4}
+    ],
+    "cloudflaredVersion": "2026.7.1",
+    "cloudflaredRecommendedVersionObserved": "2026.8.3",
+    "cloudflaredUpgradePerformed": false
+  },
+  "cutoverContract": {
+    "requiredGateCount": 12,
+    "templateValid": true,
+    "templateAuthorizesCutover": false,
+    "actualEvidenceExists": false,
+    "actualRoleResults": "NOT_RUN",
+    "actualApprovals": "NOT_RUN"
+  },
+  "protectedServices": [
+    {"port": 1234, "expectedPid": 6632, "actualPid": 6632, "preserved": true},
+    {"port": 11434, "expectedPid": 8588, "actualPid": 8588, "preserved": true},
+    {"port": 18765, "expectedPid": 22716, "actualPid": 22716, "preserved": true},
+    {"port": 18766, "expectedPid": 65724, "actualPid": 65724, "preserved": true}
+  ],
+  "passed": [
+    "HARNESS_CONTRACT_PASS",
+    "REMOTE_SHA_MATCH",
+    "LOCAL_PRODUCTION_THREE_SERVICES_HEALTHY",
+    "LOOPBACK_ONLY_FRONTEND",
+    "BACKEND_DATABASE_HOST_PORT_ZERO",
+    "LOCAL_SMOKE_PASS",
+    "MIGRATIONS_25_OF_25",
+    "BACKUP_RESTORE_VERIFIED",
+    "CUTOVER_TEMPLATE_12_GATE_CONTRACT_VALID",
+    "EXISTING_CLOUDFLARE_TUNNELS_PRESERVED",
+    "PROTECTED_SERVICES_PRESERVED"
+  ],
+  "notRun": [
+    "PRODUCTION_TUNNEL_CREATION",
+    "PUBLIC_DNS_PUBLICATION",
+    "TLS_ISSUANCE_AND_EXTERNAL_HTTPS_PROBE",
+    "PRODUCTION_ADMIN_MANAGER_USER_LOGIN",
+    "PRODUCTION_MFA_AND_RBAC_NEGATIVE_TESTS",
+    "PRODUCTION_ALERT_RECEIPT",
+    "BUSINESS_SECURITY_OPERATIONS_SIGNOFF"
+  ],
+  "blockedReasons": [
+    "OUTSIDE_APPROVED_CHANGE_WINDOW",
+    "PRODUCTION_TUNNEL_MISSING",
+    "PRODUCTION_DNS_NXDOMAIN",
+    "PRODUCTION_USERS_ZERO",
+    "ACTUAL_CUTOVER_EVIDENCE_MISSING",
+    "FINAL_SIGNOFF_NOT_RUN"
+  ],
+  "nextAction": "Keep loopback Production healthy and re-run the exact preflight at the approved 2026-09-11 20:00 KST window before creating the dedicated Production tunnel and DNS route."
+}

@@ -276,6 +276,34 @@
         ],
         "report": "docs/phase-reports/127_P6_G3_AI_PC_Production_Deploy_Rollback.md"
       },
+      "currentReadyEvidence": {
+        "date": "2026-09-01",
+        "status": "READY_WAIT_CHANGE_WINDOW",
+        "passed": [
+          "remote-sha-match",
+          "local-production-three-services-healthy",
+          "loopback-smoke-pass",
+          "migrations-25-of-25",
+          "backup-restore-verified",
+          "existing-cloudflare-tunnels-preserved",
+          "protected-services-preserved"
+        ],
+        "notRun": [
+          "production-tunnel-dns-tls",
+          "production-role-login-mfa-rbac",
+          "production-alert-receipt",
+          "business-security-operations-signoff"
+        ],
+        "blockedReasons": [
+          "outside-approved-change-window",
+          "production-dns-nxdomain",
+          "production-tunnel-missing",
+          "production-users-zero",
+          "actual-cutover-evidence-missing"
+        ],
+        "evidence": "agent docs/harness/P6_G4_CUTOVER_PREFLIGHT_EVIDENCE.json",
+        "report": "docs/phase-reports/128_P6_G4_Production_Cutover_Preflight.md"
+      },
       "completionGate": "P3~P5 PASS와 승인된 cutover·rollback 증거"
     },
     {

@@ -10,6 +10,14 @@
 
 이 문서는 현재 상태의 단일 정본이다. 과거 Phase 보고서의 당시 수치와 설계 결정은 역사 증거로 보존하되 현재 판정에는 이 문서와 실제 코드·테스트 결과를 우선한다.
 
+## 2026-09-01 P6-G4 공개 전환 사전점검
+
+- P6-G4는 `READY_WAIT_CHANGE_WINDOW`다. 승인된 공개 전환 창은 `2026-09-11 20:00~23:00 KST`, rollback cutoff는 22:00다.
+- 내부 Production 3서비스·smoke·migration 25/25·백업 복원은 정상이고 배포 후보와 원격 브랜치 SHA도 일치한다.
+- `inventory.safe-link.co.kr`은 A/CNAME 모두 NXDOMAIN이며 HTTPS host를 찾을 수 없다. Cloudflare에는 기존 `sqcm-i`와 `sqcm-i-inventory-staging` tunnel만 있고 Production 전용 tunnel은 없다.
+- Production 사용자 수는 0이다. 실제 ADMIN·MANAGER·USER 로그인·MFA·RBAC와 업무·보안·운영 서명은 `NOT_RUN`이다.
+- 변경창 전에는 기존 tunnel·DNS·TLS를 변경하지 않는다. 자동 실행은 내부 health·백업·SHA·보호 서비스 드리프트를 재검사한다.
+
 ## 2026-09-01 P6-G3 AI PC Production 배포·복구
 
 - 후보 SHA `e238ab8dab7f4729298ceb7ecc0f874a4a08829a`의 GitHub-hosted quality run `33469721441`과 release-images run `33469730466`이 성공했다.
@@ -152,7 +160,7 @@ P5는 migration 025와 staging backend 재배포 후 **19 PASS·0 FAIL·0 PENDIN
 
 P6-G3에서 후보 `e238ab8dab7f…`의 원격 일치, GitHub-hosted quality와 release-images 성공, AI PC loopback Production 3서비스 배포, migration 25/25, backup·restore와 실제 중지형 rollback·재기동을 통과했다. main merge·공개 전환은 실행하지 않았다.
 
-현재 유일한 READY는 **P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF**다. 승인된 변경창 `2026-09-11 20:00~23:00 KST`에서만 공개 DNS/TLS, 실제 사용자 로그인·MFA, 관측·최종 서명을 검증한다. 그 전까지 서비스는 `127.0.0.1:3300` 격리를 유지하며 Production은 `NO-GO`다.
+현재 유일한 READY는 **P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF**다. 사전점검은 `READY_WAIT_CHANGE_WINDOW`이며 승인된 변경창 `2026-09-11 20:00~23:00 KST`에서 전용 Production tunnel·공개 DNS/TLS, 실제 사용자 로그인·MFA, 관측·최종 서명을 검증한다. 그 전까지 서비스는 `127.0.0.1:3300` 격리를 유지하며 Production은 `NO-GO`다.
 # Phase 74 불변 이미지 릴리스 게이트 (2026-08-15)
 
 - GitHub Actions 외부 참조를 공식 commit SHA로 고정하고, main의 정확한 SHA로 frontend/backend 이미지를 GHCR에 발행하는 workflow를 추가했다.
