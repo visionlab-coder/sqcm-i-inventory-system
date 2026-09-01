@@ -341,6 +341,14 @@
       "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; child/read/write zero; focused 8/8 PASS; exact approval·one-step execution·receipt sequence/command/digest/runId integrity·WAIT resume·three-failure stop enforced; actual activation NOT_RUN"
     },
     {
+      "id": "ACC-P7-25-PRODUCTION-OPERATIONS-ACTIVATION-SINGLE-WRITER-LEASE",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "상시 Heartbeat가 겹쳐도 동일 run의 다음 외부 단계는 단일 process만 실행하고 두 번째 실행은 안전 대기한다. crash stale lease는 자동 삭제하지 않으며 30일 SLO의 장기 WAIT attempt도 정렬 가능한 영수증으로 재개한다.",
+      "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; lease/write/child zero; focused 11/11 PASS; atomic single-writer lease·owner-only release·stale lock preservation·4-digit attempts through 9999 enforced; actual activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

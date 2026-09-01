@@ -347,6 +347,7 @@
           "p7-production-oncall-two-role-idempotent-escalation-drill-runner-ready",
           "p7-production-operations-owner-signoff-input-assembler-ready",
           "p7-production-19-step-resumable-operations-activation-orchestrator-ready",
+          "p7-production-operations-activation-single-writer-lease-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],

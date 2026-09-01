@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 
 export const OPERATIONS_ACTIVATION_CONFIRMATION = 'ACK-EXECUTE-P7-PRODUCTION-OPERATIONS-ACTIVATION';
 export const OPERATIONS_ACTIVATION_ACTIONS = [
@@ -97,7 +97,7 @@ export function selectNextOperationsActivationStep(receipts = []) {
     const step = OPERATIONS_ACTIVATION_STEPS[stepIndex];
     if (!step || receipt?.schemaVersion !== 1 || !ID_PATTERN.test(receipt?.runId ?? '')
       || receipt?.environment !== 'production' || receipt?.activationState !== 'actual'
-      || receipt?.sequence !== stepIndex + 1 || !Number.isInteger(receipt?.attempt) || receipt.attempt < 1
+      || receipt?.sequence !== stepIndex + 1 || !Number.isInteger(receipt?.attempt) || receipt.attempt < 1 || receipt.attempt > 9999
       || !['PASS', 'WAIT', 'FAIL'].includes(receipt?.outcome) || typeof receipt?.status !== 'string'
       || !Number.isInteger(receipt?.exitCode) || !validDate(receipt?.checkedAt)
       || receipt?.command?.executable !== 'node' || receipt?.command?.script !== step?.script
@@ -123,6 +123,7 @@ export function selectNextOperationsActivationStep(receipts = []) {
     if (stepReceipts.some((receipt) => receipt.outcome === 'PASS')) continue;
     const failedAttempts = stepReceipts.filter((receipt) => receipt.outcome === 'FAIL').length;
     if (failedAttempts >= 3) return { status: 'PAUSED_OPERATIONS_ACTIVATION_STEP_FAILED_THREE_TIMES', step, attempt: stepReceipts.length + 1, failedAttempts };
+    if (stepReceipts.length >= 9999) return { status: 'PAUSED_OPERATIONS_ACTIVATION_ATTEMPT_LIMIT', step, attempt: 10000, failedAttempts };
     return { status: 'READY_NEXT_OPERATIONS_ACTIVATION_STEP', step, attempt: stepReceipts.length + 1, failedAttempts };
   }
   return { status: 'PASS_OPERATIONS_ACTIVATION_SEQUENCE_COMPLETE', step: null, attempt: 0, failedAttempts: 0 };
@@ -143,7 +144,8 @@ export function buildOperationsActivationReceipt({ approval, step, attempt, resu
 
 export function writeOperationsActivationReceiptOnce(root, receipt, { processId = process.pid } = {}) {
   if (!root || !fs.existsSync(root)) throw new Error('RECEIPT_ROOT_MISSING');
-  const name = `${String(receipt.sequence).padStart(2, '0')}-${receipt.stepId}-attempt-${String(receipt.attempt).padStart(2, '0')}.json`;
+  if (!Number.isInteger(receipt?.attempt) || receipt.attempt < 1 || receipt.attempt > 9999) throw new Error('RECEIPT_ATTEMPT_INVALID');
+  const name = `${String(receipt.sequence).padStart(2, '0')}-${receipt.stepId}-attempt-${String(receipt.attempt).padStart(4, '0')}.json`;
   const output = path.join(root, name); const temporary = path.join(root, `.${name}.${processId}.tmp`);
   if (fs.existsSync(output)) throw new Error('RECEIPT_ALREADY_EXISTS');
   try {
@@ -152,4 +154,40 @@ export function writeOperationsActivationReceiptOnce(root, receipt, { processId 
     fs.renameSync(temporary, output);
   } catch (error) { if (fs.existsSync(temporary)) fs.rmSync(temporary); throw error; }
   return output;
+}
+
+export function acquireOperationsActivationLease(root, runId, {
+  processId = process.pid, checkedAt = new Date().toISOString(), leaseId = randomUUID()
+} = {}) {
+  if (!root || !fs.existsSync(root) || !fs.statSync(root).isDirectory()) throw new Error('RECEIPT_ROOT_MISSING');
+  if (!ID_PATTERN.test(runId ?? '') || !ID_PATTERN.test(leaseId ?? '') || !Number.isInteger(processId) || processId < 1 || !validDate(checkedAt)) {
+    throw new Error('OPERATIONS_ACTIVATION_LEASE_INPUT_INVALID');
+  }
+  const runIdSha256 = createHash('sha256').update(runId, 'utf8').digest('hex');
+  const leasePath = path.join(root, `.operations-activation-${runIdSha256.slice(0, 16)}.lock`);
+  const document = { schemaVersion: 1, runIdSha256, leaseId, processId, acquiredAt: checkedAt, secretValuesRecorded: false };
+  let handle = null; let created = false;
+  try {
+    handle = fs.openSync(leasePath, 'wx', 0o600); created = true;
+    fs.writeFileSync(handle, `${JSON.stringify(document, null, 2)}\n`, 'utf8'); fs.fsyncSync(handle);
+  } catch (error) {
+    if (error?.code === 'EEXIST') throw new Error('OPERATIONS_ACTIVATION_LEASE_HELD');
+    if (created && fs.existsSync(leasePath)) fs.rmSync(leasePath);
+    throw error;
+  } finally {
+    if (handle !== null) fs.closeSync(handle);
+  }
+  return { path: leasePath, runIdSha256, leaseId, processId };
+}
+
+export function releaseOperationsActivationLease(lease) {
+  if (!lease?.path || !fs.existsSync(lease.path)) throw new Error('OPERATIONS_ACTIVATION_LEASE_MISSING');
+  let document;
+  try { document = JSON.parse(fs.readFileSync(lease.path, 'utf8')); } catch { throw new Error('OPERATIONS_ACTIVATION_LEASE_INVALID'); }
+  if (document?.schemaVersion !== 1 || document?.runIdSha256 !== lease.runIdSha256 || document?.leaseId !== lease.leaseId
+    || document?.processId !== lease.processId || document?.secretValuesRecorded !== false) {
+    throw new Error('OPERATIONS_ACTIVATION_LEASE_OWNERSHIP_MISMATCH');
+  }
+  fs.unlinkSync(lease.path);
+  return true;
 }

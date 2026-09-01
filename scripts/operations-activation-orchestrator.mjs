@@ -4,8 +4,10 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
   OPERATIONS_ACTIVATION_CONFIRMATION,
+  acquireOperationsActivationLease,
   buildOperationsActivationReceipt,
   evaluateOperationsActivationGate,
+  releaseOperationsActivationLease,
   selectNextOperationsActivationStep,
   validateOperationsActivationApproval,
   writeOperationsActivationReceiptOnce
@@ -38,10 +40,10 @@ function parseJsonObjects(raw) {
   return values;
 }
 function loadReceipts(root, runId) {
-  return fs.readdirSync(root).filter((name) => /^\d{2}-[a-z0-9-]+-attempt-\d{2}\.json$/.test(name)).sort().map((name) => {
+  return fs.readdirSync(root).filter((name) => /^\d{2}-[a-z0-9-]+-attempt-\d{4}\.json$/.test(name)).sort().map((name) => {
     const candidate = path.join(root, name); if (!externalPhysicalFile(candidate)) throw new Error('RECEIPT_NOT_PHYSICAL_FILE');
     const value = JSON.parse(fs.readFileSync(candidate, 'utf8')); if (value.runId !== runId) throw new Error('RECEIPT_RUN_ID_MISMATCH');
-    const expectedName = `${String(value.sequence).padStart(2, '0')}-${value.stepId}-attempt-${String(value.attempt).padStart(2, '0')}.json`;
+    const expectedName = `${String(value.sequence).padStart(2, '0')}-${value.stepId}-attempt-${String(value.attempt).padStart(4, '0')}.json`;
     if (name !== expectedName) throw new Error('RECEIPT_FILENAME_MISMATCH');
     return value;
   });
@@ -54,10 +56,12 @@ const gate = evaluateOperationsActivationGate({
 });
 
 let status = gate.status; let childProcessCount = 0; let receiptCreated = false; let currentStep = null; let attempt = 0; let failureCount = 0;
+let lease = null; let leaseAcquired = false; let leaseReleased = false; let leaseConflict = false;
 if (gate.childProcessAllowed) {
   try {
     const p6Document = JSON.parse(fs.readFileSync(p6Path, 'utf8'));
     const approval = validateOperationsActivationApproval(JSON.parse(fs.readFileSync(approvalPath, 'utf8')), { p6Document });
+    lease = acquireOperationsActivationLease(receiptRoot, approval.runId); leaseAcquired = true;
     const selection = selectNextOperationsActivationStep(loadReceipts(receiptRoot, approval.runId));
     status = selection.status; currentStep = selection.step?.id ?? null; attempt = selection.attempt; failureCount = selection.failedAttempts;
     if (selection.step && !status.startsWith('PAUSED_')) {
@@ -68,12 +72,21 @@ if (gate.childProcessAllowed) {
       writeOperationsActivationReceiptOnce(receiptRoot, receipt); receiptCreated = true; status = receipt.outcome === 'PASS' ? 'PASS_OPERATIONS_ACTIVATION_STEP' : receipt.outcome === 'WAIT' ? 'READY_WAIT_OPERATIONS_ACTIVATION_STEP' : 'FAIL_OPERATIONS_ACTIVATION_STEP';
       if (receipt.outcome === 'FAIL') { failureCount += 1; process.exitCode = 1; }
     }
-  } catch { status = 'FAIL_OPERATIONS_ACTIVATION_ORCHESTRATOR'; failureCount += 1; process.exitCode = 1; }
+  } catch (error) {
+    if (error?.message === 'OPERATIONS_ACTIVATION_LEASE_HELD') { status = 'READY_WAIT_OPERATIONS_ACTIVATION_LEASE'; leaseConflict = true; }
+    else { status = 'FAIL_OPERATIONS_ACTIVATION_ORCHESTRATOR'; failureCount += 1; process.exitCode = 1; }
+  } finally {
+    if (lease) {
+      try { releaseOperationsActivationLease(lease); leaseReleased = true; }
+      catch { status = 'FAIL_OPERATIONS_ACTIVATION_LEASE_RELEASE'; failureCount += 1; process.exitCode = 1; }
+    }
+  }
 }
 
 console.log(JSON.stringify({ checkedAt: new Date().toISOString(), status, currentStep, attempt, failureCount,
   requiredP6Environment: 'P7_P6_CUTOVER_EVIDENCE_FILE', requiredApprovalEnvironment: 'P7_OPERATIONS_ACTIVATION_APPROVAL_FILE',
   requiredReceiptRootEnvironment: 'P7_OPERATIONS_ACTIVATION_RECEIPT_ROOT', confirmationEnvironment: 'P7_OPERATIONS_ACTIVATION_CONFIRMATION',
-  missing: gate.missing, childProcessCount, receiptCreated, p6EvidenceComplete: p6?.status === 'evidence-complete', p7Status: p7?.status ?? null,
+  missing: gate.missing, childProcessCount, receiptCreated, leaseAcquired, leaseReleased, leaseConflict,
+  p6EvidenceComplete: p6?.status === 'evidence-complete', p7Status: p7?.status ?? null,
   secretValuesReadOrRecorded: false, productionGo: roadmap.invariants?.productionGo === true
 }, null, 2));

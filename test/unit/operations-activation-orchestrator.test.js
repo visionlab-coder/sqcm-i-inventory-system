@@ -84,3 +84,32 @@ test('receipt는 stdout/stderr 원문 없이 SHA만 원자적으로 한 번 기�
   const output = writeOperationsActivationReceiptOnce(root, receipt, { processId: 900 }); const raw = fs.readFileSync(output, 'utf8');
   assert.equal(JSON.parse(raw).outcome, 'PASS'); assert.doesNotMatch(raw, /sensitive/); assert.throws(() => writeOperationsActivationReceiptOnce(root, receipt, { processId: 901 }), /RECEIPT_ALREADY_EXISTS/);
 });
+
+test('single-writer lease는 동시 두 번째 실행을 차단하고 정상 해제 뒤 재개한다', async (t) => {
+  const { acquireOperationsActivationLease, releaseOperationsActivationLease } = await modulePromise;
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-p7-activation-lease-')); t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const first = acquireOperationsActivationLease(root, 'p7-activation-20261012-001', { processId: 901, checkedAt: '2026-10-12T01:00:00.000Z', leaseId: 'lease-first-0001' });
+  assert.equal(fs.existsSync(first.path), true);
+  assert.throws(() => acquireOperationsActivationLease(root, 'p7-activation-20261012-001', { processId: 902, checkedAt: '2026-10-12T01:00:01.000Z', leaseId: 'lease-second-0002' }), /OPERATIONS_ACTIVATION_LEASE_HELD/);
+  assert.equal(releaseOperationsActivationLease(first), true); assert.equal(fs.existsSync(first.path), false);
+  const resumed = acquireOperationsActivationLease(root, 'p7-activation-20261012-001', { processId: 903, checkedAt: '2026-10-12T01:00:02.000Z', leaseId: 'lease-resumed-0003' });
+  assert.equal(releaseOperationsActivationLease(resumed), true);
+});
+
+test('다른 owner의 release 시도와 crash stale lease는 자동 삭제하지 않는다', async (t) => {
+  const { acquireOperationsActivationLease, releaseOperationsActivationLease } = await modulePromise;
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-p7-activation-stale-')); t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const lease = acquireOperationsActivationLease(root, 'p7-activation-20261012-001', { processId: 910, checkedAt: '2026-10-12T01:00:00.000Z', leaseId: 'lease-owner-0010' });
+  assert.throws(() => releaseOperationsActivationLease({ ...lease, leaseId: 'lease-other-0011' }), /OPERATIONS_ACTIVATION_LEASE_OWNERSHIP_MISMATCH/);
+  assert.equal(fs.existsSync(lease.path), true);
+  assert.throws(() => acquireOperationsActivationLease(root, 'p7-activation-20261012-001', { processId: 912, checkedAt: '2026-10-13T01:00:00.000Z', leaseId: 'lease-later-0012' }), /OPERATIONS_ACTIVATION_LEASE_HELD/);
+  assert.equal(fs.existsSync(lease.path), true); releaseOperationsActivationLease(lease);
+});
+
+test('장기 WAIT는 100회 이후에도 정렬 가능한 4자리 receipt 이름을 사용한다', async (t) => {
+  const { OPERATIONS_ACTIVATION_STEPS, buildOperationsActivationReceipt, writeOperationsActivationReceiptOnce } = await modulePromise;
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-p7-activation-long-wait-')); t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const value = buildOperationsActivationReceipt({ approval: await approval(), step: OPERATIONS_ACTIVATION_STEPS[0], attempt: 100, result: { exitCode: 0, summary: { status: 'PASS_SLO_SAMPLE_APPENDED' }, stdout: '', stderr: '' }, checkedAt: '2026-10-12T01:00:00.000Z' });
+  const output = writeOperationsActivationReceiptOnce(root, value, { processId: 920 });
+  assert.equal(path.basename(output), '01-slo-collect-attempt-0100.json');
+});

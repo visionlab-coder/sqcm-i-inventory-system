@@ -6,14 +6,17 @@
   "actualOperationsActivation": "NOT_RUN",
   "productionGo": false,
   "verification": {
-    "focusedTests": "8/8 PASS",
+    "focusedTests": "11/11 PASS",
     "syntaxChecks": "282/282 PASS",
-    "unitTests": "437 PASS, 1 Windows-only SKIP, 0 FAIL (438 total)",
+    "unitTests": "440 PASS, 1 Windows-only SKIP, 0 FAIL (441 total)",
     "harnessVerify": "PASS",
     "dryRunStatus": "READY_WAIT_P6_ACTUAL_CUTOVER",
     "childProcessCount": 0,
     "approvalDocumentReadCount": 0,
     "receiptCreated": false,
+    "leaseAcquired": false,
+    "leaseReleased": false,
+    "leaseConflict": false,
     "externalMutationPerformed": false
   },
   "contracts": [
@@ -23,6 +26,9 @@
     "receipt sequence command digest and runId integrity",
     "WAIT resumes without failure increment",
     "same-step FAIL three times pauses execution",
+    "same-run single-writer lease with owner-only release",
+    "crash stale lease preserved for manual review",
+    "four-digit WAIT attempts through 9999",
     "terminal completion remains separately confirmed and fail-closed"
   ],
   "nextReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF"
