@@ -605,6 +605,14 @@
       "evidence": "production:rollback-readiness => PASS_ROLLBACK_READINESS_DRY_RUN_ONLY; failure-first 6/6; focused 10/10 PASS; syntax 338/338; repository unit 566 PASS 1 Windows platform skip; actual post-cutover rollback NOT_RUN"
     },
     {
+      "id": "ACC-P6-36-PHYSICAL-EXTERNAL-SIGNOFF-REFERENCE-PREFLIGHT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production 역할 결과 3건과 업무·보안·운영 서명 3건은 저장소 밖 절대경로의 고유 physical JSON regular file이어야 하며 symlink·reparse·상대경로·저장소 경로·빈/과대 파일·physical 중복 reference는 실제 입력 준비로 승격되지 않는다.",
+      "evidence": "production:signoff-preflight => READY_WAIT_PRODUCTION_UAT_AND_SIGNOFF_REFERENCES with 0/6 actual references; failure-first 5/5; focused 8 PASS 1 Windows platform skip; syntax 340/340; repository unit 570 PASS 2 Windows platform skips; actual signoff NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

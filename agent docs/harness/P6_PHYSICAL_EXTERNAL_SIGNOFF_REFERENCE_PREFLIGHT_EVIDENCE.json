@@ -1,0 +1,62 @@
+{
+  "packet": "ACC-P6-36-PHYSICAL-EXTERNAL-SIGNOFF-REFERENCE-PREFLIGHT",
+  "status": "PASS_PHYSICAL_EXTERNAL_SIGNOFF_REFERENCE_PREFLIGHT",
+  "failureFirst": {
+    "expectedFailures": 5,
+    "observedFailures": 5
+  },
+  "focusedTests": {
+    "total": 9,
+    "passed": 8,
+    "failed": 0,
+    "skipped": 1
+  },
+  "syntaxChecks": {
+    "passed": 340,
+    "failed": 0
+  },
+  "unitTests": {
+    "total": 572,
+    "passed": 570,
+    "failed": 0,
+    "skipped": 2
+  },
+  "referenceContract": {
+    "absolutePathRequired": true,
+    "jsonExtensionRequired": true,
+    "outsideRepositoryRequired": true,
+    "physicalRegularFileRequired": true,
+    "symlinkAndReparseRejected": true,
+    "minimumBytes": 1,
+    "maximumBytes": 1048576,
+    "sixReferencesMustBePhysicallyUnique": true,
+    "pathsAndContentsNotReported": true
+  },
+  "readOnlyRun": {
+    "status": "READY_WAIT_PRODUCTION_UAT_AND_SIGNOFF_REFERENCES",
+    "roleResultReferencesPresent": 0,
+    "signoffReferencesPresent": 0,
+    "actualProductionUatSignoff": "NOT_RUN",
+    "productionGo": false
+  },
+  "qualityCi": {
+    "runId": 33572287216,
+    "testedHeadSha": "22fbbcacd3a766e4b1efcdc94143ff0797696746",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "harnessVerify": {
+    "exitCode": 0,
+    "productionSignoffPreflight": "PASS",
+    "status": "PASS"
+  },
+  "repositoryHygiene": "PASS",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}
