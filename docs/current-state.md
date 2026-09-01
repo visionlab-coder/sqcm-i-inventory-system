@@ -3,12 +3,22 @@
 기준일: 2026-09-01
 
 릴리스 기준 브랜치: `main`
-현재 작업 브랜치: `codex/p6-ai-pc-postgres-production` (배포 후보 `a73dda495e8365612c24cd9c9f4070a9aa8548e6`)
+현재 작업 브랜치: `codex/p6-ai-pc-postgres-production` (배포 후보 `e238ab8dab7f4729298ceb7ecc0f874a4a08829a`)
 최신 릴리스 기준 main: `79a12924106b378d2337898c76a4dd431634b78d`
 
-상태: **P5 staging UAT 19/19·서명 3/3 완료 / P6-G2 후보 Git·CI·불변 이미지 PASS / P6-G3 Production 배포 READY / Production NO-GO**
+상태: **P5 staging UAT 19/19·서명 3/3 완료 / P6-G3 AI PC loopback Production 배포·복구 PASS / P6-G4 공개 전환 대기 / Production NO-GO**
 
 이 문서는 현재 상태의 단일 정본이다. 과거 Phase 보고서의 당시 수치와 설계 결정은 역사 증거로 보존하되 현재 판정에는 이 문서와 실제 코드·테스트 결과를 우선한다.
+
+## 2026-09-01 P6-G3 AI PC Production 배포·복구
+
+- 후보 SHA `e238ab8dab7f4729298ceb7ecc0f874a4a08829a`의 GitHub-hosted quality run `33469721441`과 release-images run `33469730466`이 성공했다.
+- 별도 Compose project `seowon-inventory-production`의 frontend/backend/database 3서비스가 healthy이며 frontend만 `127.0.0.1:3300`에 공개된다. backend와 PostgreSQL 16은 호스트 포트가 없다.
+- application migration 25/25, public table 54, Production 사용자 0, seed 미실행을 확인했다. health·readiness·정적자산은 200이고 미인증 업무 API는 401이다.
+- 논리 백업의 SHA-256을 확인하고 임시 DB에 복원해 필수 테이블 33/33, migration 25/25와 행 수 일치를 검증했다.
+- 실제 3서비스 중지 rollback으로 3300 포트 폐쇄와 두 named volume 보존을 확인한 뒤 같은 digest 이미지로 재기동·스모크를 재통과했다.
+- staging 3서비스와 보호 포트/PID `1234/6632`, `11434/8588`, `18765/22716`, `18766/65724`는 보존됐다.
+- 공개 DNS/TLS, 실제 Production 사용자 로그인·MFA, 최종 서명은 아직 없으므로 `productionGo=false`다. 다음 READY는 `P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF`다.
 
 ## 2026-09-01 P6-G2 GitHub-hosted CI·불변 이미지
 
@@ -140,9 +150,9 @@
 
 P5는 migration 025와 staging backend 재배포 후 **19 PASS·0 FAIL·0 PENDING**, Critical/High 0, 업무·보안·운영 전자서명 3/3으로 증거 있는 완료다. 정상 PNG·EICAR 차단·MFA·승인·반납·구매·provider receipt와 USER Supabase SSO·390×844 모바일 핵심 화면·로그아웃이 통과했다.
 
-P6-G2에서 후보 `a73dda495e…`의 원격 일치, Draft PR #23, GitHub-hosted quality와 release-images 성공, backend/frontend 다중 아키텍처 digest를 같은 SHA로 확보했다. main merge·release는 실행하지 않았다.
+P6-G3에서 후보 `e238ab8dab7f…`의 원격 일치, GitHub-hosted quality와 release-images 성공, AI PC loopback Production 3서비스 배포, migration 25/25, backup·restore와 실제 중지형 rollback·재기동을 통과했다. main merge·공개 전환은 실행하지 않았다.
 
-현재 유일한 READY는 **P6-G3-AI-PC-PRODUCTION-SECRETS-MIGRATION-DEPLOY-AND-ROLLBACK**이다. Production 전용 Secret과 digest 고정 이미지를 사용해 migration·health·smoke·인증·backup·rollback을 승인된 변경창에서 실제 검증해야 한다. Production Secret·migration·컨테이너·DNS/TLS는 아직 없으므로 Production은 `NO-GO`다.
+현재 유일한 READY는 **P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF**다. 승인된 변경창 `2026-09-11 20:00~23:00 KST`에서만 공개 DNS/TLS, 실제 사용자 로그인·MFA, 관측·최종 서명을 검증한다. 그 전까지 서비스는 `127.0.0.1:3300` 격리를 유지하며 Production은 `NO-GO`다.
 # Phase 74 불변 이미지 릴리스 게이트 (2026-08-15)
 
 - GitHub Actions 외부 참조를 공식 commit SHA로 고정하고, main의 정확한 SHA로 frontend/backend 이미지를 GHCR에 발행하는 workflow를 추가했다.

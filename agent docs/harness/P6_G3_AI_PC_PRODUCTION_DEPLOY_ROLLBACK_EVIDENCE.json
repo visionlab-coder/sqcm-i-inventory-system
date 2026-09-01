@@ -1,0 +1,89 @@
+{
+  "gate": "P6-G3-AI-PC-PRODUCTION-SECRETS-MIGRATION-DEPLOY-AND-ROLLBACK",
+  "date": "2026-09-01",
+  "status": "PASS",
+  "scope": "AI PC loopback-only Production deployment and first-deploy rollback drill",
+  "source": {
+    "branch": "codex/p6-ai-pc-postgres-production",
+    "candidateSha": "e238ab8dab7f4729298ceb7ecc0f874a4a08829a",
+    "remoteShaMatched": true,
+    "qualityRunId": 33469721441,
+    "releaseImagesRunId": 33469730466
+  },
+  "immutableImages": {
+    "backendIndexDigest": "sha256:955753aee0cd0d22d885db93a12850cc24aeaacffcbac159dba6846802b343fb",
+    "frontendIndexDigest": "sha256:63834026cf17b52377e414709dd7b93411fe2da6c79b15cb1f25c23a8fa43a33",
+    "platforms": ["linux/amd64", "linux/arm64"],
+    "provenanceAttestationsCreated": true
+  },
+  "runtime": {
+    "composeProject": "seowon-inventory-production",
+    "services": ["frontend:healthy", "backend:healthy", "database:healthy"],
+    "frontendBinding": "127.0.0.1:3300",
+    "backendHostPortCount": 0,
+    "databaseHostPortCount": 0,
+    "secretFileStoredOutsideRepository": true,
+    "secretValuesRecorded": false,
+    "database": {
+      "engine": "PostgreSQL 16",
+      "applicationMigrations": "25/25",
+      "publicTables": 54,
+      "productionUsers": 0,
+      "seedsApplied": false
+    },
+    "smoke": {
+      "/health": 200,
+      "/api/health": 200,
+      "/api/readiness": 200,
+      "/api/items": 401,
+      "/assets/seowon-official-logo-reversed.png": 200
+    },
+    "recentBackendLogs": {
+      "jsonEvents": 29,
+      "http5xx": 0,
+      "errorEvents": 0,
+      "readiness200": 2
+    }
+  },
+  "backupAndRestore": {
+    "artifact": "artifacts/backups/seowon-inventory-20260901T042822Z.dump",
+    "bytes": 238533,
+    "sha256": "c55c74e056ff18d14378f857cfd5a4888f90e8d3267c73dcc9e346678a83164f",
+    "restoreVerified": true,
+    "requiredTables": "33/33",
+    "applicationMigrations": "25/25",
+    "sourceAndRestoredCountsMatched": true,
+    "temporaryRestoreDatabaseRemoved": true
+  },
+  "rollback": {
+    "strategy": "first-deploy stop and close loopback port while preserving named volumes",
+    "allThreeServicesStoppedCleanly": true,
+    "frontendPortClosedDuringDrill": true,
+    "postgresVolumePreserved": true,
+    "fileVolumePreserved": true,
+    "forwardRecoveryCompleted": true,
+    "postRecoverySmokePassed": true
+  },
+  "preserved": {
+    "protectedListeners": [
+      {"port": 1234, "expectedPid": 6632, "actualPid": 6632},
+      {"port": 11434, "expectedPid": 8588, "actualPid": 8588},
+      {"port": 18765, "expectedPid": 22716, "actualPid": 22716},
+      {"port": 18766, "expectedPid": 65724, "actualPid": 65724}
+    ],
+    "stagingServices": ["frontend:healthy", "backend:healthy", "database:healthy"]
+  },
+  "resolvedFailures": [
+    "runtime image lacked scripts/db-migrate.mjs; the included migration engine applied 25/25 before application start",
+    "Docker secret volume mode blocked the non-root backend; the exact secret file was changed to read-only 0444 without exposing its value",
+    "createApp dropped eventPublisher during validation; regression test and candidate SHA e238ab8 fixed the wiring"
+  ],
+  "notPerformed": [
+    "Production seed or user creation",
+    "public DNS or TLS cutover",
+    "main merge",
+    "final Production business/security/operations signoff"
+  ],
+  "productionGo": false,
+  "nextReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF"
+}

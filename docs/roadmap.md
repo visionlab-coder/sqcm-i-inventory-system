@@ -57,7 +57,7 @@ flowchart LR
 | P3 AI PC 연동 | 독립 bridge/runtime/model, G1~G5, fallback | ✅ 증거 있는 완료 | checksum, listener, TLS·인증, health/ready, 계약·rollback PASS | G0~G5, Pilot UAT 19/19, 승인 3/3, Defender·경보 receipt PASS |
 | P4 Staging 인프라·배포 | 전용 hostname, 공급자, Secret reference, backup, staging 배포 | ✅ 증거 있는 완료 | backup→migration→불변 이미지→health/smoke→rollback PASS | non-seed·DNS/TLS·provider·OIDC·backup/migration·rollback·off-site readback·signoff 3/3 PASS |
 | P5 역할별 UAT | 19개 UAT와 업무·보안·운영 책임자 검수 | ✅ 증거 있는 완료 | staging 19개 PASS, Critical/High 0, 책임자 실제 서명 | 기술 UAT 19/19·Critical/High 0·업무/보안/운영 전자서명 3/3 |
-| P6 Production 전환 | 최종 승인, cutover, 관측·복구 확인 | 🔄 진행 중 | P3~P5 PASS, 승인된 변경 시간, cutover·rollback 증거 | AI PC PostgreSQL 16 격리 토폴로지와 후보 `a73dda4…` Git·quality CI·backend/frontend 불변 이미지 digest PASS. Secret·migration·배포·rollback이 남음. READY `P6-G3-AI-PC-PRODUCTION-SECRETS-MIGRATION-DEPLOY-AND-ROLLBACK` |
+| P6 Production 전환 | 최종 승인, cutover, 관측·복구 확인 | 🔄 진행 중 | P3~P5 PASS, 승인된 변경 시간, cutover·rollback 증거 | 후보 `e238ab8…`의 CI·불변 이미지, AI PC loopback Production 3서비스, migration 25/25, backup·restore·rollback PASS. 공개 DNS/TLS·실사용자 MFA·최종 서명이 남음. READY `P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF` |
 | P7 운영·유지보수 활성화 | 백업, 경보, 온콜, 정기 점검, 개선 큐 | ⏳ 미착수 | 운영 백업·경보 수신·복구훈련과 책임자 인수 | P6 완료 후 시작 |
 
 ## 4. 전역지침 11단계 연결
@@ -81,8 +81,8 @@ flowchart LR
 - 목표: P3~P5 완료 증거를 바탕으로 운영 대상·불변 이미지·backup/migration·cutover·rollback·관측 계약을 실제 Production 증거로 닫는다.
 - 사전 증거: P3 AI PC 19/19·서명 3/3, P4 staging/rollback/off-site backup·서명 3/3, P5 UAT 19/19·서명 3/3.
 - 비범위: 별도 승인 없는 Production 배포·migration·DNS/TLS·Secret·commit·push·merge·release.
-- 현재 상태: 유료 Supabase와 OCI 경로는 취소됐고 Free staging은 보존됐다. AI PC PostgreSQL 16 격리 토폴로지와 후보 `a73dda495e…`의 Draft PR #23, GitHub-hosted quality, backend/frontend `linux/amd64`·`linux/arm64` 불변 이미지 digest가 PASS했다. main merge·Production 변경은 없으며 `productionGo=false`다.
-- 다음 READY: **P6-G3-AI-PC-PRODUCTION-SECRETS-MIGRATION-DEPLOY-AND-ROLLBACK**. Production 전용 Secret과 digest 고정 이미지를 사용해 migration·health·smoke·인증·backup·rollback을 승인된 변경창에서 실제 검증한다.
+- 현재 상태: 유료 Supabase와 OCI 경로는 취소됐고 Free staging은 보존됐다. 후보 `e238ab8dab7f…`의 GitHub-hosted CI·다중 아키텍처 불변 이미지, AI PC PostgreSQL 16 loopback Production 3서비스, migration 25/25, backup·restore·실제 rollback·재기동이 PASS했다. 공개 DNS/TLS와 실사용자 검증은 없으며 `productionGo=false`다.
+- 다음 READY: **P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF**. 승인된 `2026-09-11 20:00~23:00 KST` 변경창에서 공개 DNS/TLS, 실제 사용자 로그인·MFA, 관측과 업무·보안·운영 최종 서명을 검증한다.
 
 ## 6. Phase 갱신 절차
 

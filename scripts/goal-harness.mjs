@@ -265,6 +265,24 @@ function verify() {
         '--filter', 'label=com.docker.compose.project=seowon-inventory-staging',
         '--format', '{{json .}}'
       ], validateInventoryContainers]
+    ],
+    'P6/P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF': [
+      ['git-diff-check', 'git', ['diff', '--check']],
+      ['quality', 'npm.cmd', ['run', 'check']],
+      ['postgres-production-contract', 'npm.cmd', ['run', 'postgres:contract']],
+      ['ai-pc-production-contract', 'npm.cmd', ['run', 'ai-pc:production-contract']],
+      ['compose-contract', 'npm.cmd', ['run', 'compose:contract']],
+      ['ui-contract', 'npm.cmd', ['run', 'ui:contract']],
+      ['docker-health-staging', 'docker', [
+        'ps',
+        '--filter', 'label=com.docker.compose.project=seowon-inventory-staging',
+        '--format', '{{json .}}'
+      ], validateInventoryContainers],
+      ['docker-health-production', 'docker', [
+        'ps',
+        '--filter', 'label=com.docker.compose.project=seowon-inventory-production',
+        '--format', '{{json .}}'
+      ], validateInventoryContainers]
     ]
   };
   const commands = commandSets[verifierKey];
