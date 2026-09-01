@@ -289,6 +289,7 @@
           "cutover-preflight-unit-tests-4-of-4-pass",
           "production-provider-preflight-pass",
           "public-dns-tls-health-readiness-probe-automation-ready",
+          "logs-5xx-outbox-baseline-and-cutover-gate-automation-ready",
           "cutover-evidence-local-gates-4-of-12-pass",
           "cutover-evidence-external-gates-8-of-12-pending",
           "cutover-candidate-fail-closed-validator-pass",

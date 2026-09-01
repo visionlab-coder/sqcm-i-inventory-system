@@ -286,6 +286,7 @@ function verify() {
       ['production-cutover-preflight', 'npm.cmd', ['run', 'production:cutover-preflight']],
       ['production-provider-preflight', 'npm.cmd', ['run', 'production:provider-preflight']],
       ['production-public-probe', 'npm.cmd', ['run', 'production:public-probe']],
+      ['production-log-gate', 'npm.cmd', ['run', 'production:log-gate']],
       ['production-cutover-evidence', 'npm.cmd', ['run', 'production:cutover-evidence']]
     ]
   };

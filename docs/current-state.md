@@ -20,8 +20,9 @@
 - `npm.cmd run production:cutover-preflight`를 추가해 원격 SHA, Production 3서비스·포트, smoke, migration·사용자 수, 백업 복원, 보호 PID, Cloudflare tunnel, DNS와 변경창을 한 번에 판정한다. 회귀 4/4와 Harness 등록이 PASS했다.
 - `npm.cmd run production:provider-preflight`는 Production 컨테이너 내부에서 Secret 출력 없이 PostgreSQL 저장소, Defender/경보, AI health·ready, event publisher를 읽기 전용 검사해 PASS했다.
 - `npm.cmd run production:public-probe`는 DNS 미게시를 변경창 대기로 유지하고, 변경창 밖 조기 게시를 차단하며, 변경창 안에서 TLS·hostname과 외부 5경로 상태를 exact 검사하도록 준비됐다. 현재 실제 공개 probe는 `NOT_RUN`이다.
+- `npm.cmd run production:log-gate`는 최근 15분 backend 5xx·치명 오류·error level과 outbox retry/dead-letter 기준선을 검사하고, 변경창에는 20:00 이후 전체 구간을 실제 Gate로 재검사한다. 현재는 pre-cutover 기준선만 판정한다.
 - `npm.cmd run production:cutover-evidence`는 12개 Gate 중 실제 로컬 증거가 있는 artifact·backup/restore·migration·provider preflight 4건만 PASS로 조립한다. 외부 Production 8건과 역할 결과·서명은 PENDING이며 후보는 fail-closed 검증상 Production을 승인할 수 없다.
-- 저장소 표준 검증에서 JavaScript 구문 141개와 단위 165/165가 PASS했으며 preflight·공개 probe·증거 조립 회귀가 기본 `test:unit` 탐색에 포함된다.
+- 저장소 표준 검증에서 JavaScript 구문 144개와 단위 168/168이 PASS했으며 preflight·공개 probe·로그 Gate·증거 조립 회귀가 기본 `test:unit` 탐색에 포함된다.
 
 ## 2026-09-01 P6-G3 AI PC Production 배포·복구
 
