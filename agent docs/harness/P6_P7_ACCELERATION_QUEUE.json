@@ -181,6 +181,14 @@
       "evidence": "production:change-window-input-readiness => READY_WAIT_CHANGE_WINDOW_INPUT_REFERENCES; reference 0/5; confirmations armed 0; failures 0; focused 5/5 PASS; external mutation zero"
     },
     {
+      "id": "ACC-P6-21-BOUNDED-CUTOVER-PROVIDER-OBSERVATION",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production cutover preflight의 Git·Docker·PowerShell·Cloudflare 외부 명령을 10초 이내로 제한하고, Cloudflare tunnel timeout·실패·malformed JSON을 오류 원문 없이 fail-closed 상태로 판정해 상시 Harness가 공급자 응답 대기에 무기한 정지하지 않는다.",
+      "evidence": "failure-first 3/3 reproduced; focused 7/7 PASS; production:cutover-preflight completed with READY_WAIT_CHANGE_WINDOW, localBlockers 0, Cloudflare tunnel observation PASS, existing tunnels preserved; syntax 311/311; repository unit 492 PASS 1 Windows platform skip; repository hygiene PASS; external mutation zero"
+    },
+    {
       "id": "ACC-P7-03-ACTUAL-HANDOVER-EVIDENCE-BUNDLE",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

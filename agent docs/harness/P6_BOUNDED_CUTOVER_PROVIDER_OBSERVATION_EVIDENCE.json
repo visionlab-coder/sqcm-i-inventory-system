@@ -1,0 +1,61 @@
+{
+  "packet": "ACC-P6-21-BOUNDED-CUTOVER-PROVIDER-OBSERVATION",
+  "status": "PASS_BOUNDED_CUTOVER_PROVIDER_OBSERVATION",
+  "failureFirst": {
+    "expectedFailures": 3,
+    "observedFailures": 3
+  },
+  "commandTimeoutMs": 10000,
+  "commandMaxBufferBytes": 1048576,
+  "focusedTests": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0
+  },
+  "syntaxChecks": {
+    "passed": 311,
+    "failed": 0
+  },
+  "unitTests": {
+    "total": 493,
+    "passed": 492,
+    "failed": 0,
+    "skipped": 1
+  },
+  "actualPreflight": {
+    "status": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockers": [],
+    "tunnelObservationStatus": "PASS_CLOUDFLARE_TUNNEL_OBSERVATION",
+    "preservedTunnels": [
+      "sqcm-i",
+      "sqcm-i-inventory-staging"
+    ],
+    "productionTunnelExists": false,
+    "dnsPublished": false,
+    "productionUsers": 0,
+    "productionGo": false
+  },
+  "changeWindowInputs": {
+    "status": "READY_WAIT_CHANGE_WINDOW_INPUT_REFERENCES",
+    "readyReferenceCount": 0,
+    "referenceCount": 5,
+    "confirmationsArmed": 0,
+    "failures": 0
+  },
+  "qualityCi": {
+    "runId": 33556909920,
+    "testedHeadSha": "fdae8abbe9a08a6a4c3921c6910d2b23aba02ae7",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "repositoryHygiene": "PASS",
+  "harnessVerify": "PASS",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

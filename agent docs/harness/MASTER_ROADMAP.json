@@ -338,6 +338,7 @@
           "actual-cutover-evidence-p6-complete-p7-open-atomic-state-promoter-ready",
           "actual-operations-handover-p7-complete-8-of-8-atomic-state-promoter-ready",
           "change-window-five-reference-unarmed-input-readiness-gate-ready",
+          "production-cutover-provider-observation-10s-bounded-fail-closed-pass",
           "p7-actual-https-30-day-append-only-slo-collector-ready",
           "p7-production-exact-tls-health-readiness-observer-ready",
           "p7-production-daily-maintenance-read-only-runner-ready",
