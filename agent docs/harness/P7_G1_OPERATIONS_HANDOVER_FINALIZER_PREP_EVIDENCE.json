@@ -1,6 +1,6 @@
 {
   "gate": "P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF-PREP",
-  "checkedAt": "2026-09-01T20:00:00+09:00",
+  "checkedAt": "2026-09-01T20:13:00+09:00",
   "status": "READY_WAIT_P6_COMPLETION_AND_HANDOVER_EVIDENCE",
   "packetStatus": "READY",
   "phaseStatus": "not-started",
@@ -48,6 +48,23 @@
     "overwriteAllowed": false,
     "focusedUnitTests": "7/7 PASS",
     "actualMeasurementPresent": false,
+    "evidenceCreated": false
+  },
+  "alertingEvidenceAutomation": {
+    "command": "npm.cmd run operations:alerting-evidence",
+    "executeCommand": "npm.cmd run operations:alerting-evidence -- --compile",
+    "status": "READY_WAIT_P6_COMPLETION_AND_ALERT_RECEIPTS",
+    "requiredInputEnvironment": "P7_ALERT_RECEIPT_INPUT_FILE",
+    "inputContract": "agent docs/harness/P7_ALERT_RECEIPT_INPUT_CONTRACT.json",
+    "requiredOutputEnvironment": "P7_ALERTING_EVIDENCE_OUTPUT_FILE",
+    "confirmationEnvironment": "P7_ALERTING_EVIDENCE_CONFIRMATION=ACK-COMPILE-P7-PRODUCTION-ALERTING-EVIDENCE",
+    "requiredSignals": ["availability", "latency_p95", "http_5xx", "backup_failure", "certificate_expiry"],
+    "requiredProvenance": ["providerRef", "channelRef", "recipientRef", "ownerRef", "triggeredAt", "receivedAt", "sourceSha256"],
+    "outputMustBeOutsideRepository": true,
+    "atomicWrite": true,
+    "overwriteAllowed": false,
+    "focusedUnitTests": "7/7 PASS",
+    "actualReceiptCount": 0,
     "evidenceCreated": false
   },
   "failClosedChecks": [

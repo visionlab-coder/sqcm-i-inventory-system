@@ -27,6 +27,7 @@ npm.cmd run harness:verify
 - P7 완료 증거는 `P7_OPERATIONS_HANDOVER_ACTUAL_EVIDENCE_CONTRACT.json`의 schema 2를 따른다. P6 cutover·운영 8영역·운영 서명 총 10개 실제 JSON은 각각 `{path, sha256}`로 참조하며 `operations:handover-finalizer`가 파일 존재·SHA-256·Production provenance·도메인 측정값을 검증한다. 계약 템플릿과 문자열-only 참조는 완료 증거가 아니다.
 - 10개 실제 문서가 준비되면 `operations:handover-assembler -- --assemble`이 P6 완료·P7 진행 중 상태, 입력 10건, 저장소 밖 출력 경로와 정확한 확인 문자열을 검사한 뒤 finalizer를 선검증하고 schema 2 manifest를 원자적으로 1회 작성한다. 기존 출력은 덮어쓰지 않는다.
 - SLO 실제 문서는 `P7_SLO_MEASUREMENT_INPUT_CONTRACT.json` 계약을 따르는 template=false 외부 30일 Production HTTPS 측정 JSON을 `operations:slo-evidence -- --compile`이 SHA-256 검증하고 가용성·p95를 직접 계산해 임계치 통과 시에만 저장소 밖에 원자적으로 1회 작성한다. 계약 template·loopback 측정은 actual로 승격하지 않고, P6 완료·P7 활성화·정확한 확인 문자열 전에는 dry-run 대기하며 기존 파일을 덮어쓰지 않는다.
+- 경보 실제 문서는 `P7_ALERT_RECEIPT_INPUT_CONTRACT.json` 계약을 따르는 template=false Production 공급자 export에서 경보 5종의 고유 receipt·발생/수신 시각과 공급자·채널·수신자·책임자 참조를 `operations:alerting-evidence -- --compile`이 검증해 저장소 밖에 원자적으로 1회 작성한다. staging·loopback·순서 변경·미수신·중복 receipt는 actual로 승격하지 않는다.
 
 ## 상태 전이 규칙
 

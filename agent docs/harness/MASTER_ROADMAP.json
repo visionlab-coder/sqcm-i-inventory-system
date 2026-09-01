@@ -316,6 +316,7 @@
           "p7-actual-handover-ten-document-sha-bundle-validator-ready",
           "p7-handover-manifest-atomic-assembler-ready",
           "p7-production-slo-30-day-evidence-compiler-ready",
+          "p7-production-alerting-five-receipt-evidence-compiler-ready",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],

@@ -101,6 +101,14 @@
       "evidence": "npm.cmd run operations:slo-evidence => READY_WAIT_P6_COMPLETION_AND_SLO_INPUT; contract template cannot authorize actual evidence; focused 7/7 PASS; default dry-run; actual 30-day measurement and evidence creation NOT_RUN"
     },
     {
+      "id": "ACC-P7-06-PRODUCTION-ALERTING-EVIDENCE-COMPILER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 완료·P7 활성화 뒤 Production 경보 공급자 export의 availability·latency_p95·http_5xx·backup_failure·certificate_expiry 5종 receipt를 공급자·채널·수신자·책임자·시각·SHA provenance와 함께 검증하고 actual alerting 문서를 저장소 밖에 원자적으로 1회 작성한다.",
+      "evidence": "npm.cmd run operations:alerting-evidence => READY_WAIT_P6_COMPLETION_AND_ALERT_RECEIPTS; focused 7/7 PASS; template·staging·loopback·missing/reordered/unreceived/duplicate receipt rejected; actual receipts and evidence creation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
