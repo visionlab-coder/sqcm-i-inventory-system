@@ -20,6 +20,19 @@
     "repositoryUnitTests": "250/250 PASS",
     "secretValuesReadOrRecorded": false
   },
+  "assemblerAutomation": {
+    "command": "npm.cmd run operations:handover-assembler",
+    "executeCommand": "npm.cmd run operations:handover-assembler -- --assemble",
+    "status": "READY_WAIT_P6_COMPLETION_AND_HANDOVER_FILES",
+    "requiredInputDocumentCount": 10,
+    "requiredOutputEnvironment": "P7_HANDOVER_MANIFEST_OUTPUT_FILE",
+    "confirmationEnvironment": "P7_HANDOVER_ASSEMBLY_CONFIRMATION=ACK-ASSEMBLE-P7-OPERATIONS-HANDOVER",
+    "outputMustBeOutsideRepository": true,
+    "atomicWrite": true,
+    "overwriteAllowed": false,
+    "focusedUnitTests": "6/6 PASS",
+    "manifestCreated": false
+  },
   "failClosedChecks": [
     "P6 actual Production cutover evidence",
     "SLO·alerting·backup·restore·certificate·onCall·maintenance·improvementQueue PASS",

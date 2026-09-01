@@ -85,6 +85,14 @@
       "evidence": "operations:handover-finalizer requires schemaVersion 2 and 10 verified documents; focused 5/5 PASS; repository 250/250 PASS; actual activation NOT_RUN"
     },
     {
+      "id": "ACC-P7-04-HANDOVER-MANIFEST-ASSEMBLER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 완료와 P7 활성화 뒤 실제 10문서가 준비된 경우에만 SHA-256 manifest를 저장소 밖에 원자적으로 1회 조립하며 기존 파일을 덮어쓰지 않는다.",
+      "evidence": "npm.cmd run operations:handover-assembler => READY_WAIT_P6_COMPLETION_AND_HANDOVER_FILES; 10 inputs plus output required; focused 6/6 PASS; repository 256/256 PASS; manifest creation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
