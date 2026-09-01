@@ -85,6 +85,14 @@
       "evidence": "npm.cmd run production:cutover-execution-rehearsal => PASS_CUTOVER_EXECUTION_ENGINE_REHEARSAL; focused 6/6 PASS; repository 327/327 PASS; outside-window/unconfirmed zero execution; first failure/cutoff stop and route-disable fail-closed; actual external mutation zero"
     },
     {
+      "id": "ACC-P6-10-CUTOVER-GATE-HANDLER-ADAPTERS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "12개 Gate의 실제 runner·public/execute 인자·허용 PASS 상태를 구조화하고 exit 0의 READY_WAIT 상태나 evidence reference 누락을 Gate PASS로 승격하지 않는다.",
+      "evidence": "npm.cmd run production:cutover-adapter-rehearsal => PASS_CUTOVER_GATE_ADAPTER_REHEARSAL; 12 Gates/14 steps; focused 6/6 PASS; repository 333/333 PASS; WAIT/empty evidence/plan mutation fail-closed; actual external mutation zero"
+    },
+    {
       "id": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
