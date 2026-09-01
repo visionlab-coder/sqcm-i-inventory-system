@@ -99,6 +99,7 @@ export function runOperationsActivationProcessRunnerRehearsal({ temporaryBase = 
     const negativeScenarios = [
       { name: 'malformed-json', exitCode: 0, stdout: 'not-json', expectedOutcome: 'FAIL' },
       { name: 'exit-one-pass-text', exitCode: 1, stdout: JSON.stringify({ status: OPERATIONS_ACTIVATION_STEPS[0].pass[0] }), expectedOutcome: 'FAIL' },
+      { name: 'timeout-pass-text', exitCode: 1, stdout: JSON.stringify({ status: OPERATIONS_ACTIVATION_STEPS[0].pass[0] }), failureStatus: 'FAIL_OPERATIONS_ACTIVATION_CHILD_TIMEOUT', expectedOutcome: 'FAIL', expectedStatus: 'FAIL_OPERATIONS_ACTIVATION_CHILD_TIMEOUT' },
       { name: 'redacted-output', exitCode: 0, stdout: `SECRET_VALUE\n${JSON.stringify({ status: OPERATIONS_ACTIVATION_STEPS[0].pass[0] })}`, stderr: 'SECRET_VALUE', expectedOutcome: 'PASS' }
     ];
     let negativeScenarioPassCount = 0; let secretValueOccurrenceCount = 0;
@@ -108,13 +109,15 @@ export function runOperationsActivationProcessRunnerRehearsal({ temporaryBase = 
       const output = executeOperationsActivationSelection({
         projectRoot: root, selection: negativeSelection, approval, receiptRoot: negativeRoot,
         sourceEnvironment: { PATH: process.env.PATH ?? '' },
-        spawnStep: () => ({ exitCode: scenario.exitCode, stdout: scenario.stdout, stderr: scenario.stderr ?? '' }),
+        spawnStep: () => ({ exitCode: scenario.exitCode, stdout: scenario.stdout, stderr: scenario.stderr ?? '', failureStatus: scenario.failureStatus ?? null }),
         checkedAt: new Date(Date.parse('2026-09-12T01:00:00.000Z') + index * 60000).toISOString(),
         receiptWriteOptions: { processId: 5300 + index }
       });
       const raw = fs.readFileSync(output.receiptPath, 'utf8');
       const occurrences = (raw.match(/SECRET_VALUE/g) ?? []).length; secretValueOccurrenceCount += occurrences;
-      if (output.receipt.outcome === scenario.expectedOutcome && occurrences === 0) negativeScenarioPassCount += 1;
+      if (output.receipt.outcome === scenario.expectedOutcome
+        && (!scenario.expectedStatus || output.receipt.status === scenario.expectedStatus)
+        && occurrences === 0) negativeScenarioPassCount += 1;
     }
 
     if (selection.status !== 'PASS_OPERATIONS_ACTIVATION_SEQUENCE_COMPLETE'

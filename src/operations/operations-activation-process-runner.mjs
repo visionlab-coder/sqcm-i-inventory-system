@@ -7,20 +7,41 @@ import {
   writeOperationsActivationReceiptOnce
 } from './operations-activation-orchestrator.mjs';
 
-export function spawnOperationsActivationChild({ projectRoot, step, environment } = {}) {
+function normalizeChildFailureStatus(child) {
+  if (child?.error?.code === 'ETIMEDOUT') return 'FAIL_OPERATIONS_ACTIVATION_CHILD_TIMEOUT';
+  if (child?.error?.code === 'ENOBUFS') return 'FAIL_OPERATIONS_ACTIVATION_CHILD_OUTPUT_LIMIT';
+  if (child?.error) return 'FAIL_OPERATIONS_ACTIVATION_CHILD_SPAWN_ERROR';
+  if (child?.signal) return 'FAIL_OPERATIONS_ACTIVATION_CHILD_SIGNAL';
+  return null;
+}
+
+export function spawnOperationsActivationChild({
+  projectRoot,
+  step,
+  environment,
+  timeoutMs = 30 * 60 * 1000,
+  maxBufferBytes = 1024 * 1024
+} = {}) {
+  if (!Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 4 * 60 * 60 * 1000) {
+    throw new Error('OPERATIONS_ACTIVATION_CHILD_TIMEOUT_INVALID');
+  }
+  if (!Number.isInteger(maxBufferBytes) || maxBufferBytes < 256 || maxBufferBytes > 16 * 1024 * 1024) {
+    throw new Error('OPERATIONS_ACTIVATION_CHILD_BUFFER_INVALID');
+  }
   const child = spawnSync(process.execPath, [path.join(projectRoot, 'scripts', step.script), ...step.args], {
     cwd: projectRoot,
     env: environment,
     encoding: 'utf8',
     shell: false,
-    timeout: 30 * 60 * 1000,
-    maxBuffer: 1024 * 1024,
+    timeout: timeoutMs,
+    maxBuffer: maxBufferBytes,
     windowsHide: true
   });
   return {
     exitCode: Number.isInteger(child.status) ? child.status : 1,
     stdout: child.stdout ?? '',
-    stderr: child.stderr ?? ''
+    stderr: child.stderr ?? '',
+    failureStatus: normalizeChildFailureStatus(child)
   };
 }
 
@@ -43,14 +64,19 @@ export function executeOperationsActivationSelection({
   try {
     raw = spawnStep({ projectRoot, step: selection.step, environment });
   } catch {
-    raw = { exitCode: 1, stdout: '', stderr: '' };
+    raw = { exitCode: 1, stdout: '', stderr: '', failureStatus: 'FAIL_OPERATIONS_ACTIVATION_CHILD_SPAWN_EXCEPTION' };
   }
   const execution = {
     exitCode: Number.isInteger(raw?.exitCode) ? raw.exitCode : 1,
     stdout: typeof raw?.stdout === 'string' ? raw.stdout : '',
-    stderr: typeof raw?.stderr === 'string' ? raw.stderr : ''
+    stderr: typeof raw?.stderr === 'string' ? raw.stderr : '',
+    failureStatus: typeof raw?.failureStatus === 'string' && raw.failureStatus.startsWith('FAIL_OPERATIONS_ACTIVATION_CHILD_')
+      ? raw.failureStatus
+      : null
   };
-  const summary = extractLastJsonObject(execution.stdout);
+  const summary = execution.failureStatus
+    ? { status: execution.failureStatus }
+    : extractLastJsonObject(execution.stdout);
   const receipt = buildOperationsActivationReceipt({
     approval,
     step: selection.step,

@@ -15,7 +15,7 @@ test('실제 process runner 계약으로 19개 단계를 물리 receipt에 연�
   assert.equal(result.childProcessCount, 19);
   assert.equal(result.activationReceiptCount, 19);
   assert.equal(result.sequenceComplete, true);
-  assert.equal(result.physicalDocumentCount, 26);
+  assert.equal(result.physicalDocumentCount, 28);
   assert.equal(result.unexpectedEnvironmentPropagationCount, 0);
 });
 
@@ -23,8 +23,8 @@ test('malformed JSON·exit 1·민감 stdout을 FAIL 또는 redacted receipt로 �
   const { runOperationsActivationProcessRunnerRehearsal } = await modulePromise;
   const result = runOperationsActivationProcessRunnerRehearsal();
 
-  assert.equal(result.negativeScenarioCount, 3);
-  assert.equal(result.negativeScenarioPassCount, 3);
+  assert.equal(result.negativeScenarioCount, 4);
+  assert.equal(result.negativeScenarioPassCount, 4);
   assert.equal(result.secretValueOccurrenceCount, 0);
 });
 

@@ -362,6 +362,7 @@
           "p7-production-operations-activation-19-step-wait-resume-receipt-sequence-synthetic-rehearsal-pass",
           "p7-production-operations-activation-19-step-three-failure-containment-matrix-synthetic-rehearsal-pass",
           "p7-production-operations-activation-process-runner-synthetic-rehearsal-pass",
+          "p7-production-operations-activation-child-termination-diagnostics-pass",
           "existing-cloudflare-tunnels-preserved",
           "protected-services-preserved"
         ],
