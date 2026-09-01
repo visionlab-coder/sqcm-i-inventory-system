@@ -389,6 +389,14 @@
       "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; approval receipt read/verify zero before P6 actual; failure-first 2 EXPECTED FAIL then focused 22/22 PASS; physical approval receipt and P6 operations signoff anchoring enforced before lease child receipt; actual approval and activation NOT_RUN"
     },
     {
+      "id": "ACC-P7-31-OPERATIONS-ACTIVATION-APPROVAL-REQUEST-ASSEMBLER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 물리 P6 cutover 증거와 현재 activation bundle SHA-256을 결합해 OPERATIONS_OWNER에게 전달할 exact 승인 요청 payload를 저장소 밖에 원자적으로 1회 조립한다. 승인·MFA·메시지·서명은 생성하지 않는다.",
+      "evidence": "operations:activation-approval-request => READY_WAIT_P6_ACTUAL_CUTOVER; input read/write/approval/message zero; failure-first 4 EXPECTED FAIL then focused 4/4 PASS; exact P6 release/run/operations signoff SHA, current activation bundle, 19 steps, 10 actions, MFA and 45-day limit assembled; actual approval NOT_RUN"
+    },
+    {
       "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",

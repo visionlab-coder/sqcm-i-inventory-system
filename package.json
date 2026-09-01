@@ -71,6 +71,7 @@
     "operations:phase-completion": "node scripts/operations-phase-completion.mjs",
     "operations:activation-orchestrator": "node scripts/operations-activation-orchestrator.mjs",
     "operations:activation-bundle-digest": "node scripts/operations-activation-bundle-digest.mjs",
+    "operations:activation-approval-request": "node scripts/operations-activation-approval-request.mjs",
     "operations:health": "node scripts/operational-health-check.mjs",
     "test:nonfunctional": "node scripts/nonfunctional-check.mjs",
     "test:recovery": "node scripts/dependency-recovery-check.mjs",
