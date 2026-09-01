@@ -1,10 +1,16 @@
-import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
 import healthPolicy from '../src/operations/health-policy.js';
 import { PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
 import { selectProductionOperationalHealthTarget } from '../src/operations/production-operational-health-target.mjs';
+import {
+  OPERATIONAL_HEALTH_PROCESS_MAX_BUFFER,
+  countOperationalHealthRecent5xx,
+  parseOperationalHealthContainerId,
+  parseOperationalHealthCounters,
+  runOperationalHealthProcess,
+  verifyOperationalHealthBackupFile
+} from '../src/operations/production-operational-health-runtime.mjs';
 
 const selection = selectProductionOperationalHealthTarget({
   publicMode: process.argv.includes('--public'),
@@ -26,18 +32,14 @@ const baseUrl = selection.target;
 const backupRoot = path.resolve('artifacts', 'backups');
 
 function dockerContainer(service) {
-  const result = spawnSync('docker', [
+  const result = runOperationalHealthProcess([
     'ps', '--filter', 'label=com.docker.compose.project=seowon-inventory-production',
     '--filter', `label=com.docker.compose.service=${service}`, '--format', '{{.ID}}'
-  ], { encoding: 'utf8', windowsHide: true });
-  const ids = result.stdout.trim().split(/\r?\n/).filter(Boolean);
-  if (result.status !== 0 || ids.length !== 1 || !/^[a-f0-9]{12,64}$/.test(ids[0])) {
-    throw new Error(`Exactly one running Production ${service} container is required.`);
-  }
-  return ids[0];
+  ]);
+  return parseOperationalHealthContainerId(result.stdout);
 }
 
-function latestProductionBackup() {
+async function latestProductionBackup() {
   const manifests = fs.readdirSync(backupRoot).filter((name) => name.endsWith('.dump.json')).flatMap((name) => {
     try {
       const manifestPath = path.join(backupRoot, name);
@@ -49,12 +51,8 @@ function latestProductionBackup() {
   }).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
   if (!manifests.length) throw new Error('A verified Production backup manifest is required.');
   const manifest = manifests[0];
-  const backupPath = path.resolve(manifest.backupPath);
-  if (!backupPath.startsWith(`${backupRoot}${path.sep}`) || !fs.existsSync(backupPath)) {
-    throw new Error('Production backup path is outside the approved backup root or missing.');
-  }
-  const digest = crypto.createHash('sha256').update(fs.readFileSync(backupPath)).digest('hex');
-  return { ...manifest, backupVerified: digest === manifest.sha256 };
+  const verified = await verifyOperationalHealthBackupFile({ backupRoot, manifest });
+  return { ...manifest, backupVerified: verified.backupVerified };
 }
 
 async function status(route) {
@@ -71,21 +69,18 @@ const sql = `select
   (select count(*) from outbox_events where published_at is null and created_at < now()-interval '15 minutes'),
   (select count(*) from user_sessions where expire < now()),
   (select count(*) from api_idempotency_keys where status='PROCESSING' and updated_at < now()-interval '2 minutes')`;
-const dbResult = spawnSync('docker', [
+const dbResult = runOperationalHealthProcess([
   'exec', database, 'psql', '-U', 'seowon', '-d', 'seowon_inventory', '-At', '-F', ',', '-c', sql
-], { encoding: 'utf8', windowsHide: true });
-if (dbResult.status !== 0) throw new Error('Unable to read Production operational counters.');
-const [pendingOutboxOld, expiredSessions, stuckIdempotency] = dbResult.stdout.trim().split(',').map(Number);
+]);
+const [pendingOutboxOld, expiredSessions, stuckIdempotency] = parseOperationalHealthCounters(dbResult.stdout);
 
-const logResult = spawnSync('docker', ['logs', '--since', '15m', backend], {
-  encoding: 'utf8', windowsHide: true, maxBuffer: 4 * 1024 * 1024
-});
-if (logResult.status !== 0) throw new Error('Unable to read Production backend logs.');
-const recent5xx = `${logResult.stdout}\n${logResult.stderr}`.split(/\r?\n/).filter(Boolean).flatMap((line) => {
-  try { return [JSON.parse(line)]; } catch { return []; }
-}).filter((record) => record.event === 'http_request' && Number(record.status) >= 500).length;
+const logResult = runOperationalHealthProcess(
+  ['logs', '--since', '15m', backend],
+  { maxBuffer: OPERATIONAL_HEALTH_PROCESS_MAX_BUFFER }
+);
+const recent5xx = countOperationalHealthRecent5xx(logResult);
 
-const backup = latestProductionBackup();
+const backup = await latestProductionBackup();
 const snapshot = {
   checkedAt: now.toISOString(), frontendStatus, backendStatus, readinessStatus,
   pendingOutboxOld, expiredSessions, stuckIdempotency, recent5xx,
