@@ -354,6 +354,7 @@
           "production-operational-health-process-10s-buffer-4mib-strict-parser-physical-streaming-backup-pass",
           "production-rollback-readiness-process-10s-1mib-redacted-strict-container-inspect-volume-parser-pass",
           "production-signoff-reference-absolute-external-physical-json-unique-bounded-preflight-pass",
+          "production-actual-cutover-evidence-finalizer-promotion-external-physical-4mib-json-sha256-reader-pass",
           "p7-actual-https-30-day-append-only-slo-collector-ready",
           "p7-production-exact-tls-health-readiness-observer-ready",
           "p7-production-daily-maintenance-read-only-runner-ready",

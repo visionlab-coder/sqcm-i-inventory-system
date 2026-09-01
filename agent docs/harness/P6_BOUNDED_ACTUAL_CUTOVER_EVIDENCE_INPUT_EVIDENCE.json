@@ -1,0 +1,66 @@
+{
+  "packet": "ACC-P6-37-BOUNDED-ACTUAL-CUTOVER-EVIDENCE-INPUT",
+  "status": "PASS_BOUNDED_ACTUAL_CUTOVER_EVIDENCE_INPUT",
+  "failureFirst": {
+    "expectedFailures": 5,
+    "observedFailures": 5,
+    "platformSkips": 1
+  },
+  "focusedTests": {
+    "total": 11,
+    "passed": 10,
+    "failed": 0,
+    "skipped": 1
+  },
+  "syntaxChecks": {
+    "passed": 341,
+    "failed": 0
+  },
+  "unitTests": {
+    "total": 578,
+    "passed": 575,
+    "failed": 0,
+    "skipped": 3
+  },
+  "inputContract": {
+    "absolutePathRequired": true,
+    "jsonExtensionRequired": true,
+    "outsideRepositoryRequired": true,
+    "physicalRegularFileRequired": true,
+    "symlinkReparseAndParentRedirectRejected": true,
+    "minimumBytes": 1,
+    "maximumBytes": 4194304,
+    "jsonObjectRequired": true,
+    "actualBytesAndSha256Computed": true,
+    "rawParseAndProviderErrorsRedacted": true,
+    "finalizerAndPhasePromotionShareReader": true
+  },
+  "readOnlyRun": {
+    "finalizerStatus": "READY_WAIT_ACTUAL_CUTOVER_EVIDENCE",
+    "phasePromotionStatus": "READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_FOR_PHASE_PROMOTION",
+    "actualEvidencePresent": false,
+    "changesMade": false,
+    "productionGo": false
+  },
+  "qualityCi": {
+    "runId": 33573060740,
+    "testedHeadSha": "91c5d667d08b18403a0064edf6829fcba11f3e08",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "harnessVerify": {
+    "exitCode": 0,
+    "productionCutoverFinalizer": "PASS",
+    "productionPhasePromotion": "PASS",
+    "status": "PASS"
+  },
+  "repositoryHygiene": "PASS",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

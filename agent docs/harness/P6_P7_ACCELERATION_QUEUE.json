@@ -613,6 +613,14 @@
       "evidence": "production:signoff-preflight => READY_WAIT_PRODUCTION_UAT_AND_SIGNOFF_REFERENCES with 0/6 actual references; failure-first 5/5; focused 8 PASS 1 Windows platform skip; syntax 340/340; repository unit 570 PASS 2 Windows platform skips; actual signoff NOT_RUN"
     },
     {
+      "id": "ACC-P6-37-BOUNDED-ACTUAL-CUTOVER-EVIDENCE-INPUT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual cutover finalizer와 P6→P7 promotion은 저장소 밖 절대경로의 physical JSON object만 4MiB 이하로 읽고 actual bytes·SHA-256을 계산하며 저장소 내부·symlink/reparse·parent redirect·malformed/array·과대 입력을 원문 없이 fail-closed한다.",
+      "evidence": "production:cutover-finalizer => READY_WAIT_ACTUAL_CUTOVER_EVIDENCE; production:phase-promotion => READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_FOR_PHASE_PROMOTION with zero changes; failure-first 5/5 plus 1 Windows skip; focused 10 PASS 1 skip; syntax 341/341; repository unit 575 PASS 3 skips; actual cutover NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
