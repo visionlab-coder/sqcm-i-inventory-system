@@ -1,0 +1,82 @@
+{
+  "packet": "ACC-P6-65-CUTOVER-CONTROL-OUTPUT-DURABILITY",
+  "status": "PASS_CUTOVER_CONTROL_OUTPUT_DURABILITY",
+  "scope": {
+    "writerCount": 3,
+    "writers": [
+      "actual-cutover-evidence",
+      "signoff-pause-checkpoint",
+      "cutover-step-and-gate-receipt"
+    ],
+    "publicationPrimitive": "fsync-temporary-then-hard-link-no-replace",
+    "existingOutputReplacementAllowed": false,
+    "physicalOutputDirectoryRequired": true,
+    "temporaryFileCleanupRequired": true
+  },
+  "failureFirst": {
+    "reproducedFailureCount": 6,
+    "missingNormalizedConflictCodeCount": 3,
+    "undetectedPublicationRaceCount": 3
+  },
+  "raceRegression": {
+    "status": "PASS",
+    "writerScenarioCount": 3,
+    "competingBytesPreservedCount": 3,
+    "temporaryArtifactsRetained": false
+  },
+  "focusedTests": {
+    "total": 24,
+    "passed": 22,
+    "failed": 0,
+    "skipped": 2
+  },
+  "repositoryChecks": {
+    "syntaxPassed": 399,
+    "unitTotal": 782,
+    "unitPassed": 774,
+    "unitFailed": 0,
+    "unitSkipped": 8
+  },
+  "cutoverRehearsal": {
+    "processRunnerStatus": "PASS_CUTOVER_PROCESS_RUNNER_REHEARSAL",
+    "gateCount": 12,
+    "stepCount": 14,
+    "receiptCount": 26,
+    "signoffResumeStatus": "PASS_SIGNOFF_RESUME_RUNTIME_REHEARSAL",
+    "checkpointCount": 1,
+    "syntheticOnly": true
+  },
+  "activationBundle": {
+    "rootEntrypointCount": 21,
+    "resolvedPhysicalFileCount": 52,
+    "totalBytes": 352075,
+    "sha256": "0601edb0a824c3564a206b3b8d163ead872c0cda3da8ed368990444e5bc7a880"
+  },
+  "implementationCommit": "fa4964dfe46311fdde710550cc053e2fd7d676e2",
+  "qualityCi": {
+    "runId": 33624966275,
+    "testedHeadSha": "fa4964dfe46311fdde710550cc053e2fd7d676e2",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "productionPreflight": {
+    "status": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockerCount": 0,
+    "healthyServiceCount": 3,
+    "backendHostPortCount": 0,
+    "databaseHostPortCount": 0,
+    "protectedServicesPreserved": true
+  },
+  "harnessVerify": {
+    "status": "PASS",
+    "exitCode": 0
+  },
+  "actualP6Cutover": "NOT_RUN",
+  "actualP7Activation": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

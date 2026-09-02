@@ -997,6 +997,14 @@
       "evidence": "failure-first 3 reproduced; preflight known later conflict publishes zero; runtime second-output race preserves own and competitor bytes with explicit 1/3 partial commit; shared resultSetPublicationId and mixed-set cutover rejection; focused 14 PASS 1 Windows skip; syntax 399/399; repository unit 771 PASS 8 skips; activation bundle 21 roots 52 files; harness:verify PASS; GitHub quality 33623582143 unit and three-tier SUCCESS; actual role UAT, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-65-CUTOVER-CONTROL-OUTPUT-DURABILITY",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "actual cutover 최종 증거·signoff pause checkpoint·12-Gate step/summary receipt는 기존 저장소 밖 물리 경로 계약을 유지하며 fsync된 임시파일을 hard-link no-replace로 게시하고, 최종 경로 경쟁 시 선점 bytes를 보존하며 임시파일을 제거해야 한다.",
+      "evidence": "failure-first 6 reproduced; three control writers use shared durable create-only publication; three publication races preserve competitor bytes and remove temporary files; focused 22 PASS 2 Windows skips; syntax 399/399; repository unit 774 PASS 8 skips; process runner 12 Gate/14 step/26 receipt rehearsal and signoff resume physical checkpoint rehearsal PASS; activation bundle 21 roots 52 files; harness:verify PASS; GitHub quality 33624966275 unit and three-tier SUCCESS; actual P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
