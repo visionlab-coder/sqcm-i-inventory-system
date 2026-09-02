@@ -10,7 +10,10 @@ import {
   PRODUCTION_INGRESS_TARGET,
   classifyProductionIngressPublicationResult,
   evaluateProductionIngressPublicationGate,
+  isProductionIngressTunnelId,
+  productionIngressTunnelConnected,
   selectProductionIngressDnsRecord,
+  selectProductionIngressTunnel,
   selectProductionIngressZone
 } from '../src/operations/production-ingress-publication.mjs';
 import {
@@ -42,7 +45,10 @@ const runCloudflared = (args) => {
   return result.stdout;
 };
 const listTunnels = () => JSON.parse(runCloudflared(['tunnel', 'list', '--output', 'json']));
-const exactTunnels = () => listTunnels().filter((item) => item.name === PRODUCTION_INGRESS_TARGET.tunnelName);
+const selectedTunnel = () => selectProductionIngressTunnel({
+  tunnels: listTunnels(),
+  expectedName: PRODUCTION_INGRESS_TARGET.tunnelName
+});
 const credentialPath = (id) => path.join(CREDENTIAL_DIRECTORY, `${id}.json`);
 const expectedConfig = (id) => `tunnel: ${id}\ncredentials-file: ${credentialPath(id)}\ningress:\n  - hostname: ${PRODUCTION_INGRESS_TARGET.hostname}\n    service: ${PRODUCTION_INGRESS_TARGET.origin}\n    originRequest:\n      connectTimeout: 10s\n  - service: http_status:404\n`;
 
@@ -84,20 +90,20 @@ function ensureConfig(id) {
 async function main() {
 const execute = process.argv.includes('--execute');
 const now = new Date();
-const initialTunnels = exactTunnels();
+const initialTunnel = selectedTunnel();
 const initialDnsObservation = await publicDnsPublished();
 const initialDnsPublished = initialDnsObservation.published;
-const initialTunnelId = initialTunnels[0]?.id || null;
+const initialTunnelId = initialTunnel?.id || null;
 const gate = evaluateProductionIngressPublicationGate({
   ...PRODUCTION_INGRESS_TARGET,
   preserveExistingTunnels: true,
   preserveLoopbackServices: true,
-  existingTunnelCount: initialTunnels.length,
+  existingTunnelCount: initialTunnel ? 1 : 0,
   tunnelCredentialPresent: initialTunnelId ? exactFile(credentialPath(initialTunnelId)) : false,
   originCertificatePresent: exactFile(ORIGIN_CERT),
   rollbackTokenReferencePresent: inspectOperationsSecretInputReference(process.env[TOKEN_ENV], { repositoryRoot: projectRoot }).present,
   dnsObservationSucceeded: initialDnsObservation.succeeded,
-  unexpectedPublicDns: initialDnsPublished && initialTunnels.length === 0,
+  unexpectedPublicDns: initialDnsPublished && !initialTunnel,
   execute,
   insideWindow: now >= new Date(PRODUCTION_CHANGE_WINDOW.start) && now <= new Date(PRODUCTION_CHANGE_WINDOW.end),
   confirmed: process.env.PRODUCTION_INGRESS_CONFIRMATION === PRODUCTION_INGRESS_CONFIRMATION,
@@ -132,7 +138,7 @@ if (gate.status !== 'READY_INGRESS_PUBLICATION_EXECUTION') {
       const created = JSON.parse(createOutput);
       tunnelId = created.id;
       const temporaryCredential = path.join(CREDENTIAL_DIRECTORY, 'sqcm-i-inventory-production.json.tmp');
-      if (!/^[a-f0-9-]{36}$/i.test(tunnelId || '') || !exactFile(temporaryCredential)) throw new Error('Created Production tunnel identity or credential file is invalid.');
+      if (!isProductionIngressTunnelId(tunnelId) || !exactFile(temporaryCredential)) throw new Error('Created Production tunnel identity or credential file is invalid.');
       const finalCredential = credentialPath(tunnelId);
       publishProductionTunnelCredential({
         credentialDirectory: CREDENTIAL_DIRECTORY,
@@ -143,8 +149,8 @@ if (gate.status !== 'READY_INGRESS_PUBLICATION_EXECUTION') {
     if (!exactFile(credentialPath(tunnelId))) throw new Error('Production tunnel credential file is missing.');
     configCreated = ensureConfig(tunnelId);
     runCloudflared(['tunnel', '--config', PRODUCTION_INGRESS_TARGET.configPath, 'ingress', 'validate']);
-    let tunnel = exactTunnels()[0];
-    if (!tunnel || (tunnel.connections || []).length === 0) {
+    let tunnel = selectedTunnel();
+    if (!productionIngressTunnelConnected(tunnel)) {
       const processObservation = observeProductionIngressProcess({
         cloudflared: CLOUDFLARED,
         configPath: PRODUCTION_INGRESS_TARGET.configPath
@@ -161,11 +167,11 @@ if (gate.status !== 'READY_INGRESS_PUBLICATION_EXECUTION') {
       }
       for (let attempt = 0; attempt < 10; attempt += 1) {
         await delay(2000);
-        tunnel = exactTunnels()[0];
-        if ((tunnel?.connections || []).length > 0) break;
+        tunnel = selectedTunnel();
+        if (productionIngressTunnelConnected(tunnel)) break;
       }
     }
-    const tunnelConnected = (tunnel?.connections || []).length > 0;
+    const tunnelConnected = productionIngressTunnelConnected(tunnel);
     if (!tunnelConnected) throw new Error('Production tunnel did not establish a Cloudflare connection.');
 
     const token = readOperationsSecretInput(process.env[TOKEN_ENV], { repositoryRoot: projectRoot }).value;

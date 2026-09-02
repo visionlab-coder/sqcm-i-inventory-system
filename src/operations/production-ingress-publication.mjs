@@ -1,3 +1,5 @@
+import { isIP } from 'node:net';
+
 export const PRODUCTION_INGRESS_CONFIRMATION = 'ACK-2026-09-11-PUBLISH-PRODUCTION-INGRESS';
 export const PRODUCTION_INGRESS_TARGET = Object.freeze({
   zone: 'safe-link.co.kr',
@@ -9,7 +11,48 @@ export const PRODUCTION_INGRESS_TARGET = Object.freeze({
 });
 
 const CLOUDFLARE_IDENTIFIER_PATTERN = /^[a-f0-9]{32}$/i;
+const TUNNEL_IDENTIFIER_PATTERN = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 const TUNNEL_CNAME_PATTERN = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.cfargotunnel\.com$/i;
+const ACTIVE_TUNNEL_DELETED_AT = '0001-01-01T00:00:00Z';
+
+const exactIsoInstant = (value) => typeof value === 'string'
+  && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(value)
+  && Number.isFinite(Date.parse(value));
+
+export const isProductionIngressTunnelId = (value) => TUNNEL_IDENTIFIER_PATTERN.test(value ?? '');
+
+export function selectProductionIngressTunnel({ tunnels, expectedName } = {}) {
+  if (expectedName !== PRODUCTION_INGRESS_TARGET.tunnelName) {
+    throw new Error('INGRESS_TUNNEL_IDENTITY_INVALID');
+  }
+  if (!Array.isArray(tunnels)) throw new Error('INGRESS_TUNNEL_RESPONSE_INVALID');
+  const matches = tunnels.filter((item) => item?.name === expectedName);
+  if (matches.length > 1) throw new Error('INGRESS_TUNNEL_IDENTITY_AMBIGUOUS');
+  if (matches.length === 0) return null;
+  const selected = matches[0];
+  if (!isProductionIngressTunnelId(selected.id)
+    || selected.name !== expectedName
+    || !exactIsoInstant(selected.created_at)
+    || selected.deleted_at !== ACTIVE_TUNNEL_DELETED_AT
+    || !Array.isArray(selected.connections)) {
+    throw new Error('INGRESS_TUNNEL_IDENTITY_INVALID');
+  }
+  for (const connection of selected.connections) {
+    if (!connection || !isProductionIngressTunnelId(connection.id)
+      || !/^[A-Z0-9]{2,16}$/.test(connection.colo_name ?? '')
+      || isIP(connection.origin_ip ?? '') === 0
+      || !exactIsoInstant(connection.opened_at)
+      || typeof connection.is_pending_reconnect !== 'boolean') {
+      throw new Error('INGRESS_TUNNEL_CONNECTION_IDENTITY_INVALID');
+    }
+  }
+  return selected;
+}
+
+export function productionIngressTunnelConnected(tunnel) {
+  return Boolean(tunnel && Array.isArray(tunnel.connections)
+    && tunnel.connections.some((connection) => connection?.is_pending_reconnect === false));
+}
 
 export function selectProductionIngressZone({ zones, expectedName } = {}) {
   if (expectedName !== PRODUCTION_INGRESS_TARGET.zone || !Array.isArray(zones) || zones.length !== 1) {
