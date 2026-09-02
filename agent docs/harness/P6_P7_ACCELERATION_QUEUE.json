@@ -981,6 +981,14 @@
       "evidence": "shared create-only writer adopted by 16 single-document outputs; race winner bytes preserved; focused 110 PASS 1 Windows skip; syntax 399/399; repository unit 766 PASS 8 skips; operations evidence pipeline 10/10 synthetic documents PASS; activation bundle 21 roots 52 files; harness:verify PASS; GitHub quality 33620934459 unit and three-tier SUCCESS; actual P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P7-63-BACKUP-RESTORE-PAIR-PUBLICATION-INTEGRITY",
+      "phase": "P7",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "backup·restore 증거쌍은 각 출력을 fsync·hard-link no-replace로 게시하고 두 번째 출력 경쟁 시 기존 최종 파일을 삭제하지 않으며 명시적 1/2 부분 게시로 중단하고, 인수 finalizer는 같은 pairPublicationId·source SHA·owner 참조만 결합해야 한다.",
+      "evidence": "per-output create-only publication; explicit OUTPUT_PAIR_PARTIAL_COMMIT:1_OF_2; own first and competitor second bytes preserved; shared pair provenance and mixed-pair handover rejection; focused 20 PASS 1 Windows skip; syntax 399/399; repository unit 768 PASS 8 skips; operations evidence pipeline 10/10 synthetic documents PASS; activation bundle 21 roots 52 files; harness:verify PASS; GitHub quality 33622260422 unit and three-tier SUCCESS; actual P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

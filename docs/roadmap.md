@@ -151,6 +151,7 @@ flowchart LR
 - `ACC-P6-59`에서 P6→P7·P7→8/8 전환의 rollback 원본을 atomic control snapshot의 actual raw bytes와 bounded physical 문서 snapshot으로 통합했다. terminal completion의 Git 상태 확인도 10초·1MiB·shell 금지 reader로 제한했으며 실제 Phase 전환·DNS/TLS·역할 UAT·서명은 `NOT_RUN`이다.
 - `ACC-P6-60`에서 역사적 P2 candidate manifest와 remote candidate commit의 actual blobs를 bounded Git으로 대조했다. 12개 해시 중 7개 일치·5개 불일치를 별도 atomic attestation으로 보존하고 `deploymentBasis=false`를 강제했으며 현재 P6 candidate·actual cutover·DNS/TLS·역할 UAT·서명은 변경하지 않았다.
 - `ACC-P7-62`에서 P7 단일 운영 증거 writer 16개를 fsync 임시파일→hard-link no-replace 공용 writer로 통합했다. 최종 경로를 다른 실행이 먼저 만들면 기존 bytes를 보존하고 임시파일을 제거하며, 실제 P6 cutover와 P7 운영 활성화는 `NOT_RUN`이다.
+- `ACC-P7-63`에서 backup·restore 증거쌍을 출력별 create-only no-replace와 동일 pair provenance로 결합했다. 두 별도 경로 전체의 원자성을 주장하지 않고 두 번째 출력 충돌을 명시적 1/2 부분 게시로 보존·탐지하며, 혼합 증거쌍은 인수 완료로 승격하지 않는다. 실제 P6 cutover와 P7 운영 활성화는 `NOT_RUN`이다.
 
 ## 6. Phase 갱신 절차
 
