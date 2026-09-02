@@ -128,3 +128,14 @@ test('phase completion CLI는 atomic pair snapshot만 사용한다', () => {
   assert.doesNotMatch(source, /JSON\.parse\(fs\.readFileSync\(files\.roadmap/);
   assert.doesNotMatch(source, /JSON\.parse\(fs\.readFileSync\(files\.queue/);
 });
+
+test('P6 phase promotion과 P7 terminal completion은 동일 atomic pair reader를 사용한다', () => {
+  const root = path.resolve(__dirname, '..', '..');
+  const completion = fs.readFileSync(path.join(root, 'scripts', 'operations-phase-completion.mjs'), 'utf8');
+  const promotion = fs.readFileSync(path.join(root, 'scripts', 'production-phase-promotion.mjs'), 'utf8');
+  for (const source of [completion, promotion]) {
+    assert.match(source, /readOperationsPhaseCompletionControlSnapshot/);
+  }
+  assert.doesNotMatch(promotion, /JSON\.parse\(fs\.readFileSync\(paths\.roadmap/);
+  assert.doesNotMatch(promotion, /JSON\.parse\(fs\.readFileSync\(paths\.queue/);
+});

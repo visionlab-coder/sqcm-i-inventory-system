@@ -13,6 +13,7 @@ import {
   promoteRoadmapDocument,
   renderHarnessStatusBlock,
 } from '../src/operations/production-phase-promotion.mjs';
+import { readOperationsPhaseCompletionControlSnapshot } from '../src/operations/operations-phase-completion-control-snapshot.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const paths = {
@@ -34,8 +35,9 @@ try {
   const evidence = physicalExternalEvidence();
   const validation = validateActualCutoverProvenance(evidence.value);
   if (!validation.productionGo) throw new Error(validation.failures.join(','));
-  const roadmap = JSON.parse(fs.readFileSync(paths.roadmap, 'utf8'));
-  const queue = JSON.parse(fs.readFileSync(paths.queue, 'utf8'));
+  const control = readOperationsPhaseCompletionControlSnapshot(projectRoot);
+  const roadmap = control.roadmap.value;
+  const queue = control.queue.value;
   const result = evaluateP6ToP7Promotion({ roadmap, queue, actualEvidence: evidence.value, actualEvidenceSha256: evidence.sha256, execute, confirmation: process.env.P6_TO_P7_PROMOTION_CONFIRMATION });
   if (result.status !== 'READY_APPLY_P6_TO_P7_PROMOTION') {
     console.log(JSON.stringify({ checkedAt: new Date().toISOString(), ...result, expectedConfirmation: P6_TO_P7_PROMOTION_CONFIRMATION }, null, 2));
