@@ -989,6 +989,14 @@
       "evidence": "per-output create-only publication; explicit OUTPUT_PAIR_PARTIAL_COMMIT:1_OF_2; own first and competitor second bytes preserved; shared pair provenance and mixed-pair handover rejection; focused 20 PASS 1 Windows skip; syntax 399/399; repository unit 768 PASS 8 skips; operations evidence pipeline 10/10 synthetic documents PASS; activation bundle 21 roots 52 files; harness:verify PASS; GitHub quality 33622260422 unit and three-tier SUCCESS; actual P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-64-ROLE-RESULT-SET-PUBLICATION-INTEGRITY",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "ADMIN·MANAGER·USER actual 역할 결과는 세 출력을 게시 전에 검증하고 출력별 fsync·hard-link no-replace로 게시하며 경쟁 시 기존 최종 파일을 삭제하지 않고 명시적 부분 게시로 중단하고, actual cutover assembler는 동일 run·release·Gate·step·checkedAt에 결합된 resultSetPublicationId만 허용해야 한다.",
+      "evidence": "failure-first 3 reproduced; preflight known later conflict publishes zero; runtime second-output race preserves own and competitor bytes with explicit 1/3 partial commit; shared resultSetPublicationId and mixed-set cutover rejection; focused 14 PASS 1 Windows skip; syntax 399/399; repository unit 771 PASS 8 skips; activation bundle 21 roots 52 files; harness:verify PASS; GitHub quality 33623582143 unit and three-tier SUCCESS; actual role UAT, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

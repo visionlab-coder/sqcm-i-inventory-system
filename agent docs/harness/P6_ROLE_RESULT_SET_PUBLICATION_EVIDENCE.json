@@ -1,0 +1,86 @@
+{
+  "packet": "ACC-P6-64-ROLE-RESULT-SET-PUBLICATION-INTEGRITY",
+  "status": "PASS_ROLE_RESULT_SET_PUBLICATION_INTEGRITY",
+  "scope": {
+    "roleOutputCount": 3,
+    "roles": ["ADMIN", "MANAGER", "USER"],
+    "publicationPrimitive": "per-output-fsync-temporary-then-hard-link-no-replace",
+    "preflightAllOutputsBeforePublication": true,
+    "crossFileAtomicAllOrZeroClaimed": false,
+    "partialCommitStatusPattern": "ROLE_RESULT_OUTPUT_SET_PARTIAL_COMMIT:n_OF_3",
+    "existingOutputReplacementAllowed": false,
+    "finalOutputDeletionOnConflictAllowed": false
+  },
+  "setBinding": {
+    "resultSetPublicationIdRequired": true,
+    "runIdBound": true,
+    "releaseShaBound": true,
+    "coreGateReceiptSha256Bound": true,
+    "roleSmokeStepReceiptSha256Bound": true,
+    "checkedAtBound": true,
+    "mixedSetAcceptedByActualCutoverAssembler": false
+  },
+  "raceRegression": {
+    "status": "PASS",
+    "knownLaterConflictPublishedCount": 0,
+    "runtimeRaceOwnFirstOutputPreserved": true,
+    "runtimeRaceCompetitorSecondOutputPreserved": true,
+    "runtimeRaceThirdOutputCreated": false,
+    "temporaryArtifactsRetained": false
+  },
+  "failureFirst": {
+    "reproducedFailureCount": 3,
+    "conditions": [
+      "RESULT_SET_PUBLICATION_ID_MISSING",
+      "MIXED_RESULT_SET_ACCEPTED",
+      "SECOND_OUTPUT_RACE_NOT_DETECTED"
+    ]
+  },
+  "focusedTests": {
+    "total": 15,
+    "passed": 14,
+    "failed": 0,
+    "skipped": 1
+  },
+  "repositoryChecks": {
+    "syntaxPassed": 399,
+    "unitTotal": 779,
+    "unitPassed": 771,
+    "unitFailed": 0,
+    "unitSkipped": 8
+  },
+  "activationBundle": {
+    "rootEntrypointCount": 21,
+    "resolvedPhysicalFileCount": 52,
+    "totalBytes": 351940,
+    "sha256": "055ee4e0d97009dac5b68d37dc17b1ab9ed3b9b9c39e13f31b1a2c47d0263a16"
+  },
+  "implementationCommit": "db4091fc19e27260d9a34a4a420a1a30ae689896",
+  "qualityCi": {
+    "runId": 33623582143,
+    "testedHeadSha": "db4091fc19e27260d9a34a4a420a1a30ae689896",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "productionPreflight": {
+    "status": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockerCount": 0,
+    "healthyServiceCount": 3,
+    "backendHostPortCount": 0,
+    "databaseHostPortCount": 0,
+    "protectedServicesPreserved": true
+  },
+  "harnessVerify": {
+    "status": "PASS",
+    "exitCode": 0
+  },
+  "actualProductionRoleResults": "NOT_RUN",
+  "actualP6Cutover": "NOT_RUN",
+  "actualP7Activation": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}
