@@ -1,0 +1,33 @@
+{
+  "packet": "ACC-P6-84-PRODUCTION-CUTOVER-RECEIPT-ROLLBACK-CUTOFF",
+  "status": "PASS_PRODUCTION_CUTOVER_RECEIPT_ROLLBACK_CUTOFF",
+  "scope": {
+    "changeWindowStart": "2026-09-11T11:00:00.000Z",
+    "rollbackCutoff": "2026-09-11T13:00:00.000Z",
+    "changeWindowEnd": "2026-09-11T14:00:00.000Z",
+    "stepReceiptsBounded": true,
+    "gateReceiptsBounded": true,
+    "roleResultsBounded": true,
+    "signoffsBounded": true,
+    "postCutoffProductionGoAllowed": false
+  },
+  "failureFirst": {
+    "reproducedFailureCount": 2,
+    "postCutoffReceiptAcceptedDetected": true,
+    "postCutoffRoleAndSignoffAcceptedDetected": true
+  },
+  "focusedTests": { "total": 33, "passed": 33, "failed": 0, "skipped": 0 },
+  "repositoryChecks": { "syntaxPassed": 414, "unitTotal": 866, "unitPassed": 858, "unitFailed": 0, "unitSkipped": 8 },
+  "implementationCommit": "e6f6e37a2b0a72a231cdc0b2962a296a364c8d0b",
+  "qualityCi": { "runId": 33655224048, "status": "SUCCESS" },
+  "actualReceiptValidation": "NOT_RUN",
+  "actualDnsTlsPublication": "NOT_RUN",
+  "actualP6Cutover": "NOT_RUN",
+  "actualP7Activation": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

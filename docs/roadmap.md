@@ -172,6 +172,7 @@ flowchart LR
 - `ACC-P6-81`에서 P6 cutover child의 기본 timeout을 10분, stdout·stderr 합산 상한을 1MiB로 제한했다. timeout·출력 초과·spawn·signal 실패는 child 종료 뒤 오류 원문이나 stale PASS summary 없이 bounded receipt로 남는다. 실제 child·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-82`에서 정상 cutover child timeout을 rollback cutoff 전 2분 containment reserve가 남도록 동적으로 제한했다. reserve 소진 뒤 정상 child는 실행하지 않고 route-disable·ingress orphan recovery만 기존 bounded profile로 실행한다. 실제 child·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-83`에서 2분 containment reserve를 route-disable 50초, ingress orphan recovery 50초, 종료 유예 합계 10초, orchestration 여유 10초로 완전히 분할했다. 상위 timeout 확장과 작은 reserve가 격리 완료 시간을 무효화하지 못하도록 fail-closed한다. 실제 containment·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
+- `ACC-P6-84`에서 actual P6 evidence의 step·Gate receipt, 역할 결과와 3개 서명을 변경창 시작부터 22:00 rollback cutoff까지로 제한했다. 22:00 이후 문서는 유효한 형식이어도 Production GO 후보로 승격하지 않는다. 실제 receipt·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 
 ## 6. Phase 갱신 절차
 

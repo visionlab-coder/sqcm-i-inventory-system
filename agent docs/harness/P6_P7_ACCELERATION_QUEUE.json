@@ -1149,6 +1149,14 @@
       "evidence": "failure-first 2 reproduced; default 120 second reserve is partitioned into two 50 second containment child timeouts, two 5 second termination grace intervals and 10 second orchestration margin; caller timeout expansion is capped and undersized reserve rejected; focused 31 PASS 1 Windows skip; syntax 414/414; repository unit 856 PASS 8 skips; cutover preflight local blockers zero; GitHub quality 33653761361 completed successfully; actual containment, DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-84-PRODUCTION-CUTOVER-RECEIPT-ROLLBACK-CUTOFF",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "step·Gate receipt, 역할별 실제 UAT 결과와 업무·보안·운영 서명은 승인 변경창 시작부터 22:00 rollback cutoff 사이에 생성된 경우에만 actual P6 증거와 Production GO 후보가 될 수 있어야 한다.",
+      "evidence": "failure-first 2 reproduced; step and gate receipt, role result and signoff timestamps are now restricted to change-window start through rollback cutoff; post-cutoff otherwise-valid documents fail closed; focused 33 PASS; syntax 414/414; repository unit 858 PASS 8 skips; GitHub quality 33655224048 completed successfully; actual receipt, DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
