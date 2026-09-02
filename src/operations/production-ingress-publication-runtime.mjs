@@ -1,4 +1,4 @@
-import { spawnSync } from 'node:child_process';
+import { spawn as spawnProcess, spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { resolve4, resolveCname } from 'node:dns/promises';
 import fs from 'node:fs';
@@ -10,6 +10,7 @@ import { readBoundedJsonObjectResponse } from './operations-preflight-http-runti
 export const INGRESS_COMMAND_TIMEOUT_MS = 10_000;
 export const INGRESS_PROVIDER_HTTP_TIMEOUT_MS = 10_000;
 export const INGRESS_DNS_TIMEOUT_MS = 5_000;
+export const INGRESS_PROCESS_SPAWN_TIMEOUT_MS = 5_000;
 export const INGRESS_DNS_DOH_ENDPOINT = 'https://cloudflare-dns.com/dns-query';
 export const INGRESS_CONFIG_MAX_BYTES = 16 * 1024;
 export const INGRESS_CREDENTIAL_MAX_BYTES = 64 * 1024;
@@ -425,6 +426,81 @@ export function observeProductionIngressProcess({
   const uncertain = rows.some((row) => row.CommandLine.toLowerCase().includes(exactConfig.toLowerCase()));
   if (uncertain) throw new Error('INGRESS_PROCESS_IDENTITY_UNCERTAIN');
   return { running: false, processId: null, status: 'PASS_INGRESS_PROCESS_NOT_RUNNING' };
+}
+
+export async function startProductionIngressProcess({
+  cloudflared,
+  configPath,
+  runtimeDirectory,
+  timeoutMs = INGRESS_PROCESS_SPAWN_TIMEOUT_MS,
+  spawnImpl = spawnProcess
+} = {}) {
+  const executable = typeof cloudflared === 'string' && path.win32.isAbsolute(cloudflared)
+    ? path.win32.normalize(cloudflared)
+    : null;
+  const runtime = typeof runtimeDirectory === 'string' && path.win32.isAbsolute(runtimeDirectory)
+    ? path.win32.normalize(runtimeDirectory)
+    : null;
+  const config = typeof configPath === 'string' && path.win32.isAbsolute(configPath)
+    ? path.win32.normalize(configPath)
+    : null;
+  if (!executable || !runtime || !config
+    || config.toLowerCase() !== path.win32.join(runtime, 'cloudflared.yml').toLowerCase()
+    || !Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 30_000
+    || typeof spawnImpl !== 'function') {
+    throw new Error('INGRESS_PROCESS_SPAWN_INPUT_INVALID');
+  }
+
+  const args = [
+    'tunnel', '--config', config, '--loglevel', 'info',
+    '--logfile', path.win32.join(runtime, 'cloudflared.log'),
+    '--pidfile', path.win32.join(runtime, 'cloudflared.pid'), 'run'
+  ];
+  let child;
+  try {
+    child = spawnImpl(executable, args, { detached: true, stdio: 'ignore', windowsHide: true });
+  } catch {
+    throw new Error('INGRESS_PROCESS_SPAWN_FAILED');
+  }
+  if (!child || typeof child.once !== 'function') throw new Error('INGRESS_PROCESS_SPAWN_FAILED');
+
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const finish = (callback) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      child.removeListener?.('spawn', onSpawn);
+      child.removeListener?.('error', onError);
+      callback();
+    };
+    const stopBestEffort = () => {
+      try { child.kill?.(); } catch { /* best effort */ }
+    };
+    const onError = () => finish(() => reject(new Error('INGRESS_PROCESS_SPAWN_FAILED')));
+    const onSpawn = () => {
+      if (!Number.isSafeInteger(child.pid) || child.pid < 1) {
+        stopBestEffort();
+        finish(() => reject(new Error('INGRESS_PROCESS_SPAWN_IDENTITY_INVALID')));
+        return;
+      }
+      try { child.unref?.(); } catch {
+        stopBestEffort();
+        finish(() => reject(new Error('INGRESS_PROCESS_SPAWN_FAILED')));
+        return;
+      }
+      finish(() => resolve({
+        status: 'PASS_INGRESS_PROCESS_SPAWN_ACKNOWLEDGED',
+        processId: child.pid
+      }));
+    };
+    const timer = setTimeout(() => {
+      stopBestEffort();
+      finish(() => reject(new Error('INGRESS_PROCESS_SPAWN_TIMEOUT')));
+    }, timeoutMs);
+    child.once('error', onError);
+    child.once('spawn', onSpawn);
+  });
 }
 
 export async function requestCloudflareJson({

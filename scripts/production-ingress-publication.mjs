@@ -1,5 +1,4 @@
 import { existsSync, lstatSync, mkdirSync, realpathSync, statSync } from 'node:fs';
-import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
@@ -21,6 +20,7 @@ import {
   releaseProductionIngressPublicationLease,
   requestCloudflareJson,
   runIngressCommand,
+  startProductionIngressProcess,
   writeProductionIngressConfigCreateOnly
 } from '../src/operations/production-ingress-publication-runtime.mjs';
 
@@ -79,12 +79,6 @@ function ensureConfig(id) {
   });
   return true;
 }
-function startTunnel() {
-  const logPath = path.join(PRODUCTION_INGRESS_TARGET.runtimeDirectory, 'cloudflared.log');
-  const pidPath = path.join(PRODUCTION_INGRESS_TARGET.runtimeDirectory, 'cloudflared.pid');
-  const child = spawn(CLOUDFLARED, ['tunnel', '--config', PRODUCTION_INGRESS_TARGET.configPath, '--loglevel', 'info', '--logfile', logPath, '--pidfile', pidPath, 'run'], { detached: true, stdio: 'ignore', windowsHide: true });
-  child.unref();
-}
 async function main() {
 const execute = process.argv.includes('--execute');
 const now = new Date();
@@ -120,6 +114,7 @@ if (gate.status !== 'READY_INGRESS_PUBLICATION_EXECUTION') {
   let configCreated = false;
   let processStarted = false;
   let existingProcessId = null;
+  let startedProcessId = null;
   let dnsRecordCreated = false;
   let lease = null;
   let leaseReleased = false;
@@ -154,7 +149,12 @@ if (gate.status !== 'READY_INGRESS_PUBLICATION_EXECUTION') {
       });
       existingProcessId = processObservation.processId;
       if (!processObservation.running) {
-        startTunnel();
+        const started = await startProductionIngressProcess({
+          cloudflared: CLOUDFLARED,
+          configPath: PRODUCTION_INGRESS_TARGET.configPath,
+          runtimeDirectory: PRODUCTION_INGRESS_TARGET.runtimeDirectory
+        });
+        startedProcessId = started.processId;
         processStarted = true;
       }
       for (let attempt = 0; attempt < 10; attempt += 1) {
@@ -184,7 +184,7 @@ if (gate.status !== 'READY_INGRESS_PUBLICATION_EXECUTION') {
     const finalDnsObservation = await publicDnsPublished();
     const classification = classifyProductionIngressPublicationResult({ configValid: true, tunnelConnected, dnsRecordExact, publicDnsPublished: finalDnsObservation.succeeded && finalDnsObservation.published });
     leaseReleased = releaseProductionIngressPublicationLease(lease);
-    console.log(JSON.stringify({ checkedAt: new Date().toISOString(), target: PRODUCTION_INGRESS_TARGET, tunnelId, tunnelCreated, configCreated, processStarted, existingProcessId, dnsRecordCreated, leaseAcquired: true, leaseReleased, dnsObservationStatus: finalDnsObservation.status, externalMutationPerformed: tunnelCreated || configCreated || processStarted || dnsRecordCreated, preserveExistingTunnels: true, preserveLoopbackServices: true, secretValuesReadOrRecorded: false, ...classification }, null, 2));
+    console.log(JSON.stringify({ checkedAt: new Date().toISOString(), target: PRODUCTION_INGRESS_TARGET, tunnelId, tunnelCreated, configCreated, processStarted, existingProcessId, startedProcessId, dnsRecordCreated, leaseAcquired: true, leaseReleased, dnsObservationStatus: finalDnsObservation.status, externalMutationPerformed: tunnelCreated || configCreated || processStarted || dnsRecordCreated, preserveExistingTunnels: true, preserveLoopbackServices: true, secretValuesReadOrRecorded: false, ...classification }, null, 2));
     if (classification.failures.length) process.exitCode = 1;
   } catch (error) {
     if (lease && !leaseReleased) {
@@ -195,7 +195,7 @@ if (gate.status !== 'READY_INGRESS_PUBLICATION_EXECUTION') {
       checkedAt: new Date().toISOString(),
       status: leaseHeld ? 'READY_WAIT_INGRESS_PUBLICATION_LEASE' : 'FAIL_INGRESS_PUBLICATION_EXECUTION',
       failure: String(error?.message || 'Unknown ingress publication failure').replace(/[\r\n]/g, ' ').slice(0, 240),
-      tunnelCreated, configCreated, processStarted, existingProcessId, dnsRecordCreated,
+      tunnelCreated, configCreated, processStarted, existingProcessId, startedProcessId, dnsRecordCreated,
       leaseAcquired: lease !== null,
       leaseReleased,
       externalMutationPerformed: tunnelCreated || configCreated || processStarted || dnsRecordCreated,
