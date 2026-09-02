@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { evaluateProductionCutoverPreflight, PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
 import { observeCloudflareTunnels, runPreflightCommand } from '../src/operations/production-cutover-preflight-runtime.mjs';
 import { selectLatestVerifiedOperationalHealthBackup } from '../src/operations/production-operational-health-runtime.mjs';
+import { readBoundedJsonObjectResponse } from '../src/operations/operations-preflight-http-runtime.mjs';
 
 const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const run = (command, args) => {
@@ -41,7 +42,7 @@ const smokeChecks = await Promise.all([
 ].map(async ([route, expected]) => {
   try {
     const response = await fetch(`http://127.0.0.1:3300${route}`, { signal: AbortSignal.timeout(5000) });
-    await response.arrayBuffer();
+    await readBoundedJsonObjectResponse(response);
     return response.status === expected;
   } catch {
     return false;
