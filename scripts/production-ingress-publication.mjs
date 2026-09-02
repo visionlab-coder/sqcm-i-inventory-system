@@ -1,4 +1,4 @@
-import { existsSync, lstatSync, mkdirSync, realpathSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, realpathSync, statSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -12,7 +12,14 @@ import {
   classifyProductionIngressPublicationResult,
   evaluateProductionIngressPublicationGate
 } from '../src/operations/production-ingress-publication.mjs';
-import { observeProductionIngressDnsResilient, readProductionIngressConfig, requestCloudflareJson, runIngressCommand } from '../src/operations/production-ingress-publication-runtime.mjs';
+import {
+  observeProductionIngressDnsResilient,
+  publishProductionTunnelCredential,
+  readProductionIngressConfig,
+  requestCloudflareJson,
+  runIngressCommand,
+  writeProductionIngressConfigCreateOnly
+} from '../src/operations/production-ingress-publication-runtime.mjs';
 
 const CLOUDFLARED = 'C:\\Program Files (x86)\\cloudflared\\cloudflared.exe';
 const ORIGIN_CERT = 'C:\\Users\\user\\.cloudflared\\cert.pem';
@@ -62,7 +69,11 @@ function ensureConfig(id) {
     if (existing.text.replace(/\r\n/g, '\n') !== content) throw new Error('Existing Production ingress config does not match the exact contract.');
     return false;
   }
-  writeFileSync(PRODUCTION_INGRESS_TARGET.configPath, content, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
+  writeProductionIngressConfigCreateOnly({
+    runtimeDirectory: PRODUCTION_INGRESS_TARGET.runtimeDirectory,
+    configPath: PRODUCTION_INGRESS_TARGET.configPath,
+    content
+  });
   return true;
 }
 function startTunnel() {
@@ -117,15 +128,17 @@ if (gate.status !== 'READY_INGRESS_PUBLICATION_EXECUTION') {
     let tunnelId = initialTunnelId;
     if (!tunnelId) {
       const createOutput = runCloudflared(['tunnel', 'create', '--credentials-file', path.join(CREDENTIAL_DIRECTORY, 'sqcm-i-inventory-production.json.tmp'), '--output', 'json', PRODUCTION_INGRESS_TARGET.tunnelName]);
+      tunnelCreated = true;
       const created = JSON.parse(createOutput);
       tunnelId = created.id;
       const temporaryCredential = path.join(CREDENTIAL_DIRECTORY, 'sqcm-i-inventory-production.json.tmp');
       if (!/^[a-f0-9-]{36}$/i.test(tunnelId || '') || !exactFile(temporaryCredential)) throw new Error('Created Production tunnel identity or credential file is invalid.');
       const finalCredential = credentialPath(tunnelId);
-      if (existsSync(finalCredential)) throw new Error('Final Production tunnel credential path already exists.');
-      const { renameSync } = await import('node:fs');
-      renameSync(temporaryCredential, finalCredential);
-      tunnelCreated = true;
+      publishProductionTunnelCredential({
+        credentialDirectory: CREDENTIAL_DIRECTORY,
+        temporaryPath: temporaryCredential,
+        finalPath: finalCredential
+      });
     }
     if (!exactFile(credentialPath(tunnelId))) throw new Error('Production tunnel credential file is missing.');
     configCreated = ensureConfig(tunnelId);

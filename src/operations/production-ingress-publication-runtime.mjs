@@ -10,6 +10,7 @@ export const INGRESS_PROVIDER_HTTP_TIMEOUT_MS = 10_000;
 export const INGRESS_DNS_TIMEOUT_MS = 5_000;
 export const INGRESS_DNS_DOH_ENDPOINT = 'https://cloudflare-dns.com/dns-query';
 export const INGRESS_CONFIG_MAX_BYTES = 16 * 1024;
+export const INGRESS_CREDENTIAL_MAX_BYTES = 64 * 1024;
 
 function physicalDirectory(stat) {
   return stat?.isDirectory?.() === true
@@ -28,6 +29,109 @@ function sameIdentity(left, right) {
     && left?.dev === right?.dev
     && left?.ino === right?.ino
     && left?.mtimeMs === right?.mtimeMs;
+}
+
+function exactPhysicalDirectory(directory, io) {
+  let stat;
+  let real;
+  try {
+    stat = io.lstatSync(directory);
+    real = path.resolve(io.realpathSync(directory));
+  } catch {
+    return false;
+  }
+  return physicalDirectory(stat) && real.toLowerCase() === path.resolve(directory).toLowerCase();
+}
+
+function exactPhysicalFile(filePath, io, maxBytes) {
+  let stat;
+  let real;
+  try {
+    stat = io.lstatSync(filePath);
+    real = path.resolve(io.realpathSync(filePath));
+  } catch {
+    return false;
+  }
+  return physicalFile(stat)
+    && real.toLowerCase() === path.resolve(filePath).toLowerCase()
+    && stat.size > 0
+    && stat.size <= maxBytes;
+}
+
+export function writeProductionIngressConfigCreateOnly({
+  runtimeDirectory,
+  configPath,
+  content,
+  processId = process.pid,
+  io = fs
+} = {}) {
+  const root = typeof runtimeDirectory === 'string' && runtimeDirectory ? path.resolve(runtimeDirectory) : null;
+  const output = typeof configPath === 'string' && configPath ? path.resolve(configPath) : null;
+  const bytes = typeof content === 'string' ? Buffer.byteLength(content, 'utf8') : 0;
+  if (!root || !output || output.toLowerCase() !== path.join(root, 'cloudflared.yml').toLowerCase()
+    || !exactPhysicalDirectory(root, io)) throw new Error('INGRESS_CONFIG_OUTPUT_PATH_INVALID');
+  if (bytes < 1 || bytes > INGRESS_CONFIG_MAX_BYTES) throw new Error('INGRESS_CONFIG_BYTES_INVALID');
+  if (io.existsSync(output)) throw new Error('INGRESS_CONFIG_ALREADY_EXISTS');
+
+  const temporary = path.join(root, `.${path.basename(output)}.${processId}.tmp`);
+  let handle;
+  try {
+    handle = io.openSync(temporary, 'wx', 0o600);
+    io.writeFileSync(handle, content, 'utf8');
+    io.fsyncSync(handle);
+    io.closeSync(handle);
+    handle = undefined;
+    io.linkSync(temporary, output);
+  } catch (error) {
+    if (error?.code === 'EEXIST') throw new Error('INGRESS_CONFIG_ALREADY_EXISTS');
+    throw error;
+  } finally {
+    if (handle !== undefined) {
+      try { io.closeSync(handle); } catch { /* best effort */ }
+    }
+    try { if (io.existsSync(temporary)) io.unlinkSync(temporary); } catch { /* best effort */ }
+  }
+  return output;
+}
+
+export function publishProductionTunnelCredential({
+  credentialDirectory,
+  temporaryPath,
+  finalPath,
+  io = fs
+} = {}) {
+  const root = typeof credentialDirectory === 'string' && credentialDirectory ? path.resolve(credentialDirectory) : null;
+  const temporary = typeof temporaryPath === 'string' && temporaryPath ? path.resolve(temporaryPath) : null;
+  const output = typeof finalPath === 'string' && finalPath ? path.resolve(finalPath) : null;
+  if (!root || !temporary || !output || !exactPhysicalDirectory(root, io)
+    || path.dirname(temporary).toLowerCase() !== root.toLowerCase()
+    || path.basename(temporary) !== 'sqcm-i-inventory-production.json.tmp'
+    || path.dirname(output).toLowerCase() !== root.toLowerCase()
+    || !/^[a-f0-9-]{36}\.json$/i.test(path.basename(output))
+    || !exactPhysicalFile(temporary, io, INGRESS_CREDENTIAL_MAX_BYTES)) {
+    throw new Error('INGRESS_CREDENTIAL_OUTPUT_PATH_INVALID');
+  }
+  if (io.existsSync(output)) throw new Error('INGRESS_CREDENTIAL_ALREADY_EXISTS');
+
+  let handle;
+  let published = false;
+  try {
+    handle = io.openSync(temporary, 'r+');
+    io.fsyncSync(handle);
+    io.closeSync(handle);
+    handle = undefined;
+    io.linkSync(temporary, output);
+    published = true;
+  } catch (error) {
+    if (error?.code === 'EEXIST') throw new Error('INGRESS_CREDENTIAL_ALREADY_EXISTS');
+    throw error;
+  } finally {
+    if (handle !== undefined) {
+      try { io.closeSync(handle); } catch { /* best effort */ }
+    }
+    if (published) io.unlinkSync(temporary);
+  }
+  return output;
 }
 
 export function readProductionIngressConfig({
