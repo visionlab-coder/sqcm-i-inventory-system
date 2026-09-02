@@ -8,13 +8,17 @@ import {
   writeActualCutoverEvidence
 } from '../src/operations/production-cutover-actual-evidence.mjs';
 import { PRODUCTION_CUTOVER_RECEIPT_ROOT } from '../src/operations/production-cutover-process-runner.mjs';
+import { readOperationsPreflightManifest } from '../src/operations/operations-preflight-manifest-runtime.mjs';
+import { fileURLToPath } from 'node:url';
 
 const ROLE_ENV = Object.freeze({ ADMIN: 'PRODUCTION_UAT_ADMIN_RESULT_FILE', MANAGER: 'PRODUCTION_UAT_MANAGER_RESULT_FILE', USER: 'PRODUCTION_UAT_USER_RESULT_FILE' });
 const SIGNOFF_ENV = Object.freeze({ BUSINESS: 'PRODUCTION_BUSINESS_SIGNOFF_FILE', SECURITY: 'PRODUCTION_SECURITY_SIGNOFF_FILE', OPERATIONS: 'PRODUCTION_OPERATIONS_SIGNOFF_FILE' });
 const RUN_ENV = 'PRODUCTION_CUTOVER_RUN_ID';
 const OUTPUT_ENV = 'PRODUCTION_CUTOVER_ACTUAL_EVIDENCE_FILE';
 const CONFIRM_ENV = 'PRODUCTION_CUTOVER_EVIDENCE_ASSEMBLY_CONFIRMATION';
-const candidate = JSON.parse(fs.readFileSync(new URL('../agent docs/harness/P6_G4_CUTOVER_EVIDENCE_CANDIDATE.json', import.meta.url), 'utf8'));
+const candidate = readOperationsPreflightManifest(
+  fileURLToPath(new URL('../agent docs/harness/P6_G4_CUTOVER_EVIDENCE_CANDIDATE.json', import.meta.url))
+).value;
 const execute = process.argv.includes('--assemble');
 const references = { ...ROLE_ENV, ...SIGNOFF_ENV };
 const missing = Object.entries(references).filter(([, env]) => !process.env[env] || !fs.existsSync(process.env[env])).map(([name]) => `${name}_REFERENCE_MISSING`);

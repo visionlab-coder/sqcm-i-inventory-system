@@ -1,4 +1,3 @@
-import fs from 'node:fs';
 import {
   ROLE_RESULT_EVIDENCE_CONFIRMATION,
   compileProductionRoleResultEvidence,
@@ -6,11 +5,15 @@ import {
 } from '../src/operations/production-role-result-evidence.mjs';
 import { loadRunReceiptDocuments } from '../src/operations/production-cutover-actual-evidence.mjs';
 import { PRODUCTION_CUTOVER_RECEIPT_ROOT } from '../src/operations/production-cutover-process-runner.mjs';
+import { readOperationsPreflightManifest } from '../src/operations/operations-preflight-manifest-runtime.mjs';
+import { fileURLToPath } from 'node:url';
 
 const OUTPUT_ENV = Object.freeze({ ADMIN: 'PRODUCTION_UAT_ADMIN_RESULT_FILE', MANAGER: 'PRODUCTION_UAT_MANAGER_RESULT_FILE', USER: 'PRODUCTION_UAT_USER_RESULT_FILE' });
 const RUN_ENV = 'PRODUCTION_CUTOVER_RUN_ID';
 const CONFIRM_ENV = 'PRODUCTION_ROLE_RESULT_EVIDENCE_CONFIRMATION';
-const candidate = JSON.parse(fs.readFileSync(new URL('../agent docs/harness/P6_G4_CUTOVER_EVIDENCE_CANDIDATE.json', import.meta.url), 'utf8'));
+const candidate = readOperationsPreflightManifest(
+  fileURLToPath(new URL('../agent docs/harness/P6_G4_CUTOVER_EVIDENCE_CANDIDATE.json', import.meta.url))
+).value;
 const compile = process.argv.includes('--compile');
 const missing = [];
 if (!process.env[RUN_ENV]) missing.push('CUTOVER_RUN_ID_MISSING');

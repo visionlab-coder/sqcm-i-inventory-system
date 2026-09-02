@@ -1,5 +1,5 @@
-import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { readOperationsPreflightManifest } from '../src/operations/operations-preflight-manifest-runtime.mjs';
 import { PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
 import {
   PRODUCTION_SIGNOFF_AREAS,
@@ -8,7 +8,7 @@ import {
 } from '../src/operations/production-signoff-preflight.mjs';
 import { validateSignoffReferenceSet } from '../src/operations/production-signoff-reference-runtime.mjs';
 
-const CANDIDATE_PATH = new URL('../agent docs/harness/P6_G4_CUTOVER_EVIDENCE_CANDIDATE.json', import.meta.url);
+const CANDIDATE_PATH = fileURLToPath(new URL('../agent docs/harness/P6_G4_CUTOVER_EVIDENCE_CANDIDATE.json', import.meta.url));
 const PROJECT_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const ROLE_REFERENCE_ENV = Object.freeze({
   ADMIN: 'PRODUCTION_UAT_ADMIN_RESULT_FILE',
@@ -22,7 +22,7 @@ const SIGNOFF_REFERENCE_ENV = Object.freeze({
 });
 const CANDIDATE_ROLE_NAMES = Object.freeze({ ADMIN: 'admin', MANAGER: 'manager', USER: 'employee' });
 
-const candidate = JSON.parse(readFileSync(CANDIDATE_PATH, 'utf8'));
+const candidate = readOperationsPreflightManifest(CANDIDATE_PATH).value;
 const uatGate = candidate.gates?.find((gate) => gate.id === 'uat_signoff');
 const roleStatesPending = PRODUCTION_UAT_RESULT_ROLES.every((role) =>
   candidate.pilot?.roleResults?.some((result) => result.role === CANDIDATE_ROLE_NAMES[role] && result.status === 'PENDING')

@@ -5,11 +5,15 @@ import {
   resumeProductionCutoverSignoff,
   SIGNOFF_RESUME_CONFIRMATION
 } from '../src/operations/production-cutover-executor.mjs';
+import { readOperationsPreflightManifest } from '../src/operations/operations-preflight-manifest-runtime.mjs';
+import { fileURLToPath } from 'node:url';
 
 const execute = process.argv.includes('--execute');
 const resumeSignoff = process.argv.includes('--resume-signoff');
 const pauseBeforeSignoff = process.argv.includes('--pause-before-signoff');
-const candidate = JSON.parse(fs.readFileSync(new URL('../agent docs/harness/P6_G4_CUTOVER_EVIDENCE_CANDIDATE.json', import.meta.url), 'utf8'));
+const candidate = readOperationsPreflightManifest(
+  fileURLToPath(new URL('../agent docs/harness/P6_G4_CUTOVER_EVIDENCE_CANDIDATE.json', import.meta.url))
+).value;
 const releaseSha = candidate.releaseTag.replace(/^sha-/, '');
 const exists = (value) => Boolean(value && fs.existsSync(value));
 const existingPath = (value) => exists(value) ? value : false;
