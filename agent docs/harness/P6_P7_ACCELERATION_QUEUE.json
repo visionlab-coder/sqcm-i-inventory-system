@@ -1093,6 +1093,14 @@
       "evidence": "cloudflared delete help reviewed read-only; failure-first 6 reproduced; unrelated elevated cloudflared metadata issue reproduced and alternate no-target-only nonblocking path applied without permission expansion; focused recovery and change-window 13 PASS; syntax 412/412; repository unit 833 PASS 8 skips; harness:verify PASS; GitHub quality 33641167628 unit and three-tier SUCCESS; actual recovery deletion, tunnel/DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-77-PRODUCTION-CUTOVER-INGRESS-ORPHAN-CONTAINMENT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Cutover ingress publication step 자체가 실패하면 exact public route-disable 뒤 orphan recovery를 조건부 실행하고 두 step의 exact PASS와 evidence가 모두 없으면 격리 완료로 승격하지 않아야 한다.",
+      "evidence": "failure-first 3 reproduced; conditional route-disable then orphan recovery adapter integrated; focused cutover 29 PASS 1 Windows skip; normal success remains 12 Gates and 14 steps; syntax 412/412; repository unit 836 PASS 8 skips; actual orphan preflight PASS_NO_INGRESS_PARTIAL_STATE; harness:verify PASS; GitHub quality 33642846184 unit and three-tier SUCCESS; actual recovery, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

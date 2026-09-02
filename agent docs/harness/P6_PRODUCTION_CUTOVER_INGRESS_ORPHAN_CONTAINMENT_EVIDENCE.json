@@ -1,0 +1,53 @@
+{
+  "packet": "ACC-P6-77-PRODUCTION-CUTOVER-INGRESS-ORPHAN-CONTAINMENT",
+  "status": "PASS_PRODUCTION_CUTOVER_INGRESS_ORPHAN_CONTAINMENT",
+  "scope": {
+    "conditionalOnIngressPublicationStepFailure": true,
+    "routeDisableRunsFirst": true,
+    "orphanRecoveryRunsSecond": true,
+    "bothEvidenceReferencesRequired": true,
+    "normalSuccessGateCount": 12,
+    "normalSuccessStepCount": 14
+  },
+  "failureFirst": {
+    "reproducedFailureCount": 3,
+    "routeDisableOnlyContainmentDetected": true,
+    "missingRecoveryReceiptDetected": true
+  },
+  "focusedTests": {
+    "total": 30,
+    "passed": 29,
+    "failed": 0,
+    "skipped": 1
+  },
+  "repositoryChecks": {
+    "syntaxPassed": 412,
+    "unitTotal": 844,
+    "unitPassed": 836,
+    "unitFailed": 0,
+    "unitSkipped": 8
+  },
+  "implementationCommit": "73cfba80ee8473a30ca488123dd5d72f2b0c75bf",
+  "qualityCi": {
+    "runId": 33642846184,
+    "testedHeadSha": "73cfba80ee8473a30ca488123dd5d72f2b0c75bf",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "actualPreflight": {
+    "status": "PASS_NO_INGRESS_PARTIAL_STATE",
+    "recoveryRequired": false,
+    "externalMutationPerformed": false
+  },
+  "harnessVerify": { "status": "PASS", "exitCode": 0 },
+  "actualOrphanRecoveryExecution": "NOT_RUN",
+  "actualDnsTlsPublication": "NOT_RUN",
+  "actualP6Cutover": "NOT_RUN",
+  "actualP7Activation": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

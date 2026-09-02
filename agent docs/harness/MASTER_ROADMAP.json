@@ -344,6 +344,7 @@
       "production-ingress-secret-free-tunnel-create-acknowledgement-pass",
       "production-ingress-orphan-recovery-read-only-preflight-pass",
       "production-ingress-orphan-recovery-windowed-no-force-executor-pass",
+      "production-cutover-ingress-publication-failure-route-disable-orphan-recovery-containment-pass",
           "same-run-gates-1-to-11-signoff-pause-gate-12-resume-contract-ready",
           "same-run-physical-checkpoint-gate-12-resume-runtime-route-disable-ready",
           "same-run-actual-evidence-finalization-failure-route-disable-ready",
