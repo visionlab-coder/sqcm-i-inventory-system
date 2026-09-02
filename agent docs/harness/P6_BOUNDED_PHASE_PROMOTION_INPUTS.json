@@ -1,0 +1,41 @@
+{
+  "packet": "ACC-P6-53-BOUNDED-PHASE-PROMOTION-INPUTS",
+  "status": "PASS_BOUNDED_PHASE_PROMOTION_INPUTS",
+  "failureFirst": { "expectedFailures": 1, "observedFailures": 1 },
+  "focusedTests": { "total": 17, "passed": 17, "failed": 0, "skipped": 0 },
+  "promotionInputContract": {
+    "allowedDocuments": ["docs/current-state.md", "docs/roadmap.md"],
+    "maximumBytesPerDocument": 1048576,
+    "physicalRegularFileRequired": true,
+    "readAfterIdentityRealpathSizeRequired": true,
+    "fatalUtf8Required": true,
+    "gitStatusTimeoutMilliseconds": 10000,
+    "gitStatusMaximumBytes": 1048576,
+    "gitStatusShell": false,
+    "directUnboundedDocumentReadCount": 0,
+    "directUnboundedGitStatusCount": 0
+  },
+  "dryRuns": {
+    "phasePromotion": "READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_FOR_PHASE_PROMOTION",
+    "cutoverPreflight": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockerCount": 0,
+    "protectedServicesPreserved": true,
+    "phaseStateChanged": false,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "syntaxChecks": { "passed": 386, "failed": 0 },
+  "unitTests": { "total": 747, "passed": 740, "failed": 0, "skipped": 7 },
+  "harnessVerify": "PASS",
+  "implementationCommit": "191882a1ecda27eeb34fc3c20c0034d3f20f6106",
+  "qualityCi": {
+    "runId": 33608849214,
+    "testedHeadSha": "191882a1ecda27eeb34fc3c20c0034d3f20f6106",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "secretValuesReadOrRecorded": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

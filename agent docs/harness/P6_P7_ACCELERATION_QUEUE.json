@@ -893,6 +893,14 @@
       "evidence": "failure-first 1/1; focused CSRF baseline, authenticated idempotency and HTTP runtime regression 31/31 PASS; oversize baseline response rejected before body read and reduced to empty fail-closed object; loopback missing-token 403 CSRF_INVALID, session unchanged, idempotency columns 10/10, stuck and invalid rows zero; cutover preflight WAIT with external mutation zero and local blockers zero; syntax 384/384; repository unit 736 PASS 7 skips; harness:verify PASS; GitHub quality 33607771278 unit and three-tier SUCCESS; actual authenticated write, replay, conflict and signoff NOT_RUN"
     },
     {
+      "id": "ACC-P6-53-BOUNDED-PHASE-PROMOTION-INPUTS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual cutover 뒤 P6→P7 승격기는 exact current-state와 roadmap physical files를 파일당 1MiB·read-after identity/realpath/size·fatal UTF-8로 읽고, clean worktree 검사는 10초·1MiB·shell 금지 bounded Git process를 사용해야 한다.",
+      "evidence": "failure-first 1/1; focused phase promotion runtime, state transition and atomic control snapshot regression 17/17 PASS; oversize document rejected before content read, invalid UTF-8 and disallowed path fail closed; Git status timeout and output bounded without shell; dry-run waits for actual cutover evidence with document and phase changes zero; cutover preflight WAIT with local blockers zero; syntax 386/386; repository unit 740 PASS 7 skips; harness:verify PASS; GitHub quality 33608849214 unit and three-tier SUCCESS; actual P6 promotion and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P6-41-ATOMIC-PRODUCTION-UAT-INPUTS",
       "phase": "P6",
       "status": "EVIDENCE_COMPLETE",
