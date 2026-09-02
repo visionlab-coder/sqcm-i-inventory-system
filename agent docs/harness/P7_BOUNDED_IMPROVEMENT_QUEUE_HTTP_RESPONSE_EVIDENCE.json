@@ -1,0 +1,46 @@
+{
+  "packet": "ACC-P7-50-BOUNDED-IMPROVEMENT-QUEUE-HTTP-RESPONSE",
+  "status": "PASS_BOUNDED_IMPROVEMENT_QUEUE_HTTP_RESPONSE",
+  "failureFirst": { "expectedFailures": 4, "observedFailures": 4, "attackScenarios": 5 },
+  "focusedTests": { "total": 10, "passed": 10, "failed": 0, "skipped": 0 },
+  "syntaxChecks": { "passed": 351, "failed": 0 },
+  "unitTests": { "total": 626, "passed": 620, "failed": 0, "skipped": 6 },
+  "responseContract": {
+    "requestTimeoutMs": 15000,
+    "pageMaximumBytes": 1048576,
+    "contentLengthPrecheck": true,
+    "actualChunkBytesChecked": true,
+    "oversizeReaderCancelled": true,
+    "fatalUtf8DecodingRequired": true,
+    "jsonArrayRequired": true,
+    "maximumPages": 10,
+    "maximumIssues": 1000,
+    "rawResponseAndErrorsRedacted": true
+  },
+  "readOnlyRun": {
+    "status": "READY_WAIT_P6_ACTUAL_CUTOVER",
+    "githubReadPerformed": false,
+    "secretValueUsed": false,
+    "exportCreated": false,
+    "externalIssueCreatedOrChanged": false,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "implementationCommit": "22e6231991fe79137dd5c56787a0b028b89fa15e",
+  "qualityCi": {
+    "runId": 33581546968,
+    "testedHeadSha": "22e6231991fe79137dd5c56787a0b028b89fa15e",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "harnessVerify": { "exitCode": 0, "status": "PASS" },
+  "actualImprovementQueueCollectionPerformed": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}
