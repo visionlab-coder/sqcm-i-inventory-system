@@ -1,4 +1,4 @@
-import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, realpathSync, statSync, writeFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -12,7 +12,7 @@ import {
   classifyProductionIngressPublicationResult,
   evaluateProductionIngressPublicationGate
 } from '../src/operations/production-ingress-publication.mjs';
-import { observeProductionIngressDnsResilient, requestCloudflareJson, runIngressCommand } from '../src/operations/production-ingress-publication-runtime.mjs';
+import { observeProductionIngressDnsResilient, readProductionIngressConfig, requestCloudflareJson, runIngressCommand } from '../src/operations/production-ingress-publication-runtime.mjs';
 
 const CLOUDFLARED = 'C:\\Program Files (x86)\\cloudflared\\cloudflared.exe';
 const ORIGIN_CERT = 'C:\\Users\\user\\.cloudflared\\cert.pem';
@@ -55,7 +55,11 @@ function ensureConfig(id) {
   ensureRuntimeDirectory();
   const content = expectedConfig(id);
   if (existsSync(PRODUCTION_INGRESS_TARGET.configPath)) {
-    if (!exactFile(PRODUCTION_INGRESS_TARGET.configPath) || readFileSync(PRODUCTION_INGRESS_TARGET.configPath, 'utf8').replace(/\r\n/g, '\n') !== content) throw new Error('Existing Production ingress config does not match the exact contract.');
+    const existing = readProductionIngressConfig({
+      runtimeDirectory: PRODUCTION_INGRESS_TARGET.runtimeDirectory,
+      configPath: PRODUCTION_INGRESS_TARGET.configPath
+    });
+    if (existing.text.replace(/\r\n/g, '\n') !== content) throw new Error('Existing Production ingress config does not match the exact contract.');
     return false;
   }
   writeFileSync(PRODUCTION_INGRESS_TARGET.configPath, content, { encoding: 'utf8', flag: 'wx', mode: 0o600 });

@@ -1,11 +1,105 @@
 import { spawnSync } from 'node:child_process';
 import { resolve4, resolveCname } from 'node:dns/promises';
+import fs from 'node:fs';
+import path from 'node:path';
+import { TextDecoder } from 'node:util';
 import { readBoundedJsonObjectResponse } from './operations-preflight-http-runtime.mjs';
 
 export const INGRESS_COMMAND_TIMEOUT_MS = 10_000;
 export const INGRESS_PROVIDER_HTTP_TIMEOUT_MS = 10_000;
 export const INGRESS_DNS_TIMEOUT_MS = 5_000;
 export const INGRESS_DNS_DOH_ENDPOINT = 'https://cloudflare-dns.com/dns-query';
+export const INGRESS_CONFIG_MAX_BYTES = 16 * 1024;
+
+function physicalDirectory(stat) {
+  return stat?.isDirectory?.() === true
+    && stat?.isSymbolicLink?.() !== true
+    && stat?.isReparsePoint?.() !== true;
+}
+
+function physicalFile(stat) {
+  return stat?.isFile?.() === true
+    && stat?.isSymbolicLink?.() !== true
+    && stat?.isReparsePoint?.() !== true;
+}
+
+function sameIdentity(left, right) {
+  return left?.size === right?.size
+    && left?.dev === right?.dev
+    && left?.ino === right?.ino
+    && left?.mtimeMs === right?.mtimeMs;
+}
+
+export function readProductionIngressConfig({
+  runtimeDirectory,
+  configPath,
+  io = fs,
+  maxBytes = INGRESS_CONFIG_MAX_BYTES
+} = {}) {
+  if (typeof runtimeDirectory !== 'string' || !runtimeDirectory
+    || typeof configPath !== 'string' || !configPath) {
+    throw new Error('INGRESS_CONFIG_INPUT_INVALID');
+  }
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1 || maxBytes > INGRESS_CONFIG_MAX_BYTES) {
+    throw new Error('INGRESS_CONFIG_LIMIT_INVALID');
+  }
+  const root = path.resolve(runtimeDirectory);
+  const candidate = path.resolve(configPath);
+  if (candidate.toLowerCase() !== path.join(root, 'cloudflared.yml').toLowerCase()) {
+    throw new Error('INGRESS_CONFIG_PATH_INVALID');
+  }
+  let rootBefore;
+  let fileBefore;
+  let rootRealBefore;
+  let fileRealBefore;
+  try {
+    rootBefore = io.lstatSync(root);
+    fileBefore = io.lstatSync(candidate);
+    rootRealBefore = path.resolve(io.realpathSync(root));
+    fileRealBefore = path.resolve(io.realpathSync(candidate));
+  } catch {
+    throw new Error('INGRESS_CONFIG_PATH_INVALID');
+  }
+  if (!physicalDirectory(rootBefore) || !physicalFile(fileBefore)
+    || rootRealBefore.toLowerCase() !== root.toLowerCase()
+    || fileRealBefore.toLowerCase() !== candidate.toLowerCase()) {
+    throw new Error('INGRESS_CONFIG_PATH_INVALID');
+  }
+  if (fileBefore.size < 1 || fileBefore.size > maxBytes) {
+    throw new Error('INGRESS_CONFIG_BYTES_INVALID');
+  }
+  let raw;
+  try { raw = io.readFileSync(fileRealBefore); }
+  catch { throw new Error('INGRESS_CONFIG_READ_FAILED'); }
+  if (!Buffer.isBuffer(raw)) raw = Buffer.from(raw);
+
+  let rootAfter;
+  let fileAfter;
+  let rootRealAfter;
+  let fileRealAfter;
+  try {
+    rootAfter = io.lstatSync(root);
+    fileAfter = io.lstatSync(candidate);
+    rootRealAfter = path.resolve(io.realpathSync(root));
+    fileRealAfter = path.resolve(io.realpathSync(candidate));
+  } catch {
+    throw new Error('INGRESS_CONFIG_UNSTABLE');
+  }
+  if (!sameIdentity(rootBefore, rootAfter) || !sameIdentity(fileBefore, fileAfter)
+    || rootRealAfter.toLowerCase() !== rootRealBefore.toLowerCase()
+    || fileRealAfter.toLowerCase() !== fileRealBefore.toLowerCase()
+    || raw.length !== fileBefore.size || raw.length < 1 || raw.length > maxBytes) {
+    throw new Error('INGRESS_CONFIG_UNSTABLE');
+  }
+  try {
+    return {
+      text: new TextDecoder('utf-8', { fatal: true }).decode(raw),
+      bytes: raw.length
+    };
+  } catch {
+    throw new Error('INGRESS_CONFIG_UTF8_INVALID');
+  }
+}
 
 export function runIngressCommand(command, args, {
   timeoutMs = INGRESS_COMMAND_TIMEOUT_MS,
