@@ -5,6 +5,7 @@ import { resolve4, resolveCname } from 'node:dns/promises';
 import { fileURLToPath } from 'node:url';
 import { evaluateProductionCutoverPreflight, PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
 import { observeCloudflareTunnels, runPreflightCommand } from '../src/operations/production-cutover-preflight-runtime.mjs';
+import { selectLatestVerifiedOperationalHealthBackup } from '../src/operations/production-operational-health-runtime.mjs';
 
 const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const run = (command, args) => {
@@ -58,11 +59,10 @@ const databaseCounts = run('docker', [
 ]).split(/\r?\n/).map(Number);
 
 const backupDir = path.join(projectDir, 'artifacts', 'backups');
-const backupManifestPath = fs.readdirSync(backupDir)
-  .filter((name) => /^seowon-inventory-.*\.dump\.json$/.test(name))
-  .map((name) => path.join(backupDir, name))
-  .sort((left, right) => fs.statSync(right).mtimeMs - fs.statSync(left).mtimeMs)[0];
-const backupManifest = JSON.parse(fs.readFileSync(backupManifestPath, 'utf8'));
+const backupManifest = await selectLatestVerifiedOperationalHealthBackup({
+  backupRoot: backupDir,
+  requireRestoreVerified: true
+});
 
 const listenerJson = run('powershell.exe', [
   '-NoProfile', '-NonInteractive', '-Command',
@@ -100,7 +100,7 @@ const observation = {
   smokePassed: smokeChecks.every(Boolean),
   applicationMigrations: databaseCounts[0],
   productionUsers: databaseCounts[1],
-  backupRestoreVerified: backupManifest.restoreVerified === true,
+  backupRestoreVerified: backupManifest.backupVerified === true && backupManifest.restoreVerified === true,
   protectedServicesPreserved,
   tunnelObservationSucceeded: tunnelObservation.succeeded,
   tunnels,
@@ -124,7 +124,13 @@ console.log(JSON.stringify({
     smokePassed: observation.smokePassed,
     applicationMigrations: observation.applicationMigrations,
     productionUsers: observation.productionUsers,
-    backupRestoreVerified: observation.backupRestoreVerified
+    backupRestoreVerified: observation.backupRestoreVerified,
+    backup: {
+      bytes: backupManifest.bytes,
+      sha256Present: /^[a-f0-9]{64}$/i.test(backupManifest.sha256),
+      manifestBytes: backupManifest.manifestBytes,
+      manifestSha256Present: /^[a-f0-9]{64}$/i.test(backupManifest.manifestSha256)
+    }
   },
   publicIngress: {
     hostname: 'inventory.safe-link.co.kr',
