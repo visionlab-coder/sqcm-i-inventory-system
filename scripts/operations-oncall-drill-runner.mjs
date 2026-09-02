@@ -14,6 +14,7 @@ import {
   writeOnCallHandoverExportOnce
 } from '../src/operations/operations-oncall-drill-runner.mjs';
 import { compileOperationsOnCallEvidence } from '../src/operations/operations-oncall-evidence.mjs';
+import { readOperationsActivationInputDocument } from '../src/operations/operations-activation-input-reader.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const roadmap = JSON.parse(fs.readFileSync(path.join(projectRoot, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
@@ -112,7 +113,8 @@ let drillIdSha256 = null;
 
 if (gate.externalMessageAllowed) {
   try {
-    const manifest = validateOnCallDrillProviderManifest(JSON.parse(fs.readFileSync(manifestPath, 'utf8')));
+    const manifestInput = readOperationsActivationInputDocument(manifestPath, { repositoryRoot: projectRoot });
+    const manifest = validateOnCallDrillProviderManifest(manifestInput.value);
     drillIdSha256 = crypto.createHash('sha256').update(manifest.drillId).digest('hex');
     const token = fs.readFileSync(credentialPath, 'utf8').trim();
     secretValueUsed = true;

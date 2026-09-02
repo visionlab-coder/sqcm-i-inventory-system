@@ -11,6 +11,7 @@ import {
   writeImprovementQueueExportOnce
 } from '../src/operations/operations-improvement-queue-collector.mjs';
 import { compileOperationsImprovementQueueEvidence } from '../src/operations/operations-improvement-queue-evidence.mjs';
+import { readOperationsActivationInputDocument } from '../src/operations/operations-activation-input-reader.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const roadmap = JSON.parse(fs.readFileSync(path.join(projectRoot, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
@@ -87,7 +88,8 @@ let failureCount = 0;
 if (gate.githubReadAllowed) {
   try {
     const checkedAt = new Date().toISOString();
-    const attestation = validateImprovementQueueTriageAttestation(JSON.parse(fs.readFileSync(attestationPath, 'utf8')), { checkedAt });
+    const attestationInput = readOperationsActivationInputDocument(attestationPath, { repositoryRoot: projectRoot });
+    const attestation = validateImprovementQueueTriageAttestation(attestationInput.value, { checkedAt });
     const token = fs.readFileSync(tokenPath, 'utf8').trim();
     secretValueUsed = true;
     if (token.length < 20 || /\s/.test(token)) throw new Error('GITHUB_TOKEN_REFERENCE_INVALID');

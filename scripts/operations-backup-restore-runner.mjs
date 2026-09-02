@@ -11,6 +11,7 @@ import {
   validateOffsiteStorageAttestation,
   writeBackupRestoreDrillExportOnce
 } from '../src/operations/operations-backup-restore-runner.mjs';
+import { readOperationsActivationInputDocument } from '../src/operations/operations-activation-input-reader.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const roadmap = JSON.parse(fs.readFileSync(path.join(projectRoot, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
@@ -226,8 +227,9 @@ if (gate.productionReadAllowed) {
     const physicalRoot = physicalSeparateFailureDomain(offsiteRoot);
     if (!physicalRoot || !externalPhysicalFile(attestationPath) || !externalNewFile(outputPath)) throw new Error('BACKUP_RESTORE_PATH_BOUNDARY_INVALID');
     const rootPathSha256 = crypto.createHash('sha256').update(physicalRoot.toLowerCase()).digest('hex');
+    const attestationInput = readOperationsActivationInputDocument(attestationPath, { repositoryRoot: projectRoot });
     const attestation = validateOffsiteStorageAttestation(
-      JSON.parse(fs.readFileSync(attestationPath, 'utf8')),
+      attestationInput.value,
       { expectedRootSha256: rootPathSha256 }
     );
     const suffix = `${new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14)}-${crypto.randomBytes(6).toString('hex')}`;
