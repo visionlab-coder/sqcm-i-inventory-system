@@ -4,14 +4,15 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { evaluateHarnessBranchProvenance, resolveActiveBranch } from '../src/operations/harness-branch-provenance.mjs';
+import { readOperationsPhaseCompletionControlSnapshot } from '../src/operations/operations-phase-completion-control-snapshot.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const projectDir = path.resolve(scriptDir, '..');
-const roadmapPath = path.join(projectDir, 'agent docs', 'harness', 'MASTER_ROADMAP.json');
 const candidatePath = path.join(projectDir, 'agent docs', 'harness', 'P2_RELEASE_CANDIDATE.json');
 const remoteEvidencePath = path.join(projectDir, 'agent docs', 'harness', 'P2_REMOTE_EVIDENCE.json');
-const accelerationQueuePath = path.join(projectDir, 'agent docs', 'harness', 'P6_P7_ACCELERATION_QUEUE.json');
-const state = JSON.parse(readFileSync(roadmapPath, 'utf8'));
+const controlSnapshot = readOperationsPhaseCompletionControlSnapshot(projectDir);
+const state = controlSnapshot.roadmap.value;
+const accelerationQueue = controlSnapshot.queue.value;
 const command = process.argv[2] ?? 'status';
 
 function currentPhase() {
@@ -70,10 +71,8 @@ function check() {
   if (state.authority.commitPushMergeRelease !== 'explicit-approval') {
     errors.push('EXTERNAL_GIT_APPROVAL_BOUNDARY_CHANGED');
   }
-  if (!existsSync(accelerationQueuePath)) {
-    errors.push('ACCELERATION_QUEUE_MISSING');
-  } else {
-    const queue = JSON.parse(readFileSync(accelerationQueuePath, 'utf8'));
+  {
+    const queue = accelerationQueue;
     const readyPackets = queue.packets?.filter((packet) => packet.status === 'READY') ?? [];
     if (readyPackets.length !== (terminal ? 0 : 1)) errors.push(`ACCELERATION_READY_COUNT_${readyPackets.length}`);
     if (terminal ? queue.readyPacket !== null : readyPackets[0]?.id !== queue.readyPacket) errors.push('ACCELERATION_READY_POINTER_MISMATCH');
