@@ -13,6 +13,7 @@ const releaseTag = `sha-${releaseSha}`;
 const checkedAt = '2026-09-11T12:00:00.000Z';
 const sha = (value) => crypto.createHash('sha256').update(value).digest('hex');
 const cutoverBundleSha256 = 'c'.repeat(64);
+const receiptFileName = ({ sequence, kind, gate, step, time = checkedAt }) => `${time.replace(/[:.]/g, '-')}-${String(sequence).padStart(4, '0')}-${kind}-${gate}-${step}.json`;
 
 async function completeInput() {
   const { CUTOVER_GATE_ADAPTER_PLAN } = await adapterPromise;
@@ -22,12 +23,12 @@ async function completeInput() {
     const refs = [];
     for (const step of steps) {
       sequence += 1;
-      const fileName = `${sequence}-${gate}-${step.id}.json`;
+      const fileName = receiptFileName({ sequence, kind: 'step', gate, step: step.id });
       refs.push(fileName);
       receiptDocuments.push({ fileName, sha256: sha(fileName), value: { schemaVersion: 1, runId, checkedAt, sequence, kind: 'step', gate, step: step.id, status: step.acceptedStatuses[0], exitCode: 0, evidenceRefs: [], cutoverBundleSha256, productionGo: false } });
     }
     sequence += 1;
-    const fileName = `${gate}-summary.json`;
+    const fileName = receiptFileName({ sequence, kind: 'gate', gate, step: 'summary' });
     receiptDocuments.push({ fileName, sha256: sha(fileName), value: { schemaVersion: 1, runId, checkedAt, sequence, kind: 'gate', gate, step: 'summary', status: 'PASS', exitCode: 0, evidenceRefs: refs, cutoverBundleSha256, productionGo: false } });
   }
   const coreGateSha = receiptDocuments.find((document) => document.value.kind === 'gate' && document.value.gate === 'core_smoke').sha256;
@@ -135,6 +136,21 @@ test('receipt 순번 교환 또는 중복은 실제 Gate 실행 순서 증거가
   const duplicatedResult = assembleActualCutoverEvidence(duplicated);
   assert.ok(duplicatedResult.failures.includes('CUTOVER_RECEIPT_SEQUENCE_INVALID'));
   assert.equal(duplicatedResult.productionGo, false);
+});
+
+test('receipt 파일명은 payload 시각·순번·kind·Gate·step과 정확히 일치해야 한다', async () => {
+  const { assembleActualCutoverEvidence } = await modulePromise;
+  for (const mutate of [
+    (document) => { document.fileName = document.fileName.replace('-0001-', '-0026-'); },
+    (document) => { document.fileName = document.fileName.replace('2026-09-11T12-00-00-000Z', '2026-09-11T12-00-01-000Z'); },
+    (document) => { document.fileName = document.fileName.replace('-step-', '-gate-'); }
+  ]) {
+    const input = await completeInput();
+    mutate(input.receiptDocuments[0]);
+    const result = assembleActualCutoverEvidence(input);
+    assert.ok(result.failures.includes('CUTOVER_RECEIPT_FILENAME_PAYLOAD_MISMATCH'));
+    assert.equal(result.productionGo, false);
+  }
 });
 
 test('contract template은 actual 역할 결과나 서명으로 승격하지 않는다', async () => {

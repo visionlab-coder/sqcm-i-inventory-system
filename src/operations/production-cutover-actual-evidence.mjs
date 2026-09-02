@@ -64,6 +64,17 @@ function receiptIdentity(value) {
   return `${value?.kind}:${value?.gate}:${value?.step}`;
 }
 
+function receiptFileNameMatchesPayload(document) {
+  const value = document?.value;
+  const checkedAtMs = Date.parse(value?.checkedAt);
+  if (!Number.isFinite(checkedAtMs) || new Date(checkedAtMs).toISOString() !== value.checkedAt
+    || !Number.isSafeInteger(value?.sequence) || value.sequence < 1
+    || ![value?.kind, value?.gate, value?.step].every((segment) => typeof segment === 'string'
+      && /^[a-zA-Z0-9_-]{1,100}$/.test(segment))) return false;
+  const expected = `${value.checkedAt.replace(/[:.]/g, '-')}-${String(value.sequence).padStart(4, '0')}-${value.kind}-${value.gate}-${value.step}.json`;
+  return document.fileName === expected && path.basename(document.fileName) === document.fileName;
+}
+
 function expectedReceiptSequence() {
   return Object.entries(CUTOVER_GATE_ADAPTER_PLAN).flatMap(([gate, steps]) => [
     ...steps.map((step) => `step:${gate}:${step.id}`),
@@ -111,6 +122,7 @@ export function assembleActualCutoverEvidence({ receiptDocuments = [], roleResul
   if (!/^[a-f0-9]{40}$/.test(releaseSha || '')) failures.push('CUTOVER_RELEASE_SHA_INVALID');
   const releaseTag = `sha-${releaseSha}`;
   if (!receiptDocuments.every((document) => validReceiptDocument(document, runId))) failures.push('CUTOVER_RECEIPT_DOCUMENT_INVALID');
+  if (!receiptDocuments.every(receiptFileNameMatchesPayload)) failures.push('CUTOVER_RECEIPT_FILENAME_PAYLOAD_MISMATCH');
   const cutoverBundleSha256 = [...new Set(receiptDocuments.map((document) => document.value?.cutoverBundleSha256))];
   if (cutoverBundleSha256.length !== 1 || !SHA256.test(cutoverBundleSha256[0] || '')) failures.push('CUTOVER_BUNDLE_PROVENANCE_INVALID');
   const stepDocuments = receiptMap(receiptDocuments, 'step');
