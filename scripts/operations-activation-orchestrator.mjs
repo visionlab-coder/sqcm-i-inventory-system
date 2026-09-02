@@ -12,9 +12,10 @@ import {
 } from '../src/operations/operations-activation-orchestrator.mjs';
 import { executeOperationsActivationSelection } from '../src/operations/operations-activation-process-runner.mjs';
 import { readOperationsActivationInputDocument } from '../src/operations/operations-activation-input-reader.mjs';
+import { readOperationsRoadmapControl } from '../src/operations/operations-roadmap-control-reader.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const roadmap = JSON.parse(fs.readFileSync(path.join(projectRoot, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
+const roadmap = readOperationsRoadmapControl(projectRoot).value;
 const p6 = roadmap.phases.find((phase) => phase.id === 'P6'); const p7 = roadmap.phases.find((phase) => phase.id === 'P7');
 const p6Path = process.env.P7_P6_CUTOVER_EVIDENCE_FILE ? path.resolve(process.env.P7_P6_CUTOVER_EVIDENCE_FILE) : null;
 const approvalPath = process.env.P7_OPERATIONS_ACTIVATION_APPROVAL_FILE ? path.resolve(process.env.P7_OPERATIONS_ACTIVATION_APPROVAL_FILE) : null;

@@ -7,9 +7,10 @@ import {
 } from '../src/operations/operations-activation-approval-chain-preflight.mjs';
 import { computeOperationsActivationBundleSha256 } from '../src/operations/operations-activation-orchestrator.mjs';
 import { readOperationsActivationInputDocument } from '../src/operations/operations-activation-input-reader.mjs';
+import { readOperationsRoadmapControl } from '../src/operations/operations-roadmap-control-reader.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const roadmap = JSON.parse(fs.readFileSync(path.join(projectRoot, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
+const roadmap = readOperationsRoadmapControl(projectRoot).value;
 const p6 = roadmap.phases.find((phase) => phase.id === 'P6'); const p7 = roadmap.phases.find((phase) => phase.id === 'P7');
 const paths = {
   p6: process.env.P7_P6_CUTOVER_EVIDENCE_FILE,
