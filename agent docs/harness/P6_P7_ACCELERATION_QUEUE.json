@@ -1037,6 +1037,14 @@
       "evidence": "failure-first 5 reproduced; focused ingress 19 PASS; syntax 403/403; repository unit 793 PASS 8 skips; initial GitHub unit failure 33630769277 isolated to Linux host Windows target path semantics and replaced by path.win32 normalization; harness:verify PASS; GitHub quality 33631041611 unit and three-tier SUCCESS; actual process start/stop, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-70-PRODUCTION-INGRESS-PROCESS-SPAWN-ACKNOWLEDGEMENT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production cloudflared process 시작은 exact Windows 경로·인자로 spawn한 뒤 비동기 spawn acknowledgement와 유효 PID를 확인해야만 성공으로 기록하고, 오류·invalid PID·5초 timeout은 원문 없이 fail-closed하며 timeout 또는 invalid PID child를 best-effort 정리해야 한다.",
+      "evidence": "failure-first 5 reproduced; focused process start and identity 10 PASS; syntax 404/404; repository unit 798 PASS 8 skips; ingress dry-run waits with external mutation zero; protected ports and PIDs preserved; harness:verify PASS; GitHub quality 33632375755 unit and three-tier SUCCESS; actual process start/stop, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

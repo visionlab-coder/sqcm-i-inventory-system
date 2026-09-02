@@ -1,0 +1,61 @@
+{
+  "packet": "ACC-P6-70-PRODUCTION-INGRESS-PROCESS-SPAWN-ACKNOWLEDGEMENT",
+  "status": "PASS_PRODUCTION_INGRESS_PROCESS_SPAWN_ACKNOWLEDGEMENT",
+  "scope": {
+    "spawnAcknowledgementRequired": true,
+    "validProcessIdRequired": true,
+    "timeoutMs": 5000,
+    "bestEffortStopOnTimeoutOrInvalidPid": true,
+    "rawProviderErrorRecorded": false,
+    "crossPlatformTargetPathSemantics": "win32"
+  },
+  "failureFirst": {
+    "reproducedFailureCount": 5,
+    "missingStartHelper": true,
+    "missingAwaitedEntrypointBinding": true
+  },
+  "focusedTests": {
+    "total": 10,
+    "passed": 10,
+    "failed": 0,
+    "skipped": 0
+  },
+  "repositoryChecks": {
+    "syntaxPassed": 404,
+    "unitTotal": 806,
+    "unitPassed": 798,
+    "unitFailed": 0,
+    "unitSkipped": 8
+  },
+  "implementationCommit": "abf0d2c3484cf39456f070ae9447e3f5c323cf9a",
+  "qualityCi": {
+    "runId": 33632375755,
+    "testedHeadSha": "abf0d2c3484cf39456f070ae9447e3f5c323cf9a",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "productionIngressDryRun": {
+    "status": "READY_WAIT_INGRESS_PUBLICATION_INPUTS",
+    "externalMutationPerformed": false,
+    "actualProductionIngress": "NOT_RUN"
+  },
+  "protectedServices": [
+    { "port": 1234, "pid": 6632, "preserved": true },
+    { "port": 11434, "pid": 8588, "preserved": true },
+    { "port": 18765, "pid": 22716, "preserved": true },
+    { "port": 18766, "pid": 65724, "preserved": true }
+  ],
+  "harnessVerify": {
+    "status": "PASS",
+    "exitCode": 0
+  },
+  "actualProcessStartOrStop": "NOT_RUN",
+  "actualP6Cutover": "NOT_RUN",
+  "actualP7Activation": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}
