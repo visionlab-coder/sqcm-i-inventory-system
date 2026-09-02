@@ -1,4 +1,5 @@
-import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { readOperationsPreflightManifest } from '../src/operations/operations-preflight-manifest-runtime.mjs';
 import { PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
 import { evaluateProductionRollbackReadiness } from '../src/operations/production-rollback-readiness.mjs';
 import {
@@ -8,7 +9,9 @@ import {
   runRollbackReadinessDocker
 } from '../src/operations/production-rollback-readiness-runtime.mjs';
 
-const g3 = JSON.parse(fs.readFileSync('agent docs/harness/P6_G3_AI_PC_PRODUCTION_DEPLOY_ROLLBACK_EVIDENCE.json', 'utf8'));
+const g3 = readOperationsPreflightManifest(
+  fileURLToPath(new URL('../agent docs/harness/P6_G3_AI_PC_PRODUCTION_DEPLOY_ROLLBACK_EVIDENCE.json', import.meta.url))
+).value;
 
 function composeContainer(service) {
   const result = runRollbackReadinessDocker([
