@@ -661,6 +661,14 @@
       "evidence": "4 runner default entrypoints => READY_WAIT_P6_ACTUAL_CUTOVER with secret use and external mutation zero; failure-first 4/4; focused 30/30 PASS; syntax 346/346; repository unit 600 PASS 5 skips; harness:verify PASS; actual runner execution NOT_RUN"
     },
     {
+      "id": "ACC-P7-46-BOUNDED-OPERATIONS-SECRET-INPUTS",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "경보·온콜·개선큐 runner의 credential 파일은 저장소 밖 absolute physical UTF-8 파일만 64KiB 이하로 읽으며 저장소 내부·symlink/reparse·parent redirect·invalid UTF-8·빈 값을 원문 없이 fail-closed한다.",
+      "evidence": "3 runner default entrypoints => READY_WAIT_P6_ACTUAL_CUTOVER with secret read and external mutation zero; failure-first 4/4; focused 28 PASS 2 Windows skips; syntax 347/347; repository unit 603 PASS 6 skips; harness:verify PASS; actual credential read and runner execution NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

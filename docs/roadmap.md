@@ -111,6 +111,7 @@ flowchart LR
 - `ACC-P7-43`에서 operations signoff assembler의 P6 actual cutover·운영 8영역·OPERATIONS_OWNER approval receipt 10개 입력을 동일한 external physical JSON bounded reader로 통합했다. 각 파일은 최대 4MiB이며 실제 bytes·SHA-256만 조립 provenance가 될 수 있다.
 - `ACC-P7-44`에서 P7 운영 8영역 evidence compiler의 actual 입력을 동일한 external physical JSON bounded reader로 통합했다. 각 파일은 최대 4MiB이며 실제 bytes·SHA-256만 영역별 source provenance가 될 수 있다.
 - `ACC-P7-45`에서 alert delivery·backup/restore·on-call drill·improvement queue runner의 provider manifest·approval attestation 4개 제어 JSON을 동일한 external physical JSON bounded reader로 통합했다. Credential은 별도 Secret 경계로 유지한다.
+- `ACC-P7-46`에서 alert delivery·on-call drill·improvement queue runner의 credential 파일 3건을 external physical UTF-8 전용 64KiB bounded Secret reader로 통합했다. Secret 원문은 증거·로그·오류에 기록하지 않는다.
 
 ## 6. Phase 갱신 절차
 
