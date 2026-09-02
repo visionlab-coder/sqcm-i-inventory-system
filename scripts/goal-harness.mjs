@@ -338,6 +338,7 @@ function verify() {
       ['production-cutover-execute-dry-run', 'npm.cmd', ['run', 'production:cutover-execute']],
       ['production-cutover-actual-evidence-dry-run', 'npm.cmd', ['run', 'production:cutover-actual-evidence']],
       ['production-role-result-evidence-dry-run', 'npm.cmd', ['run', 'production:role-result-evidence']],
+      ['production-signoff-request-bundle', 'npm.cmd', ['run', 'production:signoff-request-bundle']],
       ['production-cutover-signoff-resume-rehearsal', 'npm.cmd', ['run', 'production:cutover-signoff-resume-rehearsal']],
       ['production-cutover-signoff-resume-runtime-rehearsal', 'npm.cmd', ['run', 'production:cutover-signoff-resume-runtime-rehearsal']],
       ['production-ingress-publication', 'npm.cmd', ['run', 'production:ingress-publication']],

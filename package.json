@@ -29,6 +29,7 @@
     "production:cutover-execute": "node scripts/production-cutover-execute.mjs",
     "production:cutover-actual-evidence": "node scripts/production-cutover-actual-evidence.mjs",
     "production:role-result-evidence": "node scripts/production-role-result-evidence.mjs",
+    "production:signoff-request-bundle": "node scripts/production-signoff-request-bundle.mjs",
     "production:cutover-signoff-resume-rehearsal": "node scripts/production-cutover-signoff-resume-rehearsal.mjs",
     "production:cutover-signoff-resume-runtime-rehearsal": "node scripts/production-cutover-signoff-resume-runtime-rehearsal.mjs",
     "production:ingress-publication": "node scripts/production-ingress-publication.mjs",

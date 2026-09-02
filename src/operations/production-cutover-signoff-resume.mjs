@@ -222,15 +222,8 @@ export function loadSignoffPauseCheckpoint(filePath, { io = fs, repositoryRoot =
   return value;
 }
 
-export function validateSignoffResumeReceipts({ root, checkpoint, io = fs, repositoryRoot = process.cwd() } = {}) {
+export function validateSignoffResumeReceiptDocuments({ documents = [], checkpoint } = {}) {
   const failures = [];
-  let documents;
-  try {
-    documents = loadRunReceiptDocuments(root, checkpoint?.runId, { io, repositoryRoot })
-      .map(({ fileName, value, sha256 }) => ({ name: fileName, value, sha256 }));
-  } catch {
-    return { status: 'FAIL_SIGNOFF_RESUME_RECEIPTS', failures: ['RECEIPT_ATOMIC_SNAPSHOT_INVALID'], receiptCount: 0 };
-  }
   if (documents.some((item) => item.value?.schemaVersion !== 1 || !inApprovedWindow(item.value?.checkedAt)
     || item.value?.productionGo !== false || !['step', 'gate'].includes(item.value?.kind))) failures.push('RECEIPT_COMMON_PROVENANCE_INVALID');
   if (checkpoint?.cutoverBundleSha256 !== undefined
@@ -254,6 +247,17 @@ export function validateSignoffResumeReceipts({ root, checkpoint, io = fs, repos
     if (gate && JSON.stringify(gate.value?.evidenceRefs || []) !== JSON.stringify(expectedRefs)) failures.push(`${checkpointGate.gate}_STEP_REFERENCES_INVALID`);
   }
   return { status: failures.length ? 'FAIL_SIGNOFF_RESUME_RECEIPTS' : 'PASS_SIGNOFF_RESUME_RECEIPTS', failures: [...new Set(failures)], receiptCount: documents.length };
+}
+
+export function validateSignoffResumeReceipts({ root, checkpoint, io = fs, repositoryRoot = process.cwd() } = {}) {
+  let documents;
+  try {
+    documents = loadRunReceiptDocuments(root, checkpoint?.runId, { io, repositoryRoot })
+      .map(({ fileName, value, sha256 }) => ({ name: fileName, value, sha256 }));
+  } catch {
+    return { status: 'FAIL_SIGNOFF_RESUME_RECEIPTS', failures: ['RECEIPT_ATOMIC_SNAPSHOT_INVALID'], receiptCount: 0 };
+  }
+  return validateSignoffResumeReceiptDocuments({ documents, checkpoint });
 }
 
 export function runSignoffPauseResumeRehearsal() {
