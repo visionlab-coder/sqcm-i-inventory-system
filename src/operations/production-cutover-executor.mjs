@@ -94,7 +94,9 @@ export async function executeProductionCutover({
     writeReceipt,
     cwd: projectRoot,
     expectedStepBundleSha256: bundleManifest.stepBundles,
-    inspectStepBundle: (step) => inspectStepBundle(projectRoot, step).sha256
+    inspectStepBundle: (step) => inspectStepBundle(projectRoot, step).sha256,
+    rollbackDeadlineMs: rollbackCutoff,
+    now
   });
   const recordGateEvidence = createGateEvidenceRecorder({ writeReceipt });
   const routeDisableHandler = createCutoverRouteDisableHandler({ runStep, recordGateEvidence });
@@ -191,7 +193,9 @@ export async function resumeProductionCutoverSignoff({
     writeReceipt,
     cwd: projectRoot,
     expectedStepBundleSha256: expectedStepBundles,
-    inspectStepBundle: (step) => inspectStepBundle(projectRoot, step).sha256
+    inspectStepBundle: (step) => inspectStepBundle(projectRoot, step).sha256,
+    rollbackDeadlineMs: rollbackCutoff,
+    now
   });
   const recordGateEvidence = createGateEvidenceRecorder({ writeReceipt });
   const routeDisableHandler = createCutoverRouteDisableHandler({ runStep, recordGateEvidence });

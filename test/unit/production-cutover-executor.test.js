@@ -70,20 +70,26 @@ test('물리 parent 아래 receipt root만 새로 준비한다', async () => {
 
 test('변경창·확인·root가 맞으면 12 Gate 14 step을 합성 실행하되 GO로 승격하지 않는다', async () => {
   const { executeProductionCutover } = await modulePromise;
-  let stepCount = 0; let receiptCount = 0;
+  let stepCount = 0; let receiptCount = 0; let runnerOptions = null;
   const result = await executeProductionCutover({
     execute: true, now: insideWindow, externalActionConfirmed: true,
     ensureReceiptRoot: () => 'synthetic-root',
     createWriter: () => async ({ kind, gate, step }) => { receiptCount += 1; return `synthetic://${kind}/${gate}/${step}/${receiptCount}`; },
-    createRunner: ({ writeReceipt }) => async (step) => {
+    createRunner: (options) => {
+      runnerOptions = options;
+      const { writeReceipt } = options;
+      return async (step) => {
       stepCount += 1;
       return { exitCode: 0, status: step.acceptedStatuses[0], evidenceRef: await writeReceipt({ kind: 'step', gate: step.gate, step: step.id, status: step.acceptedStatuses[0] }) };
+      };
     }
   });
   assert.equal(result.status, 'READY_FOR_CUTOVER_EVIDENCE_FINALIZATION');
   assert.equal(result.executedGates.length, 12);
   assert.equal(stepCount, 14);
   assert.equal(receiptCount, 26);
+  assert.equal(runnerOptions.rollbackDeadlineMs, Date.parse('2026-09-11T13:00:00.000Z'));
+  assert.equal(runnerOptions.now, insideWindow);
   assert.equal(result.productionGo, false);
 });
 
@@ -123,7 +129,7 @@ test('동일 run 역할·서명 6건 뒤 Gate 12만 재개한다', async () => {
     checkedAt: '2026-09-11T12:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
     completedGates: ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'].map((gate, index) => ({ gate, evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: 'b'.repeat(64) }))
   };
-  let stepCount = 0;
+  let stepCount = 0; let runnerOptions = null;
   const references = { ADMIN: true, MANAGER: true, USER: true, BUSINESS: true, SECURITY: true, OPERATIONS: true };
   const result = await resumeProductionCutoverSignoff({
     execute: true, confirmation: SIGNOFF_RESUME_CONFIRMATION, runId: checkpoint.runId, releaseSha: checkpoint.releaseSha,
@@ -131,14 +137,20 @@ test('동일 run 역할·서명 6건 뒤 Gate 12만 재개한다', async () => {
     ensureReceiptRoot: () => 'synthetic-root', loadCheckpoint: () => checkpoint,
     validateReceipts: () => ({ status: 'PASS_SIGNOFF_RESUME_RECEIPTS', failures: [], receiptCount: 24 }),
     createWriter: () => syntheticWriter(checkpoint.runId),
-    createRunner: ({ writeReceipt }) => async (step) => {
+    createRunner: (options) => {
+      runnerOptions = options;
+      const { writeReceipt } = options;
+      return async (step) => {
       stepCount += 1;
       return { exitCode: 0, status: step.acceptedStatuses[0], evidenceRef: await writeReceipt({ kind: 'step', gate: step.gate, step: step.id }) };
+      };
     }
   });
   assert.equal(result.status, 'READY_FOR_CUTOVER_EVIDENCE_FINALIZATION');
   assert.deepEqual(result.executedGates, ['uat_signoff']);
   assert.equal(stepCount, 1);
+  assert.equal(runnerOptions.rollbackDeadlineMs, Date.parse('2026-09-11T13:00:00.000Z'));
+  assert.equal(runnerOptions.now, insideWindow);
   assert.equal(result.productionGo, false);
 });
 

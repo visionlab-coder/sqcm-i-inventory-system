@@ -166,6 +166,69 @@ test('role smoke child 자원 실패 receipt에는 stale PASS summary를 남기�
   assert.equal(receipts[0].summary, null);
 });
 
+test('정상 cutover child timeout은 rollback cutoff 전 격리 reserve를 남긴 시간으로 축소된다', async () => {
+  const { createProcessStepRunner } = await modulePromise;
+  const { CUTOVER_GATE_ADAPTER_PLAN } = await adapterModulePromise;
+  const step = { gate: 'artifact', ...CUTOVER_GATE_ADAPTER_PLAN.artifact[0] };
+  const calls = [];
+  const run = createProcessStepRunner({
+    writeReceipt: async () => 'receipt.json',
+    spawnStep: async (value) => { calls.push(value); return { exitCode: 0, stdout: '{"status":"READY_FOR_CHANGE_WINDOW_EXECUTION"}', stderr: '' }; },
+    timeoutMs: 10000,
+    rollbackDeadlineMs: 5000,
+    rollbackReserveMs: 1000,
+    now: () => 1000
+  });
+  await run(step);
+  assert.equal(calls[0].timeoutMs, 3000);
+});
+
+test('rollback reserve가 소진되면 정상 child를 spawn하지 않고 bounded receipt를 남긴다', async () => {
+  const { createProcessStepRunner } = await modulePromise;
+  const { CUTOVER_GATE_ADAPTER_PLAN } = await adapterModulePromise;
+  const step = { gate: 'artifact', ...CUTOVER_GATE_ADAPTER_PLAN.artifact[0] };
+  const receipts = [];
+  let spawnCount = 0;
+  const run = createProcessStepRunner({
+    writeReceipt: async (value) => { receipts.push(value); return 'receipt.json'; },
+    spawnStep: async () => { spawnCount += 1; return { exitCode: 0, stdout: '{"status":"READY_FOR_CHANGE_WINDOW_EXECUTION"}', stderr: '' }; },
+    rollbackDeadlineMs: 5000,
+    rollbackReserveMs: 1000,
+    now: () => 4000
+  });
+  const result = await run(step);
+  assert.equal(spawnCount, 0);
+  assert.equal(result.status, 'FAIL_CUTOVER_CHILD_ROLLBACK_DEADLINE_EXHAUSTED');
+  assert.equal(receipts[0].status, 'FAIL_CUTOVER_CHILD_ROLLBACK_DEADLINE_EXHAUSTED');
+});
+
+test('route-disable containment child는 rollback reserve 소진 뒤에도 bounded 실행된다', async () => {
+  const { createProcessStepRunner } = await modulePromise;
+  const { CUTOVER_ROUTE_DISABLE_ADAPTER } = await adapterModulePromise;
+  const step = { gate: 'route_disable', ...CUTOVER_ROUTE_DISABLE_ADAPTER };
+  const calls = [];
+  const run = createProcessStepRunner({
+    writeReceipt: async () => 'receipt.json',
+    spawnStep: async (value) => { calls.push(value); return { exitCode: 0, stdout: '{"status":"PASS_PUBLIC_ROUTE_DISABLED"}', stderr: '' }; },
+    timeoutMs: 10000,
+    rollbackDeadlineMs: 5000,
+    rollbackReserveMs: 1000,
+    now: () => 5000
+  });
+  const result = await run(step);
+  assert.equal(result.status, 'PASS_PUBLIC_ROUTE_DISABLED');
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].timeoutMs, 10000);
+});
+
+test('rollback deadline 계약이 유효하지 않으면 runner 생성 단계에서 거부한다', async () => {
+  const { createProcessStepRunner } = await modulePromise;
+  assert.throws(
+    () => createProcessStepRunner({ writeReceipt: async () => 'receipt.json', rollbackDeadlineMs: 'invalid' }),
+    /CUTOVER_CHILD_ROLLBACK_DEADLINE_INVALID/
+  );
+});
+
 test('role smoke summary는 허용된 상태만 남기고 credential·session 값을 제거한다', async () => {
   const { buildStepReceiptSummary } = await modulePromise;
   const role = { passwordStatus: 202, mfaRequired: true, invalidMfaStatus: 401, mfaStatus: 200, actualRole: 'ADMIN', dashboard: 200, cost: 200, admin: 200, logoutStatus: 204, email: 'secret@example.com', password: 'SECRET', cookie: 'SESSION' };

@@ -8,13 +8,16 @@ import { PRODUCTION_CUTOVER_STEP_CONTRACTS } from './production-cutover-bundle.m
 export const PRODUCTION_CUTOVER_RECEIPT_ROOT = 'D:\\seowon_runtime\\sqcm-i-inventory-production\\cutover-receipts';
 export const PRODUCTION_CUTOVER_CHILD_TIMEOUT_MS = 10 * 60 * 1000;
 export const PRODUCTION_CUTOVER_CHILD_MAX_BUFFER_BYTES = 1024 * 1024;
+export const PRODUCTION_CUTOVER_ROLLBACK_RESERVE_MS = 2 * 60 * 1000;
 const PRODUCTION_CUTOVER_CHILD_MAX_TIMEOUT_MS = 30 * 60 * 1000;
 const PRODUCTION_CUTOVER_CHILD_MAX_ALLOWED_BUFFER_BYTES = 4 * 1024 * 1024;
+const PRODUCTION_CUTOVER_ROLLBACK_MAX_RESERVE_MS = 10 * 60 * 1000;
 const CUTOVER_CHILD_FAILURE_STATUSES = new Set([
   'FAIL_CUTOVER_CHILD_TIMEOUT',
   'FAIL_CUTOVER_CHILD_OUTPUT_LIMIT',
   'FAIL_CUTOVER_CHILD_SPAWN_ERROR',
-  'FAIL_CUTOVER_CHILD_SIGNAL'
+  'FAIL_CUTOVER_CHILD_SIGNAL',
+  'FAIL_CUTOVER_CHILD_ROLLBACK_DEADLINE_EXHAUSTED'
 ]);
 
 const SAFE_CUTOVER_CHILD_RUNTIME_ENVIRONMENT = Object.freeze([
@@ -231,9 +234,17 @@ export function createProcessStepRunner({
   expectedStepBundleSha256 = null,
   inspectStepBundle = null,
   timeoutMs = PRODUCTION_CUTOVER_CHILD_TIMEOUT_MS,
-  maxBufferBytes = PRODUCTION_CUTOVER_CHILD_MAX_BUFFER_BYTES
+  maxBufferBytes = PRODUCTION_CUTOVER_CHILD_MAX_BUFFER_BYTES,
+  rollbackDeadlineMs = null,
+  rollbackReserveMs = PRODUCTION_CUTOVER_ROLLBACK_RESERVE_MS,
+  now = () => Date.now()
 } = {}) {
   if (typeof spawnStep !== 'function' || typeof writeReceipt !== 'function') throw new Error('CUTOVER_PROCESS_RUNNER_DEPENDENCY_INVALID');
+  if (rollbackDeadlineMs !== null && !Number.isFinite(rollbackDeadlineMs)) throw new Error('CUTOVER_CHILD_ROLLBACK_DEADLINE_INVALID');
+  if (!Number.isInteger(rollbackReserveMs) || rollbackReserveMs < 1000 || rollbackReserveMs > PRODUCTION_CUTOVER_ROLLBACK_MAX_RESERVE_MS) {
+    throw new Error('CUTOVER_CHILD_ROLLBACK_RESERVE_INVALID');
+  }
+  if (typeof now !== 'function') throw new Error('CUTOVER_CHILD_CLOCK_INVALID');
   return async (step) => {
     const bundleKey = `${step?.gate}:${step?.id}`;
     const expectedBundle = expectedStepBundleSha256?.[bundleKey];
@@ -242,7 +253,20 @@ export function createProcessStepRunner({
         || inspectStepBundle(step) !== expectedBundle) throw new Error('CUTOVER_CHILD_BUNDLE_CHANGED');
     }
     const environment = buildCutoverStepChildEnvironment(step, sourceEnvironment);
-    const raw = await spawnStep({ script: step.script, args: step.args, cwd, environment, timeoutMs, maxBufferBytes });
+    let stepTimeoutMs = timeoutMs;
+    let raw;
+    const containmentStep = step.gate === 'route_disable' || step.gate === 'ingress_orphan_recovery';
+    if (rollbackDeadlineMs !== null && !containmentStep) {
+      const checkedAtMs = Number(now());
+      if (!Number.isFinite(checkedAtMs)) throw new Error('CUTOVER_CHILD_CLOCK_INVALID');
+      const remainingMs = Math.floor(rollbackDeadlineMs - checkedAtMs - rollbackReserveMs);
+      if (remainingMs < 1) {
+        raw = { exitCode: -1, stdout: '', stderr: '', failureStatus: 'FAIL_CUTOVER_CHILD_ROLLBACK_DEADLINE_EXHAUSTED' };
+      } else {
+        stepTimeoutMs = Math.min(timeoutMs, remainingMs);
+      }
+    }
+    if (!raw) raw = await spawnStep({ script: step.script, args: step.args, cwd, environment, timeoutMs: stepTimeoutMs, maxBufferBytes });
     if (expectedStepBundleSha256 !== null && inspectStepBundle(step) !== expectedBundle) throw new Error('CUTOVER_CHILD_BUNDLE_CHANGED');
     const outcome = normalizeStepOutcome({ ...raw, step });
     const summary = outcome.status.startsWith('FAIL_CUTOVER_CHILD_')
