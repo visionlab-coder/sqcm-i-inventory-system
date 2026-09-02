@@ -1,5 +1,6 @@
-import { existsSync, readFileSync, statSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { validateRoleCredential } from '../src/operations/production-role-core-smoke.mjs';
 import {
   AUTHENTICATED_IDEMPOTENCY_WRITE_CONFIRMATION,
@@ -13,16 +14,17 @@ import {
   requestAuthenticatedIdempotencyHttp,
   runAuthenticatedIdempotencyProcess
 } from '../src/operations/production-authenticated-idempotency-runtime.mjs';
+import { inspectProductionUatJsonReference, readProductionUatJsonDocument } from '../src/operations/production-uat-input-reader.mjs';
 import { PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
 
 const require = createRequire(import.meta.url);
 const { totp } = require('../src/services/mfa-service');
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CREDENTIAL_ENV = 'PRODUCTION_UAT_ADMIN_CREDENTIAL_FILE';
 const CONFIRMATION_ENV = 'PRODUCTION_UAT_WRITE_CONFIRMATION';
 
 function existingFile(value) {
-  if (!value || !existsSync(value)) return false;
-  try { return statSync(value).isFile(); } catch { return false; }
+  return inspectProductionUatJsonReference(value, { repositoryRoot: projectRoot }).present;
 }
 
 function cookieFrom(response) { return response.headers.get('set-cookie')?.split(';')[0] || ''; }
@@ -94,7 +96,7 @@ async function executeAuthenticatedIdempotency() {
   let key = null;
   let container = null;
   try {
-    const credential = JSON.parse(readFileSync(process.env[CREDENTIAL_ENV], 'utf8'));
+    const credential = readProductionUatJsonDocument(process.env[CREDENTIAL_ENV], { repositoryRoot: projectRoot }).value;
     if (!validateRoleCredential(credential)) throw new Error('AUTHENTICATED_IDEMPOTENCY_CREDENTIAL_REFERENCE_INVALID');
     const csrfResponse = await get('/api/auth/csrf');
     const anonymous = { cookie:cookieFrom(csrfResponse),token:(await data(csrfResponse)).csrfToken };

@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { evaluateChangeWindowInputReadiness, MUTATING_CONFIRMATION_NAMES, PREWINDOW_REFERENCE_NAMES } from '../src/operations/production-change-window-input-readiness.mjs';
+import { inspectProductionUatJsonReference, readProductionUatJsonDocument } from '../src/operations/production-uat-input-reader.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const isPhysicalFile = (value) => {
@@ -11,14 +12,16 @@ const isPhysicalFile = (value) => {
 const isPhysicalDirectory = (value) => {
   try { const resolved = path.resolve(value); const stat = fs.lstatSync(resolved); return stat.isDirectory() && !stat.isSymbolicLink() && !(stat.isReparsePoint?.() ?? false) && path.resolve(fs.realpathSync(resolved)).toLowerCase() === resolved.toLowerCase(); } catch { return false; }
 };
-const readJson = (name) => JSON.parse(fs.readFileSync(process.env[name], 'utf8'));
-const physicalReferences = Object.fromEntries(PREWINDOW_REFERENCE_NAMES.map((name) => [name, isPhysicalFile(process.env[name])]));
+const uatReferenceNames = new Set(['PRODUCTION_UAT_ACTOR_APPROVAL_FILE', 'PRODUCTION_UAT_ADMIN_CREDENTIAL_FILE', 'PRODUCTION_UAT_MANAGER_CREDENTIAL_FILE', 'PRODUCTION_UAT_USER_CREDENTIAL_FILE']);
+const uatReferencePresent = (name) => inspectProductionUatJsonReference(process.env[name], { repositoryRoot: projectRoot }).present;
+const readUatJson = (name) => readProductionUatJsonDocument(process.env[name], { repositoryRoot: projectRoot }).value;
+const physicalReferences = Object.fromEntries(PREWINDOW_REFERENCE_NAMES.map((name) => [name, uatReferenceNames.has(name) ? uatReferencePresent(name) : isPhysicalFile(process.env[name])]));
 const actorReady = ['PRODUCTION_UAT_ACTOR_APPROVAL_FILE', 'PRODUCTION_UAT_ADMIN_CREDENTIAL_FILE', 'PRODUCTION_UAT_MANAGER_CREDENTIAL_FILE', 'PRODUCTION_UAT_USER_CREDENTIAL_FILE'].every((name) => physicalReferences[name]);
 let approval = null; let credentials = {};
 try {
   if (actorReady) {
-    approval = readJson('PRODUCTION_UAT_ACTOR_APPROVAL_FILE');
-    credentials = Object.fromEntries(['ADMIN', 'MANAGER', 'USER'].map((role) => [role, readJson(`PRODUCTION_UAT_${role}_CREDENTIAL_FILE`)]));
+    approval = readUatJson('PRODUCTION_UAT_ACTOR_APPROVAL_FILE');
+    credentials = Object.fromEntries(['ADMIN', 'MANAGER', 'USER'].map((role) => [role, readUatJson(`PRODUCTION_UAT_${role}_CREDENTIAL_FILE`)]));
   }
 } catch { approval = {}; credentials = {}; }
 const outputPath = process.env.PRODUCTION_CUTOVER_ACTUAL_EVIDENCE_FILE;

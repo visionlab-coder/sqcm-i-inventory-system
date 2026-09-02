@@ -1,4 +1,5 @@
-import { existsSync, statSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
 import { PRODUCTION_UAT_ROLES, evaluateProductionRolePreflight } from '../src/operations/production-role-preflight.mjs';
 import {
@@ -6,6 +7,9 @@ import {
   parseProductionRolePreflightCounts,
   runProductionRolePreflightProcess
 } from '../src/operations/production-role-preflight-runtime.mjs';
+import { inspectProductionUatJsonReference } from '../src/operations/production-uat-input-reader.mjs';
+
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const CREDENTIAL_REFERENCE_ENV = Object.freeze({
   ADMIN: 'PRODUCTION_UAT_ADMIN_CREDENTIAL_FILE',
@@ -22,8 +26,7 @@ function dockerContainer(service) {
 }
 
 function isExistingFile(value) {
-  if (!value || !existsSync(value)) return false;
-  try { return statSync(value).isFile(); } catch { return false; }
+  return inspectProductionUatJsonReference(value, { repositoryRoot: projectRoot }).present;
 }
 
 async function main() {

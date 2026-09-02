@@ -1,16 +1,16 @@
-import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
 import { validateRoleCredential } from '../src/operations/production-role-core-smoke.mjs';
 import { PRODUCTION_UAT_ACTOR_PROVISION_CONFIRMATION, PRODUCTION_UAT_ACTOR_ROLES, classifyProductionUatActorProvisionResult, evaluateProductionUatActorProvisionGate, validateProductionUatActorApproval } from '../src/operations/production-uat-actor-provision.mjs';
 import { cleanupProductionUatActorWorker, parseProductionUatActorWorkerResult, runProductionUatActorProcess } from '../src/operations/production-uat-actor-provision-runtime.mjs';
+import { inspectProductionUatJsonReference, readProductionUatJsonDocument } from '../src/operations/production-uat-input-reader.mjs';
 
 const projectDir=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const APPROVAL_ENV='PRODUCTION_UAT_ACTOR_APPROVAL_FILE';
 const REFERENCE_ENV=Object.freeze({ADMIN:'PRODUCTION_UAT_ADMIN_CREDENTIAL_FILE',MANAGER:'PRODUCTION_UAT_MANAGER_CREDENTIAL_FILE',USER:'PRODUCTION_UAT_USER_CREDENTIAL_FILE'});
 const WORKER_LOCAL=path.join(projectDir,'scripts','production-uat-actor-provision-worker.cjs');const WORKER_CONTAINER='/tmp/sqcm-i-production-uat-actor-provision-worker.cjs';
-const exactFile=(value)=>{if(!value||!existsSync(value))return false;try{return statSync(value).isFile();}catch{return false;}};
+const exactFile=(value)=>inspectProductionUatJsonReference(value,{repositoryRoot:projectDir}).present;
 const run=(args,options={})=>runProductionUatActorProcess(args,options);
 const container=()=>{const r=run(['ps','--filter','label=com.docker.compose.project=seowon-inventory-production','--filter','label=com.docker.compose.service=backend','--format','{{.ID}}']);const ids=r.stdout.trim().split(/\r?\n/).filter(Boolean);if(r.status!==0||ids.length!==1||!/^[a-f0-9]{12,64}$/.test(ids[0]))throw new Error('UAT_ACTOR_BACKEND_CONTAINER_INVALID');return ids[0];};
 
@@ -21,8 +21,8 @@ if(gate.status!=='READY_UAT_ACTOR_PROVISION_EXECUTION'){
 }else{
   let backend=null;let workerCopied=false;let workerExecutionStarted=false;let workerCleanupSucceeded=null;let finalOutput=null;let failure=null;
   try{
-    const approval=JSON.parse(readFileSync(process.env[APPROVAL_ENV],'utf8'));if(!validateProductionUatActorApproval(approval))throw new Error('UAT_ACTOR_APPROVAL_CONTRACT_INVALID');
-    const credentials=Object.fromEntries(PRODUCTION_UAT_ACTOR_ROLES.map((role)=>[role,JSON.parse(readFileSync(process.env[REFERENCE_ENV[role]],'utf8'))]));
+    const approval=readProductionUatJsonDocument(process.env[APPROVAL_ENV],{repositoryRoot:projectDir}).value;if(!validateProductionUatActorApproval(approval))throw new Error('UAT_ACTOR_APPROVAL_CONTRACT_INVALID');
+    const credentials=Object.fromEntries(PRODUCTION_UAT_ACTOR_ROLES.map((role)=>[role,readProductionUatJsonDocument(process.env[REFERENCE_ENV[role]],{repositoryRoot:projectDir}).value]));
     for(const role of PRODUCTION_UAT_ACTOR_ROLES)if(!validateRoleCredential(credentials[role]))throw new Error('UAT_ACTOR_CREDENTIAL_REFERENCE_INVALID');
     const approvedByRole=Object.fromEntries(approval.actors.map((actor)=>[String(actor.role).toUpperCase(),String(actor.email).toLowerCase()]));
     for(const role of PRODUCTION_UAT_ACTOR_ROLES)if(String(credentials[role].email).toLowerCase()!==approvedByRole[role])throw new Error('UAT_ACTOR_CREDENTIAL_EMAIL_NOT_APPROVED');

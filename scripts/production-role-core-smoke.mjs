@@ -1,5 +1,6 @@
-import { existsSync, readFileSync, statSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
 import {
   ROLE_CORE_SMOKE_ROLES,
@@ -15,9 +16,11 @@ import {
   readRoleSmokeJson,
   requestRoleSmokeHttp
 } from '../src/operations/production-role-core-smoke-runtime.mjs';
+import { inspectProductionUatJsonReference, readProductionUatJsonDocument } from '../src/operations/production-uat-input-reader.mjs';
 
 const require = createRequire(import.meta.url);
 const { totp } = require('../src/services/mfa-service');
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REFERENCE_ENV = Object.freeze({
   ADMIN: 'PRODUCTION_UAT_ADMIN_CREDENTIAL_FILE',
   MANAGER: 'PRODUCTION_UAT_MANAGER_CREDENTIAL_FILE',
@@ -25,8 +28,7 @@ const REFERENCE_ENV = Object.freeze({
 });
 
 function existingFile(value) {
-  if (!value || !existsSync(value)) return false;
-  try { return statSync(value).isFile(); } catch { return false; }
+  return inspectProductionUatJsonReference(value, { repositoryRoot: projectRoot }).present;
 }
 
 function cookieFrom(response) {
@@ -141,7 +143,7 @@ if (missing.length) {
 async function executeRoleCoreSmoke() {
   const credentials = {};
   for (const role of ROLE_CORE_SMOKE_ROLES) {
-    credentials[role] = JSON.parse(readFileSync(process.env[REFERENCE_ENV[role]], 'utf8'));
+    credentials[role] = readProductionUatJsonDocument(process.env[REFERENCE_ENV[role]], { repositoryRoot: projectRoot }).value;
     if (!validateRoleCredential(credentials[role])) throw new Error('ROLE_SMOKE_CREDENTIAL_REFERENCE_INVALID');
   }
   const results = {};
