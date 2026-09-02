@@ -341,6 +341,7 @@ function verify() {
       ['production-cutover-signoff-resume-rehearsal', 'npm.cmd', ['run', 'production:cutover-signoff-resume-rehearsal']],
       ['production-cutover-signoff-resume-runtime-rehearsal', 'npm.cmd', ['run', 'production:cutover-signoff-resume-runtime-rehearsal']],
       ['production-ingress-publication', 'npm.cmd', ['run', 'production:ingress-publication']],
+      ['production-ingress-lease-recovery', 'npm.cmd', ['run', 'production:ingress-lease-recovery']],
       ['production-provider-preflight', 'npm.cmd', ['run', 'production:provider-preflight']],
       ['production-public-probe', 'npm.cmd', ['run', 'production:public-probe']],
       ['production-log-gate', 'npm.cmd', ['run', 'production:log-gate']],

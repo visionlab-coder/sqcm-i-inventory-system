@@ -15,6 +15,8 @@ export const INGRESS_CONFIG_MAX_BYTES = 16 * 1024;
 export const INGRESS_CREDENTIAL_MAX_BYTES = 64 * 1024;
 export const INGRESS_PUBLICATION_LEASE_MAX_BYTES = 4 * 1024;
 export const INGRESS_PUBLICATION_LEASE_BASENAME = '.production-ingress-publication.lock';
+export const INGRESS_PUBLICATION_LEASE_MINIMUM_STALE_MS = 5 * 60 * 1000;
+export const PRODUCTION_INGRESS_LEASE_RECOVERY_CONFIRMATION = 'ACK-RECOVER-PRODUCTION-INGRESS-LEASE';
 
 function physicalDirectory(stat) {
   return stat?.isDirectory?.() === true
@@ -168,9 +170,9 @@ export function acquireProductionIngressPublicationLease({
   return { path: leasePath, root, leaseId, processId, acquiredAt: document.acquiredAt };
 }
 
-export function releaseProductionIngressPublicationLease(lease, { io = fs } = {}) {
-  const root = typeof lease?.root === 'string' && lease.root ? path.resolve(lease.root) : null;
-  const leasePath = typeof lease?.path === 'string' && lease.path ? path.resolve(lease.path) : null;
+function readProductionIngressPublicationLease(runtimeDirectory, { io = fs } = {}) {
+  const root = typeof runtimeDirectory === 'string' && runtimeDirectory ? path.resolve(runtimeDirectory) : null;
+  const leasePath = root ? path.join(root, INGRESS_PUBLICATION_LEASE_BASENAME) : null;
   if (!root || !leasePath || leasePath.toLowerCase() !== path.join(root, INGRESS_PUBLICATION_LEASE_BASENAME).toLowerCase()
     || !exactPhysicalDirectory(root, io)) throw new Error('INGRESS_PUBLICATION_LEASE_INPUT_INVALID');
 
@@ -210,15 +212,78 @@ export function releaseProductionIngressPublicationLease(lease, { io = fs } = {}
     throw new Error('INGRESS_PUBLICATION_LEASE_STATE_INVALID');
   }
   if (!document || Array.isArray(document) || document.schemaVersion !== 1
-    || document.leaseId !== lease.leaseId || document.processId !== lease.processId
-    || document.acquiredAt !== lease.acquiredAt || document.secretValuesRecorded !== false) {
+    || !/^[a-f0-9-]{36}$/i.test(document.leaseId ?? '')
+    || !Number.isSafeInteger(document.processId) || document.processId < 1
+    || Number.isNaN(Date.parse(document.acquiredAt ?? ''))
+    || document.secretValuesRecorded !== false) {
+    throw new Error('INGRESS_PUBLICATION_LEASE_STATE_INVALID');
+  }
+  return { root, path: leasePath, document, identity: before };
+}
+
+export function releaseProductionIngressPublicationLease(lease, { io = fs } = {}) {
+  const snapshot = readProductionIngressPublicationLease(lease?.root, { io });
+  if (snapshot.path.toLowerCase() !== path.resolve(lease?.path ?? '').toLowerCase()
+    || snapshot.document.leaseId !== lease?.leaseId || snapshot.document.processId !== lease?.processId
+    || snapshot.document.acquiredAt !== lease?.acquiredAt) {
     throw new Error('INGRESS_PUBLICATION_LEASE_OWNERSHIP_MISMATCH');
   }
   let current;
-  try { current = io.lstatSync(leasePath); } catch { throw new Error('INGRESS_PUBLICATION_LEASE_STATE_UNSTABLE'); }
-  if (!sameIdentity(before, current)) throw new Error('INGRESS_PUBLICATION_LEASE_STATE_UNSTABLE');
-  io.unlinkSync(leasePath);
+  try { current = io.lstatSync(snapshot.path); } catch { throw new Error('INGRESS_PUBLICATION_LEASE_STATE_UNSTABLE'); }
+  if (!sameIdentity(snapshot.identity, current)) throw new Error('INGRESS_PUBLICATION_LEASE_STATE_UNSTABLE');
+  io.unlinkSync(snapshot.path);
   return true;
+}
+
+function defaultProcessExists(processId) {
+  try { process.kill(processId, 0); return true; }
+  catch (error) { return error?.code === 'EPERM'; }
+}
+
+export function recoverProductionIngressPublicationLease({
+  runtimeDirectory,
+  execute = false,
+  insideWindow = false,
+  confirmation = null,
+  checkedAt = new Date().toISOString(),
+  minimumStaleMs = INGRESS_PUBLICATION_LEASE_MINIMUM_STALE_MS,
+  processExists = defaultProcessExists,
+  io = fs
+} = {}) {
+  const checkedAtMs = Date.parse(checkedAt);
+  if (Number.isNaN(checkedAtMs) || !Number.isSafeInteger(minimumStaleMs)
+    || minimumStaleMs < INGRESS_PUBLICATION_LEASE_MINIMUM_STALE_MS
+    || typeof processExists !== 'function') throw new Error('INGRESS_PUBLICATION_LEASE_RECOVERY_INPUT_INVALID');
+  const root = typeof runtimeDirectory === 'string' && runtimeDirectory ? path.resolve(runtimeDirectory) : null;
+  if (!root || !exactPhysicalDirectory(root, io)) throw new Error('INGRESS_PUBLICATION_LEASE_RECOVERY_INPUT_INVALID');
+  const leasePath = path.join(root, INGRESS_PUBLICATION_LEASE_BASENAME);
+  if (!io.existsSync(leasePath)) {
+    return { status: 'PASS_INGRESS_PUBLICATION_LEASE_NOT_PRESENT', externalMutationPerformed: false, productionGo: false };
+  }
+  const snapshot = readProductionIngressPublicationLease(root, { io });
+  const leaseAgeMs = checkedAtMs - Date.parse(snapshot.document.acquiredAt);
+  if (processExists(snapshot.document.processId)) {
+    return { status: 'READY_WAIT_INGRESS_PUBLICATION_LEASE_OWNER_ACTIVE', leaseAgeMs, externalMutationPerformed: false, productionGo: false };
+  }
+  if (leaseAgeMs < minimumStaleMs) {
+    return { status: 'READY_WAIT_INGRESS_PUBLICATION_LEASE_NOT_STALE', leaseAgeMs, externalMutationPerformed: false, productionGo: false };
+  }
+  if (!execute) {
+    return { status: 'PASS_INGRESS_PUBLICATION_LEASE_RECOVERY_DRY_RUN_READY', leaseAgeMs, externalMutationPerformed: false, productionGo: false };
+  }
+  if (!insideWindow) {
+    return { status: 'FAIL_INGRESS_PUBLICATION_LEASE_RECOVERY_OUTSIDE_CHANGE_WINDOW', leaseAgeMs, externalMutationPerformed: false, productionGo: false };
+  }
+  if (confirmation !== PRODUCTION_INGRESS_LEASE_RECOVERY_CONFIRMATION) {
+    return { status: 'READY_WAIT_INGRESS_PUBLICATION_LEASE_RECOVERY_CONFIRMATION', leaseAgeMs, externalMutationPerformed: false, productionGo: false };
+  }
+  let current;
+  try { current = io.lstatSync(snapshot.path); } catch { throw new Error('INGRESS_PUBLICATION_LEASE_STATE_UNSTABLE'); }
+  if (!sameIdentity(snapshot.identity, current) || processExists(snapshot.document.processId)) {
+    throw new Error('INGRESS_PUBLICATION_LEASE_STATE_UNSTABLE');
+  }
+  io.unlinkSync(snapshot.path);
+  return { status: 'PASS_INGRESS_PUBLICATION_LEASE_RECOVERED', leaseAgeMs, externalMutationPerformed: true, productionGo: false };
 }
 
 export function readProductionIngressConfig({
