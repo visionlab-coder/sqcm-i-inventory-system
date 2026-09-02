@@ -93,7 +93,12 @@ export function createCutoverGateHandlers({
   return Object.fromEntries(CUTOVER_GATE_SEQUENCE.map((gate) => [gate, async () => {
     const stepEvidenceRefs = [];
     for (const step of plan[gate]) {
-      const outcome = await runStep({ gate, ...step });
+      let outcome;
+      try {
+        outcome = await runStep({ gate, ...step });
+      } catch {
+        return { status: 'FAIL', reason: `CUTOVER_GATE_STEP_THROWN:${gate}:${step.id}` };
+      }
       if (!passedStep(step, outcome)) {
         return { status: 'FAIL', reason: `CUTOVER_GATE_STEP_NOT_PASS:${gate}:${step.id}` };
       }
@@ -118,7 +123,7 @@ export function createCutoverRouteDisableHandler({ runStep, recordGateEvidence }
     }
 
     const orphanRecoveryRequired = failedGate === 'health_readiness'
-      && /:ingress-publication$/.test(String(failureReason || ''));
+      && /^CUTOVER_GATE_STEP_(?:NOT_PASS|THROWN):health_readiness:ingress-publication$/.test(String(failureReason || ''));
     let orphanRecoveryEvidenceRef = '';
     if (orphanRecoveryRequired) {
       const recoveryOutcome = await runStep({

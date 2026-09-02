@@ -102,6 +102,20 @@ test('ingress-publication 실패 containment는 route-disable과 orphan recovery
   })).status, 'FAIL_INGRESS_ORPHAN_RECOVERY_NOT_VERIFIED');
 });
 
+test('step 예외는 원문 없이 gate와 step identity를 보존한다', async () => {
+  const { createCutoverGateHandlers } = await modulePromise;
+  const handlers = createCutoverGateHandlers({
+    runStep: async () => { throw new Error('provider-secret-and-response-must-not-escape'); },
+    recordGateEvidence: async () => 'synthetic://must-not-record'
+  });
+  const result = await handlers.health_readiness();
+  assert.deepEqual(result, {
+    status: 'FAIL',
+    reason: 'CUTOVER_GATE_STEP_THROWN:health_readiness:ingress-publication'
+  });
+  assert.doesNotMatch(JSON.stringify(result), /provider-secret|response/);
+});
+
 test('adapter plan 변조와 dependency 누락은 handler 생성 전에 차단한다', async () => {
   const { CUTOVER_GATE_ADAPTER_PLAN, createCutoverGateHandlers } = await modulePromise;
   const reversed = Object.fromEntries(Object.entries(CUTOVER_GATE_ADAPTER_PLAN).reverse());

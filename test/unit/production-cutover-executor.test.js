@@ -226,6 +226,27 @@ test('ingress-publication 실패는 route-disable 뒤 orphan recovery까지 검�
   assert.equal(result.productionGo, false);
 });
 
+test('ingress-publication child 예외도 step identity를 잃지 않고 orphan containment한다', async () => {
+  const { executeProductionCutover } = await modulePromise;
+  const calls = [];
+  const result = await executeProductionCutover({
+    execute: true, now: insideWindow, externalActionConfirmed: true,
+    ensureReceiptRoot: () => 'synthetic-root', createWriter: () => syntheticWriter(),
+    createRunner: ({ writeReceipt }) => async (step) => {
+      calls.push(step.id);
+      if (step.id === 'ingress-publication') throw new Error('provider-secret-must-not-escape');
+      return { exitCode: 0, status: step.acceptedStatuses[0], evidenceRef: await writeReceipt({ kind: 'step', gate: step.gate, step: step.id }) };
+    }
+  });
+  assert.equal(result.status, 'PASS_CUTOVER_EXECUTION_FAILURE_CONTAINED');
+  assert.equal(result.gateResults.at(-1).reason, 'CUTOVER_GATE_STEP_THROWN:health_readiness:ingress-publication');
+  assert.deepEqual(calls.slice(-2), ['route-disable', 'ingress-orphan-recovery']);
+  assert.equal(result.orphanRecoveryRequired, true);
+  assert.equal(result.orphanRecoveryVerified, true);
+  assert.doesNotMatch(JSON.stringify(result), /provider-secret/);
+  assert.equal(result.productionGo, false);
+});
+
 test('actual finalization 확인 또는 출력 경로가 없으면 Gate 12를 실행하지 않는다', async () => {
   const { resumeProductionCutoverSignoff, SIGNOFF_RESUME_CONFIRMATION } = await modulePromise;
   const checkpoint = {
