@@ -1,7 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { TextDecoder } from 'node:util';
 import { CUTOVER_GATE_ADAPTER_PLAN } from './production-cutover-gate-adapters.mjs';
+import { ACTUAL_EVIDENCE_INPUT_MAX_BYTES, loadRunReceiptDocuments } from './production-cutover-actual-evidence.mjs';
 import { PRODUCTION_CHANGE_WINDOW } from './production-cutover-preflight.mjs';
 import { CUTOVER_GATE_SEQUENCE } from './production-cutover-orchestrator.mjs';
 
@@ -11,6 +13,7 @@ const RELEASE_SHA = /^[a-f0-9]{40}$/;
 const SHA256 = /^[a-f0-9]{64}$/;
 const RECEIPT_FILE = /^[^\\/]+\.json$/;
 const PRE_SIGNOFF_GATES = Object.freeze(CUTOVER_GATE_SEQUENCE.slice(0, -1));
+export const SIGNOFF_CHECKPOINT_MAX_BYTES = ACTUAL_EVIDENCE_INPUT_MAX_BYTES;
 
 const inApprovedWindow = (value) => {
   const time = Date.parse(value);
@@ -87,11 +90,84 @@ function physicalDirectory(directory, io = fs) {
   return resolved;
 }
 
-export function sha256PhysicalFile(filePath, { io = fs } = {}) {
-  const resolved = path.resolve(filePath);
-  const stat = io.lstatSync(resolved);
-  if (!stat.isFile() || stat.isSymbolicLink() || (stat.isReparsePoint?.() ?? false)) throw new Error('SIGNOFF_RESUME_RECEIPT_NOT_PHYSICAL');
-  return createHash('sha256').update(io.readFileSync(resolved)).digest('hex');
+function samePhysicalPath(left, right) {
+  return process.platform === 'win32' ? left.toLowerCase() === right.toLowerCase() : left === right;
+}
+
+function physicalFile(stat) {
+  return stat.isFile() && !stat.isSymbolicLink() && !(stat.isReparsePoint?.() ?? false);
+}
+
+function physicalDirectoryStat(stat) {
+  return stat.isDirectory() && !stat.isSymbolicLink() && !(stat.isReparsePoint?.() ?? false);
+}
+
+function sameIdentity(before, after) {
+  return before.size === after.size && before.dev === after.dev && before.ino === after.ino
+    && before.mtimeMs === after.mtimeMs && before.ctimeMs === after.ctimeMs;
+}
+
+function readAtomicSignoffFile(filePath, {
+  io = fs,
+  repositoryRoot = process.cwd(),
+  extension,
+  maxBytes = SIGNOFF_CHECKPOINT_MAX_BYTES,
+  errorPrefix
+} = {}) {
+  const invalidCode = `${errorPrefix}_NOT_PHYSICAL`;
+  const unstableCode = `${errorPrefix}_UNSTABLE`;
+  if (typeof filePath !== 'string' || !path.isAbsolute(filePath)
+    || path.extname(filePath).toLowerCase() !== extension
+    || typeof repositoryRoot !== 'string' || !repositoryRoot
+    || !Number.isInteger(maxBytes) || maxBytes < 1 || maxBytes > SIGNOFF_CHECKPOINT_MAX_BYTES) {
+    throw new Error(invalidCode);
+  }
+  const repository = path.resolve(repositoryRoot);
+  const candidate = path.resolve(filePath);
+  if (!outsideRepository(candidate, repository)) throw new Error(`${errorPrefix}_MUST_BE_EXTERNAL`);
+
+  let repositoryBefore;
+  let repositoryRealBefore;
+  let before;
+  let candidateRealBefore;
+  try {
+    repositoryBefore = io.lstatSync(repository);
+    repositoryRealBefore = path.resolve(io.realpathSync(repository));
+    before = io.lstatSync(candidate);
+    candidateRealBefore = path.resolve(io.realpathSync(candidate));
+  } catch { throw new Error(invalidCode); }
+  if (!physicalDirectoryStat(repositoryBefore) || !samePhysicalPath(repositoryRealBefore, repository)
+    || !physicalFile(before) || !samePhysicalPath(candidateRealBefore, candidate)
+    || !outsideRepository(candidateRealBefore, repositoryRealBefore)
+    || before.size < 1 || before.size > maxBytes) throw new Error(invalidCode);
+
+  let raw;
+  try { raw = io.readFileSync(candidateRealBefore); } catch { throw new Error(`${errorPrefix}_READ_FAILED`); }
+  if (!Buffer.isBuffer(raw) || raw.length !== before.size || raw.length > maxBytes) throw new Error(unstableCode);
+
+  try {
+    const repositoryAfter = io.lstatSync(repository);
+    const repositoryRealAfter = path.resolve(io.realpathSync(repository));
+    const after = io.lstatSync(candidate);
+    const candidateRealAfter = path.resolve(io.realpathSync(candidate));
+    if (!physicalDirectoryStat(repositoryAfter) || !sameIdentity(repositoryBefore, repositoryAfter)
+      || !samePhysicalPath(repositoryRealBefore, repositoryRealAfter)
+      || !samePhysicalPath(repositoryRealAfter, repository)
+      || !physicalFile(after) || !sameIdentity(before, after)
+      || !samePhysicalPath(candidateRealBefore, candidateRealAfter)
+      || !samePhysicalPath(candidateRealAfter, candidate)
+      || !outsideRepository(candidateRealAfter, repositoryRealAfter)) throw new Error(unstableCode);
+  } catch (error) {
+    if (error?.message === unstableCode) throw error;
+    throw new Error(unstableCode);
+  }
+  return { raw, sha256: createHash('sha256').update(raw).digest('hex') };
+}
+
+export function sha256PhysicalFile(filePath, { io = fs, repositoryRoot = process.cwd() } = {}) {
+  return readAtomicSignoffFile(filePath, {
+    io, repositoryRoot, extension: '.json', errorPrefix: 'SIGNOFF_RESUME_RECEIPT'
+  }).sha256;
 }
 
 function outsideRepository(resolved, repositoryRoot) {
@@ -110,25 +186,27 @@ export function writeSignoffPauseCheckpoint(outputPath, checkpoint, { io = fs, r
 }
 
 export function loadSignoffPauseCheckpoint(filePath, { io = fs, repositoryRoot = process.cwd() } = {}) {
-  const resolved = path.resolve(filePath);
-  if (!outsideRepository(resolved, repositoryRoot)) throw new Error('SIGNOFF_CHECKPOINT_MUST_BE_EXTERNAL');
-  const stat = io.lstatSync(resolved);
-  if (!stat.isFile() || stat.isSymbolicLink() || (stat.isReparsePoint?.() ?? false) || path.extname(resolved) !== '.checkpoint') throw new Error('SIGNOFF_CHECKPOINT_NOT_PHYSICAL');
-  return JSON.parse(io.readFileSync(resolved, 'utf8'));
+  const { raw } = readAtomicSignoffFile(filePath, {
+    io, repositoryRoot, extension: '.checkpoint', errorPrefix: 'SIGNOFF_CHECKPOINT'
+  });
+  let source;
+  try { source = new TextDecoder('utf-8', { fatal: true }).decode(raw); } catch {
+    throw new Error('SIGNOFF_CHECKPOINT_UTF8_INVALID');
+  }
+  let value;
+  try { value = JSON.parse(source); } catch { throw new Error('SIGNOFF_CHECKPOINT_JSON_INVALID'); }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('SIGNOFF_CHECKPOINT_JSON_INVALID');
+  return value;
 }
 
-export function validateSignoffResumeReceipts({ root, checkpoint, io = fs } = {}) {
+export function validateSignoffResumeReceipts({ root, checkpoint, io = fs, repositoryRoot = process.cwd() } = {}) {
   const failures = [];
-  let resolvedRoot;
-  try { resolvedRoot = physicalDirectory(root, io); } catch { return { status: 'FAIL_SIGNOFF_RESUME_RECEIPTS', failures: ['RECEIPT_ROOT_NOT_PHYSICAL'], receiptCount: 0 }; }
-  const names = io.readdirSync(resolvedRoot).filter((name) => name.endsWith('.json'));
-  const documents = [];
-  for (const name of names) {
-    const filePath = path.join(resolvedRoot, name);
-    let value;
-    try { value = JSON.parse(io.readFileSync(filePath, 'utf8')); } catch { failures.push(`RECEIPT_JSON_INVALID:${name}`); continue; }
-    if (value?.runId !== checkpoint?.runId) continue;
-    documents.push({ name, value, sha256: sha256PhysicalFile(filePath, { io }) });
+  let documents;
+  try {
+    documents = loadRunReceiptDocuments(root, checkpoint?.runId, { io, repositoryRoot })
+      .map(({ fileName, value, sha256 }) => ({ name: fileName, value, sha256 }));
+  } catch {
+    return { status: 'FAIL_SIGNOFF_RESUME_RECEIPTS', failures: ['RECEIPT_ATOMIC_SNAPSHOT_INVALID'], receiptCount: 0 };
   }
   if (documents.some((item) => item.value?.schemaVersion !== 1 || !inApprovedWindow(item.value?.checkedAt)
     || item.value?.productionGo !== false || !['step', 'gate'].includes(item.value?.kind))) failures.push('RECEIPT_COMMON_PROVENANCE_INVALID');
