@@ -1,0 +1,34 @@
+{
+  "packet": "ACC-P6-85-PRODUCTION-CUTOVER-RECEIPT-SEQUENCE-PROVENANCE",
+  "status": "PASS_PRODUCTION_CUTOVER_RECEIPT_SEQUENCE_PROVENANCE",
+  "scope": {
+    "stepReceiptCount": 14,
+    "gateReceiptCount": 12,
+    "totalReceiptCount": 26,
+    "sequenceStart": 1,
+    "sequenceEnd": 26,
+    "continuousSequenceRequired": true,
+    "uniqueSequenceRequired": true,
+    "expectedIdentityOrderRequired": true,
+    "runtimePayloadSequenceRecorded": true
+  },
+  "failureFirst": {
+    "reproducedFailureCount": 2,
+    "swappedOrDuplicatedSequenceAcceptedDetected": true,
+    "runtimePayloadSequenceMissingDetected": true
+  },
+  "focusedTests": { "total": 52, "passed": 51, "failed": 0, "skipped": 1 },
+  "repositoryChecks": { "syntaxPassed": 414, "unitTotal": 867, "unitPassed": 859, "unitFailed": 0, "unitSkipped": 8 },
+  "implementationCommit": "020ed6e97c19be1d8e7bb3c227c347c85b996e4f",
+  "qualityCi": { "runId": 33656557105, "status": "SUCCESS" },
+  "actualReceiptValidation": "NOT_RUN",
+  "actualDnsTlsPublication": "NOT_RUN",
+  "actualP6Cutover": "NOT_RUN",
+  "actualP7Activation": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

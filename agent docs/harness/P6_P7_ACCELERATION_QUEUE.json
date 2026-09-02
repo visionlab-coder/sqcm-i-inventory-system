@@ -1157,6 +1157,14 @@
       "evidence": "failure-first 2 reproduced; step and gate receipt, role result and signoff timestamps are now restricted to change-window start through rollback cutoff; post-cutoff otherwise-valid documents fail closed; focused 33 PASS; syntax 414/414; repository unit 858 PASS 8 skips; GitHub quality 33655224048 completed successfully; actual receipt, DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-85-PRODUCTION-CUTOVER-RECEIPT-SEQUENCE-PROVENANCE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "14개 step과 12개 Gate receipt는 runtime JSON payload에 1~26 연속·고유 sequence를 기록하고, actual P6 assembler가 sequence와 정해진 step/Gate identity 순서를 모두 검증해야 한다.",
+      "evidence": "failure-first 2 reproduced; runtime receipt payload now records sequence; actual assembler requires 26 unique continuous receipts in exact step and gate identity order; swapped or duplicated sequence fails closed; focused 51 PASS 1 Windows skip; syntax 414/414; repository unit 859 PASS 8 skips; GitHub quality 33656557105 completed successfully; actual receipt, DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
