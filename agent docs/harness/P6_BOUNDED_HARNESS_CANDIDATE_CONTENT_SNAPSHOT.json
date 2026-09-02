@@ -1,0 +1,39 @@
+{
+  "packet": "ACC-P6-58-BOUNDED-HARNESS-CANDIDATE-CONTENT-SNAPSHOT",
+  "status": "PASS_BOUNDED_HARNESS_CANDIDATE_CONTENT_SNAPSHOT",
+  "failureFirst": { "expectedFailures": 5, "observedFailures": 5 },
+  "focusedTests": { "total": 5, "passed": 5, "failed": 0, "skipped": 0 },
+  "candidateContentContract": {
+    "maximumFiles": 512,
+    "maximumBytesPerFile": 8388608,
+    "maximumAggregateBytes": 67108864,
+    "repositoryRelativeNormalizedPathsRequired": true,
+    "duplicatePathsRejected": true,
+    "physicalRegularFileRequired": true,
+    "singleReadPerFile": true,
+    "fullSetReadAfterStabilityRequired": true,
+    "directUnboundedContentReadCount": 0
+  },
+  "cutoverPreflight": {
+    "status": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockerCount": 0,
+    "protectedServicesPreserved": true,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "syntaxChecks": { "passed": 394, "failed": 0 },
+  "unitTests": { "total": 766, "passed": 759, "failed": 0, "skipped": 7 },
+  "harnessVerify": "PASS",
+  "implementationCommit": "44ea5c8dcce76307684f5081a8c65a8d7a782190",
+  "qualityCi": {
+    "runId": 33615976460,
+    "testedHeadSha": "44ea5c8dcce76307684f5081a8c65a8d7a782190",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "secretValuesReadOrRecorded": false,
+  "externalMutationPerformed": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}
