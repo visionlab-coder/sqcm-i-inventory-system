@@ -60,10 +60,22 @@ function receiptMap(documents, kind) {
   ]));
 }
 
+function receiptIdentity(value) {
+  return `${value?.kind}:${value?.gate}:${value?.step}`;
+}
+
+function expectedReceiptSequence() {
+  return Object.entries(CUTOVER_GATE_ADAPTER_PLAN).flatMap(([gate, steps]) => [
+    ...steps.map((step) => `step:${gate}:${step.id}`),
+    `gate:${gate}:summary`
+  ]);
+}
+
 function validReceiptDocument(document, runId) {
   const value = document?.value;
   return typeof document?.fileName === 'string' && SHA256.test(document?.sha256 || '')
-    && value?.schemaVersion === 1 && value?.runId === runId && beforeRollbackCutoff(value?.checkedAt)
+    && value?.schemaVersion === 1 && value?.runId === runId && Number.isSafeInteger(value?.sequence) && value.sequence > 0
+    && beforeRollbackCutoff(value?.checkedAt)
     && value?.productionGo === false && SHA256.test(value?.cutoverBundleSha256 || '') && ['step', 'gate'].includes(value?.kind);
 }
 
@@ -106,6 +118,13 @@ export function assembleActualCutoverEvidence({ receiptDocuments = [], roleResul
   const expectedSteps = Object.values(CUTOVER_GATE_ADAPTER_PLAN).flat().length;
   if (stepDocuments.size !== expectedSteps) failures.push('EXACT_CUTOVER_STEP_RECEIPTS_REQUIRED');
   if (gateDocuments.size !== Object.keys(CUTOVER_GATE_ADAPTER_PLAN).length) failures.push('EXACT_CUTOVER_GATE_RECEIPTS_REQUIRED');
+  const expectedSequence = expectedReceiptSequence();
+  const orderedDocuments = [...receiptDocuments].sort((left, right) => left.value?.sequence - right.value?.sequence);
+  if (orderedDocuments.length !== expectedSequence.length
+    || orderedDocuments.some((document, index) => document.value?.sequence !== index + 1
+      || receiptIdentity(document.value) !== expectedSequence[index])) {
+    failures.push('CUTOVER_RECEIPT_SEQUENCE_INVALID');
+  }
 
   for (const [gate, steps] of Object.entries(CUTOVER_GATE_ADAPTER_PLAN)) {
     const gateDocument = gateDocuments.get(gate);

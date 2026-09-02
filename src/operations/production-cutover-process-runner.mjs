@@ -156,7 +156,7 @@ export function createRuntimeReceiptWriter({
     const target = path.resolve(resolvedRoot, fileName);
     if (path.dirname(target).toLowerCase() !== resolvedRoot.toLowerCase()) throw new Error('CUTOVER_RECEIPT_PATH_ESCAPE');
     const payload = {
-      schemaVersion: 1, runId, checkedAt, kind, gate, step, status, exitCode,
+      schemaVersion: 1, runId, checkedAt, sequence, kind, gate, step, status, exitCode,
       evidenceRefs: stepEvidenceRefs.map((item) => path.basename(String(item))),
       productionGo: false
     };

@@ -269,6 +269,7 @@ test('receipt는 bundle SHA만 남기고 stdout stderr Secret을 기록하지 �
     const raw = fs.readFileSync(outcome.evidenceRef, 'utf8');
     assert.equal(outcome.status, 'PASS');
     assert.equal(JSON.parse(raw).runId, '11111111-1111-4111-8111-111111111111');
+    assert.equal(JSON.parse(raw).sequence, 1);
     assert.equal(JSON.parse(raw).cutoverBundleSha256, 'a'.repeat(64));
     assert.doesNotMatch(raw, /stdout|stderr|SECRET_VALUE/);
     const secondWriter = createRuntimeReceiptWriter({ root, clock, runId: '11111111-1111-4111-8111-111111111111', cutoverBundleSha256: 'a'.repeat(64) });

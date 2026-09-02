@@ -24,10 +24,11 @@ async function completeInput() {
       sequence += 1;
       const fileName = `${sequence}-${gate}-${step.id}.json`;
       refs.push(fileName);
-      receiptDocuments.push({ fileName, sha256: sha(fileName), value: { schemaVersion: 1, runId, checkedAt, kind: 'step', gate, step: step.id, status: step.acceptedStatuses[0], exitCode: 0, evidenceRefs: [], cutoverBundleSha256, productionGo: false } });
+      receiptDocuments.push({ fileName, sha256: sha(fileName), value: { schemaVersion: 1, runId, checkedAt, sequence, kind: 'step', gate, step: step.id, status: step.acceptedStatuses[0], exitCode: 0, evidenceRefs: [], cutoverBundleSha256, productionGo: false } });
     }
+    sequence += 1;
     const fileName = `${gate}-summary.json`;
-    receiptDocuments.push({ fileName, sha256: sha(fileName), value: { schemaVersion: 1, runId, checkedAt, kind: 'gate', gate, step: 'summary', status: 'PASS', exitCode: 0, evidenceRefs: refs, cutoverBundleSha256, productionGo: false } });
+    receiptDocuments.push({ fileName, sha256: sha(fileName), value: { schemaVersion: 1, runId, checkedAt, sequence, kind: 'gate', gate, step: 'summary', status: 'PASS', exitCode: 0, evidenceRefs: refs, cutoverBundleSha256, productionGo: false } });
   }
   const coreGateSha = receiptDocuments.find((document) => document.value.kind === 'gate' && document.value.gate === 'core_smoke').sha256;
   const roleStepSha = receiptDocuments.find((document) => document.value.kind === 'step' && document.value.step === 'role-core-smoke').sha256;
@@ -117,6 +118,23 @@ test('rollback cutoff 이후 역할 결과와 서명은 actual P6 증거로 승�
   assert.ok(result.failures.includes('ADMIN_ACTUAL_ROLE_RESULT_INVALID'));
   assert.ok(result.failures.includes('BUSINESS_ACTUAL_SIGNOFF_INVALID'));
   assert.equal(result.productionGo, false);
+});
+
+test('receipt 순번 교환 또는 중복은 실제 Gate 실행 순서 증거가 될 수 없다', async () => {
+  const { assembleActualCutoverEvidence } = await modulePromise;
+  const swapped = await completeInput();
+  const firstSequence = swapped.receiptDocuments[0].value.sequence;
+  swapped.receiptDocuments[0].value.sequence = swapped.receiptDocuments[1].value.sequence;
+  swapped.receiptDocuments[1].value.sequence = firstSequence;
+  const swappedResult = assembleActualCutoverEvidence(swapped);
+  assert.ok(swappedResult.failures.includes('CUTOVER_RECEIPT_SEQUENCE_INVALID'));
+  assert.equal(swappedResult.productionGo, false);
+
+  const duplicated = await completeInput();
+  duplicated.receiptDocuments[1].value.sequence = duplicated.receiptDocuments[0].value.sequence;
+  const duplicatedResult = assembleActualCutoverEvidence(duplicated);
+  assert.ok(duplicatedResult.failures.includes('CUTOVER_RECEIPT_SEQUENCE_INVALID'));
+  assert.equal(duplicatedResult.productionGo, false);
 });
 
 test('contract template은 actual 역할 결과나 서명으로 승격하지 않는다', async () => {
