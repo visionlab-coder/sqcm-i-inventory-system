@@ -117,6 +117,6 @@ test('하위 문서는 external base 내부 상대 JSON만 허용하고 탈출·
   fs.writeFileSync(inside, '{}');
 
   assert.equal(loadActualOperationsEvidenceDocument({ path: 'domain.json' }, { baseDir: evidenceRoot, repositoryRoot }).value.schemaVersion, 1);
-  assert.equal(loadActualOperationsEvidenceDocument({ path: '..\\escaped.json' }, { baseDir: evidenceRoot, repositoryRoot }).loadError, 'OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID');
+  assert.equal(loadActualOperationsEvidenceDocument({ path: path.join('..', 'escaped.json') }, { baseDir: evidenceRoot, repositoryRoot }).loadError, 'OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID');
   assert.equal(loadActualOperationsEvidenceDocument({ path: inside }, { baseDir: evidenceRoot, repositoryRoot }).loadError, 'OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID');
 });
