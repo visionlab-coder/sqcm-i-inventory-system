@@ -116,3 +116,72 @@ test('provider tunnel 생성 성공은 credential 파싱·게시 실패 전에�
   assert.ok(command >= 0 && marked > command);
   assert.ok(marked < parsed && parsed < published);
 });
+
+test('ingress publication lease는 동시 두 번째 실행을 차단하고 정상 해제 뒤 재개한다', async (t) => {
+  const { acquireProductionIngressPublicationLease, releaseProductionIngressPublicationLease } = await runtimeModule;
+  assert.equal(typeof acquireProductionIngressPublicationLease, 'function');
+  assert.equal(typeof releaseProductionIngressPublicationLease, 'function');
+  const root = fixture(t);
+  const first = acquireProductionIngressPublicationLease({
+    runtimeDirectory: root,
+    processId: 9401,
+    leaseId: '11111111-1111-4111-8111-111111111111',
+    checkedAt: '2026-09-11T11:00:00.000Z'
+  });
+  assert.throws(
+    () => acquireProductionIngressPublicationLease({
+      runtimeDirectory: root,
+      processId: 9402,
+      leaseId: '22222222-2222-4222-8222-222222222222',
+      checkedAt: '2026-09-11T11:00:01.000Z'
+    }),
+    /INGRESS_PUBLICATION_LEASE_HELD/
+  );
+  assert.equal(releaseProductionIngressPublicationLease(first), true);
+  const resumed = acquireProductionIngressPublicationLease({
+    runtimeDirectory: root,
+    processId: 9403,
+    leaseId: '33333333-3333-4333-8333-333333333333',
+    checkedAt: '2026-09-11T11:00:02.000Z'
+  });
+  assert.equal(releaseProductionIngressPublicationLease(resumed), true);
+});
+
+test('다른 owner와 stale ingress lease는 자동 삭제하지 않는다', async (t) => {
+  const { acquireProductionIngressPublicationLease, releaseProductionIngressPublicationLease } = await runtimeModule;
+  assert.equal(typeof acquireProductionIngressPublicationLease, 'function');
+  assert.equal(typeof releaseProductionIngressPublicationLease, 'function');
+  const root = fixture(t);
+  const lease = acquireProductionIngressPublicationLease({
+    runtimeDirectory: root,
+    processId: 9410,
+    leaseId: '44444444-4444-4444-8444-444444444444',
+    checkedAt: '2026-09-11T11:00:00.000Z'
+  });
+  assert.throws(
+    () => releaseProductionIngressPublicationLease({ ...lease, leaseId: '55555555-5555-4555-8555-555555555555' }),
+    /INGRESS_PUBLICATION_LEASE_OWNERSHIP_MISMATCH/
+  );
+  assert.equal(fs.existsSync(lease.path), true);
+  assert.throws(
+    () => acquireProductionIngressPublicationLease({
+      runtimeDirectory: root,
+      processId: 9411,
+      leaseId: '66666666-6666-4666-8666-666666666666',
+      checkedAt: '2026-09-12T11:00:00.000Z'
+    }),
+    /INGRESS_PUBLICATION_LEASE_HELD/
+  );
+  assert.equal(fs.existsSync(lease.path), true);
+  assert.equal(releaseProductionIngressPublicationLease(lease), true);
+});
+
+test('실행 진입점은 tunnel 생성 전에 lease를 획득하고 모든 종료 경로에서 해제한다', () => {
+  const acquired = entrypoint.indexOf('acquireProductionIngressPublicationLease({');
+  const command = entrypoint.indexOf("runCloudflared(['tunnel', 'create'");
+  const released = entrypoint.indexOf('releaseProductionIngressPublicationLease(lease)');
+  assert.ok(acquired >= 0 && acquired < command);
+  assert.ok(released > acquired);
+  assert.match(entrypoint, /INGRESS_PUBLICATION_LEASE_HELD/);
+  assert.match(entrypoint, /READY_WAIT_INGRESS_PUBLICATION_LEASE/);
+});

@@ -1,8 +1,10 @@
 import { spawnSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { resolve4, resolveCname } from 'node:dns/promises';
 import fs from 'node:fs';
 import path from 'node:path';
 import { TextDecoder } from 'node:util';
+import { writeCreateOnlyJsonOutput } from './operations-create-only-json-output.mjs';
 import { readBoundedJsonObjectResponse } from './operations-preflight-http-runtime.mjs';
 
 export const INGRESS_COMMAND_TIMEOUT_MS = 10_000;
@@ -11,6 +13,8 @@ export const INGRESS_DNS_TIMEOUT_MS = 5_000;
 export const INGRESS_DNS_DOH_ENDPOINT = 'https://cloudflare-dns.com/dns-query';
 export const INGRESS_CONFIG_MAX_BYTES = 16 * 1024;
 export const INGRESS_CREDENTIAL_MAX_BYTES = 64 * 1024;
+export const INGRESS_PUBLICATION_LEASE_MAX_BYTES = 4 * 1024;
+export const INGRESS_PUBLICATION_LEASE_BASENAME = '.production-ingress-publication.lock';
 
 function physicalDirectory(stat) {
   return stat?.isDirectory?.() === true
@@ -132,6 +136,89 @@ export function publishProductionTunnelCredential({
     if (published) io.unlinkSync(temporary);
   }
   return output;
+}
+
+export function acquireProductionIngressPublicationLease({
+  runtimeDirectory,
+  processId = process.pid,
+  leaseId = randomUUID(),
+  checkedAt = new Date().toISOString(),
+  io = fs
+} = {}) {
+  const root = typeof runtimeDirectory === 'string' && runtimeDirectory ? path.resolve(runtimeDirectory) : null;
+  if (!root || !exactPhysicalDirectory(root, io)
+    || !Number.isSafeInteger(processId) || processId < 1
+    || !/^[a-f0-9-]{36}$/i.test(leaseId)
+    || Number.isNaN(Date.parse(checkedAt))) {
+    throw new Error('INGRESS_PUBLICATION_LEASE_INPUT_INVALID');
+  }
+  const leasePath = path.join(root, INGRESS_PUBLICATION_LEASE_BASENAME);
+  const document = {
+    schemaVersion: 1,
+    leaseId,
+    processId,
+    acquiredAt: new Date(checkedAt).toISOString(),
+    secretValuesRecorded: false
+  };
+  writeCreateOnlyJsonOutput(leasePath, document, {
+    processId,
+    io,
+    alreadyExistsCode: 'INGRESS_PUBLICATION_LEASE_HELD'
+  });
+  return { path: leasePath, root, leaseId, processId, acquiredAt: document.acquiredAt };
+}
+
+export function releaseProductionIngressPublicationLease(lease, { io = fs } = {}) {
+  const root = typeof lease?.root === 'string' && lease.root ? path.resolve(lease.root) : null;
+  const leasePath = typeof lease?.path === 'string' && lease.path ? path.resolve(lease.path) : null;
+  if (!root || !leasePath || leasePath.toLowerCase() !== path.join(root, INGRESS_PUBLICATION_LEASE_BASENAME).toLowerCase()
+    || !exactPhysicalDirectory(root, io)) throw new Error('INGRESS_PUBLICATION_LEASE_INPUT_INVALID');
+
+  let before;
+  let real;
+  let handle;
+  let raw;
+  let after;
+  try {
+    before = io.lstatSync(leasePath);
+    real = path.resolve(io.realpathSync(leasePath));
+    if (!physicalFile(before) || real.toLowerCase() !== leasePath.toLowerCase()
+      || before.size < 1 || before.size > INGRESS_PUBLICATION_LEASE_MAX_BYTES) {
+      throw new Error('INGRESS_PUBLICATION_LEASE_STATE_INVALID');
+    }
+    handle = io.openSync(leasePath, 'r');
+    const opened = io.fstatSync(handle);
+    if (!sameIdentity(before, opened)) throw new Error('INGRESS_PUBLICATION_LEASE_STATE_UNSTABLE');
+    raw = io.readFileSync(handle);
+    after = io.fstatSync(handle);
+    if (!sameIdentity(opened, after) || raw.length !== opened.size) {
+      throw new Error('INGRESS_PUBLICATION_LEASE_STATE_UNSTABLE');
+    }
+  } catch (error) {
+    if (/^INGRESS_PUBLICATION_LEASE_/.test(error?.message || '')) throw error;
+    throw new Error('INGRESS_PUBLICATION_LEASE_STATE_INVALID');
+  } finally {
+    if (handle !== undefined) {
+      try { io.closeSync(handle); } catch { /* best effort */ }
+    }
+  }
+
+  let document;
+  try {
+    document = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(raw));
+  } catch {
+    throw new Error('INGRESS_PUBLICATION_LEASE_STATE_INVALID');
+  }
+  if (!document || Array.isArray(document) || document.schemaVersion !== 1
+    || document.leaseId !== lease.leaseId || document.processId !== lease.processId
+    || document.acquiredAt !== lease.acquiredAt || document.secretValuesRecorded !== false) {
+    throw new Error('INGRESS_PUBLICATION_LEASE_OWNERSHIP_MISMATCH');
+  }
+  let current;
+  try { current = io.lstatSync(leasePath); } catch { throw new Error('INGRESS_PUBLICATION_LEASE_STATE_UNSTABLE'); }
+  if (!sameIdentity(before, current)) throw new Error('INGRESS_PUBLICATION_LEASE_STATE_UNSTABLE');
+  io.unlinkSync(leasePath);
+  return true;
 }
 
 export function readProductionIngressConfig({
