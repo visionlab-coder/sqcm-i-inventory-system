@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "packetId": "ACC-P6-92-PRODUCTION-SIGNOFF-MFA-RECEIPT-BINDING",
+  "phase": "P6",
+  "status": "EVIDENCE_COMPLETE",
+  "checkedAt": "2026-09-02T18:23:15.209Z",
+  "implementationCommit": "286ac4a4e52ea6bdb296cb30c17430b01afa7dcb",
+  "githubQualityRun": 33666946831,
+  "githubJobs": {
+    "unit": "success",
+    "threeTierIntegration": "success"
+  },
+  "verification": {
+    "failureFirstCounterexamples": 3,
+    "focusedPass": 46,
+    "syntaxPass": 417,
+    "unitPass": 871,
+    "unitSkip": 8,
+    "unitFail": 0,
+    "harnessVerify": "PASS"
+  },
+  "controls": [
+    "three physical MFA approval receipts required",
+    "receipt SHA-256 bound to each actual signoff",
+    "MFA verified and provider identity required",
+    "run release request-set request-bundle signer and signedAt cross-validated",
+    "unique receiptId required",
+    "Gate 12 resume waits before missing receipts"
+  ],
+  "actualProductionCutover": "NOT_RUN",
+  "actualSignoffReceipts": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "nextReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF"
+}
