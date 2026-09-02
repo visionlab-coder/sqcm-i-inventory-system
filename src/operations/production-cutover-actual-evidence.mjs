@@ -137,6 +137,11 @@ export function assembleActualCutoverEvidence({ receiptDocuments = [], roleResul
       || receiptIdentity(document.value) !== expectedSequence[index])) {
     failures.push('CUTOVER_RECEIPT_SEQUENCE_INVALID');
   }
+  const orderedReceiptTimes = orderedDocuments.map((document) => Date.parse(document.value?.checkedAt));
+  if (orderedReceiptTimes.some((time, index) => !Number.isFinite(time)
+    || (index > 0 && time < orderedReceiptTimes[index - 1]))) {
+    failures.push('CUTOVER_RECEIPT_TIME_SEQUENCE_INVALID');
+  }
 
   for (const [gate, steps] of Object.entries(CUTOVER_GATE_ADAPTER_PLAN)) {
     const gateDocument = gateDocuments.get(gate);
@@ -153,6 +158,8 @@ export function assembleActualCutoverEvidence({ receiptDocuments = [], roleResul
   const coreGateSha = gateDocuments.get('core_smoke')?.sha256 || '';
   const roleStepSha = stepDocuments.get('core_smoke:role-core-smoke')?.sha256 || '';
   const roleCheckedAt = roleResultDocuments.ADMIN?.value?.checkedAt;
+  const roleStepCheckedAt = stepDocuments.get('core_smoke:role-core-smoke')?.value?.checkedAt;
+  if (roleCheckedAt !== roleStepCheckedAt) failures.push('ROLE_RESULT_RECEIPT_TIME_MISMATCH');
   const resultSetPublicationId = productionRoleResultSetPublicationId({
     runId, releaseSha, coreGateSha, roleStepSha, checkedAt: roleCheckedAt
   });
@@ -169,6 +176,13 @@ export function assembleActualCutoverEvidence({ receiptDocuments = [], roleResul
   for (const area of ['BUSINESS', 'SECURITY', 'OPERATIONS']) {
     if (!validateSignoff(signoffDocuments[area], { area, runId, releaseTag, coreGateSha })) failures.push(`${area}_ACTUAL_SIGNOFF_INVALID`);
   }
+  const preSignoffTime = Date.parse(gateDocuments.get('rollback')?.value?.checkedAt);
+  const signoffReceiptTime = Date.parse(stepDocuments.get('uat_signoff:signoff-preflight')?.value?.checkedAt);
+  if (!Number.isFinite(preSignoffTime) || !Number.isFinite(signoffReceiptTime)
+    || Object.values(signoffDocuments).some((document) => {
+      const signedAt = Date.parse(document?.value?.signedAt);
+      return !Number.isFinite(signedAt) || signedAt < preSignoffTime || signedAt > signoffReceiptTime;
+    })) failures.push('SIGNOFF_CAUSAL_TIME_INVALID');
   if (failures.length) return { status: 'FAIL_ACTUAL_CUTOVER_EVIDENCE_ASSEMBLY', failures: [...new Set(failures)], productionGo: false };
 
   const gates = Object.keys(CUTOVER_GATE_ADAPTER_PLAN).map((id) => ({

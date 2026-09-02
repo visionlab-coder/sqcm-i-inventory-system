@@ -153,6 +153,40 @@ test('receipt 파일명은 payload 시각·순번·kind·Gate·step과 정확히
   }
 });
 
+test('receipt sequence가 증가하는 동안 checkedAt은 역행할 수 없다', async () => {
+  const { assembleActualCutoverEvidence } = await modulePromise;
+  const input = await completeInput();
+  const document = input.receiptDocuments[1];
+  document.value.checkedAt = '2026-09-11T11:59:59.999Z';
+  document.fileName = receiptFileName({ ...document.value, time: document.value.checkedAt });
+  const result = assembleActualCutoverEvidence(input);
+  assert.ok(result.failures.includes('CUTOVER_RECEIPT_TIME_SEQUENCE_INVALID'));
+  assert.equal(result.productionGo, false);
+});
+
+test('역할 결과 시각은 role smoke receipt와 같고 서명은 pre-signoff 이후·signoff receipt 이전이어야 한다', async () => {
+  const { assembleActualCutoverEvidence } = await modulePromise;
+  const roleMismatch = await completeInput();
+  const roleCheckedAt = '2026-09-11T11:59:00.000Z';
+  const { coreSmokeGateReceiptSha256: coreGateSha, roleSmokeStepReceiptSha256: roleStepSha } = roleMismatch.roleResultDocuments.ADMIN.value;
+  const publicationId = sha(JSON.stringify({ runId, releaseSha, coreGateSha, roleStepSha, checkedAt: roleCheckedAt }));
+  for (const document of Object.values(roleMismatch.roleResultDocuments)) {
+    document.value.checkedAt = roleCheckedAt;
+    document.value.resultSetPublicationId = publicationId;
+  }
+  const roleResult = assembleActualCutoverEvidence(roleMismatch);
+  assert.ok(roleResult.failures.includes('ROLE_RESULT_RECEIPT_TIME_MISMATCH'));
+  assert.equal(roleResult.productionGo, false);
+
+  for (const signedAt of ['2026-09-11T11:59:00.000Z', '2026-09-11T12:01:00.000Z']) {
+    const signoffMismatch = await completeInput();
+    signoffMismatch.signoffDocuments.OPERATIONS.value.signedAt = signedAt;
+    const signoffResult = assembleActualCutoverEvidence(signoffMismatch);
+    assert.ok(signoffResult.failures.includes('SIGNOFF_CAUSAL_TIME_INVALID'));
+    assert.equal(signoffResult.productionGo, false);
+  }
+});
+
 test('contract template은 actual 역할 결과나 서명으로 승격하지 않는다', async () => {
   const { assembleActualCutoverEvidence } = await modulePromise;
   const input = await completeInput();
