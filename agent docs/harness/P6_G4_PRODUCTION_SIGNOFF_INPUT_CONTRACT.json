@@ -11,5 +11,7 @@
   "decision": "NOT_RUN",
   "signedByRef": null,
   "signedAt": null,
-  "coreSmokeGateReceiptSha256": null
+  "coreSmokeGateReceiptSha256": null,
+  "roleResultSetPublicationId": null,
+  "preSignoffRollbackGateReceiptSha256": null
 }

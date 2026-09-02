@@ -105,7 +105,9 @@ function validateRoleResult(document, {
     && beforeRollbackCutoff(value?.checkedAt);
 }
 
-function validateSignoff(document, { area, runId, releaseTag, coreGateSha }) {
+function validateSignoff(document, {
+  area, runId, releaseTag, coreGateSha, resultSetPublicationId, rollbackGateSha
+}) {
   const value = document?.value;
   return SHA256.test(document?.sha256 || '') && value?.schemaVersion === 1
     && value?.template === false && value?.evidenceType === 'P6_CUTOVER_SIGNOFF_ACTUAL'
@@ -113,7 +115,9 @@ function validateSignoff(document, { area, runId, releaseTag, coreGateSha }) {
     && value?.targetUrl === ACTUAL_TARGET_URL && value?.releaseTag === releaseTag
     && value?.runId === runId && value?.area === area && value?.decision === 'APPROVED'
     && IDENTITY.test(value?.signedByRef || '') && beforeRollbackCutoff(value?.signedAt)
-    && value?.coreSmokeGateReceiptSha256 === coreGateSha;
+    && value?.coreSmokeGateReceiptSha256 === coreGateSha
+    && value?.roleResultSetPublicationId === resultSetPublicationId
+    && value?.preSignoffRollbackGateReceiptSha256 === rollbackGateSha;
 }
 
 export function assembleActualCutoverEvidence({ receiptDocuments = [], roleResultDocuments = {}, signoffDocuments = {}, runId, releaseSha } = {}) {
@@ -173,8 +177,11 @@ export function assembleActualCutoverEvidence({ receiptDocuments = [], roleResul
       role, runId, releaseTag, coreGateSha, roleStepSha, resultSetPublicationId
     })) failures.push(`${role}_ACTUAL_ROLE_RESULT_INVALID`);
   }
+  const rollbackGateSha = gateDocuments.get('rollback')?.sha256 || '';
   for (const area of ['BUSINESS', 'SECURITY', 'OPERATIONS']) {
-    if (!validateSignoff(signoffDocuments[area], { area, runId, releaseTag, coreGateSha })) failures.push(`${area}_ACTUAL_SIGNOFF_INVALID`);
+    if (!validateSignoff(signoffDocuments[area], {
+      area, runId, releaseTag, coreGateSha, resultSetPublicationId, rollbackGateSha
+    })) failures.push(`${area}_ACTUAL_SIGNOFF_INVALID`);
   }
   const preSignoffTime = Date.parse(gateDocuments.get('rollback')?.value?.checkedAt);
   const signoffReceiptTime = Date.parse(stepDocuments.get('uat_signoff:signoff-preflight')?.value?.checkedAt);

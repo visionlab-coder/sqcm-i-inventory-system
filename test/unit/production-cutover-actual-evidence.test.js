@@ -33,12 +33,13 @@ async function completeInput() {
   }
   const coreGateSha = receiptDocuments.find((document) => document.value.kind === 'gate' && document.value.gate === 'core_smoke').sha256;
   const roleStepSha = receiptDocuments.find((document) => document.value.kind === 'step' && document.value.step === 'role-core-smoke').sha256;
+  const rollbackGateSha = receiptDocuments.find((document) => document.value.kind === 'gate' && document.value.gate === 'rollback').sha256;
   const resultSetPublicationId = sha(JSON.stringify({ runId, releaseSha, coreGateSha, roleStepSha, checkedAt }));
   const roleResultDocuments = Object.fromEntries(['ADMIN', 'MANAGER', 'USER'].map((role) => [role, {
     fileName: `${role}.json`, sha256: sha(role), value: { schemaVersion: 1, template: false, evidenceType: 'P6_ROLE_UAT_RESULT_ACTUAL', environment: 'production', activationState: 'actual', targetUrl: 'https://inventory.safe-link.co.kr', releaseTag, runId, role, status: 'PASS', actualProduction: true, resultSetPublicationId, coreSmokeGateReceiptSha256: coreGateSha, roleSmokeStepReceiptSha256: roleStepSha, checkedAt }
   }]));
   const signoffDocuments = Object.fromEntries(['BUSINESS', 'SECURITY', 'OPERATIONS'].map((area) => [area, {
-    fileName: `${area}.json`, sha256: sha(area), value: { schemaVersion: 1, template: false, evidenceType: 'P6_CUTOVER_SIGNOFF_ACTUAL', environment: 'production', activationState: 'actual', targetUrl: 'https://inventory.safe-link.co.kr', releaseTag, runId, area, decision: 'APPROVED', signedByRef: `identity://${area.toLowerCase()}-owner`, signedAt: checkedAt, coreSmokeGateReceiptSha256: coreGateSha }
+    fileName: `${area}.json`, sha256: sha(area), value: { schemaVersion: 1, template: false, evidenceType: 'P6_CUTOVER_SIGNOFF_ACTUAL', environment: 'production', activationState: 'actual', targetUrl: 'https://inventory.safe-link.co.kr', releaseTag, runId, area, decision: 'APPROVED', signedByRef: `identity://${area.toLowerCase()}-owner`, signedAt: checkedAt, coreSmokeGateReceiptSha256: coreGateSha, roleResultSetPublicationId: resultSetPublicationId, preSignoffRollbackGateReceiptSha256: rollbackGateSha }
   }]));
   return { receiptDocuments, roleResultDocuments, signoffDocuments, runId, releaseSha };
 }
@@ -184,6 +185,20 @@ test('역할 결과 시각은 role smoke receipt와 같고 서명은 pre-signoff
     const signoffResult = assembleActualCutoverEvidence(signoffMismatch);
     assert.ok(signoffResult.failures.includes('SIGNOFF_CAUSAL_TIME_INVALID'));
     assert.equal(signoffResult.productionGo, false);
+  }
+});
+
+test('서명은 검토한 역할 결과 세트와 pre-signoff rollback Gate receipt에 결합돼야 한다', async () => {
+  const { assembleActualCutoverEvidence } = await modulePromise;
+  for (const [field, value] of [
+    ['roleResultSetPublicationId', 'f'.repeat(64)],
+    ['preSignoffRollbackGateReceiptSha256', 'e'.repeat(64)]
+  ]) {
+    const input = await completeInput();
+    input.signoffDocuments.SECURITY.value[field] = value;
+    const result = assembleActualCutoverEvidence(input);
+    assert.ok(result.failures.includes('SECURITY_ACTUAL_SIGNOFF_INVALID'));
+    assert.equal(result.productionGo, false);
   }
 });
 
