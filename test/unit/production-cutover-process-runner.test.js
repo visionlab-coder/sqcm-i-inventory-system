@@ -85,6 +85,87 @@ test('마지막 JSON 상태를 추출하고 migration exit 0을 명시 PASS로 �
   assert.equal(normalizeStepOutcome({ exitCode: 0, stdout: 'plain', step: { id: 'x' } }).status, 'FAIL_STATUS_NOT_RECORDED');
 });
 
+test('cutover child는 stdout 상한 초과를 bounded 실패로 종료한다', async (t) => {
+  const { spawnNodeStep } = await modulePromise;
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-cutover-output-limit-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const script = path.join(root, 'oversize.mjs');
+  fs.writeFileSync(script, "process.stdout.write('x'.repeat(4096));\n");
+  const result = await spawnNodeStep({
+    script,
+    cwd: root,
+    environment: {},
+    timeoutMs: 30000,
+    maxBufferBytes: 512
+  });
+  assert.equal(result.failureStatus, 'FAIL_CUTOVER_CHILD_OUTPUT_LIMIT');
+  assert.ok(Buffer.byteLength(result.stdout, 'utf8') <= 512);
+  assert.equal(result.stderr, '');
+});
+
+test('cutover child는 timeout을 bounded 실패로 종료한다', async (t) => {
+  const { spawnNodeStep } = await modulePromise;
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-cutover-timeout-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const script = path.join(root, 'wait.mjs');
+  fs.writeFileSync(script, "setTimeout(() => process.stdout.write('{\\\"status\\\":\\\"PASS\\\"}'), 250);\n");
+  const startedAt = Date.now();
+  const result = await spawnNodeStep({
+    script,
+    cwd: root,
+    environment: {},
+    timeoutMs: 25,
+    maxBufferBytes: 1024
+  });
+  assert.equal(result.failureStatus, 'FAIL_CUTOVER_CHILD_TIMEOUT');
+  assert.ok(Date.now() - startedAt < 3000);
+});
+
+test('process runner는 child 자원 실패를 PASS JSON보다 우선하고 receipt에 bounded 상태만 기록한다', async () => {
+  const { createProcessStepRunner } = await modulePromise;
+  const { CUTOVER_GATE_ADAPTER_PLAN } = await adapterModulePromise;
+  const step = { gate: 'artifact', ...CUTOVER_GATE_ADAPTER_PLAN.artifact[0] };
+  const receipts = [];
+  const run = createProcessStepRunner({
+    writeReceipt: async (value) => { receipts.push(value); return 'receipt.json'; },
+    spawnStep: async () => ({
+      exitCode: 1,
+      stdout: '{"status":"READY_FOR_CHANGE_WINDOW_EXECUTION","secret":"must-not-record"}',
+      stderr: 'credential must-not-record',
+      failureStatus: 'FAIL_CUTOVER_CHILD_TIMEOUT'
+    })
+  });
+  const result = await run(step);
+  assert.equal(result.status, 'FAIL_CUTOVER_CHILD_TIMEOUT');
+  assert.equal(receipts.length, 1);
+  assert.equal(receipts[0].status, 'FAIL_CUTOVER_CHILD_TIMEOUT');
+  assert.doesNotMatch(JSON.stringify(receipts[0]), /secret|credential|must-not-record/i);
+});
+
+test('role smoke child 자원 실패 receipt에는 stale PASS summary를 남기지 않는다', async () => {
+  const { createProcessStepRunner } = await modulePromise;
+  const { CUTOVER_GATE_ADAPTER_PLAN } = await adapterModulePromise;
+  const step = { gate: 'core_smoke', ...CUTOVER_GATE_ADAPTER_PLAN.core_smoke[1] };
+  const receipts = [];
+  const run = createProcessStepRunner({
+    writeReceipt: async (value) => { receipts.push(value); return 'receipt.json'; },
+    spawnStep: async () => ({
+      exitCode: -1,
+      stdout: JSON.stringify({
+        status: 'PASS_PRODUCTION_ROLE_CORE_SMOKE',
+        targetKind: 'production-https',
+        actualRoleCoreSmoke: 'PASS',
+        results: {}
+      }),
+      stderr: '',
+      failureStatus: 'FAIL_CUTOVER_CHILD_TIMEOUT'
+    })
+  });
+  const result = await run(step);
+  assert.equal(result.status, 'FAIL_CUTOVER_CHILD_TIMEOUT');
+  assert.equal(receipts[0].summary, null);
+});
+
 test('role smoke summary는 허용된 상태만 남기고 credential·session 값을 제거한다', async () => {
   const { buildStepReceiptSummary } = await modulePromise;
   const role = { passwordStatus: 202, mfaRequired: true, invalidMfaStatus: 401, mfaStatus: 200, actualRole: 'ADMIN', dashboard: 200, cost: 200, admin: 200, logoutStatus: 204, email: 'secret@example.com', password: 'SECRET', cookie: 'SESSION' };
