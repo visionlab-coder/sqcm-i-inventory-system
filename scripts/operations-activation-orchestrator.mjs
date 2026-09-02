@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import {
   OPERATIONS_ACTIVATION_CONFIRMATION,
@@ -12,6 +11,7 @@ import {
   validateOperationsActivationApproval
 } from '../src/operations/operations-activation-orchestrator.mjs';
 import { executeOperationsActivationSelection } from '../src/operations/operations-activation-process-runner.mjs';
+import { readOperationsActivationInputDocument } from '../src/operations/operations-activation-input-reader.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const roadmap = JSON.parse(fs.readFileSync(path.join(projectRoot, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
@@ -32,7 +32,7 @@ function externalPhysicalDirectory(candidate) {
 function loadReceipts(root, runId) {
   return fs.readdirSync(root).filter((name) => /^\d{2}-[a-z0-9-]+-attempt-\d{4}\.json$/.test(name)).sort().map((name) => {
     const candidate = path.join(root, name); if (!externalPhysicalFile(candidate)) throw new Error('RECEIPT_NOT_PHYSICAL_FILE');
-    const value = JSON.parse(fs.readFileSync(candidate, 'utf8')); if (value.runId !== runId) throw new Error('RECEIPT_RUN_ID_MISMATCH');
+    const value = readOperationsActivationInputDocument(candidate, { repositoryRoot: projectRoot }).value; if (value.runId !== runId) throw new Error('RECEIPT_RUN_ID_MISMATCH');
     const expectedName = `${String(value.sequence).padStart(2, '0')}-${value.stepId}-attempt-${String(value.attempt).padStart(4, '0')}.json`;
     if (name !== expectedName) throw new Error('RECEIPT_FILENAME_MISMATCH');
     return value;
@@ -49,12 +49,13 @@ let status = gate.status; let childProcessCount = 0; let receiptCreated = false;
 let lease = null; let leaseAcquired = false; let leaseReleased = false; let leaseConflict = false; let receiptRootClaimCreated = false; let activationBundleVerified = false; let approvalReceiptVerified = false;
 if (gate.childProcessAllowed) {
   try {
-    const p6Raw = fs.readFileSync(p6Path); const p6Document = JSON.parse(p6Raw.toString('utf8'));
-    const approvalReceiptRaw = fs.readFileSync(approvalReceiptPath); const approvalReceipt = JSON.parse(approvalReceiptRaw.toString('utf8'));
+    const p6Input = readOperationsActivationInputDocument(p6Path, { repositoryRoot: projectRoot }); const p6Document = p6Input.value;
+    const approvalReceiptInput = readOperationsActivationInputDocument(approvalReceiptPath, { repositoryRoot: projectRoot }); const approvalReceipt = approvalReceiptInput.value;
+    const approvalInput = readOperationsActivationInputDocument(approvalPath, { repositoryRoot: projectRoot });
     const activationBundleSha256 = computeOperationsActivationBundleSha256(projectRoot);
-    const approval = validateOperationsActivationApproval(JSON.parse(fs.readFileSync(approvalPath, 'utf8')), {
-      p6Document, p6EvidenceSha256: createHash('sha256').update(p6Raw).digest('hex'), activationBundleSha256,
-      approvalReceipt, approvalReceiptSha256: createHash('sha256').update(approvalReceiptRaw).digest('hex')
+    const approval = validateOperationsActivationApproval(approvalInput.value, {
+      p6Document, p6EvidenceSha256: p6Input.sha256, activationBundleSha256,
+      approvalReceipt, approvalReceiptSha256: approvalReceiptInput.sha256
     }); activationBundleVerified = true; approvalReceiptVerified = true;
     lease = acquireOperationsActivationLease(receiptRoot, approval); leaseAcquired = true; receiptRootClaimCreated = lease.rootClaim.created;
     const selection = selectNextOperationsActivationStep(loadReceipts(receiptRoot, approval.runId), { approval });

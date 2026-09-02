@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import {
   OPERATIONS_ACTIVATION_APPROVAL_REQUEST_CONFIRMATION,
@@ -9,6 +8,7 @@ import {
   writeOperationsActivationApprovalRequestOnce
 } from '../src/operations/operations-activation-approval-request.mjs';
 import { computeOperationsActivationBundleSha256 } from '../src/operations/operations-activation-orchestrator.mjs';
+import { readOperationsActivationInputDocument } from '../src/operations/operations-activation-input-reader.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const roadmap = JSON.parse(fs.readFileSync(path.join(projectRoot, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
@@ -34,8 +34,8 @@ const gate = evaluateOperationsActivationApprovalRequestGate({
 let status = gate.status; let inputDocumentReadCount = 0; let outputCreated = false; let failureCount = 0;
 if (gate.inputReadAllowed) {
   try {
-    const p6Raw = fs.readFileSync(p6Path); inputDocumentReadCount = 1;
-    const value = buildOperationsActivationApprovalRequest({ p6Document: JSON.parse(p6Raw.toString('utf8')), p6EvidenceSha256: createHash('sha256').update(p6Raw).digest('hex'), activationBundleSha256: computeOperationsActivationBundleSha256(projectRoot) });
+    const p6Input = readOperationsActivationInputDocument(p6Path, { repositoryRoot: projectRoot }); inputDocumentReadCount = 1;
+    const value = buildOperationsActivationApprovalRequest({ p6Document: p6Input.value, p6EvidenceSha256: p6Input.sha256, activationBundleSha256: computeOperationsActivationBundleSha256(projectRoot) });
     writeOperationsActivationApprovalRequestOnce(outputPath, value, { repositoryRoot: projectRoot }); outputCreated = true; status = 'PASS_OPERATIONS_ACTIVATION_APPROVAL_REQUEST_ASSEMBLED';
   } catch { status = 'BLOCKED_OPERATIONS_ACTIVATION_APPROVAL_REQUEST_ASSEMBLY'; failureCount = 1; process.exitCode = 1; }
 }

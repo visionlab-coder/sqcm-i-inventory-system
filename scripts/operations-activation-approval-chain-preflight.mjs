@@ -1,12 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import {
   evaluateOperationsActivationApprovalChainPreflightGate,
   verifyOperationsActivationApprovalChain
 } from '../src/operations/operations-activation-approval-chain-preflight.mjs';
 import { computeOperationsActivationBundleSha256 } from '../src/operations/operations-activation-orchestrator.mjs';
+import { readOperationsActivationInputDocument } from '../src/operations/operations-activation-input-reader.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const roadmap = JSON.parse(fs.readFileSync(path.join(projectRoot, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
@@ -23,8 +23,6 @@ function externalPhysicalFile(candidate) {
   if (!candidate || !path.relative(projectRoot, candidate).startsWith('..')) return false;
   try { const stat = fs.lstatSync(candidate); return stat.isFile() && !stat.isSymbolicLink() && !(stat.isReparsePoint?.() ?? false) && path.resolve(fs.realpathSync(candidate)).toLowerCase() === candidate.toLowerCase(); } catch { return false; }
 }
-function sha256(value) { return createHash('sha256').update(value).digest('hex'); }
-
 const present = Object.fromEntries(Object.entries(paths).map(([key, value]) => [key, externalPhysicalFile(value)]));
 const gate = evaluateOperationsActivationApprovalChainPreflightGate({
   p6EvidenceComplete: p6?.status === 'evidence-complete', p7InProgress: p7?.status === 'in-progress', productionGo: roadmap.invariants?.productionGo === true,
@@ -36,15 +34,15 @@ const gate = evaluateOperationsActivationApprovalChainPreflightGate({
 let status = gate.status; let inputDocumentReadCount = 0; let failureCount = 0; let verification = null;
 if (gate.inputReadAllowed) {
   try {
-    const raw = {};
+    const inputs = {};
     for (const key of ['p6', 'request', 'receipt', 'manifest']) {
-      raw[key] = fs.readFileSync(paths[key]); inputDocumentReadCount += 1;
+      inputs[key] = readOperationsActivationInputDocument(paths[key], { repositoryRoot: projectRoot }); inputDocumentReadCount += 1;
     }
     verification = verifyOperationsActivationApprovalChain({
-      p6: JSON.parse(raw.p6.toString('utf8')), request: JSON.parse(raw.request.toString('utf8')),
-      receipt: JSON.parse(raw.receipt.toString('utf8')), manifest: JSON.parse(raw.manifest.toString('utf8')),
-      p6EvidenceSha256: sha256(raw.p6), approvalRequestSha256: sha256(raw.request),
-      approvalReceiptSha256: sha256(raw.receipt), approvalManifestSha256: sha256(raw.manifest),
+      p6: inputs.p6.value, request: inputs.request.value,
+      receipt: inputs.receipt.value, manifest: inputs.manifest.value,
+      p6EvidenceSha256: inputs.p6.sha256, approvalRequestSha256: inputs.request.sha256,
+      approvalReceiptSha256: inputs.receipt.sha256, approvalManifestSha256: inputs.manifest.sha256,
       activationBundleSha256: computeOperationsActivationBundleSha256(projectRoot)
     });
     status = verification.status;

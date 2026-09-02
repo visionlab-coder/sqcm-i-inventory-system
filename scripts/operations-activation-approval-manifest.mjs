@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import {
   OPERATIONS_ACTIVATION_APPROVAL_MANIFEST_CONFIRMATION,
@@ -9,6 +8,7 @@ import {
   writeOperationsActivationApprovalManifestOnce
 } from '../src/operations/operations-activation-approval-manifest.mjs';
 import { computeOperationsActivationBundleSha256 } from '../src/operations/operations-activation-orchestrator.mjs';
+import { readOperationsActivationInputDocument } from '../src/operations/operations-activation-input-reader.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const roadmap = JSON.parse(fs.readFileSync(path.join(projectRoot, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
@@ -37,15 +37,15 @@ const gate = evaluateOperationsActivationApprovalManifestGate({
 let status = gate.status; let inputDocumentReadCount = 0; let outputCreated = false; let failureCount = 0;
 if (gate.inputReadAllowed) {
   try {
-    const p6Raw = fs.readFileSync(p6Path); inputDocumentReadCount += 1;
-    const requestRaw = fs.readFileSync(requestPath); inputDocumentReadCount += 1;
-    const receiptRaw = fs.readFileSync(receiptPath); inputDocumentReadCount += 1;
+    const p6Input = readOperationsActivationInputDocument(p6Path, { repositoryRoot: projectRoot }); inputDocumentReadCount += 1;
+    const requestInput = readOperationsActivationInputDocument(requestPath, { repositoryRoot: projectRoot }); inputDocumentReadCount += 1;
+    const receiptInput = readOperationsActivationInputDocument(receiptPath, { repositoryRoot: projectRoot }); inputDocumentReadCount += 1;
     const value = buildOperationsActivationApprovalManifest({
-      requestDocument: JSON.parse(requestRaw.toString('utf8')),
-      approvalReceipt: JSON.parse(receiptRaw.toString('utf8')),
-      approvalReceiptSha256: createHash('sha256').update(receiptRaw).digest('hex'),
-      p6Document: JSON.parse(p6Raw.toString('utf8')),
-      p6EvidenceSha256: createHash('sha256').update(p6Raw).digest('hex'),
+      requestDocument: requestInput.value,
+      approvalReceipt: receiptInput.value,
+      approvalReceiptSha256: receiptInput.sha256,
+      p6Document: p6Input.value,
+      p6EvidenceSha256: p6Input.sha256,
       activationBundleSha256: computeOperationsActivationBundleSha256(projectRoot)
     });
     writeOperationsActivationApprovalManifestOnce(outputPath, value, { repositoryRoot: projectRoot });
