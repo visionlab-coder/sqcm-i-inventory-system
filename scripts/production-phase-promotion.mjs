@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
   readActualCutoverEvidenceFile,
@@ -14,6 +13,10 @@ import {
   renderHarnessStatusBlock,
 } from '../src/operations/production-phase-promotion.mjs';
 import { readOperationsPhaseCompletionControlSnapshot } from '../src/operations/operations-phase-completion-control-snapshot.mjs';
+import {
+  readPhasePromotionTextDocument,
+  runPhasePromotionGitStatus
+} from '../src/operations/production-phase-promotion-runtime.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const paths = {
@@ -43,17 +46,23 @@ try {
     console.log(JSON.stringify({ checkedAt: new Date().toISOString(), ...result, expectedConfirmation: P6_TO_P7_PROMOTION_CONFIRMATION }, null, 2));
     if (result.status.startsWith('FAIL_')) process.exitCode = 1;
   } else {
-    const dirty = spawnSync('git', ['status', '--porcelain'], { cwd: projectRoot, encoding: 'utf8', shell: false });
-    if (dirty.status !== 0 || dirty.stdout.trim()) throw new Error('PROMOTION_REQUIRES_CLEAN_WORKTREE');
+    if (!runPhasePromotionGitStatus({ projectRoot }).clean) throw new Error('PROMOTION_REQUIRES_CLEAN_WORKTREE');
+    const currentStateDocument = readPhasePromotionTextDocument({ projectRoot, filePath: paths.currentState });
+    const roadmapDocument = readPhasePromotionTextDocument({ projectRoot, filePath: paths.roadmapDoc });
     const readyWork = result.nextRoadmap.phases.find((phase) => phase.id === 'P7').readyWork.id;
     const block = renderHarnessStatusBlock({ completedPhases: 7, totalPhases: 8, currentPhase: 'P7', productionGo: true, readyWork });
     const nextFiles = new Map([
       [paths.roadmap, `${JSON.stringify(result.nextRoadmap, null, 2)}\n`],
       [paths.queue, `${JSON.stringify(result.nextQueue, null, 2)}\n`],
-      [paths.currentState, promoteCurrentStateDocument(fs.readFileSync(paths.currentState, 'utf8'), block)],
-      [paths.roadmapDoc, promoteRoadmapDocument(fs.readFileSync(paths.roadmapDoc, 'utf8'), block)]
+      [paths.currentState, promoteCurrentStateDocument(currentStateDocument.text, block)],
+      [paths.roadmapDoc, promoteRoadmapDocument(roadmapDocument.text, block)]
     ]);
-    const originals = new Map([...nextFiles.keys()].map((file) => [file, fs.readFileSync(file)]));
+    const originals = new Map([
+      [paths.roadmap, control.roadmap.raw],
+      [paths.queue, control.queue.raw],
+      [paths.currentState, currentStateDocument.raw],
+      [paths.roadmapDoc, roadmapDocument.raw]
+    ]);
     try {
       for (const [file, content] of nextFiles) fs.writeFileSync(file, content, { encoding: 'utf8' });
     } catch (error) {
