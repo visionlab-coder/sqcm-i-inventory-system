@@ -8,6 +8,7 @@ import { PRODUCTION_ROUTE_DISABLE_CONFIRMATION } from '../src/operations/product
 import {
   PRODUCTION_INGRESS_CONFIRMATION,
   PRODUCTION_INGRESS_TARGET,
+  acknowledgeProductionIngressTunnelCreation,
   classifyProductionIngressPublicationResult,
   evaluateProductionIngressPublicationGate,
   isProductionIngressTunnelId,
@@ -133,10 +134,19 @@ if (gate.status !== 'READY_INGRESS_PUBLICATION_EXECUTION') {
     });
     let tunnelId = initialTunnelId;
     if (!tunnelId) {
-      const createOutput = runCloudflared(['tunnel', 'create', '--credentials-file', path.join(CREDENTIAL_DIRECTORY, 'sqcm-i-inventory-production.json.tmp'), '--output', 'json', PRODUCTION_INGRESS_TARGET.tunnelName]);
+      const createOutput = runCloudflared(['tunnel', 'create', '--credentials-file', path.join(CREDENTIAL_DIRECTORY, 'sqcm-i-inventory-production.json.tmp'), PRODUCTION_INGRESS_TARGET.tunnelName]);
       tunnelCreated = true;
-      const created = JSON.parse(createOutput);
-      tunnelId = created.id;
+      let observedCreatedTunnel = null;
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        observedCreatedTunnel = selectedTunnel();
+        if (observedCreatedTunnel) break;
+        await delay(1000);
+      }
+      const acknowledgement = acknowledgeProductionIngressTunnelCreation({
+        output: createOutput,
+        observedTunnel: observedCreatedTunnel
+      });
+      tunnelId = acknowledgement.id;
       const temporaryCredential = path.join(CREDENTIAL_DIRECTORY, 'sqcm-i-inventory-production.json.tmp');
       if (!isProductionIngressTunnelId(tunnelId) || !exactFile(temporaryCredential)) throw new Error('Created Production tunnel identity or credential file is invalid.');
       const finalCredential = credentialPath(tunnelId);

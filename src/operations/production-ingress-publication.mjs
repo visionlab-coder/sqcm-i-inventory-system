@@ -54,6 +54,28 @@ export function productionIngressTunnelConnected(tunnel) {
     && tunnel.connections.some((connection) => connection?.is_pending_reconnect === false));
 }
 
+export function acknowledgeProductionIngressTunnelCreation({ output, observedTunnel } = {}) {
+  if (typeof output !== 'string' || /^\s*[\[{]/.test(output) || /"token"\s*:/i.test(output)) {
+    throw new Error('INGRESS_TUNNEL_CREATE_OUTPUT_UNSAFE');
+  }
+  const acknowledgementPattern = /^Created tunnel ([^\r\n]+) with id ([a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12})\r?$/gim;
+  const matches = [...output.matchAll(acknowledgementPattern)];
+  if (matches.length !== 1 || matches[0][1] !== PRODUCTION_INGRESS_TARGET.tunnelName
+    || !isProductionIngressTunnelId(matches[0][2])) {
+    throw new Error('INGRESS_TUNNEL_CREATE_ACK_INVALID');
+  }
+  if (!observedTunnel) throw new Error('INGRESS_TUNNEL_CREATE_NOT_OBSERVED');
+  const observed = selectProductionIngressTunnel({
+    tunnels: [observedTunnel],
+    expectedName: PRODUCTION_INGRESS_TARGET.tunnelName
+  });
+  if (!observed) throw new Error('INGRESS_TUNNEL_CREATE_NOT_OBSERVED');
+  if (observed.id.toLowerCase() !== matches[0][2].toLowerCase()) {
+    throw new Error('INGRESS_TUNNEL_CREATE_ID_MISMATCH');
+  }
+  return { id: observed.id, name: observed.name };
+}
+
 export function selectProductionIngressZone({ zones, expectedName } = {}) {
   if (expectedName !== PRODUCTION_INGRESS_TARGET.zone || !Array.isArray(zones) || zones.length !== 1) {
     throw new Error('INGRESS_DNS_ZONE_IDENTITY_INVALID');

@@ -108,13 +108,15 @@ test('credential 경쟁은 선점 bytes와 복구용 생성 credential을 모두
   assert.equal(fs.readFileSync(temporary, 'utf8'), generated);
 });
 
-test('provider tunnel 생성 성공은 credential 파싱·게시 실패 전에도 mutation으로 기록한다', () => {
+test('provider tunnel 생성 성공은 mutation 기록 뒤 원격 재관측과 Secret-free 확인 전에는 credential을 게시하지 않는다', () => {
   const command = entrypoint.indexOf("runCloudflared(['tunnel', 'create'");
   const marked = entrypoint.indexOf('tunnelCreated = true;', command);
-  const parsed = entrypoint.indexOf('JSON.parse(createOutput)', command);
+  const observed = entrypoint.indexOf('observedCreatedTunnel = selectedTunnel()', command);
+  const acknowledged = entrypoint.indexOf('acknowledgeProductionIngressTunnelCreation({', command);
   const published = entrypoint.indexOf('publishProductionTunnelCredential({', command);
   assert.ok(command >= 0 && marked > command);
-  assert.ok(marked < parsed && parsed < published);
+  assert.ok(marked < observed && observed < acknowledged && acknowledged < published);
+  assert.equal(entrypoint.indexOf('JSON.parse(createOutput)', command), -1);
 });
 
 test('ingress publication lease는 동시 두 번째 실행을 차단하고 정상 해제 뒤 재개한다', async (t) => {
