@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 const execute = process.argv.includes('--execute');
 const resumeSignoff = process.argv.includes('--resume-signoff');
 const pauseBeforeSignoff = process.argv.includes('--pause-before-signoff');
+const assembleSignoffs = process.argv.includes('--assemble-signoffs');
 const candidate = readOperationsPreflightManifest(
   fileURLToPath(new URL('../agent docs/harness/P6_G4_CUTOVER_EVIDENCE_CANDIDATE.json', import.meta.url))
 ).value;
@@ -32,6 +33,11 @@ const signoffApprovalReceiptReferences = {
   SECURITY: existingPath(process.env.PRODUCTION_SECURITY_SIGNOFF_APPROVAL_RECEIPT_FILE),
   OPERATIONS: existingPath(process.env.PRODUCTION_OPERATIONS_SIGNOFF_APPROVAL_RECEIPT_FILE)
 };
+const actualSignoffOutputPaths = {
+  BUSINESS: process.env.PRODUCTION_BUSINESS_SIGNOFF_FILE,
+  SECURITY: process.env.PRODUCTION_SECURITY_SIGNOFF_FILE,
+  OPERATIONS: process.env.PRODUCTION_OPERATIONS_SIGNOFF_FILE
+};
 const result = resumeSignoff
   ? await resumeProductionCutoverSignoff({
     execute,
@@ -43,6 +49,9 @@ const result = resumeSignoff
     signoffReferences,
     signoffApprovalReceiptReferences,
     signoffRequestBundleReference: existingPath(process.env.PRODUCTION_SIGNOFF_REQUEST_BUNDLE_FILE),
+    assembleActualSignoffs: assembleSignoffs,
+    actualSignoffConfirmation: process.env.PRODUCTION_SIGNOFF_ACTUAL_DOCUMENT_CONFIRMATION,
+    actualSignoffOutputPaths,
     finalizeActualEvidence: execute,
     actualEvidenceConfirmation: process.env.PRODUCTION_CUTOVER_EVIDENCE_ASSEMBLY_CONFIRMATION,
     actualEvidenceOutputPath: process.env.PRODUCTION_CUTOVER_ACTUAL_EVIDENCE_FILE
@@ -56,7 +65,7 @@ const result = resumeSignoff
 const output = {
   ...result,
   requiredEnvironment: resumeSignoff
-    ? ['PRODUCTION_CUTOVER_RUN_ID', 'PRODUCTION_CUTOVER_SIGNOFF_CHECKPOINT_FILE', 'PRODUCTION_CUTOVER_SIGNOFF_RESUME_CONFIRMATION', 'PRODUCTION_CUTOVER_EVIDENCE_ASSEMBLY_CONFIRMATION', 'PRODUCTION_SIGNOFF_REQUEST_BUNDLE_FILE', 'PRODUCTION_UAT_ADMIN_RESULT_FILE', 'PRODUCTION_UAT_MANAGER_RESULT_FILE', 'PRODUCTION_UAT_USER_RESULT_FILE', 'PRODUCTION_BUSINESS_SIGNOFF_FILE', 'PRODUCTION_SECURITY_SIGNOFF_FILE', 'PRODUCTION_OPERATIONS_SIGNOFF_FILE', 'PRODUCTION_BUSINESS_SIGNOFF_APPROVAL_RECEIPT_FILE', 'PRODUCTION_SECURITY_SIGNOFF_APPROVAL_RECEIPT_FILE', 'PRODUCTION_OPERATIONS_SIGNOFF_APPROVAL_RECEIPT_FILE', 'PRODUCTION_CUTOVER_ACTUAL_EVIDENCE_FILE']
+    ? ['PRODUCTION_CUTOVER_RUN_ID', 'PRODUCTION_CUTOVER_SIGNOFF_CHECKPOINT_FILE', 'PRODUCTION_CUTOVER_SIGNOFF_RESUME_CONFIRMATION', 'PRODUCTION_SIGNOFF_ACTUAL_DOCUMENT_CONFIRMATION', 'PRODUCTION_CUTOVER_EVIDENCE_ASSEMBLY_CONFIRMATION', 'PRODUCTION_SIGNOFF_REQUEST_BUNDLE_FILE', 'PRODUCTION_UAT_ADMIN_RESULT_FILE', 'PRODUCTION_UAT_MANAGER_RESULT_FILE', 'PRODUCTION_UAT_USER_RESULT_FILE', 'PRODUCTION_BUSINESS_SIGNOFF_FILE', 'PRODUCTION_SECURITY_SIGNOFF_FILE', 'PRODUCTION_OPERATIONS_SIGNOFF_FILE', 'PRODUCTION_BUSINESS_SIGNOFF_APPROVAL_RECEIPT_FILE', 'PRODUCTION_SECURITY_SIGNOFF_APPROVAL_RECEIPT_FILE', 'PRODUCTION_OPERATIONS_SIGNOFF_APPROVAL_RECEIPT_FILE', 'PRODUCTION_CUTOVER_ACTUAL_EVIDENCE_FILE']
     : ['PRODUCTION_CUTOVER_CONFIRMATION'],
   expectedConfirmation: resumeSignoff ? SIGNOFF_RESUME_CONFIRMATION : undefined,
   secretValuesReadOrRecorded: false

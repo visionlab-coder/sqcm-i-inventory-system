@@ -336,6 +336,7 @@ function verify() {
       ['production-cutover-adapter-rehearsal', 'npm.cmd', ['run', 'production:cutover-adapter-rehearsal']],
       ['production-cutover-process-runner-rehearsal', 'npm.cmd', ['run', 'production:cutover-process-runner-rehearsal']],
       ['production-cutover-execute-dry-run', 'npm.cmd', ['run', 'production:cutover-execute']],
+      ['production-cutover-signoff-assembly-resume-dry-run', 'npm.cmd', ['run', 'production:cutover-execute', '--', '--resume-signoff', '--assemble-signoffs']],
       ['production-cutover-actual-evidence-dry-run', 'npm.cmd', ['run', 'production:cutover-actual-evidence']],
       ['production-role-result-evidence-dry-run', 'npm.cmd', ['run', 'production:role-result-evidence']],
       ['production-signoff-request-bundle', 'npm.cmd', ['run', 'production:signoff-request-bundle']],

@@ -29,6 +29,11 @@ import {
   inspectProductionCutoverBundleManifest,
   inspectProductionCutoverStepBundle
 } from './production-cutover-bundle.mjs';
+import {
+  PRODUCTION_ACTUAL_SIGNOFF_CONFIRMATION,
+  assembleProductionActualSignoffDocuments,
+  writeProductionActualSignoffDocuments
+} from './production-signoff-actual-evidence.mjs';
 
 export const PRODUCTION_CUTOVER_CONFIRMATION = 'ACK-2026-09-11-P6-G4';
 
@@ -157,6 +162,9 @@ export async function resumeProductionCutoverSignoff({
   signoffReferences = {},
   signoffApprovalReceiptReferences = {},
   signoffRequestBundleReference = null,
+  assembleActualSignoffs = false,
+  actualSignoffConfirmation = null,
+  actualSignoffOutputPaths = {},
   now = () => Date.now(),
   receiptRoot = PRODUCTION_CUTOVER_RECEIPT_ROOT,
   ensureReceiptRoot = ensureCutoverReceiptRoot,
@@ -169,6 +177,8 @@ export async function resumeProductionCutoverSignoff({
   actualEvidenceOutputPath = null,
   loadReceiptDocuments = loadRunReceiptDocuments,
   loadEvidenceDocument = loadJsonDocument,
+  assembleSignoffDocuments = assembleProductionActualSignoffDocuments,
+  persistSignoffDocuments = writeProductionActualSignoffDocuments,
   assembleEvidence = assembleActualCutoverEvidence,
   persistActualEvidence = writeActualCutoverEvidence,
   inspectBundleManifest = inspectProductionCutoverBundleManifest,
@@ -214,13 +224,85 @@ export async function resumeProductionCutoverSignoff({
     };
   };
   if (receiptValidation.status !== 'PASS_SIGNOFF_RESUME_RECEIPTS') return contain(receiptValidation.failures.join(','));
+  if (checkedAtMs > rollbackCutoff) return contain('ROLLBACK_CUTOFF_EXCEEDED');
+  let resolvedSignoffReferences = { ...signoffReferences };
+  let actualSignoffDocumentsCreated = false;
+  const presentSignoffCount = ['BUSINESS', 'SECURITY', 'OPERATIONS']
+    .filter((area) => Boolean(resolvedSignoffReferences[area])).length;
+  if (assembleActualSignoffs && presentSignoffCount < 3) {
+    if (presentSignoffCount > 0) return contain('ACTUAL_SIGNOFF_REFERENCE_SET_PARTIAL', 'ACTUAL_SIGNOFF_ASSEMBLY');
+    const resumePreflight = evaluateSignoffResume({
+      checkpoint, runId, releaseSha, checkedAt, confirmation, currentBundleManifest: bundleManifest,
+      roleResultReferences: Object.fromEntries(Object.entries(roleResultReferences).map(([key, value]) => [key, Boolean(value)])),
+      signoffReferences: { BUSINESS: true, SECURITY: true, OPERATIONS: true },
+      signoffApprovalReceiptReferences: Object.fromEntries(Object.entries(signoffApprovalReceiptReferences).map(([key, value]) => [key, Boolean(value)]))
+    });
+    if (resumePreflight.routeDisableRequired) {
+      return contain(resumePreflight.failures?.join(',') || 'SIGNOFF_RESUME_ROUTE_DISABLE_REQUIRED');
+    }
+    if (resumePreflight.status !== 'READY_FOR_SAME_RUN_UAT_SIGNOFF_RESUME') {
+      return {
+        checkedAt, runId: checkpoint.runId, receiptRoot: root, ...resumePreflight,
+        actualCutoverExecuted: false, externalMutationPerformed: false,
+        actualSignoffDocumentsCreated: false, productionGo: false
+      };
+    }
+    const missing = [];
+    if (actualSignoffConfirmation !== PRODUCTION_ACTUAL_SIGNOFF_CONFIRMATION) {
+      missing.push('ACTUAL_SIGNOFF_ASSEMBLY_CONFIRMATION_MISSING');
+    }
+    if (typeof signoffRequestBundleReference !== 'string' || !signoffRequestBundleReference.trim()) {
+      missing.push('SIGNOFF_REQUEST_BUNDLE_REFERENCE_MISSING');
+    }
+    for (const area of ['BUSINESS', 'SECURITY', 'OPERATIONS']) {
+      if (!signoffApprovalReceiptReferences[area]) missing.push(`${area}_MFA_APPROVAL_RECEIPT_REFERENCE_MISSING`);
+      if (typeof actualSignoffOutputPaths[area] !== 'string' || !actualSignoffOutputPaths[area].trim()) {
+        missing.push(`${area}_ACTUAL_SIGNOFF_OUTPUT_MISSING`);
+      }
+    }
+    if (finalizeActualEvidence) {
+      if (actualEvidenceConfirmation !== ACTUAL_CUTOVER_ASSEMBLY_CONFIRMATION) {
+        missing.push('ACTUAL_EVIDENCE_ASSEMBLY_CONFIRMATION_MISSING');
+      }
+      if (typeof actualEvidenceOutputPath !== 'string' || !actualEvidenceOutputPath.trim()) {
+        missing.push('ACTUAL_EVIDENCE_OUTPUT_MISSING');
+      }
+    }
+    if (missing.length) {
+      return {
+        checkedAt, runId: checkpoint.runId, receiptRoot: root,
+        status: 'READY_WAIT_ACTUAL_SIGNOFF_ASSEMBLY_INPUTS', failures: [], missing,
+        executedGates: [], skippedGates: ['uat_signoff'], routeDisableRequired: false,
+        routeDisableVerified: false, actualCutoverExecuted: false,
+        externalMutationPerformed: false, actualSignoffDocumentsCreated: false,
+        actualEvidenceCreated: false, productionGo: false
+      };
+    }
+    try {
+      const requestBundleDocument = loadEvidenceDocument(signoffRequestBundleReference);
+      const approvalReceiptDocuments = Object.fromEntries(['BUSINESS', 'SECURITY', 'OPERATIONS']
+        .map((area) => [area, loadEvidenceDocument(signoffApprovalReceiptReferences[area])]));
+      const assembledSignoffs = assembleSignoffDocuments({ requestBundleDocument, approvalReceiptDocuments });
+      if (assembledSignoffs?.status !== 'PASS_PRODUCTION_ACTUAL_SIGNOFF_DOCUMENTS_ASSEMBLED'
+        || assembledSignoffs?.externalApprovalCreated !== false || !assembledSignoffs?.documents) {
+        throw new Error(assembledSignoffs?.failures?.join(',') || 'ACTUAL_SIGNOFF_ASSEMBLY_NOT_PASS');
+      }
+      resolvedSignoffReferences = persistSignoffDocuments(actualSignoffOutputPaths, assembledSignoffs.documents);
+      if (!['BUSINESS', 'SECURITY', 'OPERATIONS'].every((area) => typeof resolvedSignoffReferences?.[area] === 'string')) {
+        throw new Error('ACTUAL_SIGNOFF_OUTPUT_SET_NOT_COMPLETE');
+      }
+      actualSignoffDocumentsCreated = true;
+    } catch (error) {
+      return contain(String(error?.message || 'ACTUAL_SIGNOFF_ASSEMBLY_FAILED'), 'ACTUAL_SIGNOFF_ASSEMBLY');
+    }
+  }
   const resume = evaluateSignoffResume({
     checkpoint, runId, releaseSha, checkedAt, confirmation, currentBundleManifest: bundleManifest,
     roleResultReferences: Object.fromEntries(Object.entries(roleResultReferences).map(([key, value]) => [key, Boolean(value)])),
-    signoffReferences: Object.fromEntries(Object.entries(signoffReferences).map(([key, value]) => [key, Boolean(value)])),
+    signoffReferences: Object.fromEntries(Object.entries(resolvedSignoffReferences).map(([key, value]) => [key, Boolean(value)])),
     signoffApprovalReceiptReferences: Object.fromEntries(Object.entries(signoffApprovalReceiptReferences).map(([key, value]) => [key, Boolean(value)]))
   });
-  if (checkedAtMs > rollbackCutoff || resume.routeDisableRequired) return contain(resume.failures?.join(',') || 'ROLLBACK_CUTOFF_EXCEEDED');
+  if (resume.routeDisableRequired) return contain(resume.failures?.join(',') || 'SIGNOFF_RESUME_ROUTE_DISABLE_REQUIRED');
   if (resume.status !== 'READY_FOR_SAME_RUN_UAT_SIGNOFF_RESUME') {
     return { checkedAt, runId: checkpoint.runId, receiptRoot: root, ...resume, actualCutoverExecuted: false, externalMutationPerformed: false, productionGo: false };
   }
@@ -247,7 +329,7 @@ export async function resumeProductionCutoverSignoff({
       const roleResultDocuments = Object.fromEntries(['ADMIN', 'MANAGER', 'USER']
         .map((role) => [role, loadEvidenceDocument(roleResultReferences[role])]));
       const signoffDocuments = Object.fromEntries(['BUSINESS', 'SECURITY', 'OPERATIONS']
-        .map((area) => [area, loadEvidenceDocument(signoffReferences[area])]));
+        .map((area) => [area, loadEvidenceDocument(resolvedSignoffReferences[area])]));
       const signoffApprovalReceiptDocuments = Object.fromEntries(['BUSINESS', 'SECURITY', 'OPERATIONS']
         .map((area) => [area, loadEvidenceDocument(signoffApprovalReceiptReferences[area])]));
       const signoffRequestBundleDocument = loadEvidenceDocument(signoffRequestBundleReference);
@@ -270,7 +352,8 @@ export async function resumeProductionCutoverSignoff({
         gateResults: [{ gate: 'uat_signoff', result: 'PASS', evidenceRef: gateResult.evidenceRef }],
         executedGates: ['uat_signoff'], skippedGates: [], routeDisableRequired: false,
         routeDisableVerified: false, actualCutoverExecuted: true, externalMutationPerformed: true,
-        actualEvidenceCreated: true, actualEvidenceOutputFile: path.basename(outputFile), productionGo: true
+        actualSignoffDocumentsCreated, actualEvidenceCreated: true,
+        actualEvidenceOutputFile: path.basename(outputFile), productionGo: true
       };
     } catch (error) {
       return contain(String(error?.message || 'ACTUAL_EVIDENCE_FINALIZATION_FAILED'), 'ACTUAL_EVIDENCE_FINALIZATION');
@@ -281,8 +364,9 @@ export async function resumeProductionCutoverSignoff({
     status: 'READY_FOR_CUTOVER_EVIDENCE_FINALIZATION', failures: [],
     gateResults: [{ gate: 'uat_signoff', result: 'PASS', evidenceRef: gateResult.evidenceRef }],
     executedGates: ['uat_signoff'], skippedGates: [], routeDisableRequired: false,
-    routeDisableVerified: false, actualCutoverExecuted: true, externalMutationPerformed: true, productionGo: false
+    routeDisableVerified: false, actualCutoverExecuted: true, externalMutationPerformed: true,
+    actualSignoffDocumentsCreated, productionGo: false
   };
 }
 
-export { SIGNOFF_RESUME_CONFIRMATION };
+export { PRODUCTION_ACTUAL_SIGNOFF_CONFIRMATION, SIGNOFF_RESUME_CONFIRMATION };

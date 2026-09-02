@@ -296,3 +296,161 @@ test('actual finalization 확인 또는 출력 경로가 없으면 Gate 12를 �
   assert.equal(stepCount, 0);
   assert.equal(result.productionGo, false);
 });
+
+test('actual signoff가 없으면 승인 receipt로 3건을 조립한 뒤 같은 재개에서 Gate 12와 finalization을 수행한다', async () => {
+  const {
+    PRODUCTION_ACTUAL_SIGNOFF_CONFIRMATION,
+    resumeProductionCutoverSignoff,
+    SIGNOFF_RESUME_CONFIRMATION
+  } = await modulePromise;
+  const checkpoint = {
+    schemaVersion: 1, evidenceType: 'P6_CUTOVER_SIGNOFF_PAUSE_CHECKPOINT', runId: '11111111-1111-4111-8111-111111111111', releaseSha: 'a'.repeat(40),
+    checkedAt: '2026-09-11T12:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
+    completedGates: ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'].map((gate, index) => ({ gate, evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: 'b'.repeat(64) }))
+  };
+  const roles = { ADMIN: 'admin.json', MANAGER: 'manager.json', USER: 'user.json' };
+  const receipts = { BUSINESS: 'business-receipt.json', SECURITY: 'security-receipt.json', OPERATIONS: 'operations-receipt.json' };
+  const outputs = { BUSINESS: 'outside/business.json', SECURITY: 'outside/security.json', OPERATIONS: 'outside/operations.json' };
+  const persisted = [];
+  const loaded = [];
+  const result = await resumeProductionCutoverSignoff({
+    execute: true, confirmation: SIGNOFF_RESUME_CONFIRMATION, runId: checkpoint.runId, releaseSha: checkpoint.releaseSha,
+    checkpointPath: 'checkpoint', roleResultReferences: roles, signoffReferences: {}, signoffApprovalReceiptReferences: receipts,
+    signoffRequestBundleReference: 'request.json', now: insideWindow,
+    ensureReceiptRoot: () => 'synthetic-root', loadCheckpoint: () => checkpoint,
+    validateReceipts: () => ({ status: 'PASS_SIGNOFF_RESUME_RECEIPTS', failures: [], receiptCount: 24 }),
+    createWriter: () => syntheticWriter(checkpoint.runId),
+    createRunner: ({ writeReceipt }) => async (step) => ({ exitCode: 0, status: step.acceptedStatuses[0], evidenceRef: await writeReceipt({ kind: 'step', gate: step.gate, step: step.id }) }),
+    assembleActualSignoffs: true, actualSignoffConfirmation: PRODUCTION_ACTUAL_SIGNOFF_CONFIRMATION,
+    actualSignoffOutputPaths: outputs,
+    loadEvidenceDocument: (file) => { loaded.push(file); return { fileName: file, value: {} }; },
+    assembleSignoffDocuments: () => ({
+      status: 'PASS_PRODUCTION_ACTUAL_SIGNOFF_DOCUMENTS_ASSEMBLED', failures: [],
+      documents: { BUSINESS: { area: 'BUSINESS' }, SECURITY: { area: 'SECURITY' }, OPERATIONS: { area: 'OPERATIONS' } },
+      externalApprovalCreated: false, productionGo: false
+    }),
+    persistSignoffDocuments: (paths, documents) => { persisted.push({ paths, documents }); return paths; },
+    finalizeActualEvidence: true, actualEvidenceConfirmation: 'ACK-P6-ASSEMBLE-ACTUAL-CUTOVER-EVIDENCE', actualEvidenceOutputPath: 'outside/actual.json',
+    loadReceiptDocuments: () => [{ value: { runId: checkpoint.runId } }],
+    assembleEvidence: () => ({ status: 'PASS_ACTUAL_CUTOVER_EVIDENCE_ASSEMBLY', failures: [], evidence: { productionGo: true }, productionGo: true }),
+    persistActualEvidence: (file) => file
+  });
+  assert.equal(result.status, 'PASS_ACTUAL_CUTOVER_EVIDENCE_FINALIZED');
+  assert.equal(result.actualSignoffDocumentsCreated, true);
+  assert.equal(persisted.length, 1);
+  assert.deepEqual(persisted[0].paths, outputs);
+  assert.ok(loaded.includes('request.json'));
+  assert.ok(loaded.includes('outside/business.json'));
+  assert.equal(result.productionGo, true);
+});
+
+test('actual signoff 조립 exact 확인이 없으면 입력을 읽거나 Gate 12를 실행하지 않는다', async () => {
+  const { resumeProductionCutoverSignoff, SIGNOFF_RESUME_CONFIRMATION } = await modulePromise;
+  const checkpoint = {
+    schemaVersion: 1, evidenceType: 'P6_CUTOVER_SIGNOFF_PAUSE_CHECKPOINT', runId: '11111111-1111-4111-8111-111111111111', releaseSha: 'a'.repeat(40),
+    checkedAt: '2026-09-11T12:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
+    completedGates: ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'].map((gate, index) => ({ gate, evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: 'b'.repeat(64) }))
+  };
+  let loadCount = 0; let persistCount = 0; let stepCount = 0;
+  const result = await resumeProductionCutoverSignoff({
+    execute: true, confirmation: SIGNOFF_RESUME_CONFIRMATION, runId: checkpoint.runId, releaseSha: checkpoint.releaseSha,
+    checkpointPath: 'checkpoint', roleResultReferences: { ADMIN: 'a', MANAGER: 'm', USER: 'u' }, signoffReferences: {},
+    signoffApprovalReceiptReferences: { BUSINESS: 'b', SECURITY: 's', OPERATIONS: 'o' }, signoffRequestBundleReference: 'request.json', now: insideWindow,
+    ensureReceiptRoot: () => 'synthetic-root', loadCheckpoint: () => checkpoint,
+    validateReceipts: () => ({ status: 'PASS_SIGNOFF_RESUME_RECEIPTS', failures: [], receiptCount: 24 }),
+    createWriter: () => syntheticWriter(checkpoint.runId), createRunner: () => async () => { stepCount += 1; return {}; },
+    assembleActualSignoffs: true, actualSignoffOutputPaths: { BUSINESS: 'b.json', SECURITY: 's.json', OPERATIONS: 'o.json' },
+    loadEvidenceDocument: () => { loadCount += 1; return {}; }, persistSignoffDocuments: () => { persistCount += 1; }
+  });
+  assert.equal(result.status, 'READY_WAIT_ACTUAL_SIGNOFF_ASSEMBLY_INPUTS');
+  assert.deepEqual(result.missing, ['ACTUAL_SIGNOFF_ASSEMBLY_CONFIRMATION_MISSING']);
+  assert.equal(loadCount, 0); assert.equal(persistCount, 0); assert.equal(stepCount, 0);
+  assert.equal(result.productionGo, false);
+});
+
+test('actual signoff 조립 실패는 공개 route-disable로 containment한다', async () => {
+  const {
+    PRODUCTION_ACTUAL_SIGNOFF_CONFIRMATION,
+    resumeProductionCutoverSignoff,
+    SIGNOFF_RESUME_CONFIRMATION
+  } = await modulePromise;
+  const checkpoint = {
+    schemaVersion: 1, evidenceType: 'P6_CUTOVER_SIGNOFF_PAUSE_CHECKPOINT', runId: '11111111-1111-4111-8111-111111111111', releaseSha: 'a'.repeat(40),
+    checkedAt: '2026-09-11T12:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
+    completedGates: ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'].map((gate, index) => ({ gate, evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: 'b'.repeat(64) }))
+  };
+  const calls = [];
+  const result = await resumeProductionCutoverSignoff({
+    execute: true, confirmation: SIGNOFF_RESUME_CONFIRMATION, runId: checkpoint.runId, releaseSha: checkpoint.releaseSha,
+    checkpointPath: 'checkpoint', roleResultReferences: { ADMIN: 'a', MANAGER: 'm', USER: 'u' }, signoffReferences: {},
+    signoffApprovalReceiptReferences: { BUSINESS: 'b', SECURITY: 's', OPERATIONS: 'o' }, signoffRequestBundleReference: 'request.json', now: insideWindow,
+    ensureReceiptRoot: () => 'synthetic-root', loadCheckpoint: () => checkpoint,
+    validateReceipts: () => ({ status: 'PASS_SIGNOFF_RESUME_RECEIPTS', failures: [], receiptCount: 24 }),
+    createWriter: () => syntheticWriter(checkpoint.runId),
+    createRunner: ({ writeReceipt }) => async (step) => { calls.push(step.id); return { exitCode: 0, status: step.acceptedStatuses[0], evidenceRef: await writeReceipt({ kind: 'step', gate: step.gate, step: step.id }) }; },
+    assembleActualSignoffs: true, actualSignoffConfirmation: PRODUCTION_ACTUAL_SIGNOFF_CONFIRMATION,
+    actualSignoffOutputPaths: { BUSINESS: 'b.json', SECURITY: 's.json', OPERATIONS: 'o.json' },
+    loadEvidenceDocument: () => ({ value: {} }), assembleSignoffDocuments: () => { throw new Error('TAMPERED_RECEIPT'); }
+  });
+  assert.equal(result.status, 'PASS_ACTUAL_SIGNOFF_ASSEMBLY_FAILURE_CONTAINED');
+  assert.deepEqual(calls, ['route-disable']);
+  assert.equal(result.productionGo, false);
+});
+
+test('atomic 재개에서 final evidence 확인이 없으면 actual signoff도 쓰지 않는다', async () => {
+  const {
+    PRODUCTION_ACTUAL_SIGNOFF_CONFIRMATION,
+    resumeProductionCutoverSignoff,
+    SIGNOFF_RESUME_CONFIRMATION
+  } = await modulePromise;
+  const checkpoint = {
+    schemaVersion: 1, evidenceType: 'P6_CUTOVER_SIGNOFF_PAUSE_CHECKPOINT', runId: '11111111-1111-4111-8111-111111111111', releaseSha: 'a'.repeat(40),
+    checkedAt: '2026-09-11T12:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
+    completedGates: ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'].map((gate, index) => ({ gate, evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: 'b'.repeat(64) }))
+  };
+  let loadCount = 0; let persistCount = 0;
+  const result = await resumeProductionCutoverSignoff({
+    execute: true, confirmation: SIGNOFF_RESUME_CONFIRMATION, runId: checkpoint.runId, releaseSha: checkpoint.releaseSha,
+    checkpointPath: 'checkpoint', roleResultReferences: { ADMIN: 'a', MANAGER: 'm', USER: 'u' }, signoffReferences: {},
+    signoffApprovalReceiptReferences: { BUSINESS: 'b', SECURITY: 's', OPERATIONS: 'o' }, signoffRequestBundleReference: 'request.json', now: insideWindow,
+    ensureReceiptRoot: () => 'synthetic-root', loadCheckpoint: () => checkpoint,
+    validateReceipts: () => ({ status: 'PASS_SIGNOFF_RESUME_RECEIPTS', failures: [], receiptCount: 24 }),
+    createWriter: () => syntheticWriter(checkpoint.runId), createRunner: () => async () => ({}),
+    assembleActualSignoffs: true, actualSignoffConfirmation: PRODUCTION_ACTUAL_SIGNOFF_CONFIRMATION,
+    actualSignoffOutputPaths: { BUSINESS: 'b.json', SECURITY: 's.json', OPERATIONS: 'o.json' },
+    finalizeActualEvidence: true, actualEvidenceOutputPath: 'actual.json',
+    loadEvidenceDocument: () => { loadCount += 1; return {}; },
+    persistSignoffDocuments: () => { persistCount += 1; return {}; }
+  });
+  assert.equal(result.status, 'READY_WAIT_ACTUAL_SIGNOFF_ASSEMBLY_INPUTS');
+  assert.deepEqual(result.missing, ['ACTUAL_EVIDENCE_ASSEMBLY_CONFIRMATION_MISSING']);
+  assert.equal(loadCount, 0); assert.equal(persistCount, 0);
+});
+
+test('partial actual signoff reference set은 재조립하지 않고 route-disable로 containment한다', async () => {
+  const {
+    PRODUCTION_ACTUAL_SIGNOFF_CONFIRMATION,
+    resumeProductionCutoverSignoff,
+    SIGNOFF_RESUME_CONFIRMATION
+  } = await modulePromise;
+  const checkpoint = {
+    schemaVersion: 1, evidenceType: 'P6_CUTOVER_SIGNOFF_PAUSE_CHECKPOINT', runId: '11111111-1111-4111-8111-111111111111', releaseSha: 'a'.repeat(40),
+    checkedAt: '2026-09-11T12:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
+    completedGates: ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'].map((gate, index) => ({ gate, evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: 'b'.repeat(64) }))
+  };
+  const calls = [];
+  const result = await resumeProductionCutoverSignoff({
+    execute: true, confirmation: SIGNOFF_RESUME_CONFIRMATION, runId: checkpoint.runId, releaseSha: checkpoint.releaseSha,
+    checkpointPath: 'checkpoint', roleResultReferences: { ADMIN: 'a', MANAGER: 'm', USER: 'u' },
+    signoffReferences: { BUSINESS: 'existing.json' },
+    signoffApprovalReceiptReferences: { BUSINESS: 'b', SECURITY: 's', OPERATIONS: 'o' }, signoffRequestBundleReference: 'request.json', now: insideWindow,
+    ensureReceiptRoot: () => 'synthetic-root', loadCheckpoint: () => checkpoint,
+    validateReceipts: () => ({ status: 'PASS_SIGNOFF_RESUME_RECEIPTS', failures: [], receiptCount: 24 }),
+    createWriter: () => syntheticWriter(checkpoint.runId),
+    createRunner: ({ writeReceipt }) => async (step) => { calls.push(step.id); return { exitCode: 0, status: step.acceptedStatuses[0], evidenceRef: await writeReceipt({ kind: 'step', gate: step.gate, step: step.id }) }; },
+    assembleActualSignoffs: true, actualSignoffConfirmation: PRODUCTION_ACTUAL_SIGNOFF_CONFIRMATION,
+    actualSignoffOutputPaths: { BUSINESS: 'b.json', SECURITY: 's.json', OPERATIONS: 'o.json' }
+  });
+  assert.equal(result.status, 'PASS_ACTUAL_SIGNOFF_ASSEMBLY_FAILURE_CONTAINED');
+  assert.deepEqual(calls, ['route-disable']);
+});

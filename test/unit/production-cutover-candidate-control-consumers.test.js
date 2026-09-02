@@ -23,3 +23,13 @@ test('P6 cutover candidate consumers use the bounded physical JSON reader', () =
     );
   }
 });
+
+test('cutover resume entrypoint wires atomic actual-signoff assembly controls', () => {
+  const source = fs.readFileSync(path.join(projectRoot, 'scripts', 'production-cutover-execute.mjs'), 'utf8');
+  const harness = fs.readFileSync(path.join(projectRoot, 'scripts', 'goal-harness.mjs'), 'utf8');
+  assert.match(source, /--assemble-signoffs/);
+  assert.match(source, /PRODUCTION_SIGNOFF_ACTUAL_DOCUMENT_CONFIRMATION/);
+  assert.match(source, /assembleActualSignoffs/);
+  assert.match(source, /actualSignoffOutputPaths/);
+  assert.match(harness, /production-cutover-signoff-assembly-resume-dry-run/);
+});
