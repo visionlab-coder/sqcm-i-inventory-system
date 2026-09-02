@@ -1,0 +1,52 @@
+{
+  "packet": "ACC-P7-57-ATOMIC-OPERATIONS-HANDOVER-EVIDENCE-SNAPSHOT",
+  "status": "PASS_ATOMIC_OPERATIONS_HANDOVER_EVIDENCE_SNAPSHOT",
+  "failureFirst": { "expectedFailures": 5, "observedFailures": 5 },
+  "focusedTests": { "total": 21, "passed": 20, "failed": 0, "skipped": 1 },
+  "syntaxChecks": { "passed": 362, "failed": 0 },
+  "unitTests": { "total": 664, "passed": 657, "failed": 0, "skipped": 7 },
+  "snapshotContract": {
+    "maximumBytesPerJson": 4194304,
+    "repositoryIdentityRechecked": true,
+    "repositoryRealpathRechecked": true,
+    "externalBaseIdentityRechecked": true,
+    "externalBaseRealpathRechecked": true,
+    "candidateIdentityRechecked": true,
+    "candidateRealpathRechecked": true,
+    "candidateSizeRechecked": true,
+    "sameSizeReplacementRejected": true,
+    "sizeMutationRejected": true,
+    "fatalUtf8Required": true,
+    "rawPathAndContentRedactedFromErrors": true
+  },
+  "activationBundle": {
+    "rootEntrypointCount": 21,
+    "resolvedPhysicalFileCount": 49,
+    "totalBytes": 345517,
+    "sha256": "a65d6a06f3ec07aed688861902adcb2238e1fe25d400d374ecee6c4402f889a6"
+  },
+  "readOnlyVerification": {
+    "handoverFinalizerStatus": "READY_WAIT_P6_COMPLETION_AND_HANDOVER_EVIDENCE",
+    "requiredDocumentCount": 10,
+    "verifiedDocumentCount": 0,
+    "actualEvidencePresent": false,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "implementationCommit": "5fb20f7ae7249824d24760b890ea7fed04bd290a",
+  "qualityCi": {
+    "runId": 33587580937,
+    "testedHeadSha": "5fb20f7ae7249824d24760b890ea7fed04bd290a",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "harnessVerify": { "exitCode": 0, "status": "PASS" },
+  "actualHandoverPerformed": false,
+  "actualActivationPerformed": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

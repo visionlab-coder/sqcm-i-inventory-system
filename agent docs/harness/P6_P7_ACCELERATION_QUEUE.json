@@ -749,6 +749,14 @@
       "evidence": "failure-first 5/5; focused input regression 16 PASS 2 skips; syntax 361/361; repository unit 652 PASS 7 skips; activation bundle 21 roots 49 physical files 343397 bytes sha256 95b2c494627dbd33899e668a97b0edc6bfa19ba4d670b3af56bb2a3b3b8f431e; harness:verify PASS; GitHub quality 33586665241 unit and three-tier SUCCESS; actual activation NOT_RUN"
     },
     {
+      "id": "ACC-P7-57-ATOMIC-OPERATIONS-HANDOVER-EVIDENCE-SNAPSHOT",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 handover finalizer의 최상위 manifest와 10개 실제 운영 증거 JSON은 actual bytes read 뒤 repository·external base·candidate의 physical identity·realpath·size를 재검증하고 fatal UTF-8 JSON object만 사용하며 read 중 교체·redirect·invalid encoding을 완료 증거로 승격하지 않는다.",
+      "evidence": "failure-first 5/5; focused handover regression 20 PASS 1 Windows skip; syntax 362/362; repository unit 657 PASS 7 skips; activation bundle 21 roots 49 physical files 345517 bytes sha256 a65d6a06f3ec07aed688861902adcb2238e1fe25d400d374ecee6c4402f889a6; harness:verify PASS; GitHub quality 33587580937 unit and three-tier SUCCESS; actual handover and activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
