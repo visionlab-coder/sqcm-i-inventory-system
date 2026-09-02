@@ -5,9 +5,9 @@ import {
   ALERTING_EVIDENCE_CONFIRMATION,
   compileOperationsAlertingEvidence,
   evaluateOperationsAlertingEvidenceCompiler,
-  sha256AlertingBuffer,
   writeOperationsAlertingEvidenceOnce
 } from '../src/operations/operations-alerting-evidence.mjs';
+import { readOperationsActivationInputDocument } from '../src/operations/operations-activation-input-reader.mjs';
 
 const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const roadmap = JSON.parse(fs.readFileSync(path.join(projectDir, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
@@ -43,10 +43,10 @@ if (status === 'READY_ALERTING_EVIDENCE_COMPILATION') {
     if (insideProject(inputPath)) throw new Error('INPUT_MUST_BE_OUTSIDE_REPOSITORY');
     if (insideProject(outputPath)) throw new Error('OUTPUT_MUST_BE_OUTSIDE_REPOSITORY');
     if (fs.existsSync(outputPath)) throw new Error('OUTPUT_ALREADY_EXISTS');
-    const raw = fs.readFileSync(inputPath);
-    const source = JSON.parse(raw.toString('utf8'));
+    const input = readOperationsActivationInputDocument(inputPath, { repositoryRoot: projectDir });
+    const source = input.value;
     receiptCount = Array.isArray(source.signals) ? source.signals.length : 0;
-    const compilation = compileOperationsAlertingEvidence(source, { sourceSha256: sha256AlertingBuffer(raw) });
+    const compilation = compileOperationsAlertingEvidence(source, { sourceSha256: input.sha256 });
     if (!compilation.evidence) throw new Error(`ALERTING_EVIDENCE_INVALID_${compilation.failures.length}`);
     writeOperationsAlertingEvidenceOnce(outputPath, compilation.evidence);
     status = compilation.status;

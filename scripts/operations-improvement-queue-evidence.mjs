@@ -6,9 +6,9 @@ import {
   IMPROVEMENT_QUEUE_REF,
   compileOperationsImprovementQueueEvidence,
   evaluateOperationsImprovementQueueEvidenceCompiler,
-  sha256ImprovementQueueBuffer,
   writeOperationsImprovementQueueEvidenceOnce
 } from '../src/operations/operations-improvement-queue-evidence.mjs';
+import { readOperationsActivationInputDocument } from '../src/operations/operations-activation-input-reader.mjs';
 
 const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const roadmap = JSON.parse(fs.readFileSync(path.join(projectDir, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
@@ -42,9 +42,9 @@ if (status === 'READY_IMPROVEMENT_QUEUE_EVIDENCE_COMPILATION') {
   try {
     if (insideProject(inputPath)) throw new Error('INPUT_MUST_BE_OUTSIDE_REPOSITORY');
     if (insideProject(outputPath)) throw new Error('OUTPUT_MUST_BE_OUTSIDE_REPOSITORY');
-    const raw = fs.readFileSync(inputPath);
-    const source = JSON.parse(raw.toString('utf8'));
-    const compilation = compileOperationsImprovementQueueEvidence(source, { sourceSha256: sha256ImprovementQueueBuffer(raw) });
+    const input = readOperationsActivationInputDocument(inputPath, { repositoryRoot: projectDir });
+    const source = input.value;
+    const compilation = compileOperationsImprovementQueueEvidence(source, { sourceSha256: input.sha256 });
     if (!compilation.evidence) throw new Error(`IMPROVEMENT_QUEUE_EVIDENCE_INVALID_${compilation.failures.length}`);
     writeOperationsImprovementQueueEvidenceOnce(outputPath, compilation.evidence);
     status = compilation.status;

@@ -5,9 +5,9 @@ import {
   ONCALL_EVIDENCE_CONFIRMATION,
   compileOperationsOnCallEvidence,
   evaluateOperationsOnCallEvidenceCompiler,
-  sha256OnCallBuffer,
   writeOperationsOnCallEvidenceOnce
 } from '../src/operations/operations-oncall-evidence.mjs';
+import { readOperationsActivationInputDocument } from '../src/operations/operations-activation-input-reader.mjs';
 
 const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const roadmap = JSON.parse(fs.readFileSync(path.join(projectDir, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
@@ -41,9 +41,9 @@ if (status === 'READY_ONCALL_EVIDENCE_COMPILATION') {
   try {
     if (insideProject(inputPath)) throw new Error('INPUT_MUST_BE_OUTSIDE_REPOSITORY');
     if (insideProject(outputPath)) throw new Error('OUTPUT_MUST_BE_OUTSIDE_REPOSITORY');
-    const raw = fs.readFileSync(inputPath);
-    const source = JSON.parse(raw.toString('utf8'));
-    const compilation = compileOperationsOnCallEvidence(source, { sourceSha256: sha256OnCallBuffer(raw) });
+    const input = readOperationsActivationInputDocument(inputPath, { repositoryRoot: projectDir });
+    const source = input.value;
+    const compilation = compileOperationsOnCallEvidence(source, { sourceSha256: input.sha256 });
     if (!compilation.evidence) throw new Error(`ONCALL_EVIDENCE_INVALID_${compilation.failures.length}`);
     writeOperationsOnCallEvidenceOnce(outputPath, compilation.evidence);
     status = compilation.status;

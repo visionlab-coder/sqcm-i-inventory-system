@@ -5,9 +5,9 @@ import {
   BACKUP_RESTORE_EVIDENCE_CONFIRMATION,
   compileOperationsBackupRestoreEvidence,
   evaluateOperationsBackupRestoreEvidenceCompiler,
-  sha256BackupRestoreBuffer,
   writeOperationsBackupRestoreEvidencePairOnce
 } from '../src/operations/operations-backup-restore-evidence.mjs';
+import { readOperationsActivationInputDocument } from '../src/operations/operations-activation-input-reader.mjs';
 
 const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const roadmap = JSON.parse(fs.readFileSync(path.join(projectDir, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
@@ -42,9 +42,9 @@ let failureCount = 0;
 if (status === 'READY_BACKUP_RESTORE_EVIDENCE_COMPILATION') {
   try {
     if ([inputPath, backupOutputPath, restoreOutputPath].some(insideProject)) throw new Error('INPUT_AND_OUTPUTS_MUST_BE_OUTSIDE_REPOSITORY');
-    const raw = fs.readFileSync(inputPath);
-    const source = JSON.parse(raw.toString('utf8'));
-    const compilation = compileOperationsBackupRestoreEvidence(source, { sourceSha256: sha256BackupRestoreBuffer(raw) });
+    const input = readOperationsActivationInputDocument(inputPath, { repositoryRoot: projectDir });
+    const source = input.value;
+    const compilation = compileOperationsBackupRestoreEvidence(source, { sourceSha256: input.sha256 });
     if (!compilation.evidence) throw new Error(`BACKUP_RESTORE_EVIDENCE_INVALID_${compilation.failures.length}`);
     writeOperationsBackupRestoreEvidencePairOnce(backupOutputPath, restoreOutputPath, compilation.evidence);
     status = compilation.status;

@@ -7,9 +7,9 @@ import {
   OPERATIONS_SIGNOFF_TARGET_URL,
   compileOperationsSignoffEvidence,
   evaluateOperationsSignoffEvidenceCompiler,
-  sha256OperationsSignoffBuffer,
   writeOperationsSignoffEvidenceOnce
 } from '../src/operations/operations-signoff-evidence.mjs';
+import { readOperationsActivationInputDocument } from '../src/operations/operations-activation-input-reader.mjs';
 
 const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const roadmap = JSON.parse(fs.readFileSync(path.join(projectDir, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
@@ -43,9 +43,9 @@ if (status === 'READY_OPERATIONS_SIGNOFF_EVIDENCE_COMPILATION') {
   try {
     if (insideProject(inputPath)) throw new Error('INPUT_MUST_BE_OUTSIDE_REPOSITORY');
     if (insideProject(outputPath)) throw new Error('OUTPUT_MUST_BE_OUTSIDE_REPOSITORY');
-    const raw = fs.readFileSync(inputPath);
-    const source = JSON.parse(raw.toString('utf8'));
-    const compilation = compileOperationsSignoffEvidence(source, { sourceSha256: sha256OperationsSignoffBuffer(raw) });
+    const input = readOperationsActivationInputDocument(inputPath, { repositoryRoot: projectDir });
+    const source = input.value;
+    const compilation = compileOperationsSignoffEvidence(source, { sourceSha256: input.sha256 });
     if (!compilation.evidence) throw new Error(`OPERATIONS_SIGNOFF_EVIDENCE_INVALID_${compilation.failures.length}`);
     writeOperationsSignoffEvidenceOnce(outputPath, compilation.evidence);
     status = compilation.status;
