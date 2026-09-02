@@ -148,6 +148,7 @@ flowchart LR
 - `ACC-P6-56`에서 Goal Harness의 `MASTER_ROADMAP.json`·가속 큐를 각각 한 번 읽은 동일 physical bounded snapshot으로 통합했다. 두 파일 전체의 read 전후 repository·file identity/realpath/size를 재검증해 서로 다른 시점의 Phase·READY 상태 조합을 차단했으며 실제 cutover·DNS/TLS·역할 UAT·서명은 `NOT_RUN`이다.
 - `ACC-P6-57`에서 Goal Harness의 `P2_RELEASE_CANDIDATE.json`·`P2_REMOTE_EVIDENCE.json`을 각각 한 번 읽은 동일 physical bounded snapshot으로 통합했다. 전체 read 전후 repository·harness directory·file identity/realpath/size를 재검증해 서로 다른 시점의 candidate·CI·release provenance 조합을 차단했으며 실제 cutover·DNS/TLS·역할 UAT·서명은 `NOT_RUN`이다.
 - `ACC-P6-58`에서 Goal Harness의 release candidate content fallback을 저장소 상대 정규 경로·중복 없음·physical regular file·파일당 8MiB·최대 512개·합계 64MiB·각 1회 read·전체 read-after identity/realpath/size 검증으로 제한했다. 경로 이탈·과대 입력·서로 다른 시점의 candidate hash 조합을 차단했으며 실제 cutover·DNS/TLS·역할 UAT·서명은 `NOT_RUN`이다.
+- `ACC-P6-59`에서 P6→P7·P7→8/8 전환의 rollback 원본을 atomic control snapshot의 actual raw bytes와 bounded physical 문서 snapshot으로 통합했다. terminal completion의 Git 상태 확인도 10초·1MiB·shell 금지 reader로 제한했으며 실제 Phase 전환·DNS/TLS·역할 UAT·서명은 `NOT_RUN`이다.
 
 ## 6. Phase 갱신 절차
 
