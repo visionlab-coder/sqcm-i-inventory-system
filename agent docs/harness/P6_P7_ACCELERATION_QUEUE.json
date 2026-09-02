@@ -1085,6 +1085,14 @@
       "evidence": "failure-first 5 reproduced; focused 5 PASS; actual read-only observation PASS_NO_INGRESS_PARTIAL_STATE with six components absent, external mutation zero and secret content read zero; syntax 410/410; repository unit 826 PASS 8 skips; harness:verify PASS; GitHub quality 33639122565 unit and three-tier SUCCESS; actual recovery execution, tunnel/DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-76-PRODUCTION-INGRESS-ORPHAN-RECOVERY-EXECUTOR",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production ingress exact orphan만 승인 변경창·exact confirmation·single-writer lease 아래 no-force UUID delete하고 원격 tunnel 부재 뒤 동일 physical identity의 임시 credential을 원문 read 없이 제거해야 하며 복구 confirmation은 변경창 전에 사전 무장되지 않아야 한다.",
+      "evidence": "cloudflared delete help reviewed read-only; failure-first 6 reproduced; unrelated elevated cloudflared metadata issue reproduced and alternate no-target-only nonblocking path applied without permission expansion; focused recovery and change-window 13 PASS; syntax 412/412; repository unit 833 PASS 8 skips; harness:verify PASS; GitHub quality 33641167628 unit and three-tier SUCCESS; actual recovery deletion, tunnel/DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
