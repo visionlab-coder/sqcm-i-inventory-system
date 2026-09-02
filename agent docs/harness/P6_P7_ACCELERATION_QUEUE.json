@@ -789,6 +789,14 @@
       "evidence": "failure-first 7/7; focused UAT input regression 58/58 PASS; syntax 367/367; repository unit 678 PASS 7 skips; fresh Production backup 318811 bytes and isolated restore 33/33 tables 25/25 migrations PASS; harness:verify PASS; GitHub quality 33591475433 unit and three-tier SUCCESS; actual credentials read and Production UAT NOT_RUN"
     },
     {
+      "id": "ACC-P6-42-ATOMIC-CLOUDFLARE-TOKEN-INPUT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production Cloudflare DNS rollback token은 저장소 밖 absolute physical Secret file·exact realpath·1 byte~64KiB·read 전후 repository/file identity와 size 안정성·fatal UTF-8 계약으로 읽고, dry-run presence inspection에서는 Secret content를 읽지 않으며 ingress publication과 route-disable이 같은 bounded atomic reader를 사용한다.",
+      "evidence": "failure-first 4/4; focused Cloudflare token and activation input regression 38 PASS 2 Windows skips; syntax 368/368; repository unit 682 PASS 7 skips; ingress dry-run READY_WAIT_INGRESS_PUBLICATION_INPUTS and route-disable dry-run READY_WAIT_ROUTE_DISABLE_INPUTS with token content read zero; harness:verify PASS; GitHub quality 33592297934 unit and three-tier SUCCESS; actual token read and DNS/tunnel/route mutation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
