@@ -6,6 +6,111 @@ import { HANDOVER_DOMAINS } from './operations-handover-preflight.mjs';
 const REQUIRED_SIGNALS = ['availability', 'latency_p95', 'http_5xx', 'backup_failure', 'certificate_expiry'];
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 const IDENTITY_PATTERN = /^identity:\/\/[A-Za-z0-9._/@:-]+$/;
+export const OPERATIONS_HANDOVER_EVIDENCE_MAX_BYTES = 4 * 1024 * 1024;
+
+function evidenceInputError(code) {
+  const error = new Error(code);
+  error.name = 'OperationsHandoverEvidenceInputError';
+  return error;
+}
+
+function pathInsideOrEqual(root, candidate) {
+  const relative = path.relative(root, candidate);
+  return relative === '' || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative));
+}
+
+function samePhysicalPath(left, right) {
+  return process.platform === 'win32'
+    ? left.toLowerCase() === right.toLowerCase()
+    : left === right;
+}
+
+function readBoundedOperationsEvidenceFile(filePath, {
+  baseDir = null,
+  repositoryRoot = process.cwd(),
+  requireAbsolute = true,
+  io = fs,
+  maxBytes = OPERATIONS_HANDOVER_EVIDENCE_MAX_BYTES
+} = {}) {
+  if (typeof filePath !== 'string' || !filePath.trim()
+    || (requireAbsolute && !path.isAbsolute(filePath))
+    || path.extname(filePath).toLowerCase() !== '.json'
+    || typeof repositoryRoot !== 'string' || !repositoryRoot
+    || (!requireAbsolute && (typeof baseDir !== 'string' || !baseDir))
+    || !Number.isInteger(maxBytes) || maxBytes < 1 || maxBytes > OPERATIONS_HANDOVER_EVIDENCE_MAX_BYTES) {
+    throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID');
+  }
+
+  const repository = path.resolve(repositoryRoot);
+  const base = baseDir ? path.resolve(baseDir) : null;
+  const relativeReference = !path.isAbsolute(filePath);
+  const candidate = relativeReference ? path.resolve(base, filePath) : path.resolve(filePath);
+  if ((relativeReference && !pathInsideOrEqual(base, candidate)) || pathInsideOrEqual(repository, candidate)) {
+    throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID');
+  }
+
+  let repositoryReal;
+  let baseReal = null;
+  let stat;
+  try {
+    const repositoryStat = io.lstatSync(repository);
+    if (!repositoryStat.isDirectory() || repositoryStat.isSymbolicLink() || (repositoryStat.isReparsePoint?.() ?? false)) {
+      throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID');
+    }
+    repositoryReal = path.resolve(io.realpathSync(repository));
+    if (relativeReference) {
+      const baseStat = io.lstatSync(base);
+      baseReal = path.resolve(io.realpathSync(base));
+      if (!baseStat.isDirectory() || baseStat.isSymbolicLink() || (baseStat.isReparsePoint?.() ?? false)
+        || !samePhysicalPath(baseReal, base)) {
+        throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID');
+      }
+    }
+    stat = io.lstatSync(candidate);
+  } catch (error) {
+    if (error?.code === 'ENOENT') throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_NOT_FOUND');
+    if (error?.name === 'OperationsHandoverEvidenceInputError') throw error;
+    throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID');
+  }
+  if (!stat.isFile() || stat.isSymbolicLink() || (stat.isReparsePoint?.() ?? false)
+    || stat.size < 1 || stat.size > maxBytes) {
+    throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID');
+  }
+
+  let candidateReal;
+  let raw;
+  try {
+    candidateReal = path.resolve(io.realpathSync(candidate));
+    if (!samePhysicalPath(candidateReal, candidate)
+      || pathInsideOrEqual(repositoryReal, candidateReal)
+      || (relativeReference && !pathInsideOrEqual(baseReal, candidateReal))) {
+      throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID');
+    }
+    raw = io.readFileSync(candidateReal);
+  } catch (error) {
+    if (error?.name === 'OperationsHandoverEvidenceInputError') throw error;
+    throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID');
+  }
+  if (!Buffer.isBuffer(raw) || raw.length !== stat.size || raw.length > maxBytes) {
+    throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID');
+  }
+
+  let value;
+  try { value = JSON.parse(raw.toString('utf8')); } catch { throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_JSON_INVALID'); }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_JSON_INVALID');
+  }
+  return {
+    value,
+    bytes: raw.length,
+    sha256: createHash('sha256').update(raw).digest('hex'),
+    path: candidateReal
+  };
+}
+
+export function readActualOperationsHandoverEvidenceFile(filePath, options = {}) {
+  return readBoundedOperationsEvidenceFile(filePath, { ...options, requireAbsolute: true });
+}
 
 function validDate(value) {
   return typeof value === 'string' && !Number.isNaN(Date.parse(value));
@@ -20,23 +125,22 @@ function validReference(reference) {
     && SHA256_PATTERN.test(reference.sha256 ?? '');
 }
 
-export function loadActualOperationsEvidenceDocument(reference, { baseDir } = {}) {
+export function loadActualOperationsEvidenceDocument(reference, { baseDir, repositoryRoot = process.cwd() } = {}) {
   if (!reference || typeof reference.path !== 'string' || !baseDir) return { loadError: 'reference or base directory missing' };
   try {
-    const absolutePath = path.isAbsolute(reference.path) ? path.resolve(reference.path) : path.resolve(baseDir, reference.path);
-    const raw = fs.readFileSync(absolutePath);
-    return { actualSha256: createHash('sha256').update(raw).digest('hex'), value: JSON.parse(raw.toString('utf8')) };
-  } catch {
-    return { loadError: 'file missing, unreadable or invalid JSON' };
+    const loaded = readBoundedOperationsEvidenceFile(reference.path, { baseDir, repositoryRoot, requireAbsolute: false });
+    return { actualSha256: loaded.sha256, bytes: loaded.bytes, value: loaded.value };
+  } catch (error) {
+    return { loadError: error?.name === 'OperationsHandoverEvidenceInputError' ? error.message : 'OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID' };
   }
 }
 
-export function loadActualOperationsHandoverBundle(evidence, { baseDir } = {}) {
+export function loadActualOperationsHandoverBundle(evidence, { baseDir, repositoryRoot = process.cwd() } = {}) {
   const documents = {
-    p6Gate: loadActualOperationsEvidenceDocument(evidence?.p6Gate?.evidenceRef, { baseDir }),
-    operationsSignoff: loadActualOperationsEvidenceDocument(evidence?.operationsSignoff?.evidenceRef, { baseDir })
+    p6Gate: loadActualOperationsEvidenceDocument(evidence?.p6Gate?.evidenceRef, { baseDir, repositoryRoot }),
+    operationsSignoff: loadActualOperationsEvidenceDocument(evidence?.operationsSignoff?.evidenceRef, { baseDir, repositoryRoot })
   };
-  for (const name of HANDOVER_DOMAINS) documents[name] = loadActualOperationsEvidenceDocument(evidence?.domains?.[name]?.evidenceRef, { baseDir });
+  for (const name of HANDOVER_DOMAINS) documents[name] = loadActualOperationsEvidenceDocument(evidence?.domains?.[name]?.evidenceRef, { baseDir, repositoryRoot });
   return documents;
 }
 

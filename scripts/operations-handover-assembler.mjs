@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import {
   buildOperationsHandoverManifest,
@@ -9,7 +8,7 @@ import {
   HANDOVER_EVIDENCE_ENVIRONMENT,
   writeOperationsHandoverManifestOnce
 } from '../src/operations/operations-handover-assembler.mjs';
-import { validateActualOperationsHandoverEvidence } from '../src/operations/operations-handover-finalizer.mjs';
+import { loadActualOperationsEvidenceDocument, validateActualOperationsHandoverEvidence } from '../src/operations/operations-handover-finalizer.mjs';
 
 const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const roadmap = JSON.parse(fs.readFileSync(path.join(projectDir, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
@@ -34,14 +33,6 @@ function insideProject(candidate) {
   return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
 }
 
-function readDocument(filePath) {
-  const raw = fs.readFileSync(filePath);
-  return {
-    actualSha256: createHash('sha256').update(raw).digest('hex'),
-    value: JSON.parse(raw.toString('utf8'))
-  };
-}
-
 let status = gate.status;
 let verifiedDocumentCount = 0;
 let manifestCreated = false;
@@ -51,7 +42,11 @@ if (status === 'READY_HANDOVER_MANIFEST_ASSEMBLY') {
   try {
     if (insideProject(outputPath)) throw new Error('OUTPUT_MUST_BE_OUTSIDE_REPOSITORY');
     if (fs.existsSync(outputPath)) throw new Error('OUTPUT_ALREADY_EXISTS');
-    const documents = Object.fromEntries(pathEntries.map(([name, filePath]) => [name, readDocument(filePath)]));
+    const documents = Object.fromEntries(pathEntries.map(([name, filePath]) => [name, loadActualOperationsEvidenceDocument(
+      { path: filePath },
+      { baseDir: path.dirname(filePath), repositoryRoot: projectDir }
+    )]));
+    if (Object.values(documents).some((document) => document.loadError)) throw new Error('HANDOVER_DOCUMENT_REFERENCE_INVALID');
     const references = Object.fromEntries(pathEntries.map(([name, filePath]) => [name, { path: filePath, sha256: documents[name].actualSha256 }]));
     const manifest = buildOperationsHandoverManifest({ references, documents });
     const validation = validateActualOperationsHandoverEvidence(manifest, { documents });

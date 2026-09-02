@@ -100,5 +100,8 @@ test('실제 상대경로 JSON 파일의 SHA를 계산하고 누락 파일은 �
   const loaded = loadActualOperationsEvidenceDocument({ path: 'evidence.json' }, { baseDir: tempDir });
   assert.equal(loaded.actualSha256, crypto.createHash('sha256').update(raw).digest('hex'));
   assert.equal(loaded.value.environment, 'production');
-  assert.match(loadActualOperationsEvidenceDocument({ path: 'missing.json' }, { baseDir: tempDir }).loadError, /missing/);
+  assert.equal(
+    loadActualOperationsEvidenceDocument({ path: 'missing.json' }, { baseDir: tempDir }).loadError,
+    'OPERATIONS_HANDOVER_EVIDENCE_NOT_FOUND'
+  );
 });
