@@ -30,6 +30,10 @@ test('phase completion control snapshot은 exact roadmap과 queue를 각각 한 
   assert.equal(reads, 2);
   assert.equal(result.roadmap.value.completedPhases, 7);
   assert.equal(result.queue.value.currentPhase, 'P7');
+  assert.equal(Buffer.isBuffer(result.roadmap.raw), true);
+  assert.equal(Buffer.isBuffer(result.queue.raw), true);
+  assert.equal(result.roadmap.raw.toString('utf8'), '{"completedPhases":7,"currentPhase":"P7"}\n');
+  assert.equal(result.queue.raw.toString('utf8'), '{"currentPhase":"P7","readyPacket":"ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"}\n');
   assert.match(result.roadmap.sha256, /^[a-f0-9]{64}$/);
   assert.match(result.queue.sha256, /^[a-f0-9]{64}$/);
 });
@@ -138,4 +142,16 @@ test('P6 phase promotion과 P7 terminal completion은 동일 atomic pair reader�
   }
   assert.doesNotMatch(promotion, /JSON\.parse\(fs\.readFileSync\(paths\.roadmap/);
   assert.doesNotMatch(promotion, /JSON\.parse\(fs\.readFileSync\(paths\.queue/);
+});
+
+test('P7 terminal completion은 bounded Git·문서 snapshot과 control raw rollback bytes를 사용한다', () => {
+  const root = path.resolve(__dirname, '..', '..');
+  const source = fs.readFileSync(path.join(root, 'scripts', 'operations-phase-completion.mjs'), 'utf8');
+  assert.match(source, /runPhasePromotionGitStatus/);
+  assert.match(source, /readPhasePromotionTextDocument/);
+  assert.match(source, /control\.roadmap\.raw/);
+  assert.match(source, /control\.queue\.raw/);
+  assert.doesNotMatch(source, /spawnSync\(/);
+  assert.doesNotMatch(source, /fs\.readFileSync\(files\.(current|roadmapDoc)/);
+  assert.doesNotMatch(source, /\[\.\.\.next\.keys\(\)\]\.map\(\(file\) => \[file, fs\.readFileSync\(file\)\]\)/);
 });

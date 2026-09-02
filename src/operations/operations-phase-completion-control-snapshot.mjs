@@ -125,6 +125,7 @@ export function readOperationsPhaseCompletionControlSnapshot(projectRoot, {
 
   return Object.fromEntries(Object.keys(files).map((name) => [name, {
     value: decodeObject(raw[name]),
+    raw: Buffer.from(raw[name]),
     bytes: raw[name].length,
     sha256: createHash('sha256').update(raw[name]).digest('hex')
   }]));
