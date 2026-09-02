@@ -48,6 +48,18 @@ export const CUTOVER_ROUTE_DISABLE_ADAPTER = Object.freeze({
   acceptedStatuses: ['PASS_PUBLIC_ROUTE_DISABLED']
 });
 
+export const CUTOVER_INGRESS_ORPHAN_RECOVERY_ADAPTER = Object.freeze({
+  id: 'ingress-orphan-recovery',
+  script: 'scripts/production-ingress-orphan-recovery.mjs',
+  args: ['--execute'],
+  acceptedStatuses: [
+    'PASS_NO_INGRESS_PARTIAL_STATE',
+    'PASS_NO_INGRESS_RECOVERY_TARGET_PROCESS_UNOBSERVED',
+    'PASS_INGRESS_PUBLICATION_COMPLETE_NOT_ORPHANED',
+    'PASS_INGRESS_ORPHAN_RECOVERED'
+  ]
+});
+
 function validatePlanContract(plan) {
   const keys = plan && typeof plan === 'object' ? Object.keys(plan) : [];
   if (JSON.stringify(keys) !== JSON.stringify(CUTOVER_GATE_SEQUENCE)) throw new Error('CUTOVER_GATE_ADAPTER_ORDER_INVALID');
@@ -104,14 +116,42 @@ export function createCutoverRouteDisableHandler({ runStep, recordGateEvidence }
     if (!passedStep(CUTOVER_ROUTE_DISABLE_ADAPTER, outcome)) {
       return { status: 'FAIL_PUBLIC_ROUTE_DISABLE_NOT_VERIFIED', evidenceRef: '' };
     }
+
+    const orphanRecoveryRequired = failedGate === 'health_readiness'
+      && /:ingress-publication$/.test(String(failureReason || ''));
+    let orphanRecoveryEvidenceRef = '';
+    if (orphanRecoveryRequired) {
+      const recoveryOutcome = await runStep({
+        gate: 'ingress_orphan_recovery',
+        ...CUTOVER_INGRESS_ORPHAN_RECOVERY_ADAPTER
+      });
+      if (!passedStep(CUTOVER_INGRESS_ORPHAN_RECOVERY_ADAPTER, recoveryOutcome)) {
+        return {
+          status: 'FAIL_INGRESS_ORPHAN_RECOVERY_NOT_VERIFIED',
+          evidenceRef: '',
+          orphanRecoveryRequired: true,
+          orphanRecoveryVerified: false,
+          orphanRecoveryEvidenceRef: ''
+        };
+      }
+      orphanRecoveryEvidenceRef = recoveryOutcome.evidenceRef.trim();
+    }
+    const stepEvidenceRefs = [outcome.evidenceRef.trim()];
+    if (orphanRecoveryEvidenceRef) stepEvidenceRefs.push(orphanRecoveryEvidenceRef);
     const evidenceRef = await recordGateEvidence({
       gate: 'route_disable',
       failedGate,
       failureReason,
-      stepEvidenceRefs: [outcome.evidenceRef.trim()]
+      stepEvidenceRefs
     });
     return typeof evidenceRef === 'string' && evidenceRef.trim().length > 0
-      ? { status: 'PASS_PUBLIC_ROUTE_DISABLED', evidenceRef: evidenceRef.trim() }
+      ? {
+          status: 'PASS_PUBLIC_ROUTE_DISABLED',
+          evidenceRef: evidenceRef.trim(),
+          orphanRecoveryRequired,
+          orphanRecoveryVerified: orphanRecoveryRequired,
+          orphanRecoveryEvidenceRef
+        }
       : { status: 'FAIL_PUBLIC_ROUTE_DISABLE_EVIDENCE_NOT_RECORDED', evidenceRef: '' };
   };
 }

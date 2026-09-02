@@ -204,6 +204,28 @@ test('Gate 12 뒤 actual evidence 조립 실패는 exact route-disable로 contai
   assert.equal(result.productionGo, false);
 });
 
+test('ingress-publication 실패는 route-disable 뒤 orphan recovery까지 검증해야 containment된다', async () => {
+  const { executeProductionCutover } = await modulePromise;
+  const calls = [];
+  const result = await executeProductionCutover({
+    execute: true, now: insideWindow, externalActionConfirmed: true,
+    ensureReceiptRoot: () => 'synthetic-root', createWriter: () => syntheticWriter(),
+    createRunner: ({ writeReceipt }) => async (step) => {
+      calls.push(step.id);
+      const status = step.id === 'ingress-publication'
+        ? 'FAIL_INGRESS_PUBLICATION_PARTIAL_MUTATION'
+        : step.acceptedStatuses[0];
+      return { exitCode: step.id === 'ingress-publication' ? 1 : 0, status, evidenceRef: await writeReceipt({ kind: 'step', gate: step.gate, step: step.id }) };
+    }
+  });
+  assert.equal(result.status, 'PASS_CUTOVER_EXECUTION_FAILURE_CONTAINED');
+  assert.deepEqual(calls.slice(-2), ['route-disable', 'ingress-orphan-recovery']);
+  assert.equal(result.routeDisableVerified, true);
+  assert.equal(result.orphanRecoveryRequired, true);
+  assert.equal(result.orphanRecoveryVerified, true);
+  assert.equal(result.productionGo, false);
+});
+
 test('actual finalization 확인 또는 출력 경로가 없으면 Gate 12를 실행하지 않는다', async () => {
   const { resumeProductionCutoverSignoff, SIGNOFF_RESUME_CONFIRMATION } = await modulePromise;
   const checkpoint = {

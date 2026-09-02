@@ -62,8 +62,44 @@ test('route-disable는 exact PASS 상태와 두 단계 evidence를 모두 요구
     recordGateEvidence: async () => 'synthetic://route-disable'
   });
   assert.deepEqual(await accepted({ failedGate: 'artifact', failureReason: 'x' }), {
-    status: 'PASS_PUBLIC_ROUTE_DISABLED', evidenceRef: 'synthetic://route-disable'
+    status: 'PASS_PUBLIC_ROUTE_DISABLED', evidenceRef: 'synthetic://route-disable',
+    orphanRecoveryRequired: false, orphanRecoveryVerified: false, orphanRecoveryEvidenceRef: ''
   });
+});
+
+test('ingress-publication 실패 containment는 route-disable과 orphan recovery evidence를 모두 요구한다', async () => {
+  const { createCutoverRouteDisableHandler } = await modulePromise;
+  const calls = [];
+  const contained = createCutoverRouteDisableHandler({
+    runStep: async (step) => {
+      calls.push(step.id);
+      return { exitCode: 0, status: step.acceptedStatuses[0], evidenceRef: `synthetic://step/${step.id}` };
+    },
+    recordGateEvidence: async ({ stepEvidenceRefs }) => {
+      assert.deepEqual(stepEvidenceRefs, ['synthetic://step/route-disable', 'synthetic://step/ingress-orphan-recovery']);
+      return 'synthetic://containment';
+    }
+  });
+  const result = await contained({
+    failedGate: 'health_readiness',
+    failureReason: 'CUTOVER_GATE_STEP_NOT_PASS:health_readiness:ingress-publication'
+  });
+  assert.deepEqual(calls, ['route-disable', 'ingress-orphan-recovery']);
+  assert.equal(result.status, 'PASS_PUBLIC_ROUTE_DISABLED');
+  assert.equal(result.orphanRecoveryRequired, true);
+  assert.equal(result.orphanRecoveryVerified, true);
+  assert.equal(result.orphanRecoveryEvidenceRef, 'synthetic://step/ingress-orphan-recovery');
+
+  const blocked = createCutoverRouteDisableHandler({
+    runStep: async (step) => step.id === 'route-disable'
+      ? { exitCode: 0, status: 'PASS_PUBLIC_ROUTE_DISABLED', evidenceRef: 'synthetic://step/route-disable' }
+      : { exitCode: 0, status: 'READY_WAIT_INGRESS_PARTIAL_MUTATION_REVIEW', evidenceRef: 'synthetic://step/orphan-review' },
+    recordGateEvidence: async () => 'synthetic://must-not-record'
+  });
+  assert.equal((await blocked({
+    failedGate: 'health_readiness',
+    failureReason: 'CUTOVER_GATE_STEP_NOT_PASS:health_readiness:ingress-publication'
+  })).status, 'FAIL_INGRESS_ORPHAN_RECOVERY_NOT_VERIFIED');
 });
 
 test('adapter plan 변조와 dependency 누락은 handler 생성 전에 차단한다', async () => {

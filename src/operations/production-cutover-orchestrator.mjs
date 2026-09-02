@@ -214,12 +214,22 @@ export async function executeCutoverGateSequence({
   const routeDisableVerified = routeDisableResult?.status === 'PASS_PUBLIC_ROUTE_DISABLED'
     && typeof routeDisableResult.evidenceRef === 'string'
     && routeDisableResult.evidenceRef.trim().length > 0;
+  const orphanRecoveryRequired = routeDisableResult?.orphanRecoveryRequired === true;
+  const orphanRecoveryVerified = orphanRecoveryRequired
+    ? routeDisableResult?.orphanRecoveryVerified === true
+      && typeof routeDisableResult?.orphanRecoveryEvidenceRef === 'string'
+      && routeDisableResult.orphanRecoveryEvidenceRef.trim().length > 0
+    : false;
+  const containmentVerified = routeDisableVerified && (!orphanRecoveryRequired || orphanRecoveryVerified);
   const failureIndex = CUTOVER_GATE_SEQUENCE.indexOf(failedGate);
   return {
-    status: routeDisableVerified
+    status: containmentVerified
       ? 'PASS_CUTOVER_EXECUTION_FAILURE_CONTAINED'
       : 'BLOCKED_CUTOVER_EXECUTION_FAILURE_NOT_CONTAINED',
-    failures: routeDisableVerified ? [] : ['PUBLIC_ROUTE_DISABLE_NOT_VERIFIED'],
+    failures: containmentVerified ? [] : [
+      ...(routeDisableVerified ? [] : ['PUBLIC_ROUTE_DISABLE_NOT_VERIFIED']),
+      ...(orphanRecoveryRequired && !orphanRecoveryVerified ? ['INGRESS_ORPHAN_RECOVERY_NOT_VERIFIED'] : [])
+    ],
     gateResults,
     executedGates: CUTOVER_GATE_SEQUENCE.slice(0, failureIndex + 1),
     skippedGates: CUTOVER_GATE_SEQUENCE.slice(failureIndex + 1),
@@ -227,6 +237,9 @@ export async function executeCutoverGateSequence({
     routeDisableRequired: true,
     routeDisableVerified,
     routeDisableEvidenceRef: routeDisableVerified ? routeDisableResult.evidenceRef.trim() : '',
+    orphanRecoveryRequired,
+    orphanRecoveryVerified,
+    orphanRecoveryEvidenceRef: orphanRecoveryVerified ? routeDisableResult.orphanRecoveryEvidenceRef.trim() : '',
     productionGo: false
   };
 }
