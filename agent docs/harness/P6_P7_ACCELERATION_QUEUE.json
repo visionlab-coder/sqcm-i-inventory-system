@@ -1109,6 +1109,14 @@
       "evidence": "failure-first 2 reproduced; bounded CUTOVER_GATE_STEP_THROWN gate and step identity added without raw exception; ingress publication throw selects route-disable then orphan recovery; focused 31 PASS 1 Windows skip; normal success remains 12 Gates and 14 steps; syntax 412/412; repository unit 838 PASS 8 skips; harness:verify PASS; GitHub quality 33644261126 completed successfully; actual exception, recovery, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-79-PRODUCTION-CUTOVER-CHILD-ENVIRONMENT-ALLOWLIST",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Cutover 정상 14개와 containment 2개 child는 canonical step별 환경 allowlist와 안전한 OS runtime 변수만 받아야 하며 unrelated Secret, GitHub token, NODE_OPTIONS 및 변조 step은 spawn 전에 차단되어야 한다.",
+      "evidence": "failure-first 3 reproduced; 12 Gate normal 14 steps plus route-disable and ingress orphan recovery exact environment contracts; unrelated Secret, GITHUB_TOKEN and NODE_OPTIONS propagation 0; tampered id/script/args/environment blocked before spawn; focused 20 PASS 1 Windows skip; syntax 412/412; repository unit 840 PASS 8 skips; harness:verify PASS; GitHub quality 33645880344 completed successfully; actual child, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

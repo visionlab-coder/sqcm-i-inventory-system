@@ -346,6 +346,7 @@
       "production-ingress-orphan-recovery-windowed-no-force-executor-pass",
       "production-cutover-ingress-publication-failure-route-disable-orphan-recovery-containment-pass",
       "production-cutover-step-exception-bounded-identity-orphan-containment-pass",
+      "production-cutover-step-specific-child-environment-allowlist-pass",
           "same-run-gates-1-to-11-signoff-pause-gate-12-resume-contract-ready",
           "same-run-physical-checkpoint-gate-12-resume-runtime-route-disable-ready",
           "same-run-actual-evidence-finalization-failure-route-disable-ready",

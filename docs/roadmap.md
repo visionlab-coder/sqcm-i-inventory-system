@@ -167,6 +167,7 @@ flowchart LR
 - `ACC-P6-76`에서 Production ingress exact orphan 복구 실행기를 추가했다. 변경창·exact confirmation·single-writer lease·UUID 재관측을 요구하고 no-force tunnel delete 뒤 원격 부재를 확인한 다음 동일 physical identity의 임시 credential만 제거한다. 현재 복구 대상은 0건이며 실제 삭제·tunnel·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-77`에서 cutover ingress publication step 실패 containment를 강화했다. exact public route-disable 뒤 orphan recovery를 조건부 실행하고 두 증거가 모두 확인돼야 격리 PASS한다. 정상 성공 경로는 12 Gate·14 step을 유지하며 실제 복구·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-78`에서 cutover child step 예외의 gate·step identity를 bounded 상태로 보존했다. ingress publication 예외도 generic handler 실패로 축약되지 않고 route-disable·orphan recovery 격리를 선택하며 오류 원문은 기록하지 않는다. 실제 예외·복구·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
+- `ACC-P6-79`에서 cutover 정상 14개와 route-disable·ingress orphan recovery 2개 child의 환경을 canonical step별 allowlist로 격리했다. 안전한 OS runtime 외에는 현재 단계에 명시된 reference·confirmation만 전달하고 unrelated Secret·`GITHUB_TOKEN`·`NODE_OPTIONS`와 변조 step을 spawn 전에 차단한다. 실제 child·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 
 ## 6. Phase 갱신 절차
 
