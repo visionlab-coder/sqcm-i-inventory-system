@@ -1,0 +1,44 @@
+{
+  "packet": "ACC-P6-55-BOUNDED-CUTOVER-GATE-EVIDENCE",
+  "status": "PASS_BOUNDED_CUTOVER_GATE_EVIDENCE",
+  "failureFirst": { "expectedFailures": 4, "observedFailures": 4 },
+  "focusedTests": { "total": 11, "passed": 11, "failed": 0, "skipped": 0 },
+  "cutoverGateInputContract": {
+    "extension": ".json",
+    "maximumBytes": 4194304,
+    "physicalRegularFileRequired": true,
+    "readAfterIdentityRealpathSizeRequired": true,
+    "fatalUtf8Required": true,
+    "jsonObjectRequired": true,
+    "officialTemplateOnlyWhenAllowed": "docs/templates/cutover-evidence.example.json",
+    "directUnboundedReadCount": 0
+  },
+  "contractCheck": {
+    "status": "PASS",
+    "templateBytes": 1548,
+    "templateSha256Present": true,
+    "requiredGateCount": 12,
+    "templateAuthorizesProduction": false
+  },
+  "cutoverPreflight": {
+    "status": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockerCount": 0,
+    "protectedServicesPreserved": true,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "syntaxChecks": { "passed": 389, "failed": 0 },
+  "unitTests": { "total": 755, "passed": 748, "failed": 0, "skipped": 7 },
+  "harnessVerify": "PASS",
+  "implementationCommit": "631b83d",
+  "qualityCi": {
+    "runId": 33611621580,
+    "testedHeadSha": "631b83d",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "secretValuesReadOrRecorded": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}
