@@ -112,6 +112,7 @@ flowchart LR
 - `ACC-P7-44`에서 P7 운영 8영역 evidence compiler의 actual 입력을 동일한 external physical JSON bounded reader로 통합했다. 각 파일은 최대 4MiB이며 실제 bytes·SHA-256만 영역별 source provenance가 될 수 있다.
 - `ACC-P7-45`에서 alert delivery·backup/restore·on-call drill·improvement queue runner의 provider manifest·approval attestation 4개 제어 JSON을 동일한 external physical JSON bounded reader로 통합했다. Credential은 별도 Secret 경계로 유지한다.
 - `ACC-P7-46`에서 alert delivery·on-call drill·improvement queue runner의 credential 파일 3건을 external physical UTF-8 전용 64KiB bounded Secret reader로 통합했다. Secret 원문은 증거·로그·오류에 기록하지 않는다.
+- `ACC-P7-47`에서 SLO JSONL ledger를 external physical UTF-8 전용 64KiB bounded reader로 통합했다. P6 actual cutover 전에는 ledger content를 읽지 않고 append와 30일 export 재읽기도 같은 경계를 사용한다.
 
 ## 6. Phase 갱신 절차
 
