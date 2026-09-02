@@ -114,6 +114,7 @@ flowchart LR
 - `ACC-P7-46`에서 alert delivery·on-call drill·improvement queue runner의 credential 파일 3건을 external physical UTF-8 전용 64KiB bounded Secret reader로 통합했다. Secret 원문은 증거·로그·오류에 기록하지 않는다.
 - `ACC-P7-47`에서 SLO JSONL ledger를 external physical UTF-8 전용 64KiB bounded reader로 통합했다. P6 actual cutover 전에는 ledger content를 읽지 않고 append와 30일 export 재읽기도 같은 경계를 사용한다.
 - `ACC-P7-48`에서 P7 maintenance와 P6 operational-health의 Docker process·backup 입력 경계를 통합했다. process는 10초·기본 1MiB·로그 4MiB, exact Production physical manifest는 64KiB fatal UTF-8 JSON object, dump는 bytes·streaming SHA-256을 강제한다.
+- `ACC-P7-49`에서 P7 backup/restore의 모든 Docker child에 작업별 10초~60분 timeout, stderr 64KiB·capture 4MiB 상한, shell 금지와 timeout·출력·stream 실패 child 종료를 적용했다. dump/restore는 streaming하며 실패 원문을 증거에 남기지 않는다.
 
 ## 6. Phase 갱신 절차
 

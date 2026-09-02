@@ -685,6 +685,14 @@
       "evidence": "operations:maintenance-runner => READY_WAIT_P6_ACTUAL_CUTOVER with HTTP/runtime read and write zero; production:operational-health-baseline => health/readiness and 238533-byte backup checksum/restore PASS; failure-first 5/5; focused 21/21 PASS; syntax 349/349; repository unit 611 PASS 6 skips; harness:verify PASS; actual P7 maintenance execution NOT_RUN"
     },
     {
+      "id": "ACC-P7-49-BOUNDED-BACKUP-RESTORE-RUNTIME",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 backup/restore의 모든 Docker child는 shell 없이 container discovery 10초, metadata 60초, snapshot·restore 60분, dump 30분과 stderr 64KiB·capture 4MiB 상한을 사용하고 timeout·출력·stream 실패 시 child를 종료하며 dump/restore는 streaming한다.",
+      "evidence": "operations:backup-restore-runner => READY_WAIT_P6_ACTUAL_CUTOVER with Production read/off-site write/DB mutation zero; failure-first 5/5; focused 11/11 PASS; syntax 351/351; repository unit 616 PASS 6 skips; harness:verify PASS; GitHub quality 33580854494 unit and three-tier SUCCESS; actual backup/restore execution NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
