@@ -47,6 +47,7 @@ export async function runSignoffResumeRuntimeRehearsal() {
       checkpointPath: initial.checkpointPath,
       roleResultReferences: refs,
       signoffReferences: refs,
+      signoffApprovalReceiptReferences: refs,
       now: () => Date.parse(CHECKED_AT),
       receiptRoot: root,
       ensureReceiptRoot: () => root,

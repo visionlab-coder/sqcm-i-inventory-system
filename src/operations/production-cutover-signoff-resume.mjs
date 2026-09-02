@@ -70,7 +70,8 @@ export function evaluateSignoffResume({
   confirmation,
   currentBundleManifest = null,
   roleResultReferences = {},
-  signoffReferences = {}
+  signoffReferences = {},
+  signoffApprovalReceiptReferences = {}
 } = {}) {
   const failures = [];
   if (checkpoint?.schemaVersion !== 1 || checkpoint?.evidenceType !== 'P6_CUTOVER_SIGNOFF_PAUSE_CHECKPOINT') failures.push('CHECKPOINT_TYPE_INVALID');
@@ -93,7 +94,8 @@ export function evaluateSignoffResume({
 
   const missing = [
     ...['ADMIN', 'MANAGER', 'USER'].filter((role) => roleResultReferences[role] !== true).map((role) => `${role}_ACTUAL_ROLE_RESULT_MISSING`),
-    ...['BUSINESS', 'SECURITY', 'OPERATIONS'].filter((area) => signoffReferences[area] !== true).map((area) => `${area}_ACTUAL_SIGNOFF_MISSING`)
+    ...['BUSINESS', 'SECURITY', 'OPERATIONS'].filter((area) => signoffReferences[area] !== true).map((area) => `${area}_ACTUAL_SIGNOFF_MISSING`),
+    ...['BUSINESS', 'SECURITY', 'OPERATIONS'].filter((area) => signoffApprovalReceiptReferences[area] !== true).map((area) => `${area}_MFA_APPROVAL_RECEIPT_MISSING`)
   ];
   if (missing.length) return { status: 'READY_WAIT_ACTUAL_ROLE_RESULTS_AND_SIGNOFF', failures: [], missing, routeDisableRequired: false, productionGo: false };
   if (confirmation !== SIGNOFF_RESUME_CONFIRMATION) return { status: 'READY_WAIT_SIGNOFF_RESUME_CONFIRMATION', failures: [], missing: [], routeDisableRequired: false, productionGo: false };
@@ -266,11 +268,12 @@ export function runSignoffPauseResumeRehearsal() {
   const checkedAt = '2026-09-11T12:00:00.000Z';
   const gateResults = PRE_SIGNOFF_GATES.map((gate, index) => ({ gate, result: 'PASS', evidenceRef: `${String(index + 1).padStart(4, '0')}-${gate}.json`, evidenceSha256: String(index + 1).padStart(64, '0') }));
   const pause = createSignoffPauseCheckpoint({ runId, releaseSha, gateResults, checkedAt });
-  const waiting = evaluateSignoffResume({ checkpoint: pause.checkpoint, runId, releaseSha, checkedAt, roleResultReferences: {}, signoffReferences: {} });
+  const waiting = evaluateSignoffResume({ checkpoint: pause.checkpoint, runId, releaseSha, checkedAt, roleResultReferences: {}, signoffReferences: {}, signoffApprovalReceiptReferences: {} });
   const ready = evaluateSignoffResume({
     checkpoint: pause.checkpoint, runId, releaseSha, checkedAt, confirmation: SIGNOFF_RESUME_CONFIRMATION,
     roleResultReferences: { ADMIN: true, MANAGER: true, USER: true },
-    signoffReferences: { BUSINESS: true, SECURITY: true, OPERATIONS: true }
+    signoffReferences: { BUSINESS: true, SECURITY: true, OPERATIONS: true },
+    signoffApprovalReceiptReferences: { BUSINESS: true, SECURITY: true, OPERATIONS: true }
   });
   const crossRun = evaluateSignoffResume({ checkpoint: pause.checkpoint, runId: '22222222-2222-4222-8222-222222222222', releaseSha, checkedAt });
   const afterCutoff = evaluateSignoffResume({ checkpoint: pause.checkpoint, runId, releaseSha, checkedAt: '2026-09-11T13:01:00.000Z' });

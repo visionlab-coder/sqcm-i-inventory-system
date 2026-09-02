@@ -155,6 +155,7 @@ export async function resumeProductionCutoverSignoff({
   checkpointPath = null,
   roleResultReferences = {},
   signoffReferences = {},
+  signoffApprovalReceiptReferences = {},
   signoffRequestBundleReference = null,
   now = () => Date.now(),
   receiptRoot = PRODUCTION_CUTOVER_RECEIPT_ROOT,
@@ -216,7 +217,8 @@ export async function resumeProductionCutoverSignoff({
   const resume = evaluateSignoffResume({
     checkpoint, runId, releaseSha, checkedAt, confirmation, currentBundleManifest: bundleManifest,
     roleResultReferences: Object.fromEntries(Object.entries(roleResultReferences).map(([key, value]) => [key, Boolean(value)])),
-    signoffReferences: Object.fromEntries(Object.entries(signoffReferences).map(([key, value]) => [key, Boolean(value)]))
+    signoffReferences: Object.fromEntries(Object.entries(signoffReferences).map(([key, value]) => [key, Boolean(value)])),
+    signoffApprovalReceiptReferences: Object.fromEntries(Object.entries(signoffApprovalReceiptReferences).map(([key, value]) => [key, Boolean(value)]))
   });
   if (checkedAtMs > rollbackCutoff || resume.routeDisableRequired) return contain(resume.failures?.join(',') || 'ROLLBACK_CUTOFF_EXCEEDED');
   if (resume.status !== 'READY_FOR_SAME_RUN_UAT_SIGNOFF_RESUME') {
@@ -246,11 +248,14 @@ export async function resumeProductionCutoverSignoff({
         .map((role) => [role, loadEvidenceDocument(roleResultReferences[role])]));
       const signoffDocuments = Object.fromEntries(['BUSINESS', 'SECURITY', 'OPERATIONS']
         .map((area) => [area, loadEvidenceDocument(signoffReferences[area])]));
+      const signoffApprovalReceiptDocuments = Object.fromEntries(['BUSINESS', 'SECURITY', 'OPERATIONS']
+        .map((area) => [area, loadEvidenceDocument(signoffApprovalReceiptReferences[area])]));
       const signoffRequestBundleDocument = loadEvidenceDocument(signoffRequestBundleReference);
       const assembled = assembleEvidence({
         receiptDocuments: loadReceiptDocuments(root, checkpoint.runId),
         roleResultDocuments,
         signoffDocuments,
+        signoffApprovalReceiptDocuments,
         signoffRequestBundleDocument,
         runId: checkpoint.runId,
         releaseSha

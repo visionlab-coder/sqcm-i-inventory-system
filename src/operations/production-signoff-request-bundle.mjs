@@ -85,7 +85,16 @@ export function buildProductionSignoffRequestBundle({
     roleResultSetPublicationId: resultSetPublicationId,
     preSignoffRollbackGateReceiptSha256: rollbackGateSha,
     signoffRequestSetId: requestSetId, signoffRequestPreparedAt: preparedAt,
-    signoffRequestBundleSha256: null
+    signoffRequestBundleSha256: null, approvalReceiptSha256: null
+  }]));
+  const approvalReceiptPayloads = Object.fromEntries(AREAS.map((area) => [area, {
+    schemaVersion: 1, template: true,
+    evidenceType: 'P6_CUTOVER_SIGNOFF_APPROVAL_RECEIPT_ACTUAL',
+    environment: 'production', activationState: 'actual', targetUrl: TARGET_URL,
+    releaseTag: `sha-${releaseSha}`, runId, area, decision: 'NOT_RUN',
+    signedByRef: null, signedAt: null, receiptId: null,
+    authentication: { method: 'MFA', providerRef: null, verified: false },
+    signoffRequestSetId: requestSetId, signoffRequestBundleSha256: null
   }]));
   return {
     schemaVersion: 1, template: true, evidenceType: 'P6_CUTOVER_SIGNOFF_REQUEST_SET',
@@ -93,10 +102,11 @@ export function buildProductionSignoffRequestBundle({
     releaseSha, releaseTag: `sha-${releaseSha}`, runId, requestSetId, preparedAt,
     roleResultSetPublicationId: resultSetPublicationId,
     preSignoffRollbackGateReceiptSha256: rollbackGateSha,
-    signoffPayloads, signerInstructions: {
+    signoffPayloads, approvalReceiptPayloads, signerInstructions: {
       setTemplateFalse: true,
       setDecisionApproved: true,
-      fillOnly: ['signedByRef', 'signedAt', 'signoffRequestBundleSha256'],
+      fillOnly: ['signedByRef', 'signedAt', 'signoffRequestBundleSha256', 'approvalReceiptSha256'],
+      approvalReceiptFillOnly: ['signedByRef', 'signedAt', 'receiptId', 'authentication.providerRef', 'authentication.verified', 'signoffRequestBundleSha256'],
       preserveProvenanceFields: true
     },
     externalSignatureCreated: false, productionGo: false

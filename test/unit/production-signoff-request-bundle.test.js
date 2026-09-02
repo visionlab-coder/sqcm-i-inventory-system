@@ -52,7 +52,15 @@ test('동일 역할 결과 세트와 rollback Gate를 세 비서명 payload에 �
     assert.equal(payload.signoffRequestPreparedAt, preparedAt);
     assert.equal(payload.signoffRequestBundleSha256, null);
   }
-  assert.deepEqual(result.signerInstructions.fillOnly, ['signedByRef', 'signedAt', 'signoffRequestBundleSha256']);
+  assert.deepEqual(result.signerInstructions.fillOnly, ['signedByRef', 'signedAt', 'signoffRequestBundleSha256', 'approvalReceiptSha256']);
+  assert.deepEqual(Object.keys(result.approvalReceiptPayloads), ['BUSINESS', 'SECURITY', 'OPERATIONS']);
+  for (const payload of Object.values(result.approvalReceiptPayloads)) {
+    assert.equal(payload.template, true);
+    assert.equal(payload.authentication.method, 'MFA');
+    assert.equal(payload.authentication.verified, false);
+    assert.equal(payload.signoffRequestSetId, result.requestSetId);
+    assert.equal(payload.signoffRequestBundleSha256, null);
+  }
 });
 
 test('혼합 역할 결과 세트와 인과시간 역전을 거부한다', async () => {

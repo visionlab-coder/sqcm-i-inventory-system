@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROLE_ENV = Object.freeze({ ADMIN: 'PRODUCTION_UAT_ADMIN_RESULT_FILE', MANAGER: 'PRODUCTION_UAT_MANAGER_RESULT_FILE', USER: 'PRODUCTION_UAT_USER_RESULT_FILE' });
 const SIGNOFF_ENV = Object.freeze({ BUSINESS: 'PRODUCTION_BUSINESS_SIGNOFF_FILE', SECURITY: 'PRODUCTION_SECURITY_SIGNOFF_FILE', OPERATIONS: 'PRODUCTION_OPERATIONS_SIGNOFF_FILE' });
+const SIGNOFF_APPROVAL_RECEIPT_ENV = Object.freeze({ BUSINESS: 'PRODUCTION_BUSINESS_SIGNOFF_APPROVAL_RECEIPT_FILE', SECURITY: 'PRODUCTION_SECURITY_SIGNOFF_APPROVAL_RECEIPT_FILE', OPERATIONS: 'PRODUCTION_OPERATIONS_SIGNOFF_APPROVAL_RECEIPT_FILE' });
 const RUN_ENV = 'PRODUCTION_CUTOVER_RUN_ID';
 const OUTPUT_ENV = 'PRODUCTION_CUTOVER_ACTUAL_EVIDENCE_FILE';
 const REQUEST_BUNDLE_ENV = 'PRODUCTION_SIGNOFF_REQUEST_BUNDLE_FILE';
@@ -21,7 +22,7 @@ const candidate = readOperationsPreflightManifest(
   fileURLToPath(new URL('../agent docs/harness/P6_G4_CUTOVER_EVIDENCE_CANDIDATE.json', import.meta.url))
 ).value;
 const execute = process.argv.includes('--assemble');
-const references = { ...ROLE_ENV, ...SIGNOFF_ENV };
+const references = { ...ROLE_ENV, ...SIGNOFF_ENV, ...Object.fromEntries(Object.entries(SIGNOFF_APPROVAL_RECEIPT_ENV).map(([area, env]) => [`${area}_MFA_RECEIPT`, env])) };
 const missing = Object.entries(references).filter(([, env]) => !process.env[env] || !fs.existsSync(process.env[env])).map(([name]) => `${name}_REFERENCE_MISSING`);
 if (!process.env[RUN_ENV]) missing.push('CUTOVER_RUN_ID_MISSING');
 if (!process.env[OUTPUT_ENV]) missing.push('ACTUAL_EVIDENCE_OUTPUT_MISSING');
@@ -31,7 +32,7 @@ if (!execute || missing.length || process.env[CONFIRM_ENV] !== ACTUAL_CUTOVER_AS
   console.log(JSON.stringify({
     checkedAt: new Date().toISOString(),
     status: missing.length ? 'READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_INPUTS' : (execute ? 'READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_ASSEMBLY_CONFIRMATION' : 'PASS_ACTUAL_CUTOVER_EVIDENCE_ASSEMBLER_DRY_RUN'),
-    requiredEnvironment: [RUN_ENV, OUTPUT_ENV, CONFIRM_ENV, REQUEST_BUNDLE_ENV, ...Object.values(ROLE_ENV), ...Object.values(SIGNOFF_ENV)],
+    requiredEnvironment: [RUN_ENV, OUTPUT_ENV, CONFIRM_ENV, REQUEST_BUNDLE_ENV, ...Object.values(ROLE_ENV), ...Object.values(SIGNOFF_ENV), ...Object.values(SIGNOFF_APPROVAL_RECEIPT_ENV)],
     missing, actualEvidenceCreated: false, externalMutationPerformed: false, secretValuesReadOrRecorded: false, productionGo: false
   }, null, 2));
 } else {
@@ -40,6 +41,7 @@ if (!execute || missing.length || process.env[CONFIRM_ENV] !== ACTUAL_CUTOVER_AS
       receiptDocuments: loadRunReceiptDocuments(PRODUCTION_CUTOVER_RECEIPT_ROOT, process.env[RUN_ENV]),
       roleResultDocuments: Object.fromEntries(Object.entries(ROLE_ENV).map(([role, env]) => [role, loadJsonDocument(process.env[env])])),
       signoffDocuments: Object.fromEntries(Object.entries(SIGNOFF_ENV).map(([area, env]) => [area, loadJsonDocument(process.env[env])])),
+      signoffApprovalReceiptDocuments: Object.fromEntries(Object.entries(SIGNOFF_APPROVAL_RECEIPT_ENV).map(([area, env]) => [area, loadJsonDocument(process.env[env])])),
       signoffRequestBundleDocument: loadJsonDocument(process.env[REQUEST_BUNDLE_ENV]),
       runId: process.env[RUN_ENV], releaseSha: candidate.releaseTag.replace(/^sha-/, '')
     });

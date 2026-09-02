@@ -35,9 +35,9 @@ test('역할 3건·서명 3건·exact 확인 뒤에만 Gate 12 재개를 허용�
   const references = { ADMIN: true, MANAGER: true, USER: true, BUSINESS: true, SECURITY: true, OPERATIONS: true };
   const waiting = evaluateSignoffResume({ checkpoint, runId, releaseSha, checkedAt, roleResultReferences: {}, signoffReferences: {} });
   assert.equal(waiting.status, 'READY_WAIT_ACTUAL_ROLE_RESULTS_AND_SIGNOFF');
-  const confirm = evaluateSignoffResume({ checkpoint, runId, releaseSha, checkedAt, roleResultReferences: references, signoffReferences: references });
+  const confirm = evaluateSignoffResume({ checkpoint, runId, releaseSha, checkedAt, roleResultReferences: references, signoffReferences: references, signoffApprovalReceiptReferences: references });
   assert.equal(confirm.status, 'READY_WAIT_SIGNOFF_RESUME_CONFIRMATION');
-  const ready = evaluateSignoffResume({ checkpoint, runId, releaseSha, checkedAt, confirmation: SIGNOFF_RESUME_CONFIRMATION, roleResultReferences: references, signoffReferences: references });
+  const ready = evaluateSignoffResume({ checkpoint, runId, releaseSha, checkedAt, confirmation: SIGNOFF_RESUME_CONFIRMATION, roleResultReferences: references, signoffReferences: references, signoffApprovalReceiptReferences: references });
   assert.equal(ready.status, 'READY_FOR_SAME_RUN_UAT_SIGNOFF_RESUME');
   assert.equal(ready.resumeGate, 'uat_signoff');
 });
