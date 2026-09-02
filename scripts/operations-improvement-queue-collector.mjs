@@ -7,6 +7,7 @@ import {
   IMPROVEMENT_QUEUE_REPOSITORY,
   buildImprovementQueueExport,
   evaluateImprovementQueueCollectionGate,
+  readBoundedGitHubIssuePage,
   validateImprovementQueueTriageAttestation,
   writeImprovementQueueExportOnce
 } from '../src/operations/operations-improvement-queue-collector.mjs';
@@ -58,8 +59,7 @@ async function fetchAllOperationsIssues(token) {
       signal: AbortSignal.timeout(15000)
     });
     if (!response.ok) throw new Error(`GITHUB_ISSUE_READ_FAILED_${response.status}`);
-    const pageItems = await response.json();
-    if (!Array.isArray(pageItems)) throw new Error('GITHUB_ISSUE_RESPONSE_INVALID');
+    const pageItems = await readBoundedGitHubIssuePage(response);
     issues.push(...pageItems.filter((item) => !item.pull_request));
     if (pageItems.length < 100) return issues;
   }

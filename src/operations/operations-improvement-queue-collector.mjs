@@ -1,9 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { TextDecoder } from 'node:util';
 
 export const IMPROVEMENT_QUEUE_COLLECTION_CONFIRMATION = 'ACK-COLLECT-P7-PRODUCTION-IMPROVEMENT-QUEUE';
 export const IMPROVEMENT_QUEUE_REPOSITORY = 'visionlab-coder/sqcm-i-inventory-system';
 export const IMPROVEMENT_QUEUE_LABEL = 'operations';
+export const GITHUB_ISSUE_PAGE_MAX_BYTES = 1024 * 1024;
 
 const ID_PATTERN = /^[A-Za-z0-9._:-]{8,200}$/;
 const IDENTITY_PATTERN = /^identity:\/\/[A-Za-z0-9._/@:-]+$/;
@@ -20,6 +22,46 @@ function waiting(status, missing = []) {
 
 function validDate(value) {
   return typeof value === 'string' && !Number.isNaN(Date.parse(value));
+}
+
+export async function readBoundedGitHubIssuePage(response, { maxBytes = GITHUB_ISSUE_PAGE_MAX_BYTES } = {}) {
+  if (!Number.isInteger(maxBytes) || maxBytes < 1 || maxBytes > GITHUB_ISSUE_PAGE_MAX_BYTES) {
+    throw new Error('GITHUB_ISSUE_RESPONSE_BOUND_INVALID');
+  }
+  const declared = response?.headers?.get?.('content-length');
+  if (declared !== null && declared !== undefined) {
+    if (!/^[0-9]+$/.test(declared)) throw new Error('GITHUB_ISSUE_RESPONSE_INVALID');
+    if (Number(declared) > maxBytes) throw new Error('GITHUB_ISSUE_RESPONSE_TOO_LARGE');
+  }
+  if (!response?.body?.getReader) throw new Error('GITHUB_ISSUE_RESPONSE_INVALID');
+  const reader = response.body.getReader();
+  const chunks = [];
+  let bytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!(value instanceof Uint8Array)) throw new Error('GITHUB_ISSUE_RESPONSE_INVALID');
+      bytes += value.byteLength;
+      if (bytes > maxBytes) throw new Error('GITHUB_ISSUE_RESPONSE_TOO_LARGE');
+      chunks.push(value);
+    }
+  } catch (error) {
+    try { await reader.cancel(); } catch {}
+    if (error?.message === 'GITHUB_ISSUE_RESPONSE_TOO_LARGE' || error?.message === 'GITHUB_ISSUE_RESPONSE_INVALID') throw error;
+    throw new Error('GITHUB_ISSUE_RESPONSE_READ_FAILED');
+  } finally {
+    reader.releaseLock?.();
+  }
+  const raw = Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)), bytes);
+  let text;
+  try { text = new TextDecoder('utf-8', { fatal: true }).decode(raw); }
+  catch { throw new Error('GITHUB_ISSUE_RESPONSE_INVALID_UTF8'); }
+  let value;
+  try { value = JSON.parse(text); }
+  catch { throw new Error('GITHUB_ISSUE_RESPONSE_INVALID'); }
+  if (!Array.isArray(value)) throw new Error('GITHUB_ISSUE_RESPONSE_INVALID');
+  return value;
 }
 
 export function evaluateImprovementQueueCollectionGate({

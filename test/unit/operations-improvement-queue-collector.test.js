@@ -87,3 +87,29 @@ test('GitHub export는 정렬·count를 고정하고 원자적으로 한 번만 
   assert.equal(JSON.parse(fs.readFileSync(output, 'utf8')).queue.openItemCount, 2);
   assert.throws(() => writeImprovementQueueExportOnce(output, exportValue, { processId: 701 }), /OUTPUT_ALREADY_EXISTS/);
 });
+
+test('GitHub page response는 Content-Length 1MiB 초과를 body read 전에 차단한다', async () => {
+  const { readBoundedGitHubIssuePage, GITHUB_ISSUE_PAGE_MAX_BYTES } = await modulePromise;
+  const response = new Response('[]', { headers: { 'content-length': String(GITHUB_ISSUE_PAGE_MAX_BYTES + 1) } });
+  await assert.rejects(readBoundedGitHubIssuePage(response), /GITHUB_ISSUE_RESPONSE_TOO_LARGE/);
+});
+
+test('chunked GitHub page도 actual bytes 1MiB를 넘으면 즉시 차단한다', async () => {
+  const { readBoundedGitHubIssuePage, GITHUB_ISSUE_PAGE_MAX_BYTES } = await modulePromise;
+  const response = new Response(new Uint8Array(GITHUB_ISSUE_PAGE_MAX_BYTES + 1));
+  await assert.rejects(readBoundedGitHubIssuePage(response), /GITHUB_ISSUE_RESPONSE_TOO_LARGE/);
+});
+
+test('GitHub page는 fatal UTF-8과 JSON array만 허용한다', async () => {
+  const { readBoundedGitHubIssuePage } = await modulePromise;
+  await assert.rejects(readBoundedGitHubIssuePage(new Response(Uint8Array.from([0xc3, 0x28]))), /GITHUB_ISSUE_RESPONSE_INVALID_UTF8/);
+  await assert.rejects(readBoundedGitHubIssuePage(new Response('{"not":"array"}')), /GITHUB_ISSUE_RESPONSE_INVALID/);
+  await assert.rejects(readBoundedGitHubIssuePage(new Response('[invalid]')), /GITHUB_ISSUE_RESPONSE_INVALID/);
+  assert.deepEqual(await readBoundedGitHubIssuePage(new Response('[{"number":1}]')), [{ number: 1 }]);
+});
+
+test('collector 진입점은 response.json 대신 bounded page reader만 사용한다', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../../scripts/operations-improvement-queue-collector.mjs'), 'utf8');
+  assert.match(source, /readBoundedGitHubIssuePage/);
+  assert.doesNotMatch(source, /response\.json\(\)/);
+});
