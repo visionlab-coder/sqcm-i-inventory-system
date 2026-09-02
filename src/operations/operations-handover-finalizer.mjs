@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { TextDecoder } from 'node:util';
 import { HANDOVER_DOMAINS } from './operations-handover-preflight.mjs';
 
 const REQUIRED_SIGNALS = ['availability', 'latency_p95', 'http_5xx', 'backup_failure', 'certificate_expiry'];
@@ -23,6 +24,21 @@ function samePhysicalPath(left, right) {
   return process.platform === 'win32'
     ? left.toLowerCase() === right.toLowerCase()
     : left === right;
+}
+
+function sameFileIdentity(before, after) {
+  return before.size === after.size
+    && (!Number.isInteger(before.dev) || !Number.isInteger(after.dev) || before.dev === after.dev)
+    && (!Number.isInteger(before.ino) || !Number.isInteger(after.ino) || before.ino === after.ino)
+    && (!Number.isFinite(before.mtimeMs) || !Number.isFinite(after.mtimeMs) || before.mtimeMs === after.mtimeMs);
+}
+
+function physicalDirectory(stat) {
+  return stat.isDirectory() && !stat.isSymbolicLink() && !(stat.isReparsePoint?.() ?? false);
+}
+
+function physicalFile(stat) {
+  return stat.isFile() && !stat.isSymbolicLink() && !(stat.isReparsePoint?.() ?? false);
 }
 
 function readBoundedOperationsEvidenceFile(filePath, {
@@ -49,19 +65,21 @@ function readBoundedOperationsEvidenceFile(filePath, {
     throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID');
   }
 
+  let repositoryStat;
   let repositoryReal;
+  let baseStat = null;
   let baseReal = null;
   let stat;
   try {
-    const repositoryStat = io.lstatSync(repository);
-    if (!repositoryStat.isDirectory() || repositoryStat.isSymbolicLink() || (repositoryStat.isReparsePoint?.() ?? false)) {
+    repositoryStat = io.lstatSync(repository);
+    if (!physicalDirectory(repositoryStat)) {
       throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID');
     }
     repositoryReal = path.resolve(io.realpathSync(repository));
     if (relativeReference) {
-      const baseStat = io.lstatSync(base);
+      baseStat = io.lstatSync(base);
       baseReal = path.resolve(io.realpathSync(base));
-      if (!baseStat.isDirectory() || baseStat.isSymbolicLink() || (baseStat.isReparsePoint?.() ?? false)
+      if (!physicalDirectory(baseStat)
         || !samePhysicalPath(baseReal, base)) {
         throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID');
       }
@@ -72,7 +90,7 @@ function readBoundedOperationsEvidenceFile(filePath, {
     if (error?.name === 'OperationsHandoverEvidenceInputError') throw error;
     throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID');
   }
-  if (!stat.isFile() || stat.isSymbolicLink() || (stat.isReparsePoint?.() ?? false)
+  if (!samePhysicalPath(repositoryReal, repository) || !physicalFile(stat)
     || stat.size < 1 || stat.size > maxBytes) {
     throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID');
   }
@@ -95,8 +113,40 @@ function readBoundedOperationsEvidenceFile(filePath, {
     throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID');
   }
 
+  let repositoryAfter;
+  let repositoryRealAfter;
+  let baseAfter = null;
+  let baseRealAfter = null;
+  let after;
+  let candidateRealAfter;
+  try {
+    repositoryAfter = io.lstatSync(repository);
+    repositoryRealAfter = path.resolve(io.realpathSync(repository));
+    if (relativeReference) {
+      baseAfter = io.lstatSync(base);
+      baseRealAfter = path.resolve(io.realpathSync(base));
+    }
+    after = io.lstatSync(candidate);
+    candidateRealAfter = path.resolve(io.realpathSync(candidate));
+  } catch {
+    throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_UNSTABLE');
+  }
+  if (!physicalDirectory(repositoryAfter) || !physicalFile(after)
+    || !samePhysicalPath(repositoryReal, repositoryRealAfter) || !samePhysicalPath(repositoryRealAfter, repository)
+    || !samePhysicalPath(candidateReal, candidateRealAfter) || !samePhysicalPath(candidateRealAfter, candidate)
+    || pathInsideOrEqual(repositoryRealAfter, candidateRealAfter)
+    || !sameFileIdentity(repositoryStat, repositoryAfter) || !sameFileIdentity(stat, after)
+    || (relativeReference && (!physicalDirectory(baseAfter)
+      || !samePhysicalPath(baseReal, baseRealAfter) || !samePhysicalPath(baseRealAfter, base)
+      || !sameFileIdentity(baseStat, baseAfter) || !pathInsideOrEqual(baseRealAfter, candidateRealAfter)))) {
+    throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_UNSTABLE');
+  }
+
+  let source;
+  try { source = new TextDecoder('utf-8', { fatal: true }).decode(raw); }
+  catch { throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_UTF8_INVALID'); }
   let value;
-  try { value = JSON.parse(raw.toString('utf8')); } catch { throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_JSON_INVALID'); }
+  try { value = JSON.parse(source); } catch { throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_JSON_INVALID'); }
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw evidenceInputError('OPERATIONS_HANDOVER_EVIDENCE_JSON_INVALID');
   }
@@ -125,10 +175,10 @@ function validReference(reference) {
     && SHA256_PATTERN.test(reference.sha256 ?? '');
 }
 
-export function loadActualOperationsEvidenceDocument(reference, { baseDir, repositoryRoot = process.cwd() } = {}) {
+export function loadActualOperationsEvidenceDocument(reference, { baseDir, repositoryRoot = process.cwd(), io = fs } = {}) {
   if (!reference || typeof reference.path !== 'string' || !baseDir) return { loadError: 'reference or base directory missing' };
   try {
-    const loaded = readBoundedOperationsEvidenceFile(reference.path, { baseDir, repositoryRoot, requireAbsolute: false });
+    const loaded = readBoundedOperationsEvidenceFile(reference.path, { baseDir, repositoryRoot, requireAbsolute: false, io });
     return { actualSha256: loaded.sha256, bytes: loaded.bytes, value: loaded.value };
   } catch (error) {
     return { loadError: error?.name === 'OperationsHandoverEvidenceInputError' ? error.message : 'OPERATIONS_HANDOVER_EVIDENCE_REFERENCE_INVALID' };
