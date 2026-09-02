@@ -1,7 +1,6 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { pipeline } from 'node:stream/promises';
 import {
@@ -12,6 +11,11 @@ import {
   writeBackupRestoreDrillExportOnce
 } from '../src/operations/operations-backup-restore-runner.mjs';
 import { readOperationsActivationInputDocument } from '../src/operations/operations-activation-input-reader.mjs';
+import {
+  runBoundedBackupRestoreCapture,
+  runBoundedBackupRestoreProcess,
+  startBoundedBackupRestoreInteractive
+} from '../src/operations/operations-backup-restore-runtime.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const roadmap = JSON.parse(fs.readFileSync(path.join(projectRoot, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
@@ -82,12 +86,12 @@ function physicalSeparateFailureDomain(candidate) {
 }
 
 function productionContainer(service) {
-  const result = spawnSync('docker', [
+  const stdout = runBoundedBackupRestoreCapture({ executable: 'docker', args: [
     'ps', '--filter', 'label=com.docker.compose.project=seowon-inventory-production',
     '--filter', `label=com.docker.compose.service=${service}`, '--format', '{{.ID}}'
-  ], { encoding: 'utf8', windowsHide: true });
-  const ids = result.stdout.trim().split(/\r?\n/).filter(Boolean);
-  if (result.status !== 0 || ids.length !== 1 || !/^[a-f0-9]{12,64}$/.test(ids[0])) throw new Error(`PRODUCTION_${service.toUpperCase()}_CONTAINER_INVALID`);
+  ], timeoutMs: 10_000, failureStatus: `PRODUCTION_${service.toUpperCase()}_CONTAINER_INVALID`, timeoutStatus: 'PRODUCTION_DOCKER_DISCOVERY_TIMEOUT' });
+  const ids = stdout.split(/\r?\n/).filter(Boolean);
+  if (ids.length !== 1 || !/^[a-f0-9]{12,64}$/.test(ids[0])) throw new Error(`PRODUCTION_${service.toUpperCase()}_CONTAINER_INVALID`);
   return ids[0];
 }
 
@@ -117,10 +121,14 @@ function waitForJsonLine(child, timeoutMs = 10000) {
 
 async function openConsistentSnapshot(backendContainer) {
   const helper = `const {Client}=require('pg');(async()=>{const c=new Client({connectionString:process.env.DATABASE_URL});await c.connect();await c.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');const s=(await c.query('SELECT pg_export_snapshot() AS id')).rows[0].id;const counts=(await c.query(${JSON.stringify(COUNTS_SQL)})).rows[0].counts;process.stdout.write(JSON.stringify({snapshotId:s,counts})+'\\n');process.stdin.resume();process.stdin.once('data',async()=>{await c.query('COMMIT');await c.end();process.exit(0)});})().catch(()=>process.exit(1));`;
-  const child = spawn('docker', ['exec', '-i', backendContainer, 'node', '-e', helper], {
-    stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true
+  const runtime = startBoundedBackupRestoreInteractive({
+    executable: 'docker', args: ['exec', '-i', backendContainer, 'node', '-e', helper], timeoutMs: 60 * 60 * 1000,
+    failureStatus: 'SNAPSHOT_TRANSACTION_FAILED', timeoutStatus: 'SNAPSHOT_TRANSACTION_TIMEOUT'
   });
-  const value = await waitForJsonLine(child);
+  const child = runtime.child;
+  let value;
+  try { value = await waitForJsonLine(child); }
+  catch (error) { runtime.abort(); throw error; }
   if (!/^[A-Za-z0-9-]{5,100}$/.test(value?.snapshotId ?? '') || !value?.counts) {
     child.kill();
     throw new Error('SNAPSHOT_EXPORT_CONTRACT_INVALID');
@@ -129,34 +137,26 @@ async function openConsistentSnapshot(backendContainer) {
     snapshotId: value.snapshotId,
     counts: value.counts,
     async close() {
-      const exit = new Promise((resolve, reject) => {
-        child.once('exit', (code) => code === 0 ? resolve() : reject(new Error('SNAPSHOT_TRANSACTION_CLOSE_FAILED')));
-        child.once('error', reject);
-      });
       child.stdin.end('\n');
-      await exit;
+      await runtime.completion;
     },
-    abort() { child.kill(); }
+    abort() { runtime.abort(); }
   };
 }
 
 async function createOffsiteBackup(databaseContainer, snapshotId, backupPath) {
   const temporaryPath = `${backupPath}.${process.pid}.tmp`;
-  const child = spawn('docker', [
-    'exec', databaseContainer, 'pg_dump', '-U', 'seowon', '-d', 'seowon_inventory', '-Fc',
-    '--no-owner', '--no-privileges', `--snapshot=${snapshotId}`
-  ], { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
-  let stderr = '';
-  child.stderr.on('data', (chunk) => { if (stderr.length < 4096) stderr += chunk.toString(); });
   try {
-    const exit = new Promise((resolve, reject) => {
-      child.once('exit', (code) => code === 0 ? resolve() : reject(new Error('PRODUCTION_PG_DUMP_FAILED')));
-      child.once('error', reject);
+    await runBoundedBackupRestoreProcess({
+      executable: 'docker',
+      args: ['exec', databaseContainer, 'pg_dump', '-U', 'seowon', '-d', 'seowon_inventory', '-Fc',
+        '--no-owner', '--no-privileges', `--snapshot=${snapshotId}`],
+      stdout: fs.createWriteStream(temporaryPath, { flags: 'wx', mode: 0o600 }),
+      timeoutMs: 30 * 60 * 1000,
+      failureStatus: 'PRODUCTION_PG_DUMP_FAILED',
+      timeoutStatus: 'PRODUCTION_PG_DUMP_TIMEOUT',
+      outputLimitStatus: 'PRODUCTION_PG_DUMP_STDERR_LIMIT'
     });
-    await Promise.all([
-      pipeline(child.stdout, fs.createWriteStream(temporaryPath, { flags: 'wx', mode: 0o600 })),
-      exit
-    ]);
     if (fs.statSync(temporaryPath).size < 1024) throw new Error('PRODUCTION_BACKUP_TOO_SMALL');
     const handle = fs.openSync(temporaryPath, 'r');
     try { fs.fsyncSync(handle); } finally { fs.closeSync(handle); }
@@ -174,24 +174,21 @@ async function sha256File(filePath) {
 }
 
 function dockerCapture(args) {
-  const result = spawnSync('docker', args, { encoding: 'utf8', windowsHide: true, maxBuffer: 4 * 1024 * 1024 });
-  if (result.status !== 0) throw new Error('ISOLATED_RESTORE_COMMAND_FAILED');
-  return result.stdout.trim();
+  return runBoundedBackupRestoreCapture({ executable: 'docker', args, timeoutMs: 60_000, maxOutputBytes: 4 * 1024 * 1024,
+    failureStatus: 'ISOLATED_RESTORE_COMMAND_FAILED', timeoutStatus: 'ISOLATED_RESTORE_COMMAND_TIMEOUT' });
 }
 
 async function restoreBackup(databaseContainer, backupPath, drillDatabase) {
-  const child = spawn('docker', [
-    'exec', '-i', databaseContainer, 'pg_restore', '-U', 'seowon', '-d', drillDatabase,
-    '--no-owner', '--no-privileges', '--exit-on-error'
-  ], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
-  child.stdout.resume();
-  let stderr = '';
-  child.stderr.on('data', (chunk) => { if (stderr.length < 4096) stderr += chunk.toString(); });
-  const exit = new Promise((resolve, reject) => {
-    child.once('exit', (code) => code === 0 ? resolve() : reject(new Error('ISOLATED_PG_RESTORE_FAILED')));
-    child.once('error', reject);
+  await runBoundedBackupRestoreProcess({
+    executable: 'docker',
+    args: ['exec', '-i', databaseContainer, 'pg_restore', '-U', 'seowon', '-d', drillDatabase,
+      '--no-owner', '--no-privileges', '--exit-on-error'],
+    stdin: fs.createReadStream(backupPath),
+    timeoutMs: 60 * 60 * 1000,
+    failureStatus: 'ISOLATED_PG_RESTORE_FAILED',
+    timeoutStatus: 'ISOLATED_PG_RESTORE_TIMEOUT',
+    outputLimitStatus: 'ISOLATED_PG_RESTORE_STDERR_LIMIT'
   });
-  await Promise.all([pipeline(fs.createReadStream(backupPath), child.stdin), exit]);
 }
 
 function restoredCounts(databaseContainer, databaseName) {
