@@ -637,6 +637,14 @@
       "evidence": "failure-first 5/5; focused assembler, executor and role-result regression 25/25 PASS; syntax 364/364; repository unit 666 PASS 7 skips; harness:verify PASS; GitHub quality 33589230425 unit and three-tier SUCCESS; actual cutover assembly NOT_RUN"
     },
     {
+      "id": "ACC-P6-40-ATOMIC-SIGNOFF-RESUME-CHECKPOINT-AND-RECEIPTS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Gate 12 signoff resume는 checkpoint와 Gate 1~11 receipt를 bounded atomic snapshot으로 읽고 repository·receipt root·candidate identity·realpath·size, fatal UTF-8 JSON object를 검증해 read 중 교체·redirect·invalid encoding을 같은 run 재개 증거로 사용하지 않는다.",
+      "evidence": "failure-first 5/5; focused signoff resume, executor and runtime rehearsal regression 24/24 PASS; syntax 365/365; repository unit 671 PASS 7 skips; harness:verify PASS; GitHub quality 33590197995 unit and three-tier SUCCESS; actual Gate 12 signoff resume NOT_RUN"
+    },
+    {
       "id": "ACC-P7-16-BOUNDED-ACTUAL-HANDOVER-EVIDENCE-INPUT",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
