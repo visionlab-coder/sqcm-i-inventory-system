@@ -6,9 +6,9 @@ import {
   OPERATIONS_SIGNOFF_INPUT_ASSEMBLY_CONFIRMATION,
   buildOperationsSignoffInput,
   evaluateOperationsSignoffInputAssemblyGate,
-  sha256OperationsDocument,
   writeOperationsSignoffInputOnce
 } from '../src/operations/operations-signoff-input-assembler.mjs';
+import { readOperationsActivationInputDocument } from '../src/operations/operations-activation-input-reader.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const roadmap = JSON.parse(fs.readFileSync(path.join(projectRoot, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
@@ -60,19 +60,20 @@ let failureCount = 0;
 
 if (gate.inputReadAllowed) {
   try {
-    const p6Raw = fs.readFileSync(p6Path); inputDocumentReadCount += 1;
-    const p6Document = JSON.parse(p6Raw.toString('utf8'));
+    const p6Input = readOperationsActivationInputDocument(p6Path, { repositoryRoot: projectRoot }); inputDocumentReadCount += 1;
+    const p6Document = p6Input.value;
     const domainDocuments = {}; const domainHashes = {};
     for (const domain of OPERATIONS_SIGNOFF_DOMAINS) {
-      const raw = fs.readFileSync(domainPaths[domain]); inputDocumentReadCount += 1;
-      domainDocuments[domain] = JSON.parse(raw.toString('utf8'));
-      domainHashes[domain] = sha256OperationsDocument(raw);
+      const input = readOperationsActivationInputDocument(domainPaths[domain], { repositoryRoot: projectRoot }); inputDocumentReadCount += 1;
+      domainDocuments[domain] = input.value;
+      domainHashes[domain] = input.sha256;
     }
-    const approvalReceipt = JSON.parse(fs.readFileSync(approvalPath, 'utf8')); inputDocumentReadCount += 1;
+    const approvalInput = readOperationsActivationInputDocument(approvalPath, { repositoryRoot: projectRoot }); inputDocumentReadCount += 1;
+    const approvalReceipt = approvalInput.value;
     const checkedAt = new Date().toISOString();
     const value = buildOperationsSignoffInput({
       p6Document, domainDocuments, approvalReceipt,
-      hashes: { p6Cutover: sha256OperationsDocument(p6Raw), domains: domainHashes }, checkedAt
+      hashes: { p6Cutover: p6Input.sha256, domains: domainHashes }, checkedAt
     });
     writeOperationsSignoffInputOnce(outputPath, value);
     outputCreated = true;

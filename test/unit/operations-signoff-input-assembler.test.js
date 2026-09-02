@@ -89,3 +89,12 @@ test('signoff input은 원자적으로 한 번만 쓰고 덮어쓰지 않는다'
   assert.equal(JSON.parse(fs.readFileSync(outputPath, 'utf8')).signoff.role, 'OPERATIONS_OWNER');
   assert.throws(() => writeOperationsSignoffInputOnce(outputPath, output, { processId: 801 }), /OUTPUT_ALREADY_EXISTS/);
 });
+
+test('실제 signoff assembler는 10개 actual 입력을 bounded physical JSON reader로 읽는다', () => {
+  const script = fs.readFileSync(path.resolve(__dirname, '..', '..', 'scripts', 'operations-signoff-input-assembler.mjs'), 'utf8');
+  assert.match(script, /operations-activation-input-reader\.mjs/);
+  assert.match(script, /readOperationsActivationInputDocument\(p6Path/);
+  assert.match(script, /readOperationsActivationInputDocument\(domainPaths\[domain\]/);
+  assert.match(script, /readOperationsActivationInputDocument\(approvalPath/);
+  assert.doesNotMatch(script, /fs\.readFileSync\((?:p6Path|domainPaths\[domain\]|approvalPath)/);
+});
