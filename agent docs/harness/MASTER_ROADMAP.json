@@ -333,6 +333,7 @@
           "production-role-core-smoke-redacted-summary-three-actual-role-result-compiler-ready",
           "production-role-result-three-output-create-only-partial-commit-set-provenance-pass",
           "production-cutover-control-output-fsync-hardlink-no-replace-pass",
+          "production-ingress-config-credential-fsync-hardlink-no-replace-pass",
           "same-run-gates-1-to-11-signoff-pause-gate-12-resume-contract-ready",
           "same-run-physical-checkpoint-gate-12-resume-runtime-route-disable-ready",
           "same-run-actual-evidence-finalization-failure-route-disable-ready",

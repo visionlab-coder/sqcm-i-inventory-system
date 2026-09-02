@@ -154,6 +154,7 @@ flowchart LR
 - `ACC-P7-63`에서 backup·restore 증거쌍을 출력별 create-only no-replace와 동일 pair provenance로 결합했다. 두 별도 경로 전체의 원자성을 주장하지 않고 두 번째 출력 충돌을 명시적 1/2 부분 게시로 보존·탐지하며, 혼합 증거쌍은 인수 완료로 승격하지 않는다. 실제 P6 cutover와 P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-64`에서 ADMIN·MANAGER·USER actual 역할 결과를 세 경로 사전검증과 출력별 create-only no-replace로 게시하도록 바꿨다. 실행 중 경쟁은 명시적 부분 게시로 보존·탐지하고 동일 `resultSetPublicationId`가 아닌 혼합 역할 결과는 actual cutover로 승격하지 않는다. 실제 역할 UAT·P6 cutover와 P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-65`에서 actual cutover 최종 증거·signoff pause checkpoint·12-Gate step/summary receipt를 공용 fsync·hard-link no-replace writer로 통합했다. 세 출력 경로 모두 경쟁자가 만든 최종 bytes를 보존하고 임시파일을 제거하며, 실제 역할 UAT·P6 cutover와 P7 운영 활성화는 `NOT_RUN`이다.
+- `ACC-P6-66`에서 Production cloudflared config와 tunnel credential을 fsync·hard-link no-replace로 게시하도록 강화했다. credential 원문을 읽지 않고 충돌 시 선점 bytes와 복구용 생성 credential을 보존하며, tunnel create 성공은 후속 게시 실패와 무관하게 외부 변경으로 기록한다. 실제 tunnel·DNS/TLS·역할 UAT·P6 cutover와 P7 운영 활성화는 `NOT_RUN`이다.
 
 ## 6. Phase 갱신 절차
 

@@ -1005,6 +1005,14 @@
       "evidence": "failure-first 6 reproduced; three control writers use shared durable create-only publication; three publication races preserve competitor bytes and remove temporary files; focused 22 PASS 2 Windows skips; syntax 399/399; repository unit 774 PASS 8 skips; process runner 12 Gate/14 step/26 receipt rehearsal and signoff resume physical checkpoint rehearsal PASS; activation bundle 21 roots 52 files; harness:verify PASS; GitHub quality 33624966275 unit and three-tier SUCCESS; actual P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-66-PRODUCTION-INGRESS-PUBLICATION-DURABILITY",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production cloudflared config와 tunnel credential은 fsync 뒤 hard-link no-replace로 게시하고, 경쟁 시 기존 최종 bytes를 보존하며 Secret 원문을 읽지 않는다. tunnel create 성공은 후속 credential 파싱·게시 실패 전에도 외부 변경으로 정확히 기록한다.",
+      "evidence": "failure-first 4 reproduced; Windows read-only fsync EPERM 2 reproduced and replaced by r+ flush handle without content read; focused 31 PASS; syntax 400/400; repository unit 779 PASS 8 skips; ingress dry-run READY_WAIT_INPUTS with zero mutation; cutover preflight local blockers 0 and 3 services healthy; harness:verify PASS; GitHub quality 33626411866 unit and three-tier SUCCESS; actual P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
