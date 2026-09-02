@@ -1133,6 +1133,14 @@
       "evidence": "failure-first 3 reproduced; default 10 minute timeout with 30 minute hard maximum; combined stdout and stderr default 1 MiB with 4 MiB hard maximum; child termination and close synchronization; four bounded failure statuses; raw output and stale role PASS summary excluded from receipts; focused 51 PASS 1 Windows skip; syntax 414/414; repository unit 851 PASS 8 skips; harness:verify PASS; GitHub quality 33650821145 completed successfully; actual child, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-82-PRODUCTION-CUTOVER-ROLLBACK-DEADLINE-BUDGET",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "정상 cutover child timeout은 rollback cutoff 전 2분 containment reserve를 남긴 실제 시간 예산을 넘지 않아야 하고, 예산 소진 뒤 정상 child는 실행하지 않되 route-disable·ingress orphan recovery는 bounded 실행할 수 있어야 한다.",
+      "evidence": "failure-first 3 reproduced; normal step timeout is minimum of default and rollback cutoff minus current time minus 2 minute reserve; exhausted budget records bounded failure with zero normal child spawn; route-disable and ingress orphan recovery remain executable with bounded profile; initial and signoff resume executors pass the same deadline and clock; focused 30 PASS 1 Windows skip; syntax 414/414; repository unit 855 PASS 8 skips; harness:verify PASS; GitHub quality 33652418703 completed successfully; actual child, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

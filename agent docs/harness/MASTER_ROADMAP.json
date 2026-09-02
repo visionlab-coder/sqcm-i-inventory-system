@@ -349,6 +349,7 @@
       "production-cutover-step-specific-child-environment-allowlist-pass",
       "production-cutover-step-transitive-bundle-receipt-resume-provenance-pass",
       "production-cutover-child-timeout-output-signal-bounded-failure-pass",
+      "production-cutover-rollback-cutoff-containment-reserve-budget-pass",
           "same-run-gates-1-to-11-signoff-pause-gate-12-resume-contract-ready",
           "same-run-physical-checkpoint-gate-12-resume-runtime-route-disable-ready",
           "same-run-actual-evidence-finalization-failure-route-disable-ready",

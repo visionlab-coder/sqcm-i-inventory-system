@@ -170,6 +170,7 @@ flowchart LR
 - `ACC-P6-79`에서 cutover 정상 14개와 route-disable·ingress orphan recovery 2개 child의 환경을 canonical step별 allowlist로 격리했다. 안전한 OS runtime 외에는 현재 단계에 명시된 reference·confirmation만 전달하고 unrelated Secret·`GITHUB_TOKEN`·`NODE_OPTIONS`와 변조 step을 spawn 전에 차단한다. 실제 child·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-80`에서 cutover 정상 14개와 containment 2개 step의 gate·ID·전이 로컬 source byte를 bundle SHA-256으로 고정했다. child spawn 전후와 receipt·checkpoint·resume·actual evidence의 manifest가 다르면 fail-closed 중단한다. 실제 child·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-81`에서 P6 cutover child의 기본 timeout을 10분, stdout·stderr 합산 상한을 1MiB로 제한했다. timeout·출력 초과·spawn·signal 실패는 child 종료 뒤 오류 원문이나 stale PASS summary 없이 bounded receipt로 남는다. 실제 child·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
+- `ACC-P6-82`에서 정상 cutover child timeout을 rollback cutoff 전 2분 containment reserve가 남도록 동적으로 제한했다. reserve 소진 뒤 정상 child는 실행하지 않고 route-disable·ingress orphan recovery만 기존 bounded profile로 실행한다. 실제 child·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 
 ## 6. Phase 갱신 절차
 
