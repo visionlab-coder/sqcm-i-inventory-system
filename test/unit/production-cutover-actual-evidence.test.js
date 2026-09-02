@@ -90,7 +90,7 @@ test('contract template은 actual 역할 결과나 서명으로 승격하지 않
   assert.ok(result.failures.includes('BUSINESS_ACTUAL_SIGNOFF_INVALID'));
 });
 
-test('actual 증거는 저장소 밖 물리 경로에 원자적으로 한 번만 쓴다', async () => {
+test('actual 증거는 저장소 밖 물리 경로에 create-only로 한 번만 쓴다', async () => {
   const { assembleActualCutoverEvidence, writeActualCutoverEvidence } = await modulePromise;
   const result = assembleActualCutoverEvidence(await completeInput());
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-actual-cutover-'));
@@ -98,6 +98,30 @@ test('actual 증거는 저장소 밖 물리 경로에 원자적으로 한 번만
   try {
     assert.equal(writeActualCutoverEvidence(output, result.evidence, { repositoryRoot: path.join(root, 'different-repo') }), output);
     assert.equal(JSON.parse(fs.readFileSync(output, 'utf8')).productionGo, true);
-    assert.throws(() => writeActualCutoverEvidence(output, result.evidence, { repositoryRoot: path.join(root, 'different-repo') }), /EEXIST/);
+    assert.throws(() => writeActualCutoverEvidence(output, result.evidence, { repositoryRoot: path.join(root, 'different-repo') }), /ACTUAL_CUTOVER_EVIDENCE_ALREADY_EXISTS/);
   } finally { fs.rmSync(root, { recursive: true }); }
+});
+
+test('actual 증거 게시 경쟁 시 선점 bytes를 보존하고 임시파일을 제거한다', async (t) => {
+  const { assembleActualCutoverEvidence, writeActualCutoverEvidence } = await modulePromise;
+  const result = assembleActualCutoverEvidence(await completeInput());
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-actual-cutover-race-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const output = path.join(root, 'actual.json');
+  const realLink = fs.linkSync.bind(fs);
+  const io = {
+    ...fs,
+    linkSync(sourcePath, outputPath) {
+      fs.writeFileSync(outputPath, '{"owner":"competing-run"}\n', { flag: 'wx' });
+      return realLink(sourcePath, outputPath);
+    }
+  };
+  assert.throws(
+    () => writeActualCutoverEvidence(output, result.evidence, {
+      io, processId: 1400, repositoryRoot: path.join(root, 'different-repo')
+    }),
+    /ACTUAL_CUTOVER_EVIDENCE_ALREADY_EXISTS/
+  );
+  assert.deepEqual(JSON.parse(fs.readFileSync(output, 'utf8')), { owner: 'competing-run' });
+  assert.equal(fs.readdirSync(root).some((name) => name.endsWith('.tmp')), false);
 });

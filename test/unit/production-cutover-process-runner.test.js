@@ -34,8 +34,35 @@ test('receipt는 stdout stderr Secret을 기록하지 않고 기존 파일을 �
     assert.equal(JSON.parse(raw).runId, '11111111-1111-4111-8111-111111111111');
     assert.doesNotMatch(raw, /stdout|stderr|SECRET_VALUE/);
     const secondWriter = createRuntimeReceiptWriter({ root, clock, runId: '11111111-1111-4111-8111-111111111111' });
-    await assert.rejects(() => secondWriter({ kind: 'step', gate: 'artifact', step: 'preflight', status: 'PASS', exitCode: 0 }), /EEXIST/);
+    await assert.rejects(() => secondWriter({ kind: 'step', gate: 'artifact', step: 'preflight', status: 'PASS', exitCode: 0 }), /CUTOVER_RECEIPT_ALREADY_EXISTS/);
   } finally { fs.rmSync(root, { recursive: true }); }
+});
+
+test('receipt 게시 경쟁 시 선점 bytes를 보존하고 임시파일을 제거한다', async (t) => {
+  const { createRuntimeReceiptWriter } = await modulePromise;
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-cutover-receipt-race-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const realLink = fs.linkSync.bind(fs);
+  const io = {
+    ...fs,
+    linkSync(sourcePath, outputPath) {
+      fs.writeFileSync(outputPath, '{"owner":"competing-run"}\n', { flag: 'wx' });
+      return realLink(sourcePath, outputPath);
+    }
+  };
+  const writer = createRuntimeReceiptWriter({
+    root, io, processId: 1600,
+    clock: () => new Date('2026-09-11T11:00:00.000Z'),
+    runId: '11111111-1111-4111-8111-111111111111'
+  });
+  await assert.rejects(
+    () => writer({ kind: 'step', gate: 'artifact', step: 'preflight', status: 'PASS', exitCode: 0 }),
+    /CUTOVER_RECEIPT_ALREADY_EXISTS/
+  );
+  const files = fs.readdirSync(root);
+  assert.equal(files.length, 1);
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root, files[0]), 'utf8')), { owner: 'competing-run' });
+  assert.equal(files.some((name) => name.endsWith('.tmp')), false);
 });
 
 test('동일 run 재개 writer는 검증된 sequence 다음 번호부터 기록한다', async () => {

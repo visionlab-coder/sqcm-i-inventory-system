@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { TextDecoder } from 'node:util';
 import { CUTOVER_GATE_ADAPTER_PLAN } from './production-cutover-gate-adapters.mjs';
 import { ACTUAL_EVIDENCE_INPUT_MAX_BYTES, loadRunReceiptDocuments } from './production-cutover-actual-evidence.mjs';
+import { writeCreateOnlyJsonOutput } from './operations-create-only-json-output.mjs';
 import { PRODUCTION_CHANGE_WINDOW } from './production-cutover-preflight.mjs';
 import { CUTOVER_GATE_SEQUENCE } from './production-cutover-orchestrator.mjs';
 
@@ -176,13 +177,18 @@ function outsideRepository(resolved, repositoryRoot) {
   return target !== repo && !target.startsWith(`${repo}${path.sep}`);
 }
 
-export function writeSignoffPauseCheckpoint(outputPath, checkpoint, { io = fs, repositoryRoot = process.cwd() } = {}) {
+export function writeSignoffPauseCheckpoint(outputPath, checkpoint, {
+  io = fs, repositoryRoot = process.cwd(), processId = process.pid
+} = {}) {
   const resolved = path.resolve(outputPath);
   if (!outsideRepository(resolved, repositoryRoot)) throw new Error('SIGNOFF_CHECKPOINT_MUST_BE_EXTERNAL');
   const parent = physicalDirectory(path.dirname(resolved), io);
   if (path.dirname(resolved).toLowerCase() !== parent.toLowerCase() || path.extname(resolved) !== '.checkpoint') throw new Error('SIGNOFF_CHECKPOINT_PATH_INVALID');
-  io.writeFileSync(resolved, `${JSON.stringify(checkpoint, null, 2)}\n`, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
-  return resolved;
+  return writeCreateOnlyJsonOutput(resolved, checkpoint, {
+    io,
+    processId,
+    alreadyExistsCode: 'SIGNOFF_CHECKPOINT_ALREADY_EXISTS'
+  });
 }
 
 export function loadSignoffPauseCheckpoint(filePath, { io = fs, repositoryRoot = process.cwd() } = {}) {

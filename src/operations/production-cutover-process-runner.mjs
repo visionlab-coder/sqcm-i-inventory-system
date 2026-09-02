@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
+import { writeCreateOnlyJsonOutput } from './operations-create-only-json-output.mjs';
 
 export const PRODUCTION_CUTOVER_RECEIPT_ROOT = 'D:\\seowon_runtime\\sqcm-i-inventory-production\\cutover-receipts';
 
@@ -75,7 +76,14 @@ function safeSegment(value) {
   return result;
 }
 
-export function createRuntimeReceiptWriter({ root = PRODUCTION_CUTOVER_RECEIPT_ROOT, io = fs, clock = () => new Date(), runId = randomUUID(), startSequence = 0 } = {}) {
+export function createRuntimeReceiptWriter({
+  root = PRODUCTION_CUTOVER_RECEIPT_ROOT,
+  io = fs,
+  clock = () => new Date(),
+  runId = randomUUID(),
+  startSequence = 0,
+  processId = process.pid
+} = {}) {
   if (!/^[a-f0-9]{8}-[a-f0-9-]{27,35}$/i.test(runId)) throw new Error('CUTOVER_RUN_ID_INVALID');
   if (!Number.isSafeInteger(startSequence) || startSequence < 0) throw new Error('CUTOVER_RECEIPT_START_SEQUENCE_INVALID');
   let sequence = startSequence;
@@ -92,8 +100,11 @@ export function createRuntimeReceiptWriter({ root = PRODUCTION_CUTOVER_RECEIPT_R
       productionGo: false
     };
     if (summary !== null) payload.summary = summary;
-    io.writeFileSync(target, `${JSON.stringify(payload, null, 2)}\n`, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
-    return target;
+    return writeCreateOnlyJsonOutput(target, payload, {
+      io,
+      processId,
+      alreadyExistsCode: 'CUTOVER_RECEIPT_ALREADY_EXISTS'
+    });
   };
   Object.defineProperty(writer, 'runId', { value: runId, enumerable: true });
   return writer;

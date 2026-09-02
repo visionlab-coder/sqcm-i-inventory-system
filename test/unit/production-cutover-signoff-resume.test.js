@@ -71,10 +71,34 @@ test('checkpoint는 물리 .checkpoint 파일에 한 번만 기록한다', async
     const checkpoint = createSignoffPauseCheckpoint({ runId, releaseSha, checkedAt, gateResults: results() }).checkpoint;
     writeSignoffPauseCheckpoint(output, checkpoint);
     assert.equal(loadSignoffPauseCheckpoint(output).runId, runId);
-    assert.throws(() => writeSignoffPauseCheckpoint(output, checkpoint), /EEXIST/);
+    assert.throws(() => writeSignoffPauseCheckpoint(output, checkpoint), /SIGNOFF_CHECKPOINT_ALREADY_EXISTS/);
     assert.throws(() => writeSignoffPauseCheckpoint(path.join(root, 'run.json'), checkpoint), /PATH_INVALID/);
     assert.throws(() => writeSignoffPauseCheckpoint(path.join(process.cwd(), 'run.checkpoint'), checkpoint), /MUST_BE_EXTERNAL/);
   } finally { fs.rmSync(root, { recursive: true }); }
+});
+
+test('checkpoint 게시 경쟁 시 선점 bytes를 보존하고 임시파일을 제거한다', async (t) => {
+  const { createSignoffPauseCheckpoint, writeSignoffPauseCheckpoint } = await modulePromise;
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-signoff-checkpoint-race-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const output = path.join(root, 'run.checkpoint');
+  const checkpoint = createSignoffPauseCheckpoint({ runId, releaseSha, checkedAt, gateResults: results() }).checkpoint;
+  const realLink = fs.linkSync.bind(fs);
+  const io = {
+    ...fs,
+    linkSync(sourcePath, outputPath) {
+      fs.writeFileSync(outputPath, '{"owner":"competing-run"}\n', { flag: 'wx' });
+      return realLink(sourcePath, outputPath);
+    }
+  };
+  assert.throws(
+    () => writeSignoffPauseCheckpoint(output, checkpoint, {
+      io, processId: 1500, repositoryRoot: path.join(root, 'different-repo')
+    }),
+    /SIGNOFF_CHECKPOINT_ALREADY_EXISTS/
+  );
+  assert.deepEqual(JSON.parse(fs.readFileSync(output, 'utf8')), { owner: 'competing-run' });
+  assert.equal(fs.readdirSync(root).some((name) => name.endsWith('.tmp')), false);
 });
 
 test('동일 run의 Gate 1~11·step 13개 receipt와 SHA를 물리 검증한다', async () => {

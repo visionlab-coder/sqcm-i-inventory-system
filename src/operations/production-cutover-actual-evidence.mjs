@@ -6,6 +6,7 @@ import { CUTOVER_GATE_ADAPTER_PLAN } from './production-cutover-gate-adapters.mj
 import { PRODUCTION_CHANGE_WINDOW } from './production-cutover-preflight.mjs';
 import { validateActualCutoverProvenance } from './production-cutover-finalizer.mjs';
 import { productionRoleResultSetPublicationId } from './production-role-result-evidence.mjs';
+import { writeCreateOnlyJsonOutput } from './operations-create-only-json-output.mjs';
 
 export const ACTUAL_CUTOVER_ASSEMBLY_CONFIRMATION = 'ACK-P6-ASSEMBLE-ACTUAL-CUTOVER-EVIDENCE';
 export const ACTUAL_TARGET_URL = 'https://inventory.safe-link.co.kr';
@@ -311,7 +312,9 @@ export function loadRunReceiptDocuments(root, runId, { io = fs, repositoryRoot =
   return documents.filter((document) => document.value?.runId === runId);
 }
 
-export function writeActualCutoverEvidence(outputPath, evidence, { io = fs, repositoryRoot = process.cwd() } = {}) {
+export function writeActualCutoverEvidence(outputPath, evidence, {
+  io = fs, repositoryRoot = process.cwd(), processId = process.pid
+} = {}) {
   const resolved = path.resolve(outputPath);
   const repo = path.resolve(repositoryRoot);
   if (resolved.toLowerCase() === repo.toLowerCase() || resolved.toLowerCase().startsWith(`${repo.toLowerCase()}${path.sep}`)) throw new Error('ACTUAL_CUTOVER_EVIDENCE_OUTPUT_MUST_BE_EXTERNAL');
@@ -319,6 +322,9 @@ export function writeActualCutoverEvidence(outputPath, evidence, { io = fs, repo
   const stat = io.lstatSync(parent);
   if (!stat.isDirectory() || stat.isSymbolicLink() || (stat.isReparsePoint?.() ?? false)
     || path.resolve(io.realpathSync(parent)).toLowerCase() !== parent.toLowerCase()) throw new Error('ACTUAL_CUTOVER_EVIDENCE_PARENT_NOT_PHYSICAL');
-  io.writeFileSync(resolved, `${JSON.stringify(evidence, null, 2)}\n`, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
-  return resolved;
+  return writeCreateOnlyJsonOutput(resolved, evidence, {
+    io,
+    processId,
+    alreadyExistsCode: 'ACTUAL_CUTOVER_EVIDENCE_ALREADY_EXISTS'
+  });
 }
