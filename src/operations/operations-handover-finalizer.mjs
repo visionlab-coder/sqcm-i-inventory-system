@@ -268,6 +268,16 @@ export function validateActualOperationsHandoverEvidence(evidence, { documents =
     }
   }
 
+  const backupProvenance = documents.backup?.value?.provenance;
+  const restoreProvenance = documents.restore?.value?.provenance;
+  if (!SHA256_PATTERN.test(backupProvenance?.pairPublicationId ?? '')
+    || backupProvenance?.pairPublicationId !== restoreProvenance?.pairPublicationId
+    || !SHA256_PATTERN.test(backupProvenance?.sourceSha256 ?? '')
+    || backupProvenance?.sourceSha256 !== restoreProvenance?.sourceSha256
+    || backupProvenance?.ownerRef !== restoreProvenance?.ownerRef) {
+    failures.push('backup and restore evidence must share exact pair publication provenance');
+  }
+
   const signoff = evidence.operationsSignoff || {};
   if (signoff.status !== 'APPROVED') failures.push('operations signoff must be APPROVED');
   if (!IDENTITY_PATTERN.test(signoff.signedByRef ?? '')) failures.push('operations signoff signedByRef must be an identity reference');

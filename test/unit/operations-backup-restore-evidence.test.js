@@ -64,6 +64,9 @@ test('actual off-site backup과 격리 restore drill을 두 도메인 문서로 
   assert.deepEqual(result.evidence.restore.metrics, { isolatedTarget: true, rowCountsMatch: true, rtoMinutes: 30 });
   assert.equal(result.evidence.backup.domain, 'backup');
   assert.equal(result.evidence.restore.domain, 'restore');
+  assert.match(result.evidence.backup.provenance.pairPublicationId, /^[a-f0-9]{64}$/);
+  assert.equal(result.evidence.backup.provenance.pairPublicationId, result.evidence.restore.provenance.pairPublicationId);
+  assert.equal(result.evidence.backup.provenance.sourceSha256, result.evidence.restore.provenance.sourceSha256);
 });
 
 test('template·staging·loopback과 잘못된 provenance를 거부한다', async () => {
@@ -108,7 +111,7 @@ test('비격리·count 불일치·migration 불일치·RTO 초과 restore를 거
   assert.match(result.failures.join(','), /within 240 minutes/);
 });
 
-test('두 증거를 원자적으로 한 번만 쓰며 부분 출력과 덮어쓰기를 막는다', async (t) => {
+test('두 증거를 create-only로 쓰고 기존 출력을 덮어쓰지 않는다', async (t) => {
   const { writeOperationsBackupRestoreEvidencePairOnce } = await modulePromise;
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-backup-restore-evidence-'));
   t.after(() => fs.rmSync(tempDir, { recursive: true, force: true }));
@@ -119,4 +122,34 @@ test('두 증거를 원자적으로 한 번만 쓰며 부분 출력과 덮어쓰
   assert.equal(JSON.parse(fs.readFileSync(restorePath, 'utf8')).domain, 'restore');
   assert.throws(() => writeOperationsBackupRestoreEvidencePairOnce(backupPath, path.join(tempDir, 'new.json'), { backup: {}, restore: {} }), /OUTPUT_ALREADY_EXISTS/);
   assert.throws(() => writeOperationsBackupRestoreEvidencePairOnce(restorePath, restorePath, { backup: {}, restore: {} }), /DISTINCT_OUTPUT_PATHS_REQUIRED/);
+});
+
+test('두 번째 출력 경쟁 시 어느 실행의 증거도 삭제하지 않고 partial commit으로 중단한다', async (t) => {
+  const { writeOperationsBackupRestoreEvidencePairOnce } = await modulePromise;
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-backup-restore-race-'));
+  t.after(() => fs.rmSync(tempDir, { recursive: true, force: true }));
+  const backupPath = path.join(tempDir, 'backup.json');
+  const restorePath = path.join(tempDir, 'restore.json');
+  const realLink = fs.linkSync.bind(fs);
+  const io = {
+    ...fs,
+    linkSync(sourcePath, outputPath) {
+      if (path.resolve(outputPath) === path.resolve(restorePath)) {
+        fs.writeFileSync(outputPath, '{"owner":"competing-run"}\n', { flag: 'wx' });
+      }
+      return realLink(sourcePath, outputPath);
+    }
+  };
+  assert.throws(
+    () => writeOperationsBackupRestoreEvidencePairOnce(
+      backupPath,
+      restorePath,
+      { backup: { owner: 'this-run' }, restore: { owner: 'this-run' } },
+      { processId: 400, io }
+    ),
+    /OUTPUT_PAIR_PARTIAL_COMMIT:1_OF_2/
+  );
+  assert.deepEqual(JSON.parse(fs.readFileSync(backupPath, 'utf8')), { owner: 'this-run' });
+  assert.deepEqual(JSON.parse(fs.readFileSync(restorePath, 'utf8')), { owner: 'competing-run' });
+  assert.equal(fs.readdirSync(tempDir).some((name) => name.endsWith('.tmp')), false);
 });

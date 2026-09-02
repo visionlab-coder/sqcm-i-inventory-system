@@ -28,6 +28,7 @@ function domainMetrics(name) {
 }
 
 function actualEvidenceBundle() {
+  const pairPublicationId = 'd'.repeat(64);
   const domains = {};
   const documents = {
     p6Gate: { actualSha256: sha, value: { schemaVersion: 1, environment: 'production', activationState: 'actual', evidenceType: 'P6_CUTOVER_ACTUAL', domain: 'p6-cutover', status: 'PASS', checkedAt, productionGo: true, targetUrl: 'https://inventory.safe-link.co.kr', releaseSha: 'b'.repeat(40) } },
@@ -37,6 +38,8 @@ function actualEvidenceBundle() {
     domains[name] = { status: 'PASS', evidenceRef: reference(`${name}.json`) };
     documents[name] = { actualSha256: sha, value: { schemaVersion: 1, environment: 'production', activationState: 'actual', evidenceType: 'P7_OPERATIONS_DOMAIN_ACTUAL', domain: name, status: 'PASS', checkedAt, metrics: domainMetrics(name) } };
   }
+  documents.backup.value.provenance = { pairPublicationId, sourceSha256: sha, ownerRef: 'identity://operations-owner' };
+  documents.restore.value.provenance = { pairPublicationId, sourceSha256: sha, ownerRef: 'identity://operations-owner' };
   return {
     evidence: {
       schemaVersion: 2,
@@ -78,6 +81,15 @@ test('파일 SHA 변조와 staging provenance를 거부한다', async () => {
   const result = validateActualOperationsHandoverEvidence(bundle.evidence, { documents: bundle.documents });
   assert.match(result.failures.join(','), /restore evidence sha256 mismatch/);
   assert.match(result.failures.join(','), /certificate evidence environment/);
+});
+
+test('서로 다른 실행의 backup과 restore pair provenance를 혼합하지 않는다', async () => {
+  const { validateActualOperationsHandoverEvidence } = await finalizerModule;
+  const bundle = actualEvidenceBundle();
+  bundle.documents.restore.value.provenance.pairPublicationId = 'e'.repeat(64);
+  const result = validateActualOperationsHandoverEvidence(bundle.evidence, { documents: bundle.documents });
+  assert.match(result.failures.join(','), /share exact pair publication provenance/);
+  assert.equal(result.p7CompletionReady, false);
 });
 
 test('도메인 임계치와 운영 책임자 서명 일치를 강제한다', async () => {

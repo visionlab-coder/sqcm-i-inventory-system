@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { writeCreateOnlyJsonOutput } from './operations-create-only-json-output.mjs';
 
 export const BACKUP_RESTORE_EVIDENCE_CONFIRMATION = 'ACK-COMPILE-P7-PRODUCTION-BACKUP-RESTORE-EVIDENCE';
 export const BACKUP_RESTORE_TARGET_URL = 'https://inventory.safe-link.co.kr';
@@ -89,10 +90,17 @@ export function compileOperationsBackupRestoreEvidence(source, { checkedAt = new
   if (validDate(backup.createdAt) && validDate(restore.startedAt) && startedMs < createdMs) failures.push('restore must not start before backup creation');
 
   if (failures.length > 0) return { status: 'BLOCKED_BACKUP_RESTORE_EVIDENCE_INVALID', failures, evidence: null };
+  const pairPublicationId = createHash('sha256').update(JSON.stringify({
+    sourceSha256,
+    checkedAt,
+    backupId: backup.backupId,
+    drillId: restore.drillId
+  })).digest('hex');
   const commonProvenance = {
     targetUrl: BACKUP_RESTORE_TARGET_URL,
     ownerRef: source.ownerRef,
-    sourceSha256
+    sourceSha256,
+    pairPublicationId
   };
   return {
     status: 'PASS_BACKUP_RESTORE_EVIDENCE_COMPILED',
@@ -146,24 +154,22 @@ export function sha256BackupRestoreBuffer(value) {
   return createHash('sha256').update(value).digest('hex');
 }
 
-export function writeOperationsBackupRestoreEvidencePairOnce(backupPath, restorePath, evidence, { processId = process.pid } = {}) {
+export function writeOperationsBackupRestoreEvidencePairOnce(backupPath, restorePath, evidence, {
+  processId = process.pid,
+  io = fs
+} = {}) {
   if (!backupPath || !restorePath || path.resolve(backupPath) === path.resolve(restorePath)) throw new Error('DISTINCT_OUTPUT_PATHS_REQUIRED');
-  for (const outputPath of [backupPath, restorePath]) {
-    if (!fs.existsSync(path.dirname(outputPath))) throw new Error('OUTPUT_DIRECTORY_MISSING');
-    if (fs.existsSync(outputPath)) throw new Error('OUTPUT_ALREADY_EXISTS');
-  }
   const outputs = [[backupPath, evidence.backup], [restorePath, evidence.restore]];
-  const temporaryPaths = outputs.map(([outputPath]) => path.join(path.dirname(outputPath), `.${path.basename(outputPath)}.${processId}.tmp`));
-  const committed = [];
+  const published = [];
   try {
-    outputs.forEach(([, value], index) => fs.writeFileSync(temporaryPaths[index], `${JSON.stringify(value, null, 2)}\n`, { encoding: 'utf8', flag: 'wx' }));
-    outputs.forEach(([outputPath], index) => {
-      fs.renameSync(temporaryPaths[index], outputPath);
-      committed.push(outputPath);
+    outputs.forEach(([outputPath, value], index) => {
+      writeCreateOnlyJsonOutput(outputPath, value, { processId: processId + index, io });
+      published.push(path.resolve(outputPath));
     });
   } catch (error) {
-    for (const temporaryPath of temporaryPaths) if (fs.existsSync(temporaryPath)) fs.rmSync(temporaryPath);
-    for (const outputPath of committed) if (fs.existsSync(outputPath)) fs.rmSync(outputPath);
+    if (published.length > 0) {
+      throw new Error(`OUTPUT_PAIR_PARTIAL_COMMIT:${published.length}_OF_${outputs.length}`);
+    }
     throw error;
   }
   return { backupPath, restorePath };
