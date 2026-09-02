@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process';
+import { readBoundedJsonObjectResponse } from './operations-preflight-http-runtime.mjs';
 
 export const CSRF_BASELINE_TIMEOUT_MS = 10_000;
 export const CSRF_BASELINE_PROCESS_MAX_BUFFER = 1024 * 1024;
@@ -55,7 +56,7 @@ export async function requestCsrfIdempotencyBaseline({
 }
 
 export async function readCsrfIdempotencyBaselineJson(response) {
-  try { return await response.json(); } catch { return {}; }
+  try { return await readBoundedJsonObjectResponse(response); } catch { return {}; }
 }
 
 export function parseCsrfIdempotencyBaselineContainerId(stdout) {
