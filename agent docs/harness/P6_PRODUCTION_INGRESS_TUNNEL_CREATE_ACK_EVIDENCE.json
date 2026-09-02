@@ -1,0 +1,71 @@
+{
+  "packet": "ACC-P6-74-PRODUCTION-INGRESS-SECRET-FREE-TUNNEL-CREATE-ACKNOWLEDGEMENT",
+  "status": "PASS_PRODUCTION_INGRESS_SECRET_FREE_TUNNEL_CREATE_ACKNOWLEDGEMENT",
+  "scope": {
+    "jsonCreateOutputAllowed": false,
+    "tokenBearingOutputAllowed": false,
+    "secretFreeDefaultAcknowledgementRequired": true,
+    "exactTunnelNameRequired": true,
+    "exactTunnelUuidRequired": true,
+    "remoteObservationRequiredBeforeCredentialPublication": true,
+    "boundedRemoteObservationAttempts": 5,
+    "mutationMarkedImmediatelyAfterProviderCreate": true
+  },
+  "providerContract": {
+    "installedHelpReadOnly": true,
+    "officialSourceReviewed": true,
+    "tunnelWithTokenJsonFieldConfirmed": true,
+    "createJsonRendersTunnelWithTokenConfirmed": true,
+    "secretValueRecorded": false
+  },
+  "failureFirst": {
+    "reproducedFailureCount": 5,
+    "jsonTokenOutputRequested": true,
+    "missingSecretFreeAcknowledgementParser": true,
+    "missingPrePublicationRemoteObservation": true
+  },
+  "focusedTests": {
+    "total": 25,
+    "passed": 25,
+    "failed": 0,
+    "skipped": 0
+  },
+  "repositoryChecks": {
+    "syntaxPassed": 408,
+    "unitTotal": 829,
+    "unitPassed": 821,
+    "unitFailed": 0,
+    "unitSkipped": 8
+  },
+  "implementationCommit": "a2ce439aa99bc98e208922cbddd1c59aa4f00b0b",
+  "qualityCi": {
+    "runId": 33637736026,
+    "testedHeadSha": "a2ce439aa99bc98e208922cbddd1c59aa4f00b0b",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "ingressPublicationDryRun": {
+    "status": "READY_WAIT_INGRESS_PUBLICATION_INPUTS",
+    "externalMutationPerformed": false,
+    "actualProductionIngress": "NOT_RUN"
+  },
+  "protectedServices": [
+    { "port": 1234, "pid": 6632, "preserved": true },
+    { "port": 11434, "pid": 8588, "preserved": true },
+    { "port": 18765, "pid": 22716, "preserved": true },
+    { "port": 18766, "pid": 65724, "preserved": true }
+  ],
+  "harnessVerify": {
+    "status": "PASS",
+    "exitCode": 0
+  },
+  "actualTunnelCreationOrConnection": "NOT_RUN",
+  "actualP6Cutover": "NOT_RUN",
+  "actualP7Activation": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

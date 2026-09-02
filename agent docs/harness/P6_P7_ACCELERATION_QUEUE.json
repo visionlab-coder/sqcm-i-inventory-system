@@ -1069,6 +1069,14 @@
       "evidence": "read-only provider schema observed without values or secrets; failure-first 6 reproduced; focused tunnel/DNS/publication 20 PASS; syntax 407/407; repository unit 816 PASS 8 skips; ingress dry-run waits with external mutation zero; protected ports and PIDs preserved; harness:verify PASS; GitHub quality 33636215007 unit and three-tier SUCCESS; actual tunnel create/connect, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-74-PRODUCTION-INGRESS-SECRET-FREE-TUNNEL-CREATE-ACKNOWLEDGEMENT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production ingress tunnel create는 token을 포함하는 JSON 출력을 요청·파싱하지 않고 Secret 없는 default acknowledgement의 exact name·UUID와 bounded 원격 재관측 UUID가 일치한 뒤에만 credential/config를 게시해야 하며 provider create 직후 mutation 상태는 즉시 기록해야 한다.",
+      "evidence": "installed help and official cloudflared source reviewed read-only; TunnelWithToken JSON token field confirmed; failure-first 5 reproduced; focused create/tunnel/DNS/publication 25 PASS; syntax 408/408; repository unit 821 PASS 8 skips; harness:verify PASS; GitHub quality 33637736026 unit and three-tier SUCCESS; actual tunnel create/connect, credential/config publication, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
