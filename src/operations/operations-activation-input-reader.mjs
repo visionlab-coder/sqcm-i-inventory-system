@@ -4,7 +4,8 @@ import { createHash } from 'node:crypto';
 import { TextDecoder } from 'node:util';
 
 export const OPERATIONS_ACTIVATION_INPUT_MAX_BYTES = 4 * 1024 * 1024;
-export const OPERATIONS_SECRET_INPUT_MAX_BYTES = 64 * 1024;
+export const OPERATIONS_TEXT_INPUT_MAX_BYTES = 64 * 1024;
+export const OPERATIONS_SECRET_INPUT_MAX_BYTES = OPERATIONS_TEXT_INPUT_MAX_BYTES;
 
 function inputError(code) {
   const error = new Error(code);
@@ -116,23 +117,25 @@ export function readOperationsActivationInputDocument(filePath, {
   };
 }
 
-export function readOperationsSecretInput(filePath, {
-  repositoryRoot = process.cwd(),
-  io = fs,
-  maxBytes = OPERATIONS_SECRET_INPUT_MAX_BYTES
-} = {}) {
+function readBoundedTextInput(filePath, {
+  repositoryRoot,
+  io,
+  maxBytes,
+  maximumAllowedBytes,
+  errorPrefix
+}) {
   const input = readExternalPhysicalInput(filePath, {
     repositoryRoot,
     io,
     maxBytes,
-    maximumAllowedBytes: OPERATIONS_SECRET_INPUT_MAX_BYTES,
-    errorPrefix: 'OPERATIONS_SECRET_INPUT'
+    maximumAllowedBytes,
+    errorPrefix
   });
 
   let value;
   try { value = new TextDecoder('utf-8', { fatal: true }).decode(input.raw).trim(); }
-  catch { throw inputError('OPERATIONS_SECRET_INPUT_VALUE_INVALID'); }
-  if (!value || value.includes('\u0000')) throw inputError('OPERATIONS_SECRET_INPUT_VALUE_INVALID');
+  catch { throw inputError(`${errorPrefix}_VALUE_INVALID`); }
+  if (!value || value.includes('\u0000')) throw inputError(`${errorPrefix}_VALUE_INVALID`);
 
   return {
     value,
@@ -140,4 +143,32 @@ export function readOperationsSecretInput(filePath, {
     sha256: input.sha256,
     path: input.path
   };
+}
+
+export function readOperationsTextInput(filePath, {
+  repositoryRoot = process.cwd(),
+  io = fs,
+  maxBytes = OPERATIONS_TEXT_INPUT_MAX_BYTES
+} = {}) {
+  return readBoundedTextInput(filePath, {
+    repositoryRoot,
+    io,
+    maxBytes,
+    maximumAllowedBytes: OPERATIONS_TEXT_INPUT_MAX_BYTES,
+    errorPrefix: 'OPERATIONS_TEXT_INPUT'
+  });
+}
+
+export function readOperationsSecretInput(filePath, {
+  repositoryRoot = process.cwd(),
+  io = fs,
+  maxBytes = OPERATIONS_SECRET_INPUT_MAX_BYTES
+} = {}) {
+  return readBoundedTextInput(filePath, {
+    repositoryRoot,
+    io,
+    maxBytes,
+    maximumAllowedBytes: OPERATIONS_SECRET_INPUT_MAX_BYTES,
+    errorPrefix: 'OPERATIONS_SECRET_INPUT'
+  });
 }

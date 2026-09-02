@@ -1,8 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { SLO_TARGET_URL } from './operations-slo-evidence.mjs';
+import { OPERATIONS_TEXT_INPUT_MAX_BYTES, readOperationsTextInput } from './operations-activation-input-reader.mjs';
 
 export const SLO_COLLECTION_CONFIRMATION = 'ACK-COLLECT-P7-PRODUCTION-SLO-SAMPLE';
+export const SLO_LEDGER_MAX_BYTES = OPERATIONS_TEXT_INPUT_MAX_BYTES;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export function evaluateSloCollectionGate({ p6EvidenceComplete = false, p7InProgress = false, productionGo = false, ledgerConfigured = false, exportConfigured = false, exportExists = false, execute = false, confirmed = false } = {}) {
@@ -38,6 +40,16 @@ export function parseSloLedger(raw) {
   return samples.sort((left, right) => Date.parse(left.timestamp) - Date.parse(right.timestamp));
 }
 
+export function readSloLedgerFile(ledgerPath, {
+  repositoryRoot = process.cwd(),
+  io = fs,
+  maxBytes = SLO_LEDGER_MAX_BYTES
+} = {}) {
+  if (!io.existsSync(ledgerPath)) return [];
+  const input = readOperationsTextInput(ledgerPath, { repositoryRoot, io, maxBytes });
+  return parseSloLedger(input.value);
+}
+
 export function buildSloMeasurementExport(samples) {
   if (!Array.isArray(samples) || samples.length < 30 || !samples.every(validateSloSample)) throw new Error('SLO_LEDGER_REQUIRES_30_VALID_SAMPLES');
   const ordered = [...samples].sort((left, right) => Date.parse(left.timestamp) - Date.parse(right.timestamp)).slice(0, 30);
@@ -50,7 +62,7 @@ export function buildSloMeasurementExport(samples) {
   return { schemaVersion: 1, template: false, environment: 'production', activationState: 'actual', measurementType: 'PRODUCTION_HTTPS_MONITORING_EXPORT', targetUrl: SLO_TARGET_URL, measurementStart: new Date(start).toISOString(), measurementEnd: new Date(start + 30 * DAY_MS).toISOString(), samples: ordered.map(({ timestamp, available, latencyMs }) => ({ timestamp, available, latencyMs })) };
 }
 
-export function appendSloSampleOnce(ledgerPath, sample, { processId = process.pid } = {}) {
+export function appendSloSampleOnce(ledgerPath, sample, { processId = process.pid, repositoryRoot = process.cwd() } = {}) {
   if (!validateSloSample(sample)) throw new Error('SLO_SAMPLE_INVALID');
   const directory = path.dirname(ledgerPath);
   if (!fs.existsSync(directory)) throw new Error('SLO_LEDGER_DIRECTORY_MISSING');
@@ -58,7 +70,7 @@ export function appendSloSampleOnce(ledgerPath, sample, { processId = process.pi
   let lock;
   try {
     lock = fs.openSync(lockPath, 'wx', 0o600);
-    const existing = fs.existsSync(ledgerPath) ? parseSloLedger(fs.readFileSync(ledgerPath, 'utf8')) : [];
+    const existing = readSloLedgerFile(ledgerPath, { repositoryRoot });
     const day = sample.timestamp.slice(0, 10);
     if (existing.some((item) => item.timestamp.slice(0, 10) === day)) return { status: 'PASS_SLO_SAMPLE_ALREADY_RECORDED_FOR_UTC_DAY', sampleCount: existing.length, appended: false };
     const fd = fs.openSync(ledgerPath, 'a', 0o600);
