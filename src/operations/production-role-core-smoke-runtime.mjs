@@ -1,3 +1,5 @@
+import { readBoundedJsonObjectResponse } from './operations-preflight-http-runtime.mjs';
+
 export const ROLE_SMOKE_HTTP_TIMEOUT_MS = 10_000;
 
 export async function requestRoleSmokeHttp({
@@ -21,7 +23,7 @@ export async function requestRoleSmokeHttp({
 }
 
 export async function readRoleSmokeJson(response) {
-  try { return await response.json(); } catch { return {}; }
+  try { return await readBoundedJsonObjectResponse(response); } catch { return {}; }
 }
 
 export async function cleanupRoleSmokeSession({ session, logout } = {}) {
