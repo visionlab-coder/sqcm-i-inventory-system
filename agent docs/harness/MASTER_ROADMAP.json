@@ -360,6 +360,7 @@
       "production-signoff-request-set-provenance-and-causal-time-binding-pass",
       "production-signoff-request-physical-bundle-sha256-binding-pass",
       "production-signoff-mfa-approval-receipt-sha256-binding-pass",
+      "production-signoff-actual-document-create-only-assembler-pass",
           "same-run-gates-1-to-11-signoff-pause-gate-12-resume-contract-ready",
           "same-run-physical-checkpoint-gate-12-resume-runtime-route-disable-ready",
           "same-run-actual-evidence-finalization-failure-route-disable-ready",

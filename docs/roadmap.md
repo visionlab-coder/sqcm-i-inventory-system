@@ -181,6 +181,7 @@ flowchart LR
 - `ACC-P6-90`에서 세 실제 서명을 deterministic unsigned request set ID와 준비 시각에 결박했다. actual assembler는 run·release·core/rollback receipt·역할 결과 publication set·preparedAt에서 ID를 재계산하고 요청 준비 시각이 rollback Gate 이후 각 서명 이전이며 rollback cutoff 안인지 검증한다. 실제 request·서명·DNS/TLS·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-91`에서 세 실제 서명을 사람이 검토한 저장소 밖 물리 unsigned request bundle SHA-256에 결박했다. actual assembler와 signoff resume가 물리 bundle 전체 provenance·세 unsigned payload·signer instruction을 재검증하고 최종 P6 actual evidence에 bundle SHA를 보존한다. 실제 request·서명·DNS/TLS·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-92`에서 업무·보안·운영 실제 서명을 별도 물리 MFA 승인 receipt SHA-256에 결박했다. receipt의 동일 run·release·request set·request bundle·signer·signedAt, MFA verified provider identity와 고유 receiptId를 actual assembler와 signoff resume가 검증한다. 실제 MFA receipt·서명·DNS/TLS·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
+- `ACC-P6-93`에서 검토된 unsigned request bundle과 외부 MFA 승인 receipt 3건으로 실제 업무·보안·운영 서명 문서 3건을 안전하게 조립하는 진입점을 준비했다. 변경창·exact confirmation·저장소 밖 물리 입력과 신규 출력이 모두 있어야 입력을 읽고, receipt와 request provenance를 교차검증한 뒤 create-only로 게시한다. 승인 자체와 실제 MFA receipt·서명·DNS/TLS·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 
 ## 6. Phase 갱신 절차
 

@@ -1221,6 +1221,14 @@
       "evidence": "failure-first 3 counterexamples covered; three physical MFA receipt references required before signoff resume; receipt contract and unsigned templates bound to request bundle; focused 46 PASS; syntax 417/417; repository unit 871 PASS 8 skips; Harness verify PASS; GitHub quality 33666946831 unit and three-tier SUCCESS; actual MFA receipt, signoff, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-93-PRODUCTION-SIGNOFF-ACTUAL-DOCUMENT-ASSEMBLER",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "변경창 안에서 생성된 BUSINESS·SECURITY·OPERATIONS MFA 승인 receipt 3건과 검토된 unsigned request bundle을 검증해 receipt SHA-256에 결박된 actual 서명 문서 3건을 저장소 밖 create-only로 함께 조립하며 승인 자체를 생성하지 않아야 한다.",
+      "evidence": "failure-first missing module reproduced; focused 5/5 PASS; syntax 420/420; repository unit 876 PASS 8 skips; Harness verify includes assembler dry-run; dry-run READY_WAIT_APPROVED_CHANGE_WINDOW with input read zero and output write zero; implementation SHA f58a8d20f71eb475d3ce5fd498417acc27674fc5; GitHub quality 33668644886 unit and three-tier SUCCESS; actual MFA approval, signoff, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
