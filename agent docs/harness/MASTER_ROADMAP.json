@@ -340,6 +340,7 @@
       "production-ingress-process-spawn-acknowledged-pid-pass",
       "production-route-disable-exact-zone-dns-record-identity-pass",
       "production-ingress-exact-zone-dns-record-publication-identity-pass",
+      "production-ingress-exact-tunnel-connection-identity-pass",
           "same-run-gates-1-to-11-signoff-pause-gate-12-resume-contract-ready",
           "same-run-physical-checkpoint-gate-12-resume-runtime-route-disable-ready",
           "same-run-actual-evidence-finalization-failure-route-disable-ready",

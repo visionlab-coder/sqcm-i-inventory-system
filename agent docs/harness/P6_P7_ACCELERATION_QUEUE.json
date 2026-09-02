@@ -1061,6 +1061,14 @@
       "evidence": "failure-first 6 reproduced; focused ingress identity, publication and process 19 PASS; syntax 406/406; repository unit 810 PASS 8 skips; ingress publication dry-run waits with external mutation zero; protected ports and PIDs preserved; harness:verify PASS; GitHub quality 33634889262 unit and three-tier SUCCESS; actual DNS publication, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-73-PRODUCTION-INGRESS-EXACT-TUNNEL-CONNECTION-IDENTITY",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production ingress는 exact tunnel name·UUID·created/deleted 상태와 connection UUID·colo·origin IP·openedAt·pending 형식을 검증하고 단일 exact tunnel의 non-pending connection만 connected로 인정하며 malformed·복수 응답에서는 외부 변경 전에 fail-closed해야 한다.",
+      "evidence": "read-only provider schema observed without values or secrets; failure-first 6 reproduced; focused tunnel/DNS/publication 20 PASS; syntax 407/407; repository unit 816 PASS 8 skips; ingress dry-run waits with external mutation zero; protected ports and PIDs preserved; harness:verify PASS; GitHub quality 33636215007 unit and three-tier SUCCESS; actual tunnel create/connect, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
