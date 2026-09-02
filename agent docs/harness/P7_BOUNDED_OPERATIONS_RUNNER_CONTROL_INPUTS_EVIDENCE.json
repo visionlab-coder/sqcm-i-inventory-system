@@ -1,0 +1,70 @@
+{
+  "packet": "ACC-P7-45-BOUNDED-OPERATIONS-RUNNER-CONTROL-INPUTS",
+  "status": "PASS_BOUNDED_OPERATIONS_RUNNER_CONTROL_INPUTS",
+  "failureFirst": {
+    "expectedFailures": 4,
+    "observedFailures": 4
+  },
+  "focusedTests": {
+    "total": 30,
+    "passed": 30,
+    "failed": 0,
+    "skipped": 0
+  },
+  "syntaxChecks": {
+    "passed": 346,
+    "failed": 0
+  },
+  "unitTests": {
+    "total": 605,
+    "passed": 600,
+    "failed": 0,
+    "skipped": 5
+  },
+  "inputContract": {
+    "runnerCount": 4,
+    "controlDocuments": [
+      "alertDeliveryProviderManifest",
+      "offsiteStorageAttestation",
+      "onCallDrillProviderManifest",
+      "improvementQueueTriageAttestation"
+    ],
+    "absoluteExternalJsonRequired": true,
+    "repositoryInternalRejected": true,
+    "physicalRegularFileRequired": true,
+    "symlinkReparseAndParentRedirectRejected": true,
+    "minimumBytes": 1,
+    "maximumBytesPerFile": 4194304,
+    "jsonObjectRequired": true,
+    "actualBytesAndSha256Computed": true,
+    "rawParseAndFilesystemErrorsRedacted": true,
+    "credentialContentUnchangedByPacket": true
+  },
+  "readOnlyRuns": {
+    "runnerCount": 4,
+    "waitCount": 4,
+    "secretValueUsedCount": 0,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "implementationCommit": "ea2b84fea86bd28eaee404987ebdb9620aeea804",
+  "qualityCi": {
+    "runId": 33577822762,
+    "testedHeadSha": "ea2b84fea86bd28eaee404987ebdb9620aeea804",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "harnessVerify": {
+    "exitCode": 0,
+    "status": "PASS"
+  },
+  "actualRunnerExecutionPerformed": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

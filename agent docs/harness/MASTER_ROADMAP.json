@@ -360,6 +360,7 @@
           "p7-activation-approval-request-manifest-preflight-orchestrator-external-physical-4mib-json-sha256-reader-pass",
           "p7-operations-signoff-assembler-ten-input-external-physical-4mib-json-sha256-reader-pass",
           "p7-eight-operations-evidence-compilers-external-physical-4mib-json-sha256-reader-pass",
+          "p7-four-operations-runner-control-inputs-external-physical-4mib-json-reader-pass",
           "p7-actual-https-30-day-append-only-slo-collector-ready",
           "p7-production-exact-tls-health-readiness-observer-ready",
           "p7-production-daily-maintenance-read-only-runner-ready",

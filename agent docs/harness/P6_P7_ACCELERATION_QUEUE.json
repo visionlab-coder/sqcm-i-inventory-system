@@ -653,6 +653,14 @@
       "evidence": "8 compiler default entrypoints => P6 completion WAIT with evidence creation zero; failure-first 8/8; focused 64/64 PASS; syntax 345/345; repository unit 596 PASS 5 skips; harness:verify PASS; actual operations evidence compilation NOT_RUN"
     },
     {
+      "id": "ACC-P7-45-BOUNDED-OPERATIONS-RUNNER-CONTROL-INPUTS",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "경보·백업/복원·온콜·개선큐 runner의 provider manifest와 approval attestation 4개 제어 JSON은 저장소 밖 absolute physical JSON object만 4MiB 이하로 읽으며 저장소 내부·symlink/reparse·parent redirect·malformed/array·과대 입력을 원문 없이 fail-closed한다.",
+      "evidence": "4 runner default entrypoints => READY_WAIT_P6_ACTUAL_CUTOVER with secret use and external mutation zero; failure-first 4/4; focused 30/30 PASS; syntax 346/346; repository unit 600 PASS 5 skips; harness:verify PASS; actual runner execution NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
