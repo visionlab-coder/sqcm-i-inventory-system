@@ -781,6 +781,14 @@
       "evidence": "failure-first 5/5; focused handover regression 20 PASS 1 Windows skip; syntax 362/362; repository unit 657 PASS 7 skips; activation bundle 21 roots 49 physical files 345517 bytes sha256 a65d6a06f3ec07aed688861902adcb2238e1fe25d400d374ecee6c4402f889a6; harness:verify PASS; GitHub quality 33587580937 unit and three-tier SUCCESS; actual handover and activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-41-ATOMIC-PRODUCTION-UAT-INPUTS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production UAT 승인·ADMIN·MANAGER·USER credential JSON은 저장소 밖 absolute physical regular file·exact realpath·1 byte~64KiB·read 전후 repository/file identity와 size 안정성·fatal UTF-8·JSON object-only 계약으로 읽고 symlink/reparse·redirect·교체·과대·invalid encoding을 실행 입력으로 인정하지 않는다.",
+      "evidence": "failure-first 7/7; focused UAT input regression 58/58 PASS; syntax 367/367; repository unit 678 PASS 7 skips; fresh Production backup 318811 bytes and isolated restore 33/33 tables 25/25 migrations PASS; harness:verify PASS; GitHub quality 33591475433 unit and three-tier SUCCESS; actual credentials read and Production UAT NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
