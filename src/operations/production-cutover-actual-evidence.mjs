@@ -1,16 +1,48 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { TextDecoder } from 'node:util';
 import { CUTOVER_GATE_ADAPTER_PLAN } from './production-cutover-gate-adapters.mjs';
 import { PRODUCTION_CHANGE_WINDOW } from './production-cutover-preflight.mjs';
 import { validateActualCutoverProvenance } from './production-cutover-finalizer.mjs';
 
 export const ACTUAL_CUTOVER_ASSEMBLY_CONFIRMATION = 'ACK-P6-ASSEMBLE-ACTUAL-CUTOVER-EVIDENCE';
 export const ACTUAL_TARGET_URL = 'https://inventory.safe-link.co.kr';
+export const ACTUAL_EVIDENCE_INPUT_MAX_BYTES = 1024 * 1024;
+export const CUTOVER_RECEIPT_MAX_DOCUMENTS = 64;
+export const CUTOVER_RECEIPT_MAX_TOTAL_BYTES = 16 * 1024 * 1024;
 const RUN_ID = /^[a-f0-9]{8}-[a-f0-9-]{27,35}$/i;
 const SHA256 = /^[a-f0-9]{64}$/;
 const IDENTITY = /^identity:\/\/[A-Za-z0-9._/@:-]+$/;
 const ROLE_MAP = Object.freeze({ ADMIN: 'admin', MANAGER: 'manager', USER: 'employee' });
+
+function inputError(code) {
+  const error = new Error(code);
+  error.name = 'ActualCutoverEvidenceInputError';
+  return error;
+}
+
+function pathInsideOrEqual(root, candidate) {
+  const relative = path.relative(root, candidate);
+  return relative === '' || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative));
+}
+
+function samePhysicalPath(left, right) {
+  return process.platform === 'win32' ? left.toLowerCase() === right.toLowerCase() : left === right;
+}
+
+function physicalDirectory(stat) {
+  return stat.isDirectory() && !stat.isSymbolicLink() && !(stat.isReparsePoint?.() ?? false);
+}
+
+function physicalFile(stat) {
+  return stat.isFile() && !stat.isSymbolicLink() && !(stat.isReparsePoint?.() ?? false);
+}
+
+function sameIdentity(before, after) {
+  return before.size === after.size && before.dev === after.dev && before.ino === after.ino
+    && before.mtimeMs === after.mtimeMs && before.ctimeMs === after.ctimeMs;
+}
 
 const inWindow = (value) => {
   const time = Date.parse(value);
@@ -114,21 +146,152 @@ export function assembleActualCutoverEvidence({ receiptDocuments = [], roleResul
     : { status: 'FAIL_ACTUAL_CUTOVER_EVIDENCE_ASSEMBLY', failures: validation.failures, productionGo: false };
 }
 
-export function loadJsonDocument(filePath, { io = fs } = {}) {
-  const resolved = path.resolve(filePath);
-  const stat = io.lstatSync(resolved);
-  if (!stat.isFile() || stat.isSymbolicLink() || (stat.isReparsePoint?.() ?? false)) throw new Error('ACTUAL_EVIDENCE_INPUT_NOT_PHYSICAL_FILE');
-  const raw = io.readFileSync(resolved);
-  return { fileName: path.basename(resolved), sha256: createHash('sha256').update(raw).digest('hex'), value: JSON.parse(raw.toString('utf8')) };
+export function loadJsonDocument(filePath, {
+  io = fs,
+  repositoryRoot = process.cwd(),
+  allowedBase = null,
+  maxBytes = ACTUAL_EVIDENCE_INPUT_MAX_BYTES
+} = {}) {
+  if (typeof filePath !== 'string' || !path.isAbsolute(filePath) || path.extname(filePath).toLowerCase() !== '.json'
+    || typeof repositoryRoot !== 'string' || !repositoryRoot
+    || !Number.isInteger(maxBytes) || maxBytes < 1 || maxBytes > ACTUAL_EVIDENCE_INPUT_MAX_BYTES) {
+    throw inputError('ACTUAL_EVIDENCE_INPUT_REFERENCE_INVALID');
+  }
+  const repository = path.resolve(repositoryRoot);
+  const candidate = path.resolve(filePath);
+  const base = allowedBase === null ? null : path.resolve(allowedBase);
+  if (pathInsideOrEqual(repository, candidate)
+    || (base && (!pathInsideOrEqual(base, candidate) || samePhysicalPath(base, candidate)))) {
+    throw inputError('ACTUAL_EVIDENCE_INPUT_REFERENCE_INVALID');
+  }
+
+  let repositoryBefore;
+  let repositoryRealBefore;
+  let baseBefore;
+  let baseRealBefore;
+  let before;
+  let candidateRealBefore;
+  try {
+    repositoryBefore = io.lstatSync(repository);
+    repositoryRealBefore = path.resolve(io.realpathSync(repository));
+    if (base) {
+      baseBefore = io.lstatSync(base);
+      baseRealBefore = path.resolve(io.realpathSync(base));
+    }
+    before = io.lstatSync(candidate);
+    candidateRealBefore = path.resolve(io.realpathSync(candidate));
+  } catch {
+    throw inputError('ACTUAL_EVIDENCE_INPUT_REFERENCE_INVALID');
+  }
+  if (!physicalDirectory(repositoryBefore) || !samePhysicalPath(repositoryRealBefore, repository)
+    || (base && (!physicalDirectory(baseBefore) || !samePhysicalPath(baseRealBefore, base)))
+    || !physicalFile(before) || !samePhysicalPath(candidateRealBefore, candidate)
+    || pathInsideOrEqual(repositoryRealBefore, candidateRealBefore)
+    || (base && !pathInsideOrEqual(baseRealBefore, candidateRealBefore))
+    || before.size < 1 || before.size > maxBytes) {
+    throw inputError('ACTUAL_EVIDENCE_INPUT_REFERENCE_INVALID');
+  }
+
+  let raw;
+  try { raw = io.readFileSync(candidateRealBefore); } catch {
+    throw inputError('ACTUAL_EVIDENCE_INPUT_READ_FAILED');
+  }
+  if (!Buffer.isBuffer(raw) || raw.length > maxBytes) throw inputError('ACTUAL_EVIDENCE_INPUT_REFERENCE_INVALID');
+  if (raw.length !== before.size) throw inputError('ACTUAL_EVIDENCE_INPUT_UNSTABLE');
+
+  try {
+    const repositoryAfter = io.lstatSync(repository);
+    const repositoryRealAfter = path.resolve(io.realpathSync(repository));
+    const baseAfter = base ? io.lstatSync(base) : null;
+    const baseRealAfter = base ? path.resolve(io.realpathSync(base)) : null;
+    const after = io.lstatSync(candidate);
+    const candidateRealAfter = path.resolve(io.realpathSync(candidate));
+    if (!physicalDirectory(repositoryAfter) || !sameIdentity(repositoryBefore, repositoryAfter)
+      || !samePhysicalPath(repositoryRealBefore, repositoryRealAfter)
+      || !samePhysicalPath(repositoryRealAfter, repository)
+      || (base && (!physicalDirectory(baseAfter) || !sameIdentity(baseBefore, baseAfter)
+        || !samePhysicalPath(baseRealBefore, baseRealAfter) || !samePhysicalPath(baseRealAfter, base)))
+      || !physicalFile(after) || !sameIdentity(before, after)
+      || !samePhysicalPath(candidateRealBefore, candidateRealAfter)
+      || !samePhysicalPath(candidateRealAfter, candidate)
+      || pathInsideOrEqual(repositoryRealAfter, candidateRealAfter)
+      || (base && !pathInsideOrEqual(baseRealAfter, candidateRealAfter))) {
+      throw inputError('ACTUAL_EVIDENCE_INPUT_UNSTABLE');
+    }
+  } catch (error) {
+    if (error?.name === 'ActualCutoverEvidenceInputError') throw error;
+    throw inputError('ACTUAL_EVIDENCE_INPUT_UNSTABLE');
+  }
+
+  let source;
+  try { source = new TextDecoder('utf-8', { fatal: true }).decode(raw); } catch {
+    throw inputError('ACTUAL_EVIDENCE_INPUT_UTF8_INVALID');
+  }
+  let value;
+  try { value = JSON.parse(source); } catch { throw inputError('ACTUAL_EVIDENCE_INPUT_JSON_INVALID'); }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw inputError('ACTUAL_EVIDENCE_INPUT_JSON_INVALID');
+  return {
+    fileName: path.basename(candidate),
+    bytes: raw.length,
+    sha256: createHash('sha256').update(raw).digest('hex'),
+    value
+  };
 }
 
-export function loadRunReceiptDocuments(root, runId, { io = fs } = {}) {
+export function loadRunReceiptDocuments(root, runId, { io = fs, repositoryRoot = process.cwd() } = {}) {
   const resolved = path.resolve(root);
-  const stat = io.lstatSync(resolved);
-  if (!stat.isDirectory() || stat.isSymbolicLink() || (stat.isReparsePoint?.() ?? false)
-    || path.resolve(io.realpathSync(resolved)).toLowerCase() !== resolved.toLowerCase()) throw new Error('CUTOVER_RECEIPT_ROOT_NOT_PHYSICAL');
-  return io.readdirSync(resolved).filter((name) => name.endsWith('.json')).map((name) => loadJsonDocument(path.join(resolved, name), { io }))
-    .filter((document) => document.value?.runId === runId);
+  const repository = path.resolve(repositoryRoot);
+  if (!path.isAbsolute(root) || pathInsideOrEqual(repository, resolved)) throw inputError('CUTOVER_RECEIPT_ROOT_NOT_PHYSICAL');
+  let before;
+  let realBefore;
+  let names;
+  try {
+    before = io.lstatSync(resolved);
+    realBefore = path.resolve(io.realpathSync(resolved));
+    names = io.readdirSync(resolved).filter((name) => path.extname(name).toLowerCase() === '.json');
+  } catch { throw inputError('CUTOVER_RECEIPT_ROOT_NOT_PHYSICAL'); }
+  if (!physicalDirectory(before) || !samePhysicalPath(realBefore, resolved)
+    || names.length > CUTOVER_RECEIPT_MAX_DOCUMENTS
+    || names.some((name) => path.basename(name) !== name)) {
+    throw inputError('CUTOVER_RECEIPT_ROOT_NOT_PHYSICAL');
+  }
+  let documents;
+  try {
+    documents = names.map((name) => loadJsonDocument(path.join(resolved, name), {
+      io,
+      repositoryRoot: repository,
+      allowedBase: resolved
+    }));
+  } catch (error) {
+    try {
+      const rootAfterFailure = io.lstatSync(resolved);
+      const rootRealAfterFailure = path.resolve(io.realpathSync(resolved));
+      if (!physicalDirectory(rootAfterFailure) || !sameIdentity(before, rootAfterFailure)
+        || !samePhysicalPath(realBefore, rootRealAfterFailure) || !samePhysicalPath(rootRealAfterFailure, resolved)) {
+        throw inputError('CUTOVER_RECEIPT_ROOT_UNSTABLE');
+      }
+    } catch (rootError) {
+      if (rootError?.name === 'ActualCutoverEvidenceInputError') throw rootError;
+      throw inputError('CUTOVER_RECEIPT_ROOT_UNSTABLE');
+    }
+    if (error?.message === 'ACTUAL_EVIDENCE_INPUT_UNSTABLE') throw inputError('CUTOVER_RECEIPT_ROOT_UNSTABLE');
+    throw error;
+  }
+  if (documents.reduce((total, document) => total + document.bytes, 0) > CUTOVER_RECEIPT_MAX_TOTAL_BYTES) {
+    throw inputError('CUTOVER_RECEIPT_TOTAL_BYTES_EXCEEDED');
+  }
+  try {
+    const after = io.lstatSync(resolved);
+    const realAfter = path.resolve(io.realpathSync(resolved));
+    if (!physicalDirectory(after) || !sameIdentity(before, after)
+      || !samePhysicalPath(realBefore, realAfter) || !samePhysicalPath(realAfter, resolved)) {
+      throw inputError('CUTOVER_RECEIPT_ROOT_UNSTABLE');
+    }
+  } catch (error) {
+    if (error?.name === 'ActualCutoverEvidenceInputError') throw error;
+    throw inputError('CUTOVER_RECEIPT_ROOT_UNSTABLE');
+  }
+  return documents.filter((document) => document.value?.runId === runId);
 }
 
 export function writeActualCutoverEvidence(outputPath, evidence, { io = fs, repositoryRoot = process.cwd() } = {}) {
