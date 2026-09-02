@@ -1,6 +1,7 @@
 import { isIP } from 'node:net';
 
 export const PRODUCTION_INGRESS_CONFIRMATION = 'ACK-2026-09-11-PUBLISH-PRODUCTION-INGRESS';
+export const PRODUCTION_INGRESS_ORPHAN_RECOVERY_CONFIRMATION = 'ACK-RECOVER-PRODUCTION-INGRESS-ORPHAN';
 export const PRODUCTION_INGRESS_TARGET = Object.freeze({
   zone: 'safe-link.co.kr',
   hostname: 'inventory.safe-link.co.kr',
@@ -199,4 +200,56 @@ export function evaluateProductionIngressOrphanRecoveryPreflight(input = {}) {
     externalMutationPerformed: false,
     productionGo: false
   };
+}
+
+export function evaluateProductionIngressOrphanRecoveryExecution(input = {}) {
+  const booleanKeys = [
+    'tunnelPresent',
+    'tunnelConnected',
+    'temporaryCredentialPresent',
+    'finalCredentialPresent',
+    'configPresent',
+    'processRunning',
+    'dnsPublished'
+  ];
+  if (input.tunnelObservationSucceeded !== true || input.dnsObservationSucceeded !== true
+    || booleanKeys.some((key) => typeof input[key] !== 'boolean')) {
+    return { status: 'FAIL_INGRESS_ORPHAN_RECOVERY_OBSERVATION', recoveryRequired: false, externalMutationPerformed: false, productionGo: false };
+  }
+
+  const noState = booleanKeys.every((key) => input[key] === false);
+  if (noState) return {
+    status: input.processObservationSucceeded === true
+      ? 'PASS_NO_INGRESS_PARTIAL_STATE'
+      : 'PASS_NO_INGRESS_RECOVERY_TARGET_PROCESS_UNOBSERVED',
+    recoveryRequired: false,
+    processObservationComplete: input.processObservationSucceeded === true,
+    externalMutationPerformed: false,
+    productionGo: false
+  };
+  if (input.processObservationSucceeded !== true) {
+    return { status: 'FAIL_INGRESS_ORPHAN_RECOVERY_OBSERVATION', recoveryRequired: false, externalMutationPerformed: false, productionGo: false };
+  }
+
+  const complete = input.tunnelPresent === true
+    && input.tunnelConnected === true
+    && input.temporaryCredentialPresent === false
+    && input.finalCredentialPresent === true
+    && input.configPresent === true
+    && input.processRunning === true
+    && input.dnsPublished === true;
+  if (complete) return { status: 'PASS_INGRESS_PUBLICATION_COMPLETE_NOT_ORPHANED', recoveryRequired: false, externalMutationPerformed: false, productionGo: false };
+
+  const exactOrphan = input.tunnelPresent === true
+    && input.tunnelConnected === false
+    && input.temporaryCredentialPresent === true
+    && input.finalCredentialPresent === false
+    && input.configPresent === false
+    && input.processRunning === false
+    && input.dnsPublished === false;
+  if (!exactOrphan) return { status: 'READY_WAIT_INGRESS_PARTIAL_MUTATION_REVIEW', recoveryRequired: true, externalMutationPerformed: false, productionGo: false };
+  if (input.execute !== true) return { status: 'PASS_INGRESS_ORPHAN_RECOVERY_DRY_RUN_READY', recoveryRequired: true, externalMutationPerformed: false, productionGo: false };
+  if (input.insideWindow !== true) return { status: 'FAIL_INGRESS_ORPHAN_RECOVERY_OUTSIDE_CHANGE_WINDOW', recoveryRequired: true, externalMutationPerformed: false, productionGo: false };
+  if (input.confirmation !== PRODUCTION_INGRESS_ORPHAN_RECOVERY_CONFIRMATION) return { status: 'READY_WAIT_INGRESS_ORPHAN_RECOVERY_CONFIRMATION', recoveryRequired: true, externalMutationPerformed: false, productionGo: false };
+  return { status: 'READY_INGRESS_ORPHAN_RECOVERY_EXECUTION', recoveryRequired: true, externalMutationPerformed: false, productionGo: false };
 }

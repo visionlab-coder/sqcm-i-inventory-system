@@ -141,6 +141,46 @@ export function publishProductionTunnelCredential({
   return output;
 }
 
+export function inspectProductionIngressTemporaryCredential({
+  credentialDirectory,
+  temporaryPath,
+  io = fs
+} = {}) {
+  const root = typeof credentialDirectory === 'string' && credentialDirectory ? path.resolve(credentialDirectory) : null;
+  const temporary = typeof temporaryPath === 'string' && temporaryPath ? path.resolve(temporaryPath) : null;
+  if (!root || !temporary || path.dirname(temporary).toLowerCase() !== root.toLowerCase()
+    || path.basename(temporary) !== 'sqcm-i-inventory-production.json.tmp'
+    || !exactPhysicalDirectory(root, io)) throw new Error('INGRESS_TEMPORARY_CREDENTIAL_PATH_INVALID');
+  if (!io.existsSync(temporary)) return { present: false, root, path: temporary, identity: null };
+  let identity;
+  let real;
+  try {
+    identity = io.lstatSync(temporary);
+    real = path.resolve(io.realpathSync(temporary));
+  } catch {
+    throw new Error('INGRESS_TEMPORARY_CREDENTIAL_STATE_INVALID');
+  }
+  if (!physicalFile(identity) || real.toLowerCase() !== temporary.toLowerCase()
+    || identity.size < 1 || identity.size > INGRESS_CREDENTIAL_MAX_BYTES) {
+    throw new Error('INGRESS_TEMPORARY_CREDENTIAL_STATE_INVALID');
+  }
+  return { present: true, root, path: temporary, identity };
+}
+
+export function removeProductionIngressTemporaryCredential(snapshot, { io = fs } = {}) {
+  if (!snapshot?.present || !snapshot.identity) throw new Error('INGRESS_TEMPORARY_CREDENTIAL_SNAPSHOT_INVALID');
+  const current = inspectProductionIngressTemporaryCredential({
+    credentialDirectory: snapshot.root,
+    temporaryPath: snapshot.path,
+    io
+  });
+  if (!current.present || !sameIdentity(snapshot.identity, current.identity)) {
+    throw new Error('INGRESS_TEMPORARY_CREDENTIAL_STATE_UNSTABLE');
+  }
+  io.unlinkSync(snapshot.path);
+  return true;
+}
+
 export function acquireProductionIngressPublicationLease({
   runtimeDirectory,
   processId = process.pid,
