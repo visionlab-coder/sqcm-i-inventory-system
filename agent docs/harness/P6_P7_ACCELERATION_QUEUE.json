@@ -629,6 +629,14 @@
       "evidence": "operations:handover-finalizer => READY_WAIT_P6_COMPLETION_AND_HANDOVER_EVIDENCE; operations:phase-completion => READY_WAIT_ACTUAL_HANDOVER_EVIDENCE_FOR_8_OF_8 with zero changes; failure-first 6/6 plus 1 Windows skip; focused 21 PASS 1 skip; syntax 342/342; repository unit 582 PASS 4 skips; GitHub quality unit and three-tier SUCCESS; repeated native DNS timeout resolved through existing authoritative DoH alternate path and full harness:verify PASS; actual operations handover NOT_RUN"
     },
     {
+      "id": "ACC-P7-42-BOUNDED-ACTIVATION-APPROVAL-CHAIN-INPUTS",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 activation의 P6 actual evidence·unsigned request·MFA receipt·approval manifest와 재개 receipt는 저장소 밖 absolute physical JSON object만 4MiB 이하로 읽고 actual bytes·SHA-256을 계산하며 저장소 내부·symlink/reparse·parent redirect·malformed/array·과대 입력을 원문 없이 fail-closed한다.",
+      "evidence": "approval request·manifest·read-only preflight·orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER with input read/child/lease/receipt/external mutation zero; failure-first 5/5; focused 42 PASS 1 Windows skip; syntax 344/344; repository unit 587 PASS 5 skips; harness:verify PASS; GitHub quality unit and three-tier SUCCESS; actual approval and activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
