@@ -45,4 +45,3 @@
 - `inventory.safe-link.co.kr` DNS는 미게시이고 Production tunnel은 생성되지 않았다.
 - Cloudflare token reference와 Production 역할 사용자·MFA·실제 결과·서명은 준비되지 않았다.
 - 공식 READY는 `P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF`, 가속 READY는 `ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF`로 유지한다.
-
