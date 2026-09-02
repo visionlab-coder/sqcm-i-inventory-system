@@ -1,4 +1,4 @@
-import { observeProductionIngressDns } from './production-ingress-publication-runtime.mjs';
+import { observeProductionIngressDns, observeProductionIngressDnsOverHttps } from './production-ingress-publication-runtime.mjs';
 
 export const PUBLIC_PROBE_DNS_TIMEOUT_MS = 5_000;
 export const PUBLIC_PROBE_HTTP_TIMEOUT_MS = 10_000;
@@ -7,19 +7,36 @@ export async function observeProductionPublicDns({
   hostname,
   resolveIpv4,
   resolveAlias,
+  fallbackObserve,
   timeoutMs = PUBLIC_PROBE_DNS_TIMEOUT_MS
 } = {}) {
-  const result = await observeProductionIngressDns({ hostname, resolveIpv4, resolveAlias, timeoutMs });
-  if (!result.succeeded) {
+  const primary = await observeProductionIngressDns({ hostname, resolveIpv4, resolveAlias, timeoutMs });
+  if (primary.succeeded) {
+    return { succeeded: true, published: primary.published, status: 'PASS_PUBLIC_PROBE_DNS_OBSERVATION' };
+  }
+  const observeFallback = fallbackObserve ?? (({ hostname: value }) => observeProductionIngressDnsOverHttps({
+    hostname: value,
+    timeoutMs
+  }));
+  let fallback;
+  try { fallback = await observeFallback({ hostname }); } catch { fallback = null; }
+  if (fallback?.succeeded === true) {
+    return {
+      succeeded: true,
+      published: fallback.published === true,
+      status: 'PASS_PUBLIC_PROBE_DNS_OBSERVATION_FALLBACK'
+    };
+  }
+  if (!primary.succeeded) {
     return {
       succeeded: false,
       published: false,
-      status: result.status === 'INGRESS_DNS_OBSERVATION_TIMEOUT'
+      status: primary.status === 'INGRESS_DNS_OBSERVATION_TIMEOUT'
         ? 'PUBLIC_PROBE_DNS_OBSERVATION_TIMEOUT'
         : 'PUBLIC_PROBE_DNS_OBSERVATION_FAILED'
     };
   }
-  return { succeeded: true, published: result.published, status: 'PASS_PUBLIC_PROBE_DNS_OBSERVATION' };
+  return { succeeded: false, published: false, status: 'PUBLIC_PROBE_DNS_OBSERVATION_FAILED' };
 }
 
 export async function probeProductionPublicEndpoints({

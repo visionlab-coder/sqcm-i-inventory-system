@@ -18,6 +18,7 @@ test('public probe DNS 무응답을 5초 이하 설정의 bounded 실패로 반�
     hostname: 'inventory.safe-link.co.kr',
     resolveIpv4: never,
     resolveAlias: never,
+    fallbackObserve: async () => ({ succeeded: false, published: false, status: 'INGRESS_DNS_DOH_FAILED' }),
     timeoutMs: 20
   });
 
@@ -25,6 +26,24 @@ test('public probe DNS 무응답을 5초 이하 설정의 bounded 실패로 반�
     succeeded: false,
     published: false,
     status: 'PUBLIC_PROBE_DNS_OBSERVATION_TIMEOUT'
+  });
+});
+
+test('native DNS 실패는 authoritative DoH NXDOMAIN으로 미게시 상태를 대체 관측한다', async () => {
+  const { observeProductionPublicDns } = await runtimeModule;
+  const never = () => new Promise(() => {});
+  const result = await observeProductionPublicDns({
+    hostname: 'inventory.safe-link.co.kr',
+    resolveIpv4: never,
+    resolveAlias: never,
+    fallbackObserve: async () => ({ succeeded: true, published: false, status: 'PASS_INGRESS_DNS_DOH_OBSERVATION' }),
+    timeoutMs: 20
+  });
+
+  assert.deepEqual(result, {
+    succeeded: true,
+    published: false,
+    status: 'PASS_PUBLIC_PROBE_DNS_OBSERVATION_FALLBACK'
   });
 });
 
