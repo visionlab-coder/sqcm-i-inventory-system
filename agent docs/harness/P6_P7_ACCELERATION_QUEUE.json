@@ -741,6 +741,14 @@
       "evidence": "failure-first 6/6; focused activation regression 36/36 PASS; syntax 360/360; repository unit 647 PASS 7 skips; activation bundle 21 roots 49 physical files 341850 bytes sha256 e43432bec3c31e9fce6f8b8928ddbc83470739daac43e70c470cc4b76ddb9448; harness:verify PASS; GitHub quality 33585841983 unit and three-tier SUCCESS; actual activation NOT_RUN"
     },
     {
+      "id": "ACC-P7-56-ATOMIC-ACTIVATION-EXTERNAL-INPUT-SNAPSHOT",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 activation의 외부 approval·receipt·control·Secret 입력 공용 reader는 actual bytes를 읽은 뒤 repository와 candidate의 physical identity·realpath·size를 다시 검증하고 JSON을 fatal UTF-8로 decode해 읽기 중 교체와 invalid encoding을 승인 근거로 사용할 수 없게 한다.",
+      "evidence": "failure-first 5/5; focused input regression 16 PASS 2 skips; syntax 361/361; repository unit 652 PASS 7 skips; activation bundle 21 roots 49 physical files 343397 bytes sha256 95b2c494627dbd33899e668a97b0edc6bfa19ba4d670b3af56bb2a3b3b8f431e; harness:verify PASS; GitHub quality 33586665241 unit and three-tier SUCCESS; actual activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

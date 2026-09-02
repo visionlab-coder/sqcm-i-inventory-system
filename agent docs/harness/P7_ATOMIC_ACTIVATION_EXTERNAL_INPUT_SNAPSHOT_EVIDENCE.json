@@ -1,0 +1,52 @@
+{
+  "packet": "ACC-P7-56-ATOMIC-ACTIVATION-EXTERNAL-INPUT-SNAPSHOT",
+  "status": "PASS_ATOMIC_ACTIVATION_EXTERNAL_INPUT_SNAPSHOT",
+  "failureFirst": { "expectedFailures": 5, "observedFailures": 5 },
+  "focusedTests": { "total": 18, "passed": 16, "failed": 0, "skipped": 2 },
+  "syntaxChecks": { "passed": 361, "failed": 0 },
+  "unitTests": { "total": 659, "passed": 652, "failed": 0, "skipped": 7 },
+  "snapshotContract": {
+    "jsonMaximumBytes": 4194304,
+    "textAndSecretMaximumBytes": 65536,
+    "repositoryIdentityRechecked": true,
+    "repositoryRealpathRechecked": true,
+    "candidateIdentityRechecked": true,
+    "candidateRealpathRechecked": true,
+    "candidateSizeRechecked": true,
+    "sameSizeReplacementRejected": true,
+    "sizeMutationRejected": true,
+    "fatalJsonUtf8Required": true,
+    "rawPathContentAndSecretRedactedFromErrors": true
+  },
+  "activationBundle": {
+    "rootEntrypointCount": 21,
+    "resolvedPhysicalFileCount": 49,
+    "totalBytes": 343397,
+    "sha256": "95b2c494627dbd33899e668a97b0edc6bfa19ba4d670b3af56bb2a3b3b8f431e"
+  },
+  "readOnlyVerification": {
+    "orchestratorStatus": "READY_WAIT_P6_ACTUAL_CUTOVER",
+    "childProcessCount": 0,
+    "leaseAcquired": false,
+    "receiptCreated": false,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "implementationCommit": "37a35417277ad993da05bf4027f5f936f0b38046",
+  "qualityCi": {
+    "runId": 33586665241,
+    "testedHeadSha": "37a35417277ad993da05bf4027f5f936f0b38046",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "harnessVerify": { "exitCode": 0, "status": "PASS" },
+  "actualActivationPerformed": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}
