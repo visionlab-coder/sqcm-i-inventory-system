@@ -1,0 +1,49 @@
+{
+  "packet": "ACC-P6-39-ATOMIC-ACTUAL-CUTOVER-ASSEMBLY-INPUTS",
+  "status": "PASS_ATOMIC_ACTUAL_CUTOVER_ASSEMBLY_INPUTS",
+  "failureFirst": { "expectedFailures": 5, "observedFailures": 5 },
+  "focusedTests": { "total": 25, "passed": 25, "failed": 0, "skipped": 0 },
+  "syntaxChecks": { "passed": 364, "failed": 0 },
+  "unitTests": { "total": 673, "passed": 666, "failed": 0, "skipped": 7 },
+  "inputContract": {
+    "maximumBytesPerJson": 1048576,
+    "maximumReceiptDocuments": 64,
+    "maximumReceiptAggregateBytes": 16777216,
+    "repositoryIdentityRechecked": true,
+    "repositoryRealpathRechecked": true,
+    "receiptRootIdentityRechecked": true,
+    "receiptRootRealpathRechecked": true,
+    "candidateIdentityRechecked": true,
+    "candidateRealpathRechecked": true,
+    "candidateSizeRechecked": true,
+    "sameSizeReplacementRejected": true,
+    "sizeMutationRejected": true,
+    "fatalUtf8Required": true,
+    "jsonObjectRequired": true,
+    "rawPathAndContentRedactedFromErrors": true
+  },
+  "readOnlyVerification": {
+    "assemblerStatus": "READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_INPUTS",
+    "roleResultStatus": "READY_WAIT_PRODUCTION_ROLE_RESULT_INPUTS",
+    "finalizerStatus": "READY_WAIT_ACTUAL_CUTOVER_EVIDENCE",
+    "phasePromotionStatus": "READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_FOR_PHASE_PROMOTION",
+    "actualEvidenceCreated": false,
+    "changesMade": false,
+    "productionGo": false
+  },
+  "implementationCommit": "8436bb736ea11aa9e563e4cfa02234f28a0d495d",
+  "qualityCi": {
+    "runId": 33589230425,
+    "testedHeadSha": "8436bb736ea11aa9e563e4cfa02234f28a0d495d",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "harnessVerify": { "exitCode": 0, "status": "PASS" },
+  "actualCutoverAssemblyPerformed": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

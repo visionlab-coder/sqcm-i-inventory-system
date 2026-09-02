@@ -629,6 +629,14 @@
       "evidence": "failure-first 4/4; focused finalizer and promotion regression 19 PASS 1 Windows skip; syntax 363/363; repository unit 661 PASS 7 skips; harness:verify PASS; GitHub quality 33588455559 unit and three-tier SUCCESS; actual cutover NOT_RUN"
     },
     {
+      "id": "ACC-P6-39-ATOMIC-ACTUAL-CUTOVER-ASSEMBLY-INPUTS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual cutover evidence assembler는 receipt root·26개 expected receipt와 역할 결과·서명 입력을 bounded atomic snapshot으로 읽고 repository/root/candidate identity·realpath·size, fatal UTF-8 JSON object와 집계 상한을 검증해 read 중 교체·redirect·과대 입력을 actual evidence로 조립하지 않는다.",
+      "evidence": "failure-first 5/5; focused assembler, executor and role-result regression 25/25 PASS; syntax 364/364; repository unit 666 PASS 7 skips; harness:verify PASS; GitHub quality 33589230425 unit and three-tier SUCCESS; actual cutover assembly NOT_RUN"
+    },
+    {
       "id": "ACC-P7-16-BOUNDED-ACTUAL-HANDOVER-EVIDENCE-INPUT",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
