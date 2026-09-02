@@ -5,6 +5,35 @@ export const PRODUCTION_ROUTE_DISABLE_TARGET = Object.freeze({
   tunnelName: 'sqcm-i-inventory-production'
 });
 
+const CLOUDFLARE_IDENTIFIER_PATTERN = /^[a-f0-9]{32}$/i;
+
+export function selectProductionRouteDisableZone({ zones, zone } = {}) {
+  if (!Array.isArray(zones) || zones.length !== 1) throw new Error('ROUTE_DISABLE_ZONE_IDENTITY_INVALID');
+  const selected = zones[0];
+  if (!selected || !CLOUDFLARE_IDENTIFIER_PATTERN.test(selected.id ?? '')
+    || selected.name !== zone || selected.status !== 'active') {
+    throw new Error('ROUTE_DISABLE_ZONE_IDENTITY_INVALID');
+  }
+  return selected;
+}
+
+export function selectProductionRouteDisableRecord({ records, zoneId, hostname, expectedContent } = {}) {
+  if (!Array.isArray(records)) throw new Error('ROUTE_DISABLE_DNS_RESPONSE_INVALID');
+  if (records.length > 1) throw new Error('ROUTE_DISABLE_DNS_IDENTITY_AMBIGUOUS');
+  if (records.length === 0) return null;
+  const selected = records[0];
+  if (!selected || !CLOUDFLARE_IDENTIFIER_PATTERN.test(zoneId ?? '')
+    || !CLOUDFLARE_IDENTIFIER_PATTERN.test(selected.id ?? '')
+    || selected.zone_id !== zoneId
+    || selected.name !== hostname
+    || selected.type !== 'CNAME'
+    || selected.content !== expectedContent
+    || selected.proxied !== true) {
+    throw new Error('ROUTE_DISABLE_DNS_TARGET_INVALID');
+  }
+  return selected;
+}
+
 export function evaluateProductionRouteDisableGate(input) {
   const failures = [];
   if (input.zone !== PRODUCTION_ROUTE_DISABLE_TARGET.zone) failures.push('ROUTE_DISABLE_ZONE_INVALID');

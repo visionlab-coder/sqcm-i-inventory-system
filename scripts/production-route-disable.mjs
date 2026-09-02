@@ -6,7 +6,9 @@ import {
   PRODUCTION_ROUTE_DISABLE_CONFIRMATION,
   PRODUCTION_ROUTE_DISABLE_TARGET,
   classifyProductionRouteDisableResult,
-  evaluateProductionRouteDisableGate
+  evaluateProductionRouteDisableGate,
+  selectProductionRouteDisableRecord,
+  selectProductionRouteDisableZone
 } from '../src/operations/production-route-disable.mjs';
 import {
   observeProductionRouteDisableDns,
@@ -69,16 +71,17 @@ async function main() {
   const token = readOperationsSecretInput(process.env[TOKEN_ENV], { repositoryRoot: projectRoot }).value;
   if (token.length < 20) throw new Error('ROUTE_DISABLE_TOKEN_REFERENCE_INVALID');
   const zones = await cloudflare(token, `/zones?name=${encodeURIComponent(PRODUCTION_ROUTE_DISABLE_TARGET.zone)}&status=active&match=all`);
-  if (!Array.isArray(zones) || zones.length !== 1) throw new Error('ROUTE_DISABLE_ZONE_IDENTITY_INVALID');
-  const zoneId = zones[0].id;
+  const selectedZone = selectProductionRouteDisableZone({ zones, zone:PRODUCTION_ROUTE_DISABLE_TARGET.zone });
+  const zoneId = selectedZone.id;
   const recordsPath = `/zones/${zoneId}/dns_records?type=CNAME&name=${encodeURIComponent(PRODUCTION_ROUTE_DISABLE_TARGET.hostname)}&per_page=100`;
   const records = await cloudflare(token, recordsPath);
-  if (!Array.isArray(records) || records.length > 1) throw new Error('ROUTE_DISABLE_DNS_IDENTITY_AMBIGUOUS');
   const expectedContent = `${tunnelId}.cfargotunnel.com`;
-  if (records.length === 1 && records[0].content !== expectedContent) throw new Error('ROUTE_DISABLE_DNS_TARGET_INVALID');
+  const selectedRecord = selectProductionRouteDisableRecord({
+    records, zoneId, hostname:PRODUCTION_ROUTE_DISABLE_TARGET.hostname, expectedContent
+  });
   let recordDeleted = false;
-  if (records.length === 1) {
-    await cloudflare(token, `/zones/${zoneId}/dns_records/${records[0].id}`, { method:'DELETE' });
+  if (selectedRecord) {
+    await cloudflare(token, `/zones/${zoneId}/dns_records/${selectedRecord.id}`, { method:'DELETE' });
     recordDeleted = true;
     externalMutationPerformed = true;
   }
