@@ -2,6 +2,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import gates from '../src/operations/gates.js';
+import {
+  consumeBoundedResponseBody,
+  readBoundedJsonObjectResponse
+} from '../src/operations/operations-preflight-http-runtime.mjs';
 
 const manifestPath = process.argv[2];
 const allowTemplate = process.argv.includes('--allow-template');
@@ -34,14 +38,14 @@ async function expectReachable(url, label, accepted = (status) => status >= 200 
 async function expectGet(url, label) {
   const response = await fetch(url, { method: 'GET', redirect: 'manual', headers: { accept: 'application/json' }, signal: AbortSignal.timeout(10000) });
   if (response.status !== 200) throw new Error(`${label} returned ${response.status}`);
-  await response.arrayBuffer();
+  await consumeBoundedResponseBody(response);
   return response.status;
 }
 
 async function expectStatus(url, label, expectedStatus) {
   const response = await fetch(url, { method: 'GET', redirect: 'manual', headers: { accept: 'application/json' }, signal: AbortSignal.timeout(10000) });
   if (response.status !== expectedStatus) throw new Error(`${label} returned ${response.status}; expected ${expectedStatus}`);
-  await response.arrayBuffer();
+  await consumeBoundedResponseBody(response);
   return response.status;
 }
 
@@ -53,7 +57,7 @@ if (probe) {
   const issuer = manifest.providers.oidc.issuer.replace(/\/$/, '');
   const discoveryResponse = await fetch(`${issuer}/.well-known/openid-configuration`, { signal: AbortSignal.timeout(10000) });
   if (!discoveryResponse.ok) throw new Error(`OIDC discovery returned ${discoveryResponse.status}`);
-  const discovery = await discoveryResponse.json();
+  const discovery = await readBoundedJsonObjectResponse(discoveryResponse);
   if (discovery.issuer !== manifest.providers.oidc.issuer || !/^https:\/\//.test(discovery.authorization_endpoint || '') || !/^https:\/\//.test(discovery.token_endpoint || '')) {
     throw new Error('OIDC discovery contract mismatch');
   }
