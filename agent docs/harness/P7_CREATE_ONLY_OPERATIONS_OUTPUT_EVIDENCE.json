@@ -1,0 +1,69 @@
+{
+  "packet": "ACC-P7-62-CREATE-ONLY-OPERATIONS-EVIDENCE-OUTPUTS",
+  "status": "PASS_CREATE_ONLY_OPERATIONS_EVIDENCE_OUTPUTS",
+  "scope": {
+    "singleDocumentWriterCount": 16,
+    "publicationPrimitive": "fsync-temporary-then-hard-link-no-replace",
+    "existingOutputReplacementAllowed": false,
+    "physicalOutputDirectoryRequired": true,
+    "temporaryFileCleanupRequired": true
+  },
+  "raceRegression": {
+    "status": "PASS",
+    "existingBytesPreserved": true,
+    "temporaryArtifactsRetained": false
+  },
+  "focusedTests": {
+    "total": 111,
+    "passed": 110,
+    "failed": 0,
+    "skipped": 1
+  },
+  "repositoryChecks": {
+    "syntaxPassed": 399,
+    "unitTotal": 774,
+    "unitPassed": 766,
+    "unitFailed": 0,
+    "unitSkipped": 8
+  },
+  "operationsEvidencePipeline": {
+    "status": "PASS_SYNTHETIC_OPERATIONS_EVIDENCE_PIPELINE_REHEARSAL",
+    "compilerCount": 8,
+    "verifiedDocumentCount": 10,
+    "syntheticOnly": true,
+    "actualEvidenceCreated": false
+  },
+  "activationBundle": {
+    "rootEntrypointCount": 21,
+    "resolvedPhysicalFileCount": 52,
+    "totalBytes": 351336,
+    "sha256": "061d7ed0cece1f15d5555e91b1109ad5911598d19de46d50d5eb5d80b59d1c8f"
+  },
+  "implementationCommit": "a3a94949ecdc8016499fadd9715997febbfd3cf1",
+  "qualityCi": {
+    "runId": 33620934459,
+    "testedHeadSha": "a3a94949ecdc8016499fadd9715997febbfd3cf1",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "productionPreflight": {
+    "status": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockerCount": 0,
+    "healthyServiceCount": 3,
+    "backendHostPortCount": 0,
+    "databaseHostPortCount": 0,
+    "protectedServicesPreserved": true
+  },
+  "harnessVerify": {
+    "status": "PASS",
+    "exitCode": 0
+  },
+  "actualP6Cutover": "NOT_RUN",
+  "actualP7Activation": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}
