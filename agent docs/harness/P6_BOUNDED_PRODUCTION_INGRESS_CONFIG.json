@@ -1,0 +1,37 @@
+{
+  "packet": "ACC-P6-54-BOUNDED-PRODUCTION-INGRESS-CONFIG",
+  "status": "PASS_BOUNDED_PRODUCTION_INGRESS_CONFIG",
+  "failureFirst": { "expectedFailures": 1, "observedFailures": 1 },
+  "focusedTests": { "total": 26, "passed": 26, "failed": 0, "skipped": 0 },
+  "ingressConfigContract": {
+    "allowedBasename": "cloudflared.yml",
+    "maximumBytes": 16384,
+    "physicalRegularFileRequired": true,
+    "exactRuntimeDirectoryRealpathRequired": true,
+    "readAfterIdentityRealpathSizeRequired": true,
+    "fatalUtf8Required": true,
+    "directUnboundedConfigReadCount": 0
+  },
+  "dryRuns": {
+    "ingressPublication": "READY_WAIT_INGRESS_PUBLICATION_INPUTS",
+    "cutoverPreflight": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockerCount": 0,
+    "protectedServicesPreserved": true,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "syntaxChecks": { "passed": 387, "failed": 0 },
+  "unitTests": { "total": 751, "passed": 744, "failed": 0, "skipped": 7 },
+  "harnessVerify": "PASS",
+  "implementationCommit": "fe41e7d545781af071ef6728899b804439ee5689",
+  "qualityCi": {
+    "runId": 33610222240,
+    "testedHeadSha": "fe41e7d545781af071ef6728899b804439ee5689",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "secretValuesReadOrRecorded": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

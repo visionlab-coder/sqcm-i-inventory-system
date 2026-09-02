@@ -143,6 +143,7 @@ flowchart LR
 - `ACC-P6-51`에서 authenticated CSRF/idempotency runner의 직접 무제한 `response.json()`을 제거하고 10초·1MiB·fatal UTF-8·JSON object-only 공용 reader를 적용했다. 과대·비정상 응답의 쓰기·replay·conflict 성공 승격을 차단했지만 실제 인증 쓰기와 서명은 `NOT_RUN`이다.
 - `ACC-P6-52`에서 CSRF/idempotency 음성 baseline의 직접 무제한 `response.json()`을 제거하고 10초·1MiB·fatal UTF-8·JSON object-only 공용 reader를 적용했다. 과대·비정상 응답의 CSRF 거부 성공 승격을 차단했으며 실제 음성 기준선은 PASS했지만 실제 인증 쓰기와 서명은 `NOT_RUN`이다.
 - `ACC-P6-53`에서 P6→P7 승격기의 `docs/current-state.md`·`docs/roadmap.md` 읽기를 exact physical file·1MiB·read-after identity/realpath/size·fatal UTF-8로, clean worktree Git 검사를 10초·1MiB·shell 금지로 제한했다. actual cutover 증거가 없어 실제 Phase 승격은 `NOT_RUN`이다.
+- `ACC-P6-54`에서 기존 Production ingress config를 exact runtime `cloudflared.yml` physical file·16KiB·read-after identity/realpath/size·fatal UTF-8로 제한했다. 과대·redirect·교체·invalid encoding은 설정 일치 증거로 승격하지 않으며 실제 tunnel·DNS/TLS 변경은 `NOT_RUN`이다.
 
 ## 6. Phase 갱신 절차
 

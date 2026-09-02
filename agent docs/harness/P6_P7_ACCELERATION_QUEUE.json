@@ -901,6 +901,14 @@
       "evidence": "failure-first 1/1; focused phase promotion runtime, state transition and atomic control snapshot regression 17/17 PASS; oversize document rejected before content read, invalid UTF-8 and disallowed path fail closed; Git status timeout and output bounded without shell; dry-run waits for actual cutover evidence with document and phase changes zero; cutover preflight WAIT with local blockers zero; syntax 386/386; repository unit 740 PASS 7 skips; harness:verify PASS; GitHub quality 33608849214 unit and three-tier SUCCESS; actual P6 promotion and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-54-BOUNDED-PRODUCTION-INGRESS-CONFIG",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "기존 Production ingress 설정은 exact runtime의 cloudflared.yml physical file만 16KiB·read-after identity/realpath/size·fatal UTF-8로 읽고 과대·redirect·교체·invalid encoding을 설정 일치 증거로 인정하지 않아야 한다.",
+      "evidence": "failure-first 1/1; focused ingress config, provider HTTP and DNS fallback regression 26/26 PASS; oversize config rejected before content read, invalid UTF-8 and disallowed basename fail closed; ingress dry-run READY_WAIT_INGRESS_PUBLICATION_INPUTS and cutover preflight READY_WAIT_CHANGE_WINDOW with external mutation zero and local blockers zero; syntax 387/387; repository unit 744 PASS 7 skips; harness:verify PASS; GitHub quality 33610222240 unit and three-tier SUCCESS; actual tunnel, DNS/TLS, role UAT and signoff NOT_RUN"
+    },
+    {
       "id": "ACC-P6-41-ATOMIC-PRODUCTION-UAT-INPUTS",
       "phase": "P6",
       "status": "EVIDENCE_COMPLETE",
