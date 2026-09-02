@@ -1021,6 +1021,14 @@
       "evidence": "failure-first 3 reproduced; focused ingress 34 PASS; syntax 400/400; repository unit 782 PASS 8 skips; cutover preflight local blockers 0 and 3 services healthy; harness:verify PASS; GitHub quality 33628196250 unit and three-tier SUCCESS; actual P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-68-PRODUCTION-INGRESS-LEASE-RECOVERY",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "stale ingress lease 복구는 dry-run을 기본으로 하고 실제 삭제는 5분 이상 age·owner PID 부재·승인 변경창·exact confirmation과 삭제 직전 물리 identity·owner 재검증을 모두 요구하며 교체된 lease를 삭제하지 않아야 한다.",
+      "evidence": "failure-first 5 reproduced; focused ingress and recovery 14 PASS; syntax 402/402; repository unit 788 PASS 8 skips; recovery dry-run PASS lease absent zero mutation; cutover preflight local blockers 0 and 3 services healthy; harness:verify PASS; GitHub quality 33629524930 unit and three-tier SUCCESS; actual lease recovery, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
