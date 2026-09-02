@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { writeCreateOnlyJsonOutput } from './operations-create-only-json-output.mjs';
 
 export const ALERTING_EVIDENCE_CONFIRMATION = 'ACK-COMPILE-P7-PRODUCTION-ALERTING-EVIDENCE';
 export const ALERTING_TARGET_URL = 'https://inventory.safe-link.co.kr';
@@ -106,15 +107,5 @@ export function sha256AlertingBuffer(value) {
 }
 
 export function writeOperationsAlertingEvidenceOnce(outputPath, evidence, { processId = process.pid } = {}) {
-  if (!outputPath || !fs.existsSync(path.dirname(outputPath))) throw new Error('OUTPUT_DIRECTORY_MISSING');
-  if (fs.existsSync(outputPath)) throw new Error('OUTPUT_ALREADY_EXISTS');
-  const temporaryPath = path.join(path.dirname(outputPath), `.${path.basename(outputPath)}.${processId}.tmp`);
-  try {
-    fs.writeFileSync(temporaryPath, `${JSON.stringify(evidence, null, 2)}\n`, { encoding: 'utf8', flag: 'wx' });
-    fs.renameSync(temporaryPath, outputPath);
-  } catch (error) {
-    if (fs.existsSync(temporaryPath)) fs.rmSync(temporaryPath);
-    throw error;
-  }
-  return outputPath;
+  return writeCreateOnlyJsonOutput(outputPath, evidence, { processId });
 }

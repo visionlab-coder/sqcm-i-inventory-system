@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import net from 'node:net';
 import path from 'node:path';
+import { writeCreateOnlyJsonOutput } from './operations-create-only-json-output.mjs';
 
 export const ONCALL_DRILL_CONFIRMATION = 'ACK-SEND-P7-PRODUCTION-ONCALL-ESCALATION-DRILL';
 export const ONCALL_DRILL_API_CONTRACT = 'SQCM_I_ONCALL_DRILL_V1';
@@ -159,18 +160,5 @@ export function buildOnCallHandoverExport({ manifest, acknowledgementResults, ch
 }
 
 export function writeOnCallHandoverExportOnce(outputPath, value, { processId = process.pid } = {}) {
-  const directory = outputPath ? path.dirname(outputPath) : null;
-  if (!directory || !fs.existsSync(directory)) throw new Error('OUTPUT_DIRECTORY_MISSING');
-  if (fs.existsSync(outputPath)) throw new Error('OUTPUT_ALREADY_EXISTS');
-  const temporaryPath = path.join(directory, `.${path.basename(outputPath)}.${processId}.tmp`);
-  try {
-    const handle = fs.openSync(temporaryPath, 'wx', 0o600);
-    try { fs.writeFileSync(handle, `${JSON.stringify(value, null, 2)}\n`, 'utf8'); fs.fsyncSync(handle); }
-    finally { fs.closeSync(handle); }
-    fs.renameSync(temporaryPath, outputPath);
-  } catch (error) {
-    if (fs.existsSync(temporaryPath)) fs.rmSync(temporaryPath);
-    throw error;
-  }
-  return outputPath;
+  return writeCreateOnlyJsonOutput(outputPath, value, { processId });
 }

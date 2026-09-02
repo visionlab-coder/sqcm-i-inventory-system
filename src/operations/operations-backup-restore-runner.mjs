@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { writeCreateOnlyJsonOutput } from './operations-create-only-json-output.mjs';
 import { createHash } from 'node:crypto';
 
 export const BACKUP_RESTORE_RUNNER_CONFIRMATION = 'ACK-EXECUTE-P7-PRODUCTION-OFFSITE-BACKUP-RESTORE-DRILL';
@@ -141,22 +142,5 @@ export function buildBackupRestoreDrillExport(value) {
 }
 
 export function writeBackupRestoreDrillExportOnce(outputPath, value, { processId = process.pid } = {}) {
-  const directory = outputPath ? path.dirname(outputPath) : null;
-  if (!directory || !fs.existsSync(directory)) throw new Error('OUTPUT_DIRECTORY_MISSING');
-  if (fs.existsSync(outputPath)) throw new Error('OUTPUT_ALREADY_EXISTS');
-  const temporaryPath = path.join(directory, `.${path.basename(outputPath)}.${processId}.tmp`);
-  try {
-    const handle = fs.openSync(temporaryPath, 'wx');
-    try {
-      fs.writeFileSync(handle, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
-      fs.fsyncSync(handle);
-    } finally {
-      fs.closeSync(handle);
-    }
-    fs.renameSync(temporaryPath, outputPath);
-  } catch (error) {
-    if (fs.existsSync(temporaryPath)) fs.rmSync(temporaryPath);
-    throw error;
-  }
-  return outputPath;
+  return writeCreateOnlyJsonOutput(outputPath, value, { processId });
 }

@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import net from 'node:net';
 import path from 'node:path';
 import { REQUIRED_ALERT_SIGNALS } from './operations-alerting-evidence.mjs';
+import { writeCreateOnlyJsonOutput } from './operations-create-only-json-output.mjs';
 
 export const ALERT_DELIVERY_CONFIRMATION = 'ACK-SEND-P7-PRODUCTION-ALERT-DELIVERY-DRILL';
 export const ALERT_DELIVERY_API_CONTRACT = 'SQCM_I_ALERT_TEST_V1';
@@ -124,18 +125,5 @@ export function buildAlertReceiptExport({ manifest, deliveryResults, checkedAt =
 }
 
 export function writeAlertReceiptExportOnce(outputPath, value, { processId = process.pid } = {}) {
-  const directory = outputPath ? path.dirname(outputPath) : null;
-  if (!directory || !fs.existsSync(directory)) throw new Error('OUTPUT_DIRECTORY_MISSING');
-  if (fs.existsSync(outputPath)) throw new Error('OUTPUT_ALREADY_EXISTS');
-  const temporaryPath = path.join(directory, `.${path.basename(outputPath)}.${processId}.tmp`);
-  try {
-    const handle = fs.openSync(temporaryPath, 'wx', 0o600);
-    try { fs.writeFileSync(handle, `${JSON.stringify(value, null, 2)}\n`, 'utf8'); fs.fsyncSync(handle); }
-    finally { fs.closeSync(handle); }
-    fs.renameSync(temporaryPath, outputPath);
-  } catch (error) {
-    if (fs.existsSync(temporaryPath)) fs.rmSync(temporaryPath);
-    throw error;
-  }
-  return outputPath;
+  return writeCreateOnlyJsonOutput(outputPath, value, { processId });
 }

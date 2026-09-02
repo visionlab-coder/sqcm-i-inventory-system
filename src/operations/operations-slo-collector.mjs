@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { SLO_TARGET_URL } from './operations-slo-evidence.mjs';
 import { OPERATIONS_TEXT_INPUT_MAX_BYTES, readOperationsTextInput } from './operations-activation-input-reader.mjs';
+import { writeCreateOnlyJsonOutput } from './operations-create-only-json-output.mjs';
 
 export const SLO_COLLECTION_CONFIRMATION = 'ACK-COLLECT-P7-PRODUCTION-SLO-SAMPLE';
 export const SLO_LEDGER_MAX_BYTES = OPERATIONS_TEXT_INPUT_MAX_BYTES;
@@ -83,9 +84,5 @@ export function appendSloSampleOnce(ledgerPath, sample, { processId = process.pi
 }
 
 export function writeSloMeasurementExportOnce(outputPath, value, { processId = process.pid } = {}) {
-  if (fs.existsSync(outputPath)) throw new Error('SLO_EXPORT_ALREADY_EXISTS');
-  const temporary = path.join(path.dirname(outputPath), `.${path.basename(outputPath)}.${processId}.tmp`);
-  try { fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, { encoding: 'utf8', flag: 'wx', mode: 0o600 }); fs.renameSync(temporary, outputPath); }
-  catch (error) { if (fs.existsSync(temporary)) fs.rmSync(temporary); throw error; }
-  return outputPath;
+  return writeCreateOnlyJsonOutput(outputPath, value, { processId, alreadyExistsCode: 'SLO_EXPORT_ALREADY_EXISTS' });
 }

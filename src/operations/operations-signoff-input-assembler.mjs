@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { writeCreateOnlyJsonOutput } from './operations-create-only-json-output.mjs';
 import {
   OPERATIONS_SIGNOFF_DOMAINS,
   OPERATIONS_SIGNOFF_DUTIES,
@@ -137,18 +138,5 @@ export function sha256OperationsDocument(value) {
 }
 
 export function writeOperationsSignoffInputOnce(outputPath, value, { processId = process.pid } = {}) {
-  const directory = outputPath ? path.dirname(outputPath) : null;
-  if (!directory || !fs.existsSync(directory)) throw new Error('OUTPUT_DIRECTORY_MISSING');
-  if (fs.existsSync(outputPath)) throw new Error('OUTPUT_ALREADY_EXISTS');
-  const temporaryPath = path.join(directory, `.${path.basename(outputPath)}.${processId}.tmp`);
-  try {
-    const handle = fs.openSync(temporaryPath, 'wx', 0o600);
-    try { fs.writeFileSync(handle, `${JSON.stringify(value, null, 2)}\n`, 'utf8'); fs.fsyncSync(handle); }
-    finally { fs.closeSync(handle); }
-    fs.renameSync(temporaryPath, outputPath);
-  } catch (error) {
-    if (fs.existsSync(temporaryPath)) fs.rmSync(temporaryPath);
-    throw error;
-  }
-  return outputPath;
+  return writeCreateOnlyJsonOutput(outputPath, value, { processId });
 }

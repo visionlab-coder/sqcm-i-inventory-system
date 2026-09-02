@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { writeCreateOnlyJsonOutput } from './operations-create-only-json-output.mjs';
 import { HANDOVER_DOMAINS } from './operations-handover-preflight.mjs';
 
 export const HANDOVER_ASSEMBLY_CONFIRMATION = 'ACK-ASSEMBLE-P7-OPERATIONS-HANDOVER';
@@ -55,15 +56,5 @@ export function buildOperationsHandoverManifest({ references, documents }) {
 }
 
 export function writeOperationsHandoverManifestOnce(outputPath, manifest, { processId = process.pid } = {}) {
-  if (!outputPath || !fs.existsSync(path.dirname(outputPath))) throw new Error('OUTPUT_DIRECTORY_MISSING');
-  if (fs.existsSync(outputPath)) throw new Error('OUTPUT_ALREADY_EXISTS');
-  const temporaryPath = path.join(path.dirname(outputPath), `.${path.basename(outputPath)}.${processId}.tmp`);
-  try {
-    fs.writeFileSync(temporaryPath, `${JSON.stringify(manifest, null, 2)}\n`, { encoding: 'utf8', flag: 'wx' });
-    fs.renameSync(temporaryPath, outputPath);
-  } catch (error) {
-    if (fs.existsSync(temporaryPath)) fs.rmSync(temporaryPath);
-    throw error;
-  }
-  return outputPath;
+  return writeCreateOnlyJsonOutput(outputPath, manifest, { processId });
 }
