@@ -1,7 +1,5 @@
-import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
   buildMaintenanceExecutionExport,
@@ -9,6 +7,13 @@ import {
   MAINTENANCE_RUNNER_CONFIRMATION,
   writeMaintenanceExecutionExportOnce
 } from '../src/operations/operations-maintenance-runner.mjs';
+import {
+  OPERATIONAL_HEALTH_PROCESS_MAX_BUFFER,
+  countOperationalHealthRecent5xx,
+  parseOperationalHealthContainerId,
+  runOperationalHealthProcess,
+  selectLatestVerifiedOperationalHealthBackup
+} from '../src/operations/production-operational-health-runtime.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const roadmap = JSON.parse(fs.readFileSync(path.join(projectRoot, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
@@ -35,20 +40,23 @@ function physicalExternalTarget(candidate) {
 }
 
 function productionContainer(service) {
-  const result = spawnSync('docker', [
+  const result = runOperationalHealthProcess([
     'ps', '--filter', 'label=com.docker.compose.project=seowon-inventory-production',
     '--filter', `label=com.docker.compose.service=${service}`, '--format', '{{.ID}}'
-  ], { encoding: 'utf8', windowsHide: true });
-  const ids = result.stdout.trim().split(/\r?\n/).filter(Boolean);
-  if (result.status !== 0 || ids.length !== 1 || !/^[a-f0-9]{12,64}$/.test(ids[0])) throw new Error(`PRODUCTION_${service.toUpperCase()}_CONTAINER_COUNT_INVALID`);
-  return ids[0];
+  ]);
+  return parseOperationalHealthContainerId(result.stdout);
 }
 
 function immutableRevision(containerId) {
-  const result = spawnSync('docker', ['inspect', containerId], { encoding: 'utf8', windowsHide: true });
-  if (result.status !== 0) throw new Error('PRODUCTION_CONTAINER_INSPECT_FAILED');
-  const [container] = JSON.parse(result.stdout);
-  return container?.Config?.Labels?.['org.opencontainers.image.revision'] ?? '';
+  const result = runOperationalHealthProcess(['inspect', containerId]);
+  let containers;
+  try { containers = JSON.parse(result.stdout); } catch { throw new Error('PRODUCTION_CONTAINER_INSPECT_INVALID'); }
+  if (!Array.isArray(containers) || containers.length !== 1 || !containers[0] || typeof containers[0] !== 'object') {
+    throw new Error('PRODUCTION_CONTAINER_INSPECT_INVALID');
+  }
+  const revision = containers[0]?.Config?.Labels?.['org.opencontainers.image.revision'];
+  if (!/^[a-f0-9]{40}$/.test(revision ?? '')) throw new Error('PRODUCTION_CONTAINER_REVISION_INVALID');
+  return revision;
 }
 
 async function exactPublicStatus(route) {
@@ -66,40 +74,33 @@ function databaseSnapshot(databaseContainer) {
   const sql = `select current_database(),
     (select count(*) from audit_logs where action='LOGIN_FAILED' and created_at >= now()-interval '15 minutes'),
     (select count(*) from audit_logs where action='LOGIN_FAILED' and created_at >= now()-interval '24 hours' and created_at < now()-interval '15 minutes')`;
-  const result = spawnSync('docker', [
+  const result = runOperationalHealthProcess([
     'exec', databaseContainer, 'psql', '-U', 'seowon', '-d', 'seowon_inventory', '-At', '-F', ',', '-c', sql
-  ], { encoding: 'utf8', windowsHide: true });
-  if (result.status !== 0) throw new Error('PRODUCTION_DATABASE_READ_FAILED');
-  const [databaseName, recentLoginFailures, priorLoginFailures] = result.stdout.trim().split(',');
-  if (!databaseName || !/^\d+$/.test(recentLoginFailures) || !/^\d+$/.test(priorLoginFailures)) throw new Error('PRODUCTION_DATABASE_READ_INVALID');
-  return { databaseName, recentLoginFailures: Number(recentLoginFailures), priorLoginFailures: Number(priorLoginFailures) };
+  ]);
+  const fields = result.stdout.trim().split(',');
+  if (fields.length !== 3 || fields[0] !== 'seowon_inventory' || !/^\d+$/.test(fields[1]) || !/^\d+$/.test(fields[2])) {
+    throw new Error('PRODUCTION_DATABASE_READ_INVALID');
+  }
+  const recentLoginFailures = Number(fields[1]);
+  const priorLoginFailures = Number(fields[2]);
+  if (!Number.isSafeInteger(recentLoginFailures) || !Number.isSafeInteger(priorLoginFailures)) {
+    throw new Error('PRODUCTION_DATABASE_READ_INVALID');
+  }
+  return { databaseName: fields[0], recentLoginFailures, priorLoginFailures };
 }
 
 function recent5xxCount(backendContainer) {
-  const result = spawnSync('docker', ['logs', '--since', '15m', backendContainer], {
-    encoding: 'utf8', windowsHide: true, maxBuffer: 4 * 1024 * 1024
-  });
-  if (result.status !== 0) throw new Error('PRODUCTION_LOG_READ_FAILED');
-  return `${result.stdout}\n${result.stderr}`.split(/\r?\n/).filter(Boolean).flatMap((line) => {
-    try { return [JSON.parse(line)]; } catch { return []; }
-  }).filter((record) => record.event === 'http_request' && Number(record.status) >= 500).length;
+  return countOperationalHealthRecent5xx(runOperationalHealthProcess(
+    ['logs', '--since', '15m', backendContainer],
+    { maxBuffer: OPERATIONAL_HEALTH_PROCESS_MAX_BUFFER }
+  ));
 }
 
-function latestBackupSnapshot(now) {
+async function latestBackupSnapshot(now) {
   const backupRoot = path.join(projectRoot, 'artifacts', 'backups');
-  const manifests = fs.readdirSync(backupRoot).filter((name) => name.endsWith('.dump.json')).flatMap((name) => {
-    try {
-      const manifest = JSON.parse(fs.readFileSync(path.join(backupRoot, name), 'utf8'));
-      return manifest.backupPath && manifest.sha256 && manifest.createdAt ? [manifest] : [];
-    } catch { return []; }
-  }).sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt));
-  if (!manifests.length) throw new Error('PRODUCTION_BACKUP_MANIFEST_MISSING');
-  const manifest = manifests[0];
-  const backupPath = path.resolve(manifest.backupPath);
-  if (!backupPath.startsWith(`${backupRoot}${path.sep}`) || !fs.existsSync(backupPath)) throw new Error('PRODUCTION_BACKUP_PATH_INVALID');
-  const digest = crypto.createHash('sha256').update(fs.readFileSync(backupPath)).digest('hex');
+  const manifest = await selectLatestVerifiedOperationalHealthBackup({ backupRoot });
   return {
-    backupVerified: digest === manifest.sha256,
+    backupVerified: manifest.backupVerified,
     backupAgeMinutes: Math.floor((now.getTime() - Date.parse(manifest.createdAt)) / 60_000)
   };
 }
@@ -141,7 +142,7 @@ if (gate.externalReadAllowed) {
     if (!/^[a-f0-9]{40}$/.test(frontendRevision) || frontendRevision !== backendRevision) throw new Error('PRODUCTION_RELEASE_REVISION_MISMATCH');
     const database = databaseSnapshot(databaseContainer);
     const now = new Date();
-    const backup = latestBackupSnapshot(now);
+    const backup = await latestBackupSnapshot(now);
     const exportValue = buildMaintenanceExecutionExport({
       startedAt,
       completedAt: now.toISOString(),

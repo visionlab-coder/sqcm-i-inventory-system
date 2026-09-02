@@ -1,4 +1,3 @@
-import fs from 'node:fs';
 import path from 'node:path';
 import healthPolicy from '../src/operations/health-policy.js';
 import { PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
@@ -9,7 +8,7 @@ import {
   parseOperationalHealthContainerId,
   parseOperationalHealthCounters,
   runOperationalHealthProcess,
-  verifyOperationalHealthBackupFile
+  selectLatestVerifiedOperationalHealthBackup
 } from '../src/operations/production-operational-health-runtime.mjs';
 
 const selection = selectProductionOperationalHealthTarget({
@@ -40,19 +39,7 @@ function dockerContainer(service) {
 }
 
 async function latestProductionBackup() {
-  const manifests = fs.readdirSync(backupRoot).filter((name) => name.endsWith('.dump.json')).flatMap((name) => {
-    try {
-      const manifestPath = path.join(backupRoot, name);
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      return manifest.backupPath && manifest.sha256 && manifest.restoreVerified === true
-        ? [{ ...manifest, manifestPath }]
-        : [];
-    } catch { return []; }
-  }).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
-  if (!manifests.length) throw new Error('A verified Production backup manifest is required.');
-  const manifest = manifests[0];
-  const verified = await verifyOperationalHealthBackupFile({ backupRoot, manifest });
-  return { ...manifest, backupVerified: verified.backupVerified };
+  return selectLatestVerifiedOperationalHealthBackup({ backupRoot, requireRestoreVerified: true });
 }
 
 async function status(route) {
