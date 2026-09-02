@@ -25,6 +25,10 @@ import {
   loadRunReceiptDocuments,
   writeActualCutoverEvidence
 } from './production-cutover-actual-evidence.mjs';
+import {
+  inspectProductionCutoverBundleManifest,
+  inspectProductionCutoverStepBundle
+} from './production-cutover-bundle.mjs';
 
 export const PRODUCTION_CUTOVER_CONFIRMATION = 'ACK-2026-09-11-P6-G4';
 
@@ -57,6 +61,9 @@ export async function executeProductionCutover({
   ensureReceiptRoot = ensureCutoverReceiptRoot,
   createWriter = createRuntimeReceiptWriter,
   createRunner = createProcessStepRunner,
+  inspectBundleManifest = inspectProductionCutoverBundleManifest,
+  inspectStepBundle = inspectProductionCutoverStepBundle,
+  projectRoot = process.cwd(),
   pauseBeforeSignoff = false,
   releaseSha = null,
   createCheckpoint = createSignoffPauseCheckpoint,
@@ -76,11 +83,19 @@ export async function executeProductionCutover({
     return waitingResult('FAIL_CUTOVER_RELEASE_SHA_INVALID', startedAt, ['CUTOVER_RELEASE_SHA_INVALID']);
   }
 
+  let bundleManifest;
+  try { bundleManifest = inspectBundleManifest(projectRoot); }
+  catch { return waitingResult('FAIL_CUTOVER_BUNDLE_PREPARATION', startedAt, ['CUTOVER_BUNDLE_NOT_READY']); }
   let root;
   try { root = ensureReceiptRoot({ root: receiptRoot }); }
   catch { return waitingResult('FAIL_CUTOVER_RECEIPT_ROOT_PREPARATION', startedAt, ['CUTOVER_RECEIPT_ROOT_NOT_READY']); }
-  const writeReceipt = createWriter({ root });
-  const runStep = createRunner({ writeReceipt });
+  const writeReceipt = createWriter({ root, cutoverBundleSha256: bundleManifest.sha256 });
+  const runStep = createRunner({
+    writeReceipt,
+    cwd: projectRoot,
+    expectedStepBundleSha256: bundleManifest.stepBundles,
+    inspectStepBundle: (step) => inspectStepBundle(projectRoot, step).sha256
+  });
   const recordGateEvidence = createGateEvidenceRecorder({ writeReceipt });
   const routeDisableHandler = createCutoverRouteDisableHandler({ runStep, recordGateEvidence });
   const result = await executeCutoverGateSequence({
@@ -97,7 +112,7 @@ export async function executeProductionCutover({
         evidenceRef: path.basename(gate.evidenceRef),
         evidenceSha256: hashReceipt(gate.evidenceRef)
       }));
-      const pause = createCheckpoint({ runId: writeReceipt.runId, releaseSha, gateResults, checkedAt: new Date(Number(now())).toISOString() });
+      const pause = createCheckpoint({ runId: writeReceipt.runId, releaseSha, gateResults, checkedAt: new Date(Number(now())).toISOString(), cutoverBundleManifest: bundleManifest });
       if (!pause.checkpoint) throw new Error(pause.failures?.join(',') || 'SIGNOFF_CHECKPOINT_INVALID');
       const checkpointPath = persistCheckpoint(path.join(root, `${writeReceipt.runId}.checkpoint`), pause.checkpoint);
       return {
@@ -151,7 +166,10 @@ export async function resumeProductionCutoverSignoff({
   loadReceiptDocuments = loadRunReceiptDocuments,
   loadEvidenceDocument = loadJsonDocument,
   assembleEvidence = assembleActualCutoverEvidence,
-  persistActualEvidence = writeActualCutoverEvidence
+  persistActualEvidence = writeActualCutoverEvidence,
+  inspectBundleManifest = inspectProductionCutoverBundleManifest,
+  inspectStepBundle = inspectProductionCutoverStepBundle,
+  projectRoot = process.cwd()
 } = {}) {
   const checkedAtMs = Number(now());
   const checkedAt = new Date(checkedAtMs).toISOString();
@@ -164,8 +182,17 @@ export async function resumeProductionCutoverSignoff({
   try { root = ensureReceiptRoot({ root: receiptRoot }); checkpoint = loadCheckpoint(checkpointPath); }
   catch { return waitingResult('FAIL_SIGNOFF_RESUME_INPUT_PREPARATION', checkedAtMs, ['SIGNOFF_RESUME_INPUT_NOT_READY']); }
   const receiptValidation = validateReceipts({ root, checkpoint });
-  const writeReceipt = createWriter({ root, runId: checkpoint.runId, startSequence: receiptValidation.receiptCount });
-  const runStep = createRunner({ writeReceipt });
+  let bundleManifest = null;
+  try { bundleManifest = inspectBundleManifest(projectRoot); }
+  catch { return waitingResult('FAIL_CUTOVER_BUNDLE_PREPARATION', checkedAtMs, ['CUTOVER_BUNDLE_NOT_READY']); }
+  const expectedStepBundles = checkpoint.cutoverStepBundleSha256 || bundleManifest.stepBundles;
+  const writeReceipt = createWriter({ root, runId: checkpoint.runId, startSequence: receiptValidation.receiptCount, cutoverBundleSha256: checkpoint.cutoverBundleSha256 || bundleManifest.sha256 });
+  const runStep = createRunner({
+    writeReceipt,
+    cwd: projectRoot,
+    expectedStepBundleSha256: expectedStepBundles,
+    inspectStepBundle: (step) => inspectStepBundle(projectRoot, step).sha256
+  });
   const recordGateEvidence = createGateEvidenceRecorder({ writeReceipt });
   const routeDisableHandler = createCutoverRouteDisableHandler({ runStep, recordGateEvidence });
   const contain = async (reason, failureStage = 'SIGNOFF_RESUME') => {
@@ -182,7 +209,7 @@ export async function resumeProductionCutoverSignoff({
   };
   if (receiptValidation.status !== 'PASS_SIGNOFF_RESUME_RECEIPTS') return contain(receiptValidation.failures.join(','));
   const resume = evaluateSignoffResume({
-    checkpoint, runId, releaseSha, checkedAt, confirmation,
+    checkpoint, runId, releaseSha, checkedAt, confirmation, currentBundleManifest: bundleManifest,
     roleResultReferences: Object.fromEntries(Object.entries(roleResultReferences).map(([key, value]) => [key, Boolean(value)])),
     signoffReferences: Object.fromEntries(Object.entries(signoffReferences).map(([key, value]) => [key, Boolean(value)]))
   });

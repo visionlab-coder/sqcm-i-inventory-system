@@ -12,6 +12,7 @@ const releaseSha = 'a'.repeat(40);
 const releaseTag = `sha-${releaseSha}`;
 const checkedAt = '2026-09-11T12:00:00.000Z';
 const sha = (value) => crypto.createHash('sha256').update(value).digest('hex');
+const cutoverBundleSha256 = 'c'.repeat(64);
 
 async function completeInput() {
   const { CUTOVER_GATE_ADAPTER_PLAN } = await adapterPromise;
@@ -23,10 +24,10 @@ async function completeInput() {
       sequence += 1;
       const fileName = `${sequence}-${gate}-${step.id}.json`;
       refs.push(fileName);
-      receiptDocuments.push({ fileName, sha256: sha(fileName), value: { schemaVersion: 1, runId, checkedAt, kind: 'step', gate, step: step.id, status: step.acceptedStatuses[0], exitCode: 0, evidenceRefs: [], productionGo: false } });
+      receiptDocuments.push({ fileName, sha256: sha(fileName), value: { schemaVersion: 1, runId, checkedAt, kind: 'step', gate, step: step.id, status: step.acceptedStatuses[0], exitCode: 0, evidenceRefs: [], cutoverBundleSha256, productionGo: false } });
     }
     const fileName = `${gate}-summary.json`;
-    receiptDocuments.push({ fileName, sha256: sha(fileName), value: { schemaVersion: 1, runId, checkedAt, kind: 'gate', gate, step: 'summary', status: 'PASS', exitCode: 0, evidenceRefs: refs, productionGo: false } });
+    receiptDocuments.push({ fileName, sha256: sha(fileName), value: { schemaVersion: 1, runId, checkedAt, kind: 'gate', gate, step: 'summary', status: 'PASS', exitCode: 0, evidenceRefs: refs, cutoverBundleSha256, productionGo: false } });
   }
   const coreGateSha = receiptDocuments.find((document) => document.value.kind === 'gate' && document.value.gate === 'core_smoke').sha256;
   const roleStepSha = receiptDocuments.find((document) => document.value.kind === 'step' && document.value.step === 'role-core-smoke').sha256;
@@ -59,6 +60,15 @@ test('step 누락과 Gate reference 변조를 fail-closed 한다', async () => {
   const result = assembleActualCutoverEvidence(input);
   assert.equal(result.productionGo, false);
   assert.match(result.failures.join(','), /STEP_RECEIPTS|required|REFERENCES_INVALID/i);
+});
+
+test('서로 다른 cutover bundle receipt를 한 actual 실행 증거로 혼합하지 않는다', async () => {
+  const { assembleActualCutoverEvidence } = await modulePromise;
+  const input = await completeInput();
+  input.receiptDocuments[0].value.cutoverBundleSha256 = 'd'.repeat(64);
+  const result = assembleActualCutoverEvidence(input);
+  assert.ok(result.failures.includes('CUTOVER_BUNDLE_PROVENANCE_INVALID'));
+  assert.equal(result.productionGo, false);
 });
 
 test('다른 run 역할 결과와 서명 identity 오류를 거부한다', async () => {

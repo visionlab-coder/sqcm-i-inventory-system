@@ -3,11 +3,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { writeCreateOnlyJsonOutput } from './operations-create-only-json-output.mjs';
-import {
-  CUTOVER_GATE_ADAPTER_PLAN,
-  CUTOVER_ROUTE_DISABLE_ADAPTER,
-  CUTOVER_INGRESS_ORPHAN_RECOVERY_ADAPTER
-} from './production-cutover-gate-adapters.mjs';
+import { PRODUCTION_CUTOVER_STEP_CONTRACTS } from './production-cutover-bundle.mjs';
 
 export const PRODUCTION_CUTOVER_RECEIPT_ROOT = 'D:\\seowon_runtime\\sqcm-i-inventory-production\\cutover-receipts';
 
@@ -16,18 +12,12 @@ const SAFE_CUTOVER_CHILD_RUNTIME_ENVIRONMENT = Object.freeze([
   'HOME', 'USERPROFILE', 'LOCALAPPDATA', 'APPDATA'
 ]);
 
-const CANONICAL_CUTOVER_STEPS = Object.freeze([
-  ...Object.values(CUTOVER_GATE_ADAPTER_PLAN).flat(),
-  CUTOVER_ROUTE_DISABLE_ADAPTER,
-  CUTOVER_INGRESS_ORPHAN_RECOVERY_ADAPTER
-]);
-
 function sameStringArray(left, right) {
   return Array.isArray(left) && Array.isArray(right) && JSON.stringify(left) === JSON.stringify(right);
 }
 
 function canonicalCutoverStep(step) {
-  const contract = CANONICAL_CUTOVER_STEPS.find((candidate) => candidate.id === step?.id);
+  const contract = PRODUCTION_CUTOVER_STEP_CONTRACTS.find((candidate) => candidate.gate === step?.gate && candidate.id === step?.id);
   if (!contract || contract.script !== step?.script || !sameStringArray(contract.args, step?.args)
     || !sameStringArray(contract.environment, step?.environment)) {
     throw new Error('CUTOVER_CHILD_STEP_CONTRACT_INVALID');
@@ -128,10 +118,12 @@ export function createRuntimeReceiptWriter({
   clock = () => new Date(),
   runId = randomUUID(),
   startSequence = 0,
-  processId = process.pid
+  processId = process.pid,
+  cutoverBundleSha256 = null
 } = {}) {
   if (!/^[a-f0-9]{8}-[a-f0-9-]{27,35}$/i.test(runId)) throw new Error('CUTOVER_RUN_ID_INVALID');
   if (!Number.isSafeInteger(startSequence) || startSequence < 0) throw new Error('CUTOVER_RECEIPT_START_SEQUENCE_INVALID');
+  if (cutoverBundleSha256 !== null && !/^[a-f0-9]{64}$/.test(cutoverBundleSha256)) throw new Error('CUTOVER_BUNDLE_SHA256_INVALID');
   let sequence = startSequence;
   const writer = async ({ kind = 'step', gate, step = 'gate', status, exitCode = 0, stepEvidenceRefs = [], summary = null } = {}) => {
     const resolvedRoot = assertPhysicalDirectory(root, io);
@@ -145,6 +137,7 @@ export function createRuntimeReceiptWriter({
       evidenceRefs: stepEvidenceRefs.map((item) => path.basename(String(item))),
       productionGo: false
     };
+    if (cutoverBundleSha256 !== null) payload.cutoverBundleSha256 = cutoverBundleSha256;
     if (summary !== null) payload.summary = summary;
     return writeCreateOnlyJsonOutput(target, payload, {
       io,
@@ -170,11 +163,25 @@ export function spawnNodeStep({ script, args = [], cwd = process.cwd(), environm
   });
 }
 
-export function createProcessStepRunner({ spawnStep = spawnNodeStep, writeReceipt, cwd = process.cwd(), sourceEnvironment = process.env } = {}) {
+export function createProcessStepRunner({
+  spawnStep = spawnNodeStep,
+  writeReceipt,
+  cwd = process.cwd(),
+  sourceEnvironment = process.env,
+  expectedStepBundleSha256 = null,
+  inspectStepBundle = null
+} = {}) {
   if (typeof spawnStep !== 'function' || typeof writeReceipt !== 'function') throw new Error('CUTOVER_PROCESS_RUNNER_DEPENDENCY_INVALID');
   return async (step) => {
+    const bundleKey = `${step?.gate}:${step?.id}`;
+    const expectedBundle = expectedStepBundleSha256?.[bundleKey];
+    if (expectedStepBundleSha256 !== null) {
+      if (!/^[a-f0-9]{64}$/.test(expectedBundle || '') || typeof inspectStepBundle !== 'function'
+        || inspectStepBundle(step) !== expectedBundle) throw new Error('CUTOVER_CHILD_BUNDLE_CHANGED');
+    }
     const environment = buildCutoverStepChildEnvironment(step, sourceEnvironment);
     const raw = await spawnStep({ script: step.script, args: step.args, cwd, environment });
+    if (expectedStepBundleSha256 !== null && inspectStepBundle(step) !== expectedBundle) throw new Error('CUTOVER_CHILD_BUNDLE_CHANGED');
     const outcome = normalizeStepOutcome({ ...raw, step });
     const summary = buildStepReceiptSummary(step, extractLastJsonObject(raw.stdout));
     const evidenceRef = await writeReceipt({ kind: 'step', gate: step.gate, step: step.id, status: outcome.status, exitCode: outcome.exitCode, summary });

@@ -43,6 +43,20 @@ test('receipt root 준비 실패는 child process 전에 fail-closed 한다', as
   assert.equal(runnerCount, 0);
 });
 
+test('cutover step bundle snapshot 실패는 receipt root와 child 전에 fail-closed 한다', async () => {
+  const { executeProductionCutover } = await modulePromise;
+  let rootCount = 0; let runnerCount = 0;
+  const result = await executeProductionCutover({
+    execute: true, now: insideWindow, externalActionConfirmed: true,
+    inspectBundleManifest: () => { throw new Error('unstable'); },
+    ensureReceiptRoot: () => { rootCount += 1; return 'x'; },
+    createRunner: () => { runnerCount += 1; }
+  });
+  assert.equal(result.status, 'FAIL_CUTOVER_BUNDLE_PREPARATION');
+  assert.equal(rootCount, 0);
+  assert.equal(runnerCount, 0);
+});
+
 test('물리 parent 아래 receipt root만 새로 준비한다', async () => {
   const { ensureCutoverReceiptRoot } = await modulePromise;
   const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-cutover-root-'));

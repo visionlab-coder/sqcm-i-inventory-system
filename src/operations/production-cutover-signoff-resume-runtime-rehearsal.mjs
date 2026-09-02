@@ -20,10 +20,11 @@ export async function runSignoffResumeRuntimeRehearsal() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-signoff-runtime-'));
   const calls = [];
   try {
-    const createWriter = ({ root: target, runId, startSequence = 0 } = {}) => createRuntimeReceiptWriter({
+    const createWriter = ({ root: target, runId, startSequence = 0, cutoverBundleSha256 = null } = {}) => createRuntimeReceiptWriter({
       root: target,
       runId,
       startSequence,
+      cutoverBundleSha256,
       clock: () => new Date(CHECKED_AT)
     });
     const initial = await executeProductionCutover({

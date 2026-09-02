@@ -23,12 +23,19 @@ const inApprovedWindow = (value) => {
     && time <= Date.parse(PRODUCTION_CHANGE_WINDOW.end);
 };
 
-export function createSignoffPauseCheckpoint({ runId, releaseSha, gateResults = [], checkedAt } = {}) {
+function validBundleManifest(bundle) {
+  return bundle && SHA256.test(bundle.sha256 || '') && bundle.stepBundles && typeof bundle.stepBundles === 'object'
+    && !Array.isArray(bundle.stepBundles) && Object.keys(bundle.stepBundles).length === 16
+    && Object.values(bundle.stepBundles).every((value) => SHA256.test(value));
+}
+
+export function createSignoffPauseCheckpoint({ runId, releaseSha, gateResults = [], checkedAt, cutoverBundleManifest = null } = {}) {
   const failures = [];
   if (!RUN_ID.test(runId || '')) failures.push('CUTOVER_RUN_ID_INVALID');
   if (!RELEASE_SHA.test(releaseSha || '')) failures.push('CUTOVER_RELEASE_SHA_INVALID');
   if (!inApprovedWindow(checkedAt)) failures.push('CHECKPOINT_OUTSIDE_APPROVED_CHANGE_WINDOW');
   if (gateResults.length !== PRE_SIGNOFF_GATES.length) failures.push('PRE_SIGNOFF_GATE_COUNT_INVALID');
+  if (cutoverBundleManifest !== null && !validBundleManifest(cutoverBundleManifest)) failures.push('CUTOVER_BUNDLE_MANIFEST_INVALID');
   gateResults.forEach((result, index) => {
     if (result?.gate !== PRE_SIGNOFF_GATES[index] || result?.result !== 'PASS'
       || !RECEIPT_FILE.test(result?.evidenceRef || '') || !SHA256.test(result?.evidenceSha256 || '')) failures.push(`PRE_SIGNOFF_GATE_INVALID:${PRE_SIGNOFF_GATES[index]}`);
@@ -45,6 +52,10 @@ export function createSignoffPauseCheckpoint({ runId, releaseSha, gateResults = 
       checkedAt,
       pausedBeforeGate: 'uat_signoff',
       completedGates: gateResults.map(({ gate, evidenceRef, evidenceSha256 }) => ({ gate, evidenceRef, evidenceSha256 })),
+      ...(cutoverBundleManifest === null ? {} : {
+        cutoverBundleSha256: cutoverBundleManifest.sha256,
+        cutoverStepBundleSha256: { ...cutoverBundleManifest.stepBundles }
+      }),
       productionGo: false
     },
     productionGo: false
@@ -57,6 +68,7 @@ export function evaluateSignoffResume({
   releaseSha,
   checkedAt,
   confirmation,
+  currentBundleManifest = null,
   roleResultReferences = {},
   signoffReferences = {}
 } = {}) {
@@ -64,6 +76,11 @@ export function evaluateSignoffResume({
   if (checkpoint?.schemaVersion !== 1 || checkpoint?.evidenceType !== 'P6_CUTOVER_SIGNOFF_PAUSE_CHECKPOINT') failures.push('CHECKPOINT_TYPE_INVALID');
   if (!RUN_ID.test(runId || '') || checkpoint?.runId !== runId) failures.push('CHECKPOINT_RUN_ID_MISMATCH');
   if (!RELEASE_SHA.test(releaseSha || '') || checkpoint?.releaseSha !== releaseSha) failures.push('CHECKPOINT_RELEASE_SHA_MISMATCH');
+  if (checkpoint?.cutoverBundleSha256 !== undefined) {
+    const checkpointManifest = { sha256: checkpoint.cutoverBundleSha256, stepBundles: checkpoint.cutoverStepBundleSha256 };
+    if (!validBundleManifest(checkpointManifest)) failures.push('CHECKPOINT_CUTOVER_BUNDLE_INVALID');
+    if (!validBundleManifest(currentBundleManifest) || currentBundleManifest.sha256 !== checkpoint.cutoverBundleSha256) failures.push('CHECKPOINT_CUTOVER_BUNDLE_MISMATCH');
+  }
   if (!inApprovedWindow(checkpoint?.checkedAt)) failures.push('CHECKPOINT_TIME_INVALID');
   const now = Date.parse(checkedAt);
   if (!inApprovedWindow(checkedAt) || now > Date.parse(PRODUCTION_CHANGE_WINDOW.rollbackCutoff)) failures.push('SIGNOFF_RESUME_OUTSIDE_ROLLBACK_CUTOFF');
@@ -216,6 +233,8 @@ export function validateSignoffResumeReceipts({ root, checkpoint, io = fs, repos
   }
   if (documents.some((item) => item.value?.schemaVersion !== 1 || !inApprovedWindow(item.value?.checkedAt)
     || item.value?.productionGo !== false || !['step', 'gate'].includes(item.value?.kind))) failures.push('RECEIPT_COMMON_PROVENANCE_INVALID');
+  if (checkpoint?.cutoverBundleSha256 !== undefined
+    && documents.some((item) => item.value?.cutoverBundleSha256 !== checkpoint.cutoverBundleSha256)) failures.push('RECEIPT_CUTOVER_BUNDLE_MISMATCH');
   const gates = new Map(documents.filter((item) => item.value?.kind === 'gate').map((item) => [item.value.gate, item]));
   const steps = new Map(documents.filter((item) => item.value?.kind === 'step').map((item) => [`${item.value.gate}:${item.value.step}`, item]));
   const expectedStepCount = PRE_SIGNOFF_GATES.reduce((sum, gate) => sum + CUTOVER_GATE_ADAPTER_PLAN[gate].length, 0);

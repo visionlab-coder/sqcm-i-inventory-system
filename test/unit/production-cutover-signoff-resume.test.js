@@ -11,6 +11,7 @@ const releaseSha = 'a'.repeat(40);
 const checkedAt = '2026-09-11T12:00:00.000Z';
 const gateNames = ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'];
 const results = () => gateNames.map((gate, index) => ({ gate, result: 'PASS', evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: String(index + 1).padStart(64, '0') }));
+const bundleManifest = (sha = 'b'.repeat(64)) => ({ sha256: sha, stepBundles: Object.fromEntries(Array.from({ length: 16 }, (_, index) => [`gate:step-${index}`, String(index + 1).padStart(64, '0')])) });
 
 test('Gate 1~11 PASS만 같은 run signoff pause checkpoint가 된다', async () => {
   const { createSignoffPauseCheckpoint } = await modulePromise;
@@ -53,6 +54,17 @@ test('교차 run·SHA와 cutoff 이후 재개는 route disable 필수로 차단�
     assert.equal(result.status, 'FAIL_SIGNOFF_RESUME_CONTRACT');
     assert.equal(result.routeDisableRequired, true);
   }
+});
+
+test('pause checkpoint의 cutover bundle과 현재 bundle이 다르면 Gate 12 재개를 차단한다', async () => {
+  const { createSignoffPauseCheckpoint, evaluateSignoffResume } = await modulePromise;
+  const expected = bundleManifest();
+  const checkpoint = createSignoffPauseCheckpoint({ runId, releaseSha, checkedAt, gateResults: results(), cutoverBundleManifest: expected }).checkpoint;
+  assert.equal(checkpoint.cutoverBundleSha256, expected.sha256);
+  const result = evaluateSignoffResume({ checkpoint, runId, releaseSha, checkedAt, currentBundleManifest: bundleManifest('c'.repeat(64)) });
+  assert.equal(result.status, 'FAIL_SIGNOFF_RESUME_CONTRACT');
+  assert.ok(result.failures.includes('CHECKPOINT_CUTOVER_BUNDLE_MISMATCH'));
+  assert.equal(result.routeDisableRequired, true);
 });
 
 test('합성 중단·재개 계약 리허설이 통과한다', async () => {

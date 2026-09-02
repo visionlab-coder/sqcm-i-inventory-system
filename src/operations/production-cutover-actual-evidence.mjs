@@ -64,7 +64,7 @@ function validReceiptDocument(document, runId) {
   const value = document?.value;
   return typeof document?.fileName === 'string' && SHA256.test(document?.sha256 || '')
     && value?.schemaVersion === 1 && value?.runId === runId && inWindow(value?.checkedAt)
-    && value?.productionGo === false && ['step', 'gate'].includes(value?.kind);
+    && value?.productionGo === false && SHA256.test(value?.cutoverBundleSha256 || '') && ['step', 'gate'].includes(value?.kind);
 }
 
 function validateRoleResult(document, {
@@ -99,6 +99,8 @@ export function assembleActualCutoverEvidence({ receiptDocuments = [], roleResul
   if (!/^[a-f0-9]{40}$/.test(releaseSha || '')) failures.push('CUTOVER_RELEASE_SHA_INVALID');
   const releaseTag = `sha-${releaseSha}`;
   if (!receiptDocuments.every((document) => validReceiptDocument(document, runId))) failures.push('CUTOVER_RECEIPT_DOCUMENT_INVALID');
+  const cutoverBundleSha256 = [...new Set(receiptDocuments.map((document) => document.value?.cutoverBundleSha256))];
+  if (cutoverBundleSha256.length !== 1 || !SHA256.test(cutoverBundleSha256[0] || '')) failures.push('CUTOVER_BUNDLE_PROVENANCE_INVALID');
   const stepDocuments = receiptMap(receiptDocuments, 'step');
   const gateDocuments = receiptMap(receiptDocuments, 'gate');
   const expectedSteps = Object.values(CUTOVER_GATE_ADAPTER_PLAN).flat().length;
@@ -155,7 +157,7 @@ export function assembleActualCutoverEvidence({ receiptDocuments = [], roleResul
   const evidence = {
     schemaVersion: 1, template: false, environment: 'production', activationState: 'actual',
     evidenceType: 'P6_CUTOVER_ACTUAL', domain: 'p6-cutover', status: 'PASS', checkedAt,
-    runId, releaseSha, releaseTag, targetUrl: ACTUAL_TARGET_URL, gates,
+    runId, releaseSha, releaseTag, cutoverBundleSha256: cutoverBundleSha256[0], targetUrl: ACTUAL_TARGET_URL, gates,
     pilot: { openCriticalDefects: 0, openHighDefects: 0, roleResults }, approvals, productionGo: true
   };
   const validation = validateActualCutoverProvenance(evidence);

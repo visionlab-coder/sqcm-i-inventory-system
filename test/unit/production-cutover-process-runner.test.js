@@ -9,7 +9,11 @@ const adapterModulePromise = import('../../src/operations/production-cutover-gat
 test('cutover child 환경은 step별 allowlist만 전달하고 관련 없는 Secret을 제거한다', async () => {
   const { buildCutoverStepChildEnvironment } = await modulePromise;
   const { CUTOVER_GATE_ADAPTER_PLAN, CUTOVER_ROUTE_DISABLE_ADAPTER, CUTOVER_INGRESS_ORPHAN_RECOVERY_ADAPTER } = await adapterModulePromise;
-  const steps = [...Object.values(CUTOVER_GATE_ADAPTER_PLAN).flat(), CUTOVER_ROUTE_DISABLE_ADAPTER, CUTOVER_INGRESS_ORPHAN_RECOVERY_ADAPTER];
+  const steps = [
+    ...Object.entries(CUTOVER_GATE_ADAPTER_PLAN).flatMap(([gate, entries]) => entries.map((step) => ({ gate, ...step }))),
+    { gate: 'route_disable', ...CUTOVER_ROUTE_DISABLE_ADAPTER },
+    { gate: 'ingress_orphan_recovery', ...CUTOVER_INGRESS_ORPHAN_RECOVERY_ADAPTER }
+  ];
   const sourceEnvironment = {
     Path: 'C:\\Windows\\System32', SYSTEMROOT: 'C:\\Windows', TEMP: 'C:\\Temp',
     MIGRATION_DATABASE_URL: 'postgres://reference-only', DATABASE_URL: 'postgres://fallback-reference', DB_MIGRATION_HISTORY_MODE: 'application',
@@ -54,6 +58,26 @@ test('process runner는 canonical step 환경만 spawn에 전달하고 변조 st
   assert.equal(calls.length, 1);
 });
 
+test('process runner는 step bundle이 실행 전후 바뀌면 receipt 성공을 만들지 않는다', async () => {
+  const { createProcessStepRunner } = await modulePromise;
+  const { CUTOVER_GATE_ADAPTER_PLAN } = await adapterModulePromise;
+  const step = { gate: 'health_readiness', ...CUTOVER_GATE_ADAPTER_PLAN.health_readiness[0] };
+  const expected = 'a'.repeat(64); let current = expected; let receiptCount = 0; let spawnCount = 0;
+  const run = createProcessStepRunner({
+    expectedStepBundleSha256: { 'health_readiness:ingress-publication': expected },
+    inspectStepBundle: () => current,
+    writeReceipt: async () => { receiptCount += 1; return 'receipt.json'; },
+    spawnStep: async () => { spawnCount += 1; current = 'b'.repeat(64); return { exitCode: 0, stdout: '{"status":"PASS_INGRESS_PUBLISHED_READY_FOR_TLS_PROBE"}', stderr: '' }; }
+  });
+  await assert.rejects(() => run(step), /CUTOVER_CHILD_BUNDLE_CHANGED/);
+  assert.equal(spawnCount, 1);
+  assert.equal(receiptCount, 0);
+
+  current = 'c'.repeat(64); spawnCount = 0;
+  await assert.rejects(() => run(step), /CUTOVER_CHILD_BUNDLE_CHANGED/);
+  assert.equal(spawnCount, 0);
+});
+
 test('마지막 JSON 상태를 추출하고 migration exit 0을 명시 PASS로 정규화한다', async () => {
   const { extractLastJsonObject, normalizeStepOutcome } = await modulePromise;
   assert.deepEqual(extractLastJsonObject('noise {"status":"OLD"}\n{"status":"PASS","nested":{"x":1}} tail'), { status: 'PASS', nested: { x: 1 } });
@@ -70,19 +94,20 @@ test('role smoke summary는 허용된 상태만 남기고 credential·session �
   assert.doesNotMatch(raw, /secret@example|SECRET|SESSION|"email"|"password"|"cookie"/i);
 });
 
-test('receipt는 stdout stderr Secret을 기록하지 않고 기존 파일을 덮어쓰지 않는다', async () => {
+test('receipt는 bundle SHA만 남기고 stdout stderr Secret을 기록하지 않으며 기존 파일을 덮어쓰지 않는다', async () => {
   const { createProcessStepRunner, createRuntimeReceiptWriter } = await modulePromise;
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-cutover-receipt-'));
   try {
     const clock = () => new Date('2026-09-11T11:00:00.000Z');
-    const writeReceipt = createRuntimeReceiptWriter({ root, clock, runId: '11111111-1111-4111-8111-111111111111' });
+    const writeReceipt = createRuntimeReceiptWriter({ root, clock, runId: '11111111-1111-4111-8111-111111111111', cutoverBundleSha256: 'a'.repeat(64) });
     const run = createProcessStepRunner({ writeReceipt, spawnStep: async () => ({ exitCode: 0, stdout: '{"status":"PASS"}', stderr: 'SECRET_VALUE' }) });
     const outcome = await run({ gate: 'artifact', id: 'cutover-preflight', script: 'scripts/production-cutover-preflight.mjs', args: [], acceptedStatuses: ['READY_FOR_CHANGE_WINDOW_EXECUTION', 'READY_FOR_CUTOVER_SIGNOFF'], environment: [] });
     const raw = fs.readFileSync(outcome.evidenceRef, 'utf8');
     assert.equal(outcome.status, 'PASS');
     assert.equal(JSON.parse(raw).runId, '11111111-1111-4111-8111-111111111111');
+    assert.equal(JSON.parse(raw).cutoverBundleSha256, 'a'.repeat(64));
     assert.doesNotMatch(raw, /stdout|stderr|SECRET_VALUE/);
-    const secondWriter = createRuntimeReceiptWriter({ root, clock, runId: '11111111-1111-4111-8111-111111111111' });
+    const secondWriter = createRuntimeReceiptWriter({ root, clock, runId: '11111111-1111-4111-8111-111111111111', cutoverBundleSha256: 'a'.repeat(64) });
     await assert.rejects(() => secondWriter({ kind: 'step', gate: 'artifact', step: 'cutover-preflight', status: 'PASS', exitCode: 0 }), /CUTOVER_RECEIPT_ALREADY_EXISTS/);
   } finally { fs.rmSync(root, { recursive: true }); }
 });
