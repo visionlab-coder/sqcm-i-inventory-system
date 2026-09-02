@@ -829,6 +829,14 @@
       "evidence": "failure-first 1/1; focused candidate reader regression 6/6 PASS; 5 entrypoint dry-runs fail-closed with external mutation zero and productionGo false; syntax 375/375; repository unit 717 PASS 7 skips; harness:verify PASS; GitHub quality 33597939948 unit and three-tier SUCCESS; actual cutover, UAT and signoff NOT_RUN"
     },
     {
+      "id": "ACC-P6-45-ATOMIC-CUTOVER-EVIDENCE-CONTROL-SNAPSHOT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 G4 candidate 검사에 사용하는 G3·G4·P5·provider·candidate 5개 JSON은 각각 한 번 읽은 actual bytes로 동일 bounded physical snapshot을 구성하고 전체 read 전후 repository root와 모든 파일 identity·realpath·size 안정성을 검증해야 한다.",
+      "evidence": "failure-first 1/1; focused atomic evidence regression 8/8 PASS; cross-file mutation 2/2 blocked; candidate fail-closed 4 PASS and 8 PENDING; syntax 377/377; repository unit 724 PASS 7 skips; harness check PASS; GitHub quality 33599251899 unit and three-tier SUCCESS; actual cutover, UAT and signoff NOT_RUN"
+    },
+    {
       "id": "ACC-P6-41-ATOMIC-PRODUCTION-UAT-INPUTS",
       "phase": "P6",
       "status": "EVIDENCE_COMPLETE",

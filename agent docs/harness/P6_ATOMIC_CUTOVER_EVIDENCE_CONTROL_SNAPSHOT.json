@@ -1,0 +1,40 @@
+{
+  "packet": "ACC-P6-45-ATOMIC-CUTOVER-EVIDENCE-CONTROL-SNAPSHOT",
+  "status": "PASS_ATOMIC_CUTOVER_EVIDENCE_CONTROL_SNAPSHOT",
+  "failureFirst": { "expectedFailures": 1, "observedFailures": 1 },
+  "focusedTests": { "total": 8, "passed": 8, "failed": 0, "skipped": 0 },
+  "crossFileMutationTests": { "total": 2, "blocked": 2 },
+  "candidateCheck": {
+    "status": "PASS_CANDIDATE_FAIL_CLOSED",
+    "localGatePassCount": 4,
+    "pendingGateCount": 8,
+    "productionGo": false
+  },
+  "syntaxChecks": { "passed": 377, "failed": 0 },
+  "unitTests": { "total": 731, "passed": 724, "failed": 0, "skipped": 7 },
+  "snapshotContract": {
+    "files": ["g3", "g4", "p5", "provider", "candidate"],
+    "readCountPerFile": 1,
+    "maximumBytesPerFile": 1048576,
+    "physicalRegularFileRequired": true,
+    "realPathMatchRequired": true,
+    "rootAndFilesStableAfterAllReads": true,
+    "fatalUtf8Required": true,
+    "jsonObjectRequired": true,
+    "actualSha256Computed": true,
+    "directSeparateReadCount": 0
+  },
+  "implementationCommit": "27686276894e8e986c65d9e41c208a575a74fe7e",
+  "qualityCi": {
+    "runId": 33599251899,
+    "testedHeadSha": "27686276894e8e986c65d9e41c208a575a74fe7e",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}
