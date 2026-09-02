@@ -1189,6 +1189,14 @@
       "evidence": "failure-first 1 reproduced; all three signoffs now require exact roleResultSetPublicationId and preSignoffRollbackGateReceiptSha256; focused 41 PASS 1 Windows skip; syntax 414/414; repository unit 863 PASS 8 skips; GitHub quality 33660339797 completed successfully; actual signoff, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-89-PRODUCTION-SIGNOFF-REQUEST-BUNDLE-PREPARATION",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Gate 1~11 checkpoint와 동일 receipt snapshot 및 ADMIN·MANAGER·USER actual 역할 결과 publication set을 검증해 BUSINESS·SECURITY·OPERATIONS가 서명할 run·release·core/rollback receipt provenance를 고정한 unsigned 요청 3건을 저장소 밖 create-only bundle로 조립해야 한다.",
+      "evidence": "failure-first 4 reproduced; single atomic receipt snapshot and exact three-role result set bound to three unsigned request payloads; signature, identity and message creation zero; focused 28/28 PASS plus single-snapshot regression 14/14 PASS; syntax 417/417; repository unit 868 PASS 8 skips; GitHub quality 33661924708 unit and three-tier SUCCESS; actual bundle, signoff, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

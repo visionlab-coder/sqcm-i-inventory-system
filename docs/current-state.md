@@ -336,6 +336,9 @@ P5는 migration 025와 staging backend 재배포 후 **19 PASS·0 FAIL·0 PENDIN
 P6-G3에서 후보 `e238ab8dab7f…`의 원격 일치, GitHub-hosted quality와 release-images 성공, AI PC loopback Production 3서비스 배포, migration 25/25, backup·restore와 실제 중지형 rollback·재기동을 통과했다. main merge·공개 전환은 실행하지 않았다.
 
 현재 유일한 READY는 **P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF**다. 사전점검은 `READY_WAIT_CHANGE_WINDOW`이며 승인된 변경창 `2026-09-11 20:00~23:00 KST`에서 전용 Production tunnel·공개 DNS/TLS, 실제 사용자 로그인·MFA, 관측·최종 서명을 검증한다. 변경창 입력 봉투는 물리 참조 0/5·mutating 확인값 사전 무장 0개로 `READY_WAIT_CHANGE_WINDOW_INPUT_REFERENCES`다. 그 전까지 서비스는 `127.0.0.1:3300` 격리를 유지하며 Production은 `NO-GO`다. P6 actual 완료 뒤 exact HTTPS를 UTC 하루 1회 저장소 밖 원장에 축적하는 30일 SLO 수집기, exact TLS·health/readiness 관측기, P7 actual 인수 10문서 통과 뒤 Harness를 8/8 COMPLETE로 닫는 fail-closed 종단 전환기까지 로컬 준비됐다.
+
+`ACC-P6-89`에서 Gate 1~11 checkpoint와 동일 atomic receipt snapshot 및 세 역할 actual 결과 publication set을 검증해 업무·보안·운영 책임자가 검토할 unsigned 서명 요청 bundle 3건을 저장소 밖 create-only로 조립하는 진입점을 준비했다. 동일 run·release·core/rollback receipt SHA·역할 결과 set을 요청에 고정하며 실제 bundle·서명·identity·MFA·메시지·DNS/TLS·cutover는 `NOT_RUN`이다.
+
 # Phase 74 불변 이미지 릴리스 게이트 (2026-08-15)
 
 - GitHub Actions 외부 참조를 공식 commit SHA로 고정하고, main의 정확한 SHA로 frontend/backend 이미지를 GHCR에 발행하는 workflow를 추가했다.
