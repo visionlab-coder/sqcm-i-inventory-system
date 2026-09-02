@@ -133,6 +133,7 @@ flowchart LR
 - `ACC-P7-60`에서 handover candidate와 `MASTER_ROADMAP.json`을 각각 한 번 읽은 동일 pair snapshot으로 통합했다. 두 파일 전체의 read 전후 root/file identity·realpath·size를 재검증해 서로 다른 시점의 candidate·roadmap 조합을 차단했으며 실제 P6 cutover와 P7 handover는 `NOT_RUN`이다.
 - `ACC-P7-61`에서 8/8 terminal completion의 `MASTER_ROADMAP.json`과 가속 큐를 각각 한 번 읽은 동일 pair snapshot으로 통합했다. 두 기계 정본 전체의 read 전후 root/file identity·realpath·size를 재검증해 서로 다른 시점의 Phase·READY 상태 조합을 차단했으며 실제 terminal completion은 `NOT_RUN`이다.
 - `ACC-P6-43`에서 P6→P7 promotion도 ACC-P7-61의 동일 atomic roadmap·가속 큐 pair reader에 결합했다. actual cutover 뒤 P7 승격과 actual handover 뒤 8/8 완료가 같은 cross-file TOCTOU 차단 계약을 공유하며 실제 Phase 전환은 `NOT_RUN`이다.
+- `ACC-P6-44`에서 P6 G4의 cutover 실행·actual evidence 조립·role result·signoff·candidate 검사 5개 진입점을 physical JSON·1MiB·realpath·read-after 안정성·fatal UTF-8·object-only 공용 bounded reader에 결합했다. direct unbounded 후보 read를 제거했으며 실제 cutover·UAT·서명은 `NOT_RUN`이다.
 
 ## 6. Phase 갱신 절차
 

@@ -821,6 +821,14 @@
       "evidence": "failure-first 1/1; focused shared phase transition regression 17/17 PASS; pair mutation 2/2 blocked; P6 promotion dry-run READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_FOR_PHASE_PROMOTION with changes zero; syntax 374/374; repository unit 716 PASS 7 skips; harness:verify PASS; GitHub quality 33597064036 unit and three-tier SUCCESS; actual phase promotion and completion NOT_RUN"
     },
     {
+      "id": "ACC-P6-44-BOUNDED-CUTOVER-CANDIDATE-CONSUMERS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 G4 cutover 실행·actual evidence·role result·signoff·candidate 검사 진입점은 동일 candidate JSON을 physical regular file·realpath 일치·1 byte~1MiB·read 전후 안정성·fatal UTF-8·JSON object 전용 공용 bounded reader로 읽고 direct unbounded read를 사용하지 않아야 한다.",
+      "evidence": "failure-first 1/1; focused candidate reader regression 6/6 PASS; 5 entrypoint dry-runs fail-closed with external mutation zero and productionGo false; syntax 375/375; repository unit 717 PASS 7 skips; harness:verify PASS; GitHub quality 33597939948 unit and three-tier SUCCESS; actual cutover, UAT and signoff NOT_RUN"
+    },
+    {
       "id": "ACC-P6-41-ATOMIC-PRODUCTION-UAT-INPUTS",
       "phase": "P6",
       "status": "EVIDENCE_COMPLETE",
