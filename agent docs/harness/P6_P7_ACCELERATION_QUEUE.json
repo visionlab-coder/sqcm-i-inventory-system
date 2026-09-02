@@ -837,6 +837,14 @@
       "evidence": "failure-first 1/1; focused atomic evidence regression 8/8 PASS; cross-file mutation 2/2 blocked; candidate fail-closed 4 PASS and 8 PENDING; syntax 377/377; repository unit 724 PASS 7 skips; harness check PASS; GitHub quality 33599251899 unit and three-tier SUCCESS; actual cutover, UAT and signoff NOT_RUN"
     },
     {
+      "id": "ACC-P6-46-BOUNDED-ROLLBACK-G3-CONTROL",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production rollback readiness가 참조하는 G3 배포·백업·복구 증거는 physical regular JSON file·realpath 일치·1 byte~1MiB·read 전후 안정성·fatal UTF-8·JSON object 전용 bounded reader로 읽고 direct unbounded read를 사용하지 않아야 한다.",
+      "evidence": "failure-first 1/1; focused rollback and bounded input regression 16/16 PASS; rollback readiness PASS with revisions matched, volumes 2/2, previous drill and backup restore verified; syntax 378/378; repository unit 725 PASS 7 skips; GitHub quality 33600215170 unit and three-tier SUCCESS; actual rollback and external mutation NOT_RUN"
+    },
+    {
       "id": "ACC-P6-41-ATOMIC-PRODUCTION-UAT-INPUTS",
       "phase": "P6",
       "status": "EVIDENCE_COMPLETE",

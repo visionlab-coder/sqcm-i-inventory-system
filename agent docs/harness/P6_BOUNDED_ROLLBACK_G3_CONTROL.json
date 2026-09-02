@@ -1,0 +1,41 @@
+{
+  "packet": "ACC-P6-46-BOUNDED-ROLLBACK-G3-CONTROL",
+  "status": "PASS_BOUNDED_ROLLBACK_G3_CONTROL",
+  "failureFirst": { "expectedFailures": 1, "observedFailures": 1 },
+  "focusedTests": { "total": 16, "passed": 16, "failed": 0, "skipped": 0 },
+  "rollbackReadiness": {
+    "status": "PASS_ROLLBACK_READINESS_DRY_RUN_ONLY",
+    "backendRevisionMatched": true,
+    "frontendRevisionMatched": true,
+    "requiredVolumeCount": 2,
+    "presentVolumeCount": 2,
+    "previousDrillVerified": true,
+    "backupRestoreVerified": true,
+    "actualPostCutoverRollback": "NOT_RUN",
+    "productionGo": false
+  },
+  "syntaxChecks": { "passed": 378, "failed": 0 },
+  "unitTests": { "total": 732, "passed": 725, "failed": 0, "skipped": 7 },
+  "g3ReadContract": {
+    "maximumBytes": 1048576,
+    "physicalRegularFileRequired": true,
+    "realPathMatchRequired": true,
+    "readAfterStabilityRequired": true,
+    "fatalUtf8Required": true,
+    "jsonObjectRequired": true,
+    "directUnboundedReadCount": 0
+  },
+  "implementationCommit": "9180569646d8e971e6e85cd0ca14cd80ec96ab05",
+  "qualityCi": {
+    "runId": 33600215170,
+    "testedHeadSha": "9180569646d8e971e6e85cd0ca14cd80ec96ab05",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}
