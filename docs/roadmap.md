@@ -157,6 +157,7 @@ flowchart LR
 - `ACC-P6-66`에서 Production cloudflared config와 tunnel credential을 fsync·hard-link no-replace로 게시하도록 강화했다. credential 원문을 읽지 않고 충돌 시 선점 bytes와 복구용 생성 credential을 보존하며, tunnel create 성공은 후속 게시 실패와 무관하게 외부 변경으로 기록한다. 실제 tunnel·DNS/TLS·역할 UAT·P6 cutover와 P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-67`에서 actual ingress publication에 create-only 단일 writer lease를 추가했다. tunnel 생성 전에 lease를 획득하고 동시 두 번째 실행은 외부 변경 없이 대기하며, 자기 소유 lease만 해제하고 stale·다른 owner lease는 자동 삭제하지 않는다. 실제 tunnel·DNS/TLS·역할 UAT·P6 cutover와 P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-68`에서 crash stale ingress lease의 명시적 복구 경로를 추가했다. dry-run이 기본이며 실제 삭제는 5분 age·owner PID 부재·승인 변경창·exact confirmation·삭제 직전 물리 identity와 owner 재검증을 모두 통과해야 한다. 현재 lease와 실제 복구·tunnel·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
+- `ACC-P6-69`에서 기존 Production cloudflared process 판정을 exact executable·정확한 `--config` Windows 인자·단일 PID 계약으로 강화했다. 부분 문자열·실행 파일 불일치·다중 PID·관측 오류는 새 process 시작 전에 fail-closed하며 실제 process·tunnel·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 
 ## 6. Phase 갱신 절차
 

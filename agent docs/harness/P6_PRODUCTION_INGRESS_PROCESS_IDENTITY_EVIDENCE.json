@@ -1,0 +1,64 @@
+{
+  "packet": "ACC-P6-69-PRODUCTION-INGRESS-PROCESS-IDENTITY",
+  "status": "PASS_PRODUCTION_INGRESS_PROCESS_IDENTITY",
+  "scope": {
+    "exactExecutableRequired": true,
+    "exactConfigArgumentRequired": true,
+    "singleProcessRequired": true,
+    "substringOnlyMatchAllowed": false,
+    "uncertainObservationStartsProcess": false,
+    "crossPlatformTargetPathSemantics": "win32"
+  },
+  "failureFirst": {
+    "reproducedFailureCount": 5,
+    "missingObserver": true,
+    "missingEntrypointBinding": true
+  },
+  "focusedTests": {
+    "total": 19,
+    "passed": 19,
+    "failed": 0,
+    "skipped": 0
+  },
+  "repositoryChecks": {
+    "syntaxPassed": 403,
+    "unitTotal": 801,
+    "unitPassed": 793,
+    "unitFailed": 0,
+    "unitSkipped": 8
+  },
+  "implementationCommits": [
+    "68699d14c7df6c063531a18adcdefed5b35c5623",
+    "0e22b96c7ea5545963361be9d74a8be0053beaf0"
+  ],
+  "alternateResolution": {
+    "failedRunId": 33630769277,
+    "failureLayer": "LINUX_HOST_WINDOWS_TARGET_PATH_SEMANTICS",
+    "replacement": "path.win32.isAbsolute-and-normalize",
+    "acceptanceCriteriaPreserved": true
+  },
+  "qualityCi": {
+    "runId": 33631041611,
+    "testedHeadSha": "0e22b96c7ea5545963361be9d74a8be0053beaf0",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "productionIngressDryRun": {
+    "status": "READY_WAIT_INGRESS_PUBLICATION_INPUTS",
+    "externalMutationPerformed": false,
+    "actualProductionIngress": "NOT_RUN"
+  },
+  "harnessVerify": {
+    "status": "PASS",
+    "exitCode": 0
+  },
+  "actualProcessStartOrStop": "NOT_RUN",
+  "actualP6Cutover": "NOT_RUN",
+  "actualP7Activation": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

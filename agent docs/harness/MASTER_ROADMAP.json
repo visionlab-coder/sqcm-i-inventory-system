@@ -336,6 +336,7 @@
       "production-ingress-config-credential-fsync-hardlink-no-replace-pass",
       "production-ingress-single-writer-owned-lease-pass",
       "production-ingress-stale-lease-explicit-windowed-recovery-pass",
+      "production-ingress-exact-process-identity-single-pid-pass",
           "same-run-gates-1-to-11-signoff-pause-gate-12-resume-contract-ready",
           "same-run-physical-checkpoint-gate-12-resume-runtime-route-disable-ready",
           "same-run-actual-evidence-finalization-failure-route-disable-ready",

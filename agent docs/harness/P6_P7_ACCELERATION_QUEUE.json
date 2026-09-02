@@ -1029,6 +1029,14 @@
       "evidence": "failure-first 5 reproduced; focused ingress and recovery 14 PASS; syntax 402/402; repository unit 788 PASS 8 skips; recovery dry-run PASS lease absent zero mutation; cutover preflight local blockers 0 and 3 services healthy; harness:verify PASS; GitHub quality 33629524930 unit and three-tier SUCCESS; actual lease recovery, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-69-PRODUCTION-INGRESS-PROCESS-IDENTITY",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "기존 Production cloudflared process는 exact executable path·정확한 --config Windows 인자·단일 PID를 모두 만족할 때만 재사용하고 부분 문자열·실행 파일 불일치·다중 PID·관측 오류에서는 새 process를 시작하지 않아야 한다.",
+      "evidence": "failure-first 5 reproduced; focused ingress 19 PASS; syntax 403/403; repository unit 793 PASS 8 skips; initial GitHub unit failure 33630769277 isolated to Linux host Windows target path semantics and replaced by path.win32 normalization; harness:verify PASS; GitHub quality 33631041611 unit and three-tier SUCCESS; actual process start/stop, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
