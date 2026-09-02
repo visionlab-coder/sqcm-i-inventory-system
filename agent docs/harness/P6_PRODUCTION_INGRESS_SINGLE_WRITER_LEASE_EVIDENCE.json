@@ -1,0 +1,60 @@
+{
+  "packet": "ACC-P6-67-PRODUCTION-INGRESS-SINGLE-WRITER-LEASE",
+  "status": "PASS_PRODUCTION_INGRESS_SINGLE_WRITER_LEASE",
+  "scope": {
+    "leasePath": ".production-ingress-publication.lock",
+    "publicationPrimitive": "fsync-then-hard-link-no-replace",
+    "maximumLeaseBytes": 4096,
+    "secondWriterMutationAllowed": false,
+    "staleLeaseAutoRemovalAllowed": false,
+    "ownerVerifiedRelease": true
+  },
+  "failureFirst": {
+    "reproducedFailureCount": 3,
+    "missingHelperCount": 2,
+    "missingEntrypointBindingCount": 1
+  },
+  "focusedTests": {
+    "total": 34,
+    "passed": 34,
+    "failed": 0,
+    "skipped": 0
+  },
+  "repositoryChecks": {
+    "syntaxPassed": 400,
+    "unitTotal": 790,
+    "unitPassed": 782,
+    "unitFailed": 0,
+    "unitSkipped": 8
+  },
+  "implementationCommit": "0d9327eea173318d518c75522adbe98f139f98d7",
+  "qualityCi": {
+    "runId": 33628196250,
+    "testedHeadSha": "0d9327eea173318d518c75522adbe98f139f98d7",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "productionIngressDryRun": {
+    "externalMutationPerformed": false,
+    "actualProductionIngress": "NOT_RUN"
+  },
+  "productionPreflight": {
+    "status": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockerCount": 0,
+    "healthyServiceCount": 3,
+    "backendHostPortCount": 0,
+    "databaseHostPortCount": 0
+  },
+  "harnessVerify": {
+    "status": "PASS",
+    "exitCode": 0
+  },
+  "actualP6Cutover": "NOT_RUN",
+  "actualP7Activation": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

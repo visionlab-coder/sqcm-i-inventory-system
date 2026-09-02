@@ -1013,6 +1013,14 @@
       "evidence": "failure-first 4 reproduced; Windows read-only fsync EPERM 2 reproduced and replaced by r+ flush handle without content read; focused 31 PASS; syntax 400/400; repository unit 779 PASS 8 skips; ingress dry-run READY_WAIT_INPUTS with zero mutation; cutover preflight local blockers 0 and 3 services healthy; harness:verify PASS; GitHub quality 33626411866 unit and three-tier SUCCESS; actual P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-67-PRODUCTION-INGRESS-SINGLE-WRITER-LEASE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "actual ingress publication은 tunnel 생성 전에 create-only 단일 writer lease를 획득하고, 동시 두 번째 실행은 외부 변경 없이 대기하며, 정상·오류 종료는 자기 소유 lease만 해제하고 stale·다른 owner lease를 자동 삭제하지 않아야 한다.",
+      "evidence": "failure-first 3 reproduced; focused ingress 34 PASS; syntax 400/400; repository unit 782 PASS 8 skips; cutover preflight local blockers 0 and 3 services healthy; harness:verify PASS; GitHub quality 33628196250 unit and three-tier SUCCESS; actual P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
