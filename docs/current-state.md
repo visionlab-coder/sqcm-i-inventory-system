@@ -167,6 +167,7 @@ Production GO: **false**
 - `ACC-P6-88`을 완료했다. 세 실제 서명을 동일 역할 결과 publication set ID와 서명 직전 rollback Gate receipt SHA-256에 결박해 같은 run 안의 다른 검토 대상 혼합을 차단한다. failure-first 1건, focused 41 PASS·1 Windows SKIP, 구문 414/414, 저장소 단위 863 PASS·8 SKIP, GitHub quality `33660339797`이 PASS했다. 실제 서명·DNS/TLS·P6 cutover·P7 활성화는 `NOT_RUN`이다.
 - `ACC-P7-13`을 완료했다. `operations:evidence-pipeline-rehearsal`은 합성 전용 임시 공간에서 8개 운영 영역 compiler, 운영 서명 compiler, schema 2 manifest assembler와 finalizer를 한 흐름으로 연결해 10/10 문서 호환을 증명한다. 조립 뒤 backup/certificate 파일 변조는 SHA 불일치로 차단되고 성공·차단 경로 모두 임시 디렉터리를 남기지 않는다. focused 4/4, 저장소 구문 221개와 단위 316/316이 PASS했으며 합성 결과는 실제 증거·서명·Production GO로 승격되지 않는다.
 - 가속 큐의 다음 READY는 계속 `ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF`다. 이는 P6 G4 실제 완료 후에만 실행 가능한 외부 입력 Gate다.
+- `ACC-P7-64`에서 분리돼 있던 운영 활성화 19단계와 운영 인수 10문서 리허설을 동일 release SHA·exact Production URL로 결박했다. release 또는 target 경계 변조는 fail-closed하며 합성 산출물은 즉시 제거된다. 실제 P6 cutover·P7 활성화·운영 서명은 `NOT_RUN`이고 READY는 계속 `ACC-P7-02` 하나다.
 
 - P6-G4는 `READY_WAIT_CHANGE_WINDOW`다. 승인된 공개 전환 창은 `2026-09-11 20:00~23:00 KST`, rollback cutoff는 22:00다.
 - 내부 Production 3서비스·smoke·migration 25/25·백업 복원은 정상이고 배포 후보와 원격 브랜치 SHA도 일치한다.

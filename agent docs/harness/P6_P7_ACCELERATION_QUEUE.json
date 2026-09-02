@@ -1237,12 +1237,20 @@
       "evidence": "failure-first 4 reproduced; focused 21/21 PASS; syntax 420/420; repository unit 880 PASS 8 skips; Harness verify registers atomic resume dry-run; implementation SHA cb3ce8e28c7b5e33729972fbd647993ceb096699; GitHub quality 33670549078 unit and three-tier SUCCESS; actual MFA approval, signoff, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P7-64-ACTIVATION-SIGNOFF-LIFECYCLE-PROVENANCE-REHEARSAL",
+      "phase": "P7",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "동일 release SHA와 exact Production target 아래 19단계 운영 활성화 receipt sequence와 운영 인수 10문서 compiler·assembler·finalizer가 종단 호환되며 경계 변조는 fail-closed한다.",
+      "evidence": "failure-first missing module 3/3 reproduced; focused 4/4 PASS and combined regression 10/10 PASS; syntax 423/423; repository unit 885 PASS 8 skips; Harness verify PASS and includes lifecycle rehearsal; implementation SHA 2325b9b67a52e4abb8d2840d8aee84238e9bffb6; GitHub quality 33691770517 unit and three-tier SUCCESS; actual P6 cutover, P7 activation, operations evidence and signoff NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
       "authority": "external-input",
       "acceptance": "P6 완료 후 실제 경보 수신, off-site backup, 복원훈련, 온콜 인수와 운영 책임자 서명이 연결된다.",
-      "preparationEvidence": "npm.cmd run operations:handover-finalizer => READY_WAIT_P6_COMPLETION_AND_HANDOVER_EVIDENCE; focused 4/4 PASS; actual Production provenance and operations identity signoff enforced; actual activation NOT_RUN"
+      "preparationEvidence": "operations:activation-signoff-lifecycle-rehearsal => PASS_SYNTHETIC_OPERATIONS_ACTIVATION_SIGNOFF_LIFECYCLE_REHEARSAL; same release SHA and exact Production target bind 19 activation steps to 10 verified handover documents; operations:handover-finalizer remains READY_WAIT_P6_COMPLETION_AND_HANDOVER_EVIDENCE; actual activation and signoff NOT_RUN"
     }
   ]
 }
