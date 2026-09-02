@@ -781,6 +781,14 @@
       "evidence": "failure-first 5/5; focused handover regression 20 PASS 1 Windows skip; syntax 362/362; repository unit 657 PASS 7 skips; activation bundle 21 roots 49 physical files 345517 bytes sha256 a65d6a06f3ec07aed688861902adcb2238e1fe25d400d374ecee6c4402f889a6; harness:verify PASS; GitHub quality 33587580937 unit and three-tier SUCCESS; actual handover and activation NOT_RUN"
     },
     {
+      "id": "ACC-P7-58-ATOMIC-OPERATIONS-ROADMAP-CONTROL-CONSUMERS",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 운영 활성화의 18개 SLO·경보·backup/restore·certificate·on-call·maintenance·improvement queue·signoff·handover runner/compiler는 Phase 권한 정본 MASTER_ROADMAP.json을 exact repository physical file·1 byte~1MiB·read 전후 root/file identity·realpath·size·actual bytes·fatal UTF-8·JSON object 전용 공용 reader로 읽어야 한다.",
+      "evidence": "failure-first 18/18; focused roadmap control regression 24/24 PASS; 18 entrypoint dry-runs WAIT with external mutation zero; syntax 369/369; repository unit 700 PASS 7 skips; harness:verify PASS; GitHub quality 33593271020 unit and three-tier SUCCESS; actual P7 activation and external operations NOT_RUN"
+    },
+    {
       "id": "ACC-P6-41-ATOMIC-PRODUCTION-UAT-INPUTS",
       "phase": "P6",
       "status": "EVIDENCE_COMPLETE",
