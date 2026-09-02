@@ -33,6 +33,7 @@
     "production:cutover-signoff-resume-runtime-rehearsal": "node scripts/production-cutover-signoff-resume-runtime-rehearsal.mjs",
     "production:ingress-publication": "node scripts/production-ingress-publication.mjs",
     "production:ingress-lease-recovery": "node scripts/production-ingress-lease-recovery.mjs",
+    "production:ingress-orphan-recovery-preflight": "node scripts/production-ingress-orphan-recovery-preflight.mjs",
     "production:provider-preflight": "node scripts/production-provider-preflight.mjs",
     "production:public-probe": "node scripts/production-public-probe.mjs",
     "production:log-gate": "node scripts/production-log-gate.mjs",

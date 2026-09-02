@@ -147,3 +147,56 @@ export function classifyProductionIngressPublicationResult(input) {
   if (input.publicDnsPublished !== true) return { status: 'READY_WAIT_PRODUCTION_DNS_PROPAGATION', failures: [], actualProductionIngress: 'NOT_RUN', productionGo: false };
   return { status: 'PASS_INGRESS_PUBLISHED_READY_FOR_TLS_PROBE', failures: [], actualProductionIngress: 'PASS', productionGo: false };
 }
+
+export function evaluateProductionIngressOrphanRecoveryPreflight(input = {}) {
+  const stateKeys = [
+    'tunnelPresent',
+    'temporaryCredentialPresent',
+    'finalCredentialPresent',
+    'configPresent',
+    'processRunning',
+    'dnsPublished'
+  ];
+  if (input.tunnelObservationSucceeded !== true || input.dnsObservationSucceeded !== true
+    || stateKeys.some((key) => typeof input[key] !== 'boolean')) {
+    return {
+      status: 'FAIL_INGRESS_ORPHAN_RECOVERY_OBSERVATION',
+      recoveryRequired: false,
+      externalMutationPerformed: false,
+      productionGo: false
+    };
+  }
+
+  const noState = stateKeys.every((key) => input[key] === false);
+  if (noState) {
+    return {
+      status: 'PASS_NO_INGRESS_PARTIAL_STATE',
+      recoveryRequired: false,
+      externalMutationPerformed: false,
+      productionGo: false
+    };
+  }
+
+  const complete = input.tunnelPresent === true
+    && input.temporaryCredentialPresent === false
+    && input.finalCredentialPresent === true
+    && input.configPresent === true
+    && input.processRunning === true
+    && input.dnsPublished === true;
+  if (complete) {
+    return {
+      status: 'PASS_INGRESS_PUBLICATION_COMPLETE_NOT_ORPHANED',
+      recoveryRequired: false,
+      externalMutationPerformed: false,
+      productionGo: false
+    };
+  }
+
+  return {
+    status: 'READY_WAIT_INGRESS_PARTIAL_MUTATION_REVIEW',
+    recoveryRequired: true,
+    presentComponents: stateKeys.filter((key) => input[key] === true),
+    externalMutationPerformed: false,
+    productionGo: false
+  };
+}
