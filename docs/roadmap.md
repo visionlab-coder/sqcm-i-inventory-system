@@ -109,6 +109,7 @@ flowchart LR
 - `ACC-P7-16`에서 P7 handover finalizer·assembler·8/8 completion의 실제 manifest와 10개 하위 문서를 동일한 external physical JSON bounded reader로 통합했다. 각 파일은 최대 4MiB이며 저장소 내부·상대 탈출·symlink/reparse·parent redirect·malformed/array 입력은 완료 증거가 될 수 없다.
 - `ACC-P7-42`에서 P7 activation approval request·manifest·read-only preflight·orchestrator와 재개 receipt를 동일한 external physical JSON bounded reader로 통합했다. 각 파일은 최대 4MiB이며 저장소 내부·symlink/reparse·parent redirect·malformed/array 입력은 승인 또는 실행 증거가 될 수 없다.
 - `ACC-P7-43`에서 operations signoff assembler의 P6 actual cutover·운영 8영역·OPERATIONS_OWNER approval receipt 10개 입력을 동일한 external physical JSON bounded reader로 통합했다. 각 파일은 최대 4MiB이며 실제 bytes·SHA-256만 조립 provenance가 될 수 있다.
+- `ACC-P7-44`에서 P7 운영 8영역 evidence compiler의 actual 입력을 동일한 external physical JSON bounded reader로 통합했다. 각 파일은 최대 4MiB이며 실제 bytes·SHA-256만 영역별 source provenance가 될 수 있다.
 
 ## 6. Phase 갱신 절차
 

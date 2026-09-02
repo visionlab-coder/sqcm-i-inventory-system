@@ -645,6 +645,14 @@
       "evidence": "operations:signoff-input-assembler => READY_WAIT_P6_ACTUAL_CUTOVER with input read/output/external mutation zero; failure-first 1/1; focused 13 PASS 1 Windows skip; syntax 344/344; repository unit 588 PASS 5 skips; harness:verify PASS; actual operations signoff assembly NOT_RUN"
     },
     {
+      "id": "ACC-P7-44-BOUNDED-OPERATIONS-EVIDENCE-COMPILER-INPUTS",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 운영 8영역 compiler의 actual 입력은 저장소 밖 absolute physical JSON object만 4MiB 이하로 읽고 actual bytes·SHA-256을 provenance로 사용하며 저장소 내부·symlink/reparse·parent redirect·malformed/array·과대 입력을 원문 없이 fail-closed한다.",
+      "evidence": "8 compiler default entrypoints => P6 completion WAIT with evidence creation zero; failure-first 8/8; focused 64/64 PASS; syntax 345/345; repository unit 596 PASS 5 skips; harness:verify PASS; actual operations evidence compilation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
