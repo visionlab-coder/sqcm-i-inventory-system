@@ -48,6 +48,8 @@ test('동일 역할 결과 세트와 rollback Gate를 세 비서명 payload에 �
     assert.equal(payload.signedByRef, null);
     assert.equal(payload.roleResultSetPublicationId, resultSetPublicationId);
     assert.equal(payload.preSignoffRollbackGateReceiptSha256, rollbackGateSha);
+    assert.equal(payload.signoffRequestSetId, result.requestSetId);
+    assert.equal(payload.signoffRequestPreparedAt, preparedAt);
   }
 });
 

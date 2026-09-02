@@ -11,6 +11,14 @@ const SHA256 = /^[a-f0-9]{64}$/;
 const ROLES = Object.freeze(['ADMIN', 'MANAGER', 'USER']);
 const AREAS = Object.freeze(['BUSINESS', 'SECURITY', 'OPERATIONS']);
 
+export function productionSignoffRequestSetId({
+  runId, releaseSha, coreGateSha, rollbackGateSha, resultSetPublicationId, preparedAt
+} = {}) {
+  return createHash('sha256').update(JSON.stringify({
+    runId, releaseSha, coreGateSha, rollbackGateSha, resultSetPublicationId, preparedAt
+  })).digest('hex');
+}
+
 function waiting(status, missing = []) {
   return {
     status, missing, inputReadAllowed: false, localEvidenceWriteAllowed: false,
@@ -66,16 +74,17 @@ export function buildProductionSignoffRequestBundle({
     || preparedAtMs > Date.parse(PRODUCTION_CHANGE_WINDOW.rollbackCutoff)) {
     throw new Error('PREPARED_AT_INVALID');
   }
-  const requestSetId = createHash('sha256').update(JSON.stringify({
+  const requestSetId = productionSignoffRequestSetId({
     runId, releaseSha, coreGateSha, rollbackGateSha, resultSetPublicationId, preparedAt
-  })).digest('hex');
+  });
   const signoffPayloads = Object.fromEntries(AREAS.map((area) => [area, {
     schemaVersion: 1, template: true, evidenceType: 'P6_CUTOVER_SIGNOFF_ACTUAL',
     environment: 'production', activationState: 'actual', targetUrl: TARGET_URL,
     releaseTag: `sha-${releaseSha}`, runId, area, decision: 'NOT_RUN',
     signedByRef: null, signedAt: null, coreSmokeGateReceiptSha256: coreGateSha,
     roleResultSetPublicationId: resultSetPublicationId,
-    preSignoffRollbackGateReceiptSha256: rollbackGateSha
+    preSignoffRollbackGateReceiptSha256: rollbackGateSha,
+    signoffRequestSetId: requestSetId, signoffRequestPreparedAt: preparedAt
   }]));
   return {
     schemaVersion: 1, template: true, evidenceType: 'P6_CUTOVER_SIGNOFF_REQUEST_SET',

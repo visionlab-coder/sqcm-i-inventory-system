@@ -35,11 +35,16 @@ async function completeInput() {
   const roleStepSha = receiptDocuments.find((document) => document.value.kind === 'step' && document.value.step === 'role-core-smoke').sha256;
   const rollbackGateSha = receiptDocuments.find((document) => document.value.kind === 'gate' && document.value.gate === 'rollback').sha256;
   const resultSetPublicationId = sha(JSON.stringify({ runId, releaseSha, coreGateSha, roleStepSha, checkedAt }));
+  const signoffRequestPreparedAt = checkedAt;
+  const signoffRequestSetId = sha(JSON.stringify({
+    runId, releaseSha, coreGateSha, rollbackGateSha, resultSetPublicationId,
+    preparedAt: signoffRequestPreparedAt
+  }));
   const roleResultDocuments = Object.fromEntries(['ADMIN', 'MANAGER', 'USER'].map((role) => [role, {
     fileName: `${role}.json`, sha256: sha(role), value: { schemaVersion: 1, template: false, evidenceType: 'P6_ROLE_UAT_RESULT_ACTUAL', environment: 'production', activationState: 'actual', targetUrl: 'https://inventory.safe-link.co.kr', releaseTag, runId, role, status: 'PASS', actualProduction: true, resultSetPublicationId, coreSmokeGateReceiptSha256: coreGateSha, roleSmokeStepReceiptSha256: roleStepSha, checkedAt }
   }]));
   const signoffDocuments = Object.fromEntries(['BUSINESS', 'SECURITY', 'OPERATIONS'].map((area) => [area, {
-    fileName: `${area}.json`, sha256: sha(area), value: { schemaVersion: 1, template: false, evidenceType: 'P6_CUTOVER_SIGNOFF_ACTUAL', environment: 'production', activationState: 'actual', targetUrl: 'https://inventory.safe-link.co.kr', releaseTag, runId, area, decision: 'APPROVED', signedByRef: `identity://${area.toLowerCase()}-owner`, signedAt: checkedAt, coreSmokeGateReceiptSha256: coreGateSha, roleResultSetPublicationId: resultSetPublicationId, preSignoffRollbackGateReceiptSha256: rollbackGateSha }
+    fileName: `${area}.json`, sha256: sha(area), value: { schemaVersion: 1, template: false, evidenceType: 'P6_CUTOVER_SIGNOFF_ACTUAL', environment: 'production', activationState: 'actual', targetUrl: 'https://inventory.safe-link.co.kr', releaseTag, runId, area, decision: 'APPROVED', signedByRef: `identity://${area.toLowerCase()}-owner`, signedAt: checkedAt, coreSmokeGateReceiptSha256: coreGateSha, roleResultSetPublicationId: resultSetPublicationId, preSignoffRollbackGateReceiptSha256: rollbackGateSha, signoffRequestSetId, signoffRequestPreparedAt }
   }]));
   return { receiptDocuments, roleResultDocuments, signoffDocuments, runId, releaseSha };
 }
@@ -200,6 +205,38 @@ test('서명은 검토한 역할 결과 세트와 pre-signoff rollback Gate rece
     assert.ok(result.failures.includes('SECURITY_ACTUAL_SIGNOFF_INVALID'));
     assert.equal(result.productionGo, false);
   }
+});
+
+test('서명은 동일한 unsigned request set과 preparedAt provenance에 결합돼야 한다', async () => {
+  const { assembleActualCutoverEvidence } = await modulePromise;
+  for (const [field, value] of [
+    ['signoffRequestSetId', 'f'.repeat(64)],
+    ['signoffRequestPreparedAt', '2026-09-11T12:00:00.001Z']
+  ]) {
+    const input = await completeInput();
+    input.signoffDocuments.OPERATIONS.value[field] = value;
+    const result = assembleActualCutoverEvidence(input);
+    assert.ok(result.failures.includes('OPERATIONS_ACTUAL_SIGNOFF_INVALID'));
+    assert.equal(result.productionGo, false);
+  }
+
+  const afterSignoff = await completeInput();
+  const preparedAt = '2026-09-11T12:00:00.001Z';
+  const first = afterSignoff.signoffDocuments.BUSINESS.value;
+  const requestSetId = sha(JSON.stringify({
+    runId, releaseSha,
+    coreGateSha: first.coreSmokeGateReceiptSha256,
+    rollbackGateSha: first.preSignoffRollbackGateReceiptSha256,
+    resultSetPublicationId: first.roleResultSetPublicationId,
+    preparedAt
+  }));
+  for (const document of Object.values(afterSignoff.signoffDocuments)) {
+    document.value.signoffRequestPreparedAt = preparedAt;
+    document.value.signoffRequestSetId = requestSetId;
+  }
+  const result = assembleActualCutoverEvidence(afterSignoff);
+  assert.ok(result.failures.includes('SIGNOFF_REQUEST_SET_PROVENANCE_INVALID'));
+  assert.equal(result.productionGo, false);
 });
 
 test('contract template은 actual 역할 결과나 서명으로 승격하지 않는다', async () => {

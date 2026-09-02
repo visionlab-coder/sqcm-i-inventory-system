@@ -6,6 +6,7 @@ import { CUTOVER_GATE_ADAPTER_PLAN } from './production-cutover-gate-adapters.mj
 import { PRODUCTION_CHANGE_WINDOW } from './production-cutover-preflight.mjs';
 import { validateActualCutoverProvenance } from './production-cutover-finalizer.mjs';
 import { productionRoleResultSetPublicationId } from './production-role-result-evidence.mjs';
+import { productionSignoffRequestSetId } from './production-signoff-request-bundle.mjs';
 import { writeCreateOnlyJsonOutput } from './operations-create-only-json-output.mjs';
 
 export const ACTUAL_CUTOVER_ASSEMBLY_CONFIRMATION = 'ACK-P6-ASSEMBLE-ACTUAL-CUTOVER-EVIDENCE';
@@ -106,7 +107,8 @@ function validateRoleResult(document, {
 }
 
 function validateSignoff(document, {
-  area, runId, releaseTag, coreGateSha, resultSetPublicationId, rollbackGateSha
+  area, runId, releaseTag, coreGateSha, resultSetPublicationId, rollbackGateSha,
+  signoffRequestSetId, signoffRequestPreparedAt
 }) {
   const value = document?.value;
   return SHA256.test(document?.sha256 || '') && value?.schemaVersion === 1
@@ -117,7 +119,9 @@ function validateSignoff(document, {
     && IDENTITY.test(value?.signedByRef || '') && beforeRollbackCutoff(value?.signedAt)
     && value?.coreSmokeGateReceiptSha256 === coreGateSha
     && value?.roleResultSetPublicationId === resultSetPublicationId
-    && value?.preSignoffRollbackGateReceiptSha256 === rollbackGateSha;
+    && value?.preSignoffRollbackGateReceiptSha256 === rollbackGateSha
+    && value?.signoffRequestSetId === signoffRequestSetId
+    && value?.signoffRequestPreparedAt === signoffRequestPreparedAt;
 }
 
 export function assembleActualCutoverEvidence({ receiptDocuments = [], roleResultDocuments = {}, signoffDocuments = {}, runId, releaseSha } = {}) {
@@ -178,12 +182,31 @@ export function assembleActualCutoverEvidence({ receiptDocuments = [], roleResul
     })) failures.push(`${role}_ACTUAL_ROLE_RESULT_INVALID`);
   }
   const rollbackGateSha = gateDocuments.get('rollback')?.sha256 || '';
+  const signoffRequestPreparedAt = signoffDocuments.BUSINESS?.value?.signoffRequestPreparedAt;
+  const signoffRequestPreparedAtMs = Date.parse(signoffRequestPreparedAt);
+  const rollbackGateTime = Date.parse(gateDocuments.get('rollback')?.value?.checkedAt);
+  const expectedSignoffRequestSetId = productionSignoffRequestSetId({
+    runId, releaseSha, coreGateSha, rollbackGateSha, resultSetPublicationId,
+    preparedAt: signoffRequestPreparedAt
+  });
+  if (!Number.isFinite(signoffRequestPreparedAtMs)
+    || new Date(signoffRequestPreparedAtMs).toISOString() !== signoffRequestPreparedAt
+    || !beforeRollbackCutoff(signoffRequestPreparedAt)
+    || signoffRequestPreparedAtMs < Date.parse(roleCheckedAt)
+    || signoffRequestPreparedAtMs < rollbackGateTime
+    || Object.values(signoffDocuments).some((document) => signoffRequestPreparedAtMs > Date.parse(document?.value?.signedAt))
+    || !Object.values(signoffDocuments).every((document) =>
+      document?.value?.signoffRequestSetId === expectedSignoffRequestSetId
+      && document?.value?.signoffRequestPreparedAt === signoffRequestPreparedAt)) {
+    failures.push('SIGNOFF_REQUEST_SET_PROVENANCE_INVALID');
+  }
   for (const area of ['BUSINESS', 'SECURITY', 'OPERATIONS']) {
     if (!validateSignoff(signoffDocuments[area], {
-      area, runId, releaseTag, coreGateSha, resultSetPublicationId, rollbackGateSha
+      area, runId, releaseTag, coreGateSha, resultSetPublicationId, rollbackGateSha,
+      signoffRequestSetId: expectedSignoffRequestSetId, signoffRequestPreparedAt
     })) failures.push(`${area}_ACTUAL_SIGNOFF_INVALID`);
   }
-  const preSignoffTime = Date.parse(gateDocuments.get('rollback')?.value?.checkedAt);
+  const preSignoffTime = rollbackGateTime;
   const signoffReceiptTime = Date.parse(stepDocuments.get('uat_signoff:signoff-preflight')?.value?.checkedAt);
   if (!Number.isFinite(preSignoffTime) || !Number.isFinite(signoffReceiptTime)
     || Object.values(signoffDocuments).some((document) => {

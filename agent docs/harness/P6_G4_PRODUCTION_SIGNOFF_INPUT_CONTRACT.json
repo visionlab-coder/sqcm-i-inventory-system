@@ -13,5 +13,7 @@
   "signedAt": null,
   "coreSmokeGateReceiptSha256": null,
   "roleResultSetPublicationId": null,
-  "preSignoffRollbackGateReceiptSha256": null
+  "preSignoffRollbackGateReceiptSha256": null,
+  "signoffRequestSetId": null,
+  "signoffRequestPreparedAt": null
 }
