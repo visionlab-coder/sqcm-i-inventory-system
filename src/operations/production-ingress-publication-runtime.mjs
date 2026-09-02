@@ -385,8 +385,8 @@ export function observeProductionIngressProcess({
   configPath,
   runCommand = runIngressCommand
 } = {}) {
-  if (typeof cloudflared !== 'string' || !path.isAbsolute(cloudflared)
-    || typeof configPath !== 'string' || !path.isAbsolute(configPath)
+  if (typeof cloudflared !== 'string' || !path.win32.isAbsolute(cloudflared)
+    || typeof configPath !== 'string' || !path.win32.isAbsolute(configPath)
     || typeof runCommand !== 'function') throw new Error('INGRESS_PROCESS_OBSERVATION_INPUT_INVALID');
   const result = runCommand('powershell.exe', [
     '-NoProfile', '-NonInteractive', '-Command',
@@ -411,12 +411,12 @@ export function observeProductionIngressProcess({
     && typeof row.ExecutablePath === 'string' && typeof row.CommandLine === 'string')) {
     throw new Error('INGRESS_PROCESS_OBSERVATION_INVALID');
   }
-  const executable = path.resolve(cloudflared).toLowerCase();
-  const exactConfig = path.resolve(configPath);
+  const executable = path.win32.normalize(cloudflared).toLowerCase();
+  const exactConfig = path.win32.normalize(configPath);
   const escapedConfig = escapeRegularExpression(exactConfig);
   const configArgument = new RegExp(`(?:^|\\s)--config(?:=|\\s+)(?:"${escapedConfig}"|${escapedConfig})(?=\\s|$)`, 'i');
   const runArgument = /(?:^|\s)run(?:\s|$)/i;
-  const matches = rows.filter((row) => path.resolve(row.ExecutablePath).toLowerCase() === executable
+  const matches = rows.filter((row) => path.win32.normalize(row.ExecutablePath).toLowerCase() === executable
     && configArgument.test(row.CommandLine) && runArgument.test(row.CommandLine));
   if (matches.length > 1) throw new Error('INGRESS_PROCESS_IDENTITY_AMBIGUOUS');
   if (matches.length === 1) {
