@@ -1,0 +1,51 @@
+{
+  "packet": "ACC-P6-80-PRODUCTION-CUTOVER-STEP-BUNDLE-PROVENANCE",
+  "status": "PASS_PRODUCTION_CUTOVER_STEP_BUNDLE_PROVENANCE",
+  "scope": {
+    "normalGateCount": 12,
+    "normalStepCount": 14,
+    "containmentStepCount": 2,
+    "stepBundleCount": 16,
+    "transitiveLocalDependenciesBound": true,
+    "gateAndStepIdentityBound": true,
+    "preAndPostSpawnDigestVerified": true,
+    "receiptCheckpointResumeAndActualEvidenceBound": true,
+    "maxBytesPerFile": 4194304,
+    "maxBytesPerStep": 67108864
+  },
+  "failureFirst": {
+    "reproducedFailureCount": 3,
+    "bundlePreparationNotGatedBeforeReceiptRootDetected": true,
+    "childBundleMutationNotRejectedDetected": true,
+    "receiptBundleShaMissingDetected": true
+  },
+  "focusedTests": {
+    "total": 44,
+    "passed": 43,
+    "failed": 0,
+    "skipped": 1
+  },
+  "repositoryChecks": {
+    "syntaxPassed": 414,
+    "unitTotal": 855,
+    "unitPassed": 847,
+    "unitFailed": 0,
+    "unitSkipped": 8
+  },
+  "implementationCommit": "80cd7afe1d50f2e0634579ec654c59ee9d100481",
+  "qualityCi": {
+    "runId": 33648501041,
+    "status": "SUCCESS"
+  },
+  "harnessVerify": { "status": "PASS", "exitCode": 0 },
+  "actualChildExecution": "NOT_RUN",
+  "actualDnsTlsPublication": "NOT_RUN",
+  "actualP6Cutover": "NOT_RUN",
+  "actualP7Activation": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

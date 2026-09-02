@@ -1117,6 +1117,14 @@
       "evidence": "failure-first 3 reproduced; 12 Gate normal 14 steps plus route-disable and ingress orphan recovery exact environment contracts; unrelated Secret, GITHUB_TOKEN and NODE_OPTIONS propagation 0; tampered id/script/args/environment blocked before spawn; focused 20 PASS 1 Windows skip; syntax 412/412; repository unit 840 PASS 8 skips; harness:verify PASS; GitHub quality 33645880344 completed successfully; actual child, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-80-PRODUCTION-CUTOVER-STEP-BUNDLE-PROVENANCE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Cutover 정상 14개와 containment 2개 step의 gate·ID·전이 로컬 source bundle SHA-256을 child 실행 전후, receipt, checkpoint, resume 및 actual evidence 전체에 동일하게 결합하고 source 변경을 fail-closed 차단해야 한다.",
+      "evidence": "failure-first 3 reproduced; 16 step transitive local dependency bundles bound to gate and id; physical bounded repository snapshots and pre/post spawn digest checks; receipt, checkpoint, resume and actual evidence manifest provenance enforced; focused 43 PASS 1 Windows skip; syntax 414/414; repository unit 847 PASS 8 skips; harness:verify PASS; GitHub quality 33648501041 completed successfully; actual child, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
