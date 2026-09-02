@@ -53,9 +53,12 @@ function countPhysicalFiles(root) {
 }
 
 function runRehearsal({
-  activationBundleSha256, temporaryBase = os.tmpdir(), completeSequence = false, waitBeforePass = false
+  activationBundleSha256, temporaryBase = os.tmpdir(), completeSequence = false, waitBeforePass = false,
+  releaseSha = 'a'.repeat(40), targetUrl = 'https://inventory.safe-link.co.kr'
 } = {}) {
   if (!SHA256_PATTERN.test(activationBundleSha256 ?? '')) throw new Error('ACTIVATION_BUNDLE_SHA256_INVALID');
+  if (!/^[a-f0-9]{40}$/.test(releaseSha ?? '')) throw new Error('RELEASE_SHA_INVALID');
+  if (targetUrl !== 'https://inventory.safe-link.co.kr') throw new Error('TARGET_URL_INVALID');
   const base = physicalTemporaryBase(temporaryBase);
   const root = fs.mkdtempSync(path.join(base, 'sqcmi-p7-approval-orchestrator-'));
   const relativeRoot = path.relative(base, root);
@@ -72,7 +75,7 @@ function runRehearsal({
     const p6 = {
       schemaVersion: 1, template: false, environment: 'production', activationState: 'actual',
       evidenceType: 'P6_CUTOVER_ACTUAL', domain: 'p6-cutover', status: 'PASS', productionGo: true,
-      targetUrl: 'https://inventory.safe-link.co.kr', runId: 'synthetic-p6-cutover-20260912-002', releaseSha: 'a'.repeat(40),
+      targetUrl, runId: 'synthetic-p6-cutover-20260912-002', releaseSha,
       approvals: { operations: { status: 'APPROVED', signedBy: 'identity://synthetic-operations-owner', signedAt: '2026-09-11T12:30:00.000Z', evidence: `production operations approval sha256:${'e'.repeat(64)}` } }
     };
     writeJsonOnce(paths.p6, p6); const p6File = readDocument(paths.p6);
@@ -201,6 +204,7 @@ function runRehearsal({
       physicalDocumentCount: countPhysicalFiles(root),
       tamperScenarioCount: tamperScenarios.length, tamperRejectedCount,
       childProcessCount: 0, syntheticOnly: true,
+      releaseSha, targetUrl,
       actualApprovalCreated: false, actualActivationExecuted: false,
       externalMutationPerformed: false, secretValuesReadOrRecorded: false,
       productionGo: false

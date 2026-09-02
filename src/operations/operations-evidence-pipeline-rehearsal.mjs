@@ -35,13 +35,13 @@ function writeEvidence(tempDir, name, evidence) {
   return { path: `${name}.json`, sha256: sha256(raw) };
 }
 
-function syntheticSources() {
+function syntheticSources(targetUrl = TARGET_URL) {
   const measurementStart = Date.parse('2026-09-12T00:00:00.000Z');
   const checks = ['frontend_health', 'api_health', 'database_health', 'http_5xx', 'login_failure_spike', 'backup_success'];
   return {
     slo: {
       schemaVersion: 1, template: false, environment: 'production', activationState: 'actual',
-      measurementType: 'PRODUCTION_HTTPS_MONITORING_EXPORT', targetUrl: TARGET_URL,
+      measurementType: 'PRODUCTION_HTTPS_MONITORING_EXPORT', targetUrl,
       measurementStart: '2026-09-12T00:00:00.000Z', measurementEnd: '2026-10-12T00:00:00.000Z',
       samples: Array.from({ length: 30 }, (_, index) => ({
         timestamp: new Date(measurementStart + index * 24 * 60 * 60 * 1000).toISOString(), available: true, latencyMs: 100 + index
@@ -49,7 +49,7 @@ function syntheticSources() {
     },
     alerting: {
       schemaVersion: 1, template: false, environment: 'production', activationState: 'actual',
-      receiptType: 'PRODUCTION_ALERT_RECEIPT_EXPORT', targetUrl: TARGET_URL,
+      receiptType: 'PRODUCTION_ALERT_RECEIPT_EXPORT', targetUrl,
       providerRef: 'provider://approved-alerting', channelRef: 'channel://operations-primary',
       recipientRef: 'identity://operations-recipient', ownerRef: 'identity://operations-owner',
       signals: ['availability', 'latency_p95', 'http_5xx', 'backup_failure', 'certificate_expiry'].map((id, index) => ({
@@ -59,7 +59,7 @@ function syntheticSources() {
     },
     backupRestore: {
       schemaVersion: 1, template: false, environment: 'production', activationState: 'actual',
-      evidenceType: 'PRODUCTION_BACKUP_RESTORE_DRILL_EXPORT', targetUrl: TARGET_URL, ownerRef: 'identity://operations-owner',
+      evidenceType: 'PRODUCTION_BACKUP_RESTORE_DRILL_EXPORT', targetUrl, ownerRef: 'identity://operations-owner',
       backup: {
         backupId: 'rehearsal-backup-prod-20261012', createdAt: '2026-10-12T00:00:00.000Z',
         offsiteStoredAt: '2026-10-12T00:10:00.000Z', checksumVerified: true, artifactSha256: 'b'.repeat(64),
@@ -75,7 +75,7 @@ function syntheticSources() {
     },
     certificate: {
       schemaVersion: 1, template: false, environment: 'production', activationState: 'actual',
-      evidenceType: 'PRODUCTION_TLS_CERTIFICATE_OBSERVATION', targetUrl: TARGET_URL,
+      evidenceType: 'PRODUCTION_TLS_CERTIFICATE_OBSERVATION', targetUrl,
       hostname: 'inventory.safe-link.co.kr', renewalOwnerRef: 'identity://operations-owner',
       certificateProviderRef: 'provider://cloudflare-managed-tls',
       observation: {
@@ -86,7 +86,7 @@ function syntheticSources() {
     },
     onCall: {
       schemaVersion: 1, template: false, environment: 'production', activationState: 'actual',
-      evidenceType: 'PRODUCTION_ONCALL_HANDOVER_EXPORT', targetUrl: TARGET_URL,
+      evidenceType: 'PRODUCTION_ONCALL_HANDOVER_EXPORT', targetUrl,
       schedule: {
         scheduleRef: 'schedule://sqcm-i-production-primary', timezone: 'Asia/Seoul', continuousCoverage: true,
         effectiveFrom: '2026-09-11T11:00:00.000Z', effectiveUntil: '2026-11-30T15:00:00.000Z',
@@ -103,7 +103,7 @@ function syntheticSources() {
     },
     maintenance: {
       schemaVersion: 1, template: false, environment: 'production', activationState: 'actual',
-      evidenceType: 'PRODUCTION_MAINTENANCE_EXECUTION_EXPORT', targetUrl: TARGET_URL, releaseSha: RELEASE_SHA,
+      evidenceType: 'PRODUCTION_MAINTENANCE_EXECUTION_EXPORT', targetUrl, releaseSha: RELEASE_SHA,
       execution: {
         executionId: 'rehearsal-maintenance-20261012', scheduleRef: 'maintenance://sqcm-i-production-daily',
         contractRef: 'docs/maintenance.md', operatorRef: 'identity://operations-maintainer',
@@ -114,7 +114,7 @@ function syntheticSources() {
     },
     improvementQueue: {
       schemaVersion: 1, template: false, environment: 'production', activationState: 'actual',
-      evidenceType: 'PRODUCTION_IMPROVEMENT_QUEUE_EXPORT', targetUrl: TARGET_URL,
+      evidenceType: 'PRODUCTION_IMPROVEMENT_QUEUE_EXPORT', targetUrl,
       queue: {
         provider: 'GITHUB_ISSUES', repository: 'visionlab-coder/sqcm-i-inventory-system',
         queueRef: 'github://visionlab-coder/sqcm-i-inventory-system/issues?label=operations',
@@ -131,10 +131,15 @@ function syntheticSources() {
   };
 }
 
-export function runOperationsEvidencePipelineRehearsal({ tamperDomain = null, tempRoot = os.tmpdir() } = {}) {
+export function runOperationsEvidencePipelineRehearsal({
+  tamperDomain = null, tempRoot = os.tmpdir(), releaseSha = RELEASE_SHA, targetUrl = TARGET_URL
+} = {}) {
+  if (!/^[a-f0-9]{40}$/.test(releaseSha ?? '')) throw new Error('RELEASE_SHA_INVALID');
+  if (targetUrl !== TARGET_URL) throw new Error('TARGET_URL_INVALID');
   const tempDir = fs.mkdtempSync(path.join(tempRoot, 'sqcmi-p7-pipeline-rehearsal-'));
   try {
-    const sources = syntheticSources();
+    const sources = syntheticSources(targetUrl);
+    sources.maintenance.releaseSha = releaseSha;
     const evidence = {};
     evidence.slo = compileOrThrow('SLO', compileOperationsSloEvidence(sources.slo, { checkedAt: CHECKED_AT, sourceSha256: '1'.repeat(64) }));
     evidence.alerting = compileOrThrow('ALERTING', compileOperationsAlertingEvidence(sources.alerting, { checkedAt: CHECKED_AT, sourceSha256: '2'.repeat(64) }));
@@ -150,14 +155,14 @@ export function runOperationsEvidencePipelineRehearsal({ tamperDomain = null, te
     const p6Evidence = {
       schemaVersion: 1, environment: 'production', activationState: 'actual', evidenceType: 'P6_CUTOVER_ACTUAL',
       domain: 'p6-cutover', status: 'PASS', checkedAt: '2026-10-12T00:45:00.000Z', productionGo: true,
-      targetUrl: TARGET_URL, releaseSha: RELEASE_SHA
+      targetUrl, releaseSha
     };
     const references = { p6Gate: writeEvidence(tempDir, 'p6Gate', p6Evidence) };
     for (const name of DOMAINS) references[name] = writeEvidence(tempDir, name, evidence[name]);
 
     const signoffSource = {
       schemaVersion: 1, template: false, environment: 'production', activationState: 'actual',
-      evidenceType: 'PRODUCTION_OPERATIONS_SIGNOFF_EXPORT', targetUrl: TARGET_URL, releaseSha: RELEASE_SHA,
+      evidenceType: 'PRODUCTION_OPERATIONS_SIGNOFF_EXPORT', targetUrl, releaseSha,
       p6CutoverEvidenceSha256: references.p6Gate.sha256,
       signoff: {
         decision: 'APPROVED', role: 'OPERATIONS_OWNER', signedByRef: 'identity://operations-owner',
@@ -182,6 +187,7 @@ export function runOperationsEvidencePipelineRehearsal({ tamperDomain = null, te
       domainCount: DOMAINS.length,
       verifiedDocumentCount: validation.verifiedDocumentCount,
       manifestSchemaVersion: manifest.schemaVersion,
+      releaseSha, targetUrl,
       syntheticOnly: true,
       actualEvidenceCreated: false,
       externalMutationPerformed: false,
