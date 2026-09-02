@@ -175,6 +175,7 @@ flowchart LR
 - `ACC-P6-84`에서 actual P6 evidence의 step·Gate receipt, 역할 결과와 3개 서명을 변경창 시작부터 22:00 rollback cutoff까지로 제한했다. 22:00 이후 문서는 유효한 형식이어도 Production GO 후보로 승격하지 않는다. 실제 receipt·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-85`에서 runtime receipt JSON에 1~26 sequence를 기록하고 actual P6 assembler가 14개 step·12개 Gate receipt의 연속·고유 sequence와 정해진 identity 순서를 검증하도록 강화했다. 중복·누락·교환 sequence는 Production GO 후보로 승격하지 않는다. 실제 receipt·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-86`에서 actual P6 assembler가 runtime receipt의 물리 파일명을 payload의 canonical UTC checkedAt·4자리 sequence·kind·Gate·step과 정확히 대조하도록 강화했다. 파일명 rename이나 payload 불일치는 Production GO 후보로 승격하지 않는다. 실제 receipt·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
+- `ACC-P6-87`에서 actual P6 assembler가 1~26 receipt checkedAt의 비감소 순서, 역할 결과와 role-core-smoke receipt의 exact 시각, rollback Gate 이후부터 signoff-preflight receipt 이전까지의 실제 서명 경계를 검증하도록 강화했다. 인과 순서가 뒤집힌 증거는 Production GO 후보로 승격하지 않는다. 실제 receipt·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 
 ## 6. Phase 갱신 절차
 

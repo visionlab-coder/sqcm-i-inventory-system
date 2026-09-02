@@ -1173,6 +1173,14 @@
       "evidence": "failure-first 1 reproduced with sequence, checkedAt and kind filename tampering; actual assembler now reconstructs and verifies the canonical runtime receipt filename from payload; focused 29 PASS 1 Windows skip; syntax 414/414; repository unit 860 PASS 8 skips; GitHub quality 33657975871 completed successfully; actual receipt, DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-87-PRODUCTION-CUTOVER-EVIDENCE-CAUSAL-CHRONOLOGY",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "receipt checkedAt은 sequence 순서로 역행하지 않고, 역할 결과 시각은 role-core-smoke receipt와 같으며, 실제 서명은 pre-signoff rollback Gate 이후부터 signoff-preflight receipt 이전에 생성돼야 한다.",
+      "evidence": "failure-first 2 reproduced; receipt timestamps are non-decreasing by sequence; role result checkedAt equals role smoke step receipt; three signoffs are bounded from rollback gate receipt through signoff-preflight step receipt; focused 31 PASS 1 Windows skip; syntax 414/414; repository unit 862 PASS 8 skips; GitHub quality 33659125646 completed successfully; actual receipt, DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
