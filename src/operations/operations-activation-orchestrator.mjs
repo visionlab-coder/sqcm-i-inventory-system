@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
+import { readOperationsActivationStateDocument } from './operations-activation-state-reader.mjs';
 
 export const OPERATIONS_ACTIVATION_CONFIRMATION = 'ACK-EXECUTE-P7-PRODUCTION-OPERATIONS-ACTIVATION';
 export const OPERATIONS_ACTIVATION_ACTIONS = [
@@ -211,7 +212,14 @@ export function claimOperationsActivationReceiptRoot(root, approval, {
   const claimPath = path.join(root, RECEIPT_ROOT_CLAIM_NAME);
   const readExisting = () => {
     let value;
-    try { value = JSON.parse(fs.readFileSync(claimPath, 'utf8')); } catch { throw new Error('OPERATIONS_ACTIVATION_RECEIPT_ROOT_CLAIM_INVALID'); }
+    try {
+      value = readOperationsActivationStateDocument(claimPath, {
+        expectedDirectory: path.resolve(root),
+        expectedBasename: RECEIPT_ROOT_CLAIM_NAME
+      }).value;
+    } catch {
+      throw new Error('OPERATIONS_ACTIVATION_RECEIPT_ROOT_CLAIM_INVALID');
+    }
     validateReceiptRootClaim(value, { runIdSha256, releaseSha, approvalSha256 });
     return { path: claimPath, runIdSha256, releaseSha, approvalSha256, created: false };
   };
@@ -423,13 +431,20 @@ export function acquireOperationsActivationLease(root, approval, {
   } finally {
     if (handle !== null) fs.closeSync(handle);
   }
-  return { path: leasePath, runIdSha256, releaseSha, approvalSha256, leaseId, processId, rootClaim };
+  return { path: leasePath, root: path.resolve(root), runIdSha256, releaseSha, approvalSha256, leaseId, processId, rootClaim };
 }
 
 export function releaseOperationsActivationLease(lease) {
-  if (!lease?.path || !fs.existsSync(lease.path)) throw new Error('OPERATIONS_ACTIVATION_LEASE_MISSING');
+  if (!lease?.path || !lease?.root || !fs.existsSync(lease.path)) throw new Error('OPERATIONS_ACTIVATION_LEASE_MISSING');
   let document;
-  try { document = JSON.parse(fs.readFileSync(lease.path, 'utf8')); } catch { throw new Error('OPERATIONS_ACTIVATION_LEASE_INVALID'); }
+  try {
+    document = readOperationsActivationStateDocument(lease.path, {
+      expectedDirectory: lease.root,
+      expectedBasename: path.basename(lease.path)
+    }).value;
+  } catch {
+    throw new Error('OPERATIONS_ACTIVATION_LEASE_INVALID');
+  }
   if (document?.schemaVersion !== 2 || document?.runIdSha256 !== lease.runIdSha256 || document?.releaseSha !== lease.releaseSha
     || document?.approvalSha256 !== lease.approvalSha256 || document?.leaseId !== lease.leaseId
     || document?.processId !== lease.processId || document?.secretValuesRecorded !== false) {
