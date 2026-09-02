@@ -805,6 +805,14 @@
       "evidence": "failure-first 5/5; focused pair and handover regression 23/23 PASS; cross-file mutation 2/2 blocked; handover preflight dry-run READY_WAIT_P6_COMPLETION_AND_HANDOVER_INPUTS with contract error zero and 12 pending inputs; syntax 372/372; repository unit 708 PASS 7 skips; harness:verify PASS; GitHub quality 33595349963 unit and three-tier SUCCESS; actual P6 cutover and P7 handover NOT_RUN"
     },
     {
+      "id": "ACC-P7-61-ATOMIC-PHASE-COMPLETION-CONTROL-SNAPSHOT",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 actual handover 뒤 8/8 terminal completion이 사용하는 MASTER_ROADMAP.json과 P6_P7_ACCELERATION_QUEUE.json은 각각 한 번 읽은 actual bytes로 동일 pair snapshot을 구성하고 두 파일 전체의 read 전후 root/file identity·realpath·size 안정성을 검증해야 한다.",
+      "evidence": "failure-first 7/7; focused completion and handover regression 21/21 PASS; cross-file mutation 2/2 blocked; phase completion dry-run READY_WAIT_ACTUAL_HANDOVER_EVIDENCE_FOR_8_OF_8 with changes zero; syntax 374/374; repository unit 715 PASS 7 skips; harness:verify PASS; GitHub quality 33596294018 unit and three-tier SUCCESS; actual 8/8 completion NOT_RUN"
+    },
+    {
       "id": "ACC-P6-41-ATOMIC-PRODUCTION-UAT-INPUTS",
       "phase": "P6",
       "status": "EVIDENCE_COMPLETE",
