@@ -853,6 +853,14 @@
       "evidence": "failure-first 1/1; focused preflight and backup runtime regression 20/20 PASS; cutover preflight READY_WAIT_CHANGE_WINDOW with local blockers zero, backup 318811 bytes and manifest 673 bytes checksum verified; syntax 379/379; repository unit 726 PASS 7 skips; harness:verify PASS; GitHub quality 33601613188 unit and three-tier SUCCESS; actual cutover and external mutation NOT_RUN"
     },
     {
+      "id": "ACC-P6-48-BOUNDED-CUTOVER-PREFLIGHT-HTTP-CONTROL",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production cutover preflight의 health·readiness·anonymous API 응답은 각각 5초 timeout·declared/actual 1MiB 상한·fatal UTF-8·JSON object-only bounded reader로 소비하고 direct unbounded body buffering을 사용하지 않아야 한다.",
+      "evidence": "failure-first 1/1; focused HTTP and cutover preflight regression 14/14 PASS; actual three responses 36/241/134 bytes and exact 200/200/401 JSON objects; cutover preflight READY_WAIT_CHANGE_WINDOW with local blockers zero and smoke PASS; syntax 380/380; repository unit 727 PASS 7 skips; harness:verify PASS; GitHub quality 33602773238 unit and three-tier SUCCESS; actual cutover and external mutation NOT_RUN"
+    },
+    {
       "id": "ACC-P6-41-ATOMIC-PRODUCTION-UAT-INPUTS",
       "phase": "P6",
       "status": "EVIDENCE_COMPLETE",
