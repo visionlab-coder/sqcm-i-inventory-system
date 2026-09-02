@@ -363,6 +363,7 @@
           "p7-four-operations-runner-control-inputs-external-physical-4mib-json-reader-pass",
           "p7-three-operations-runner-secret-inputs-external-physical-64kib-utf8-reader-pass",
           "p7-slo-ledger-no-pre-gate-read-external-physical-64kib-utf8-reader-pass",
+          "p7-maintenance-runtime-10s-process-64kib-manifest-streaming-backup-pass",
           "p7-actual-https-30-day-append-only-slo-collector-ready",
           "p7-production-exact-tls-health-readiness-observer-ready",
           "p7-production-daily-maintenance-read-only-runner-ready",

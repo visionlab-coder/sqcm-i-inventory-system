@@ -677,6 +677,14 @@
       "evidence": "operations:slo-collector => READY_WAIT_P6_ACTUAL_CUTOVER with sampleCount 0, HTTP read and write zero; failure-first 3/3; focused 16 PASS 2 Windows skips; syntax 348/348; repository unit 606 PASS 6 skips; harness:verify PASS; actual ledger read and Production SLO collection NOT_RUN"
     },
     {
+      "id": "ACC-P7-48-BOUNDED-MAINTENANCE-RUNTIME",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 maintenance Docker 호출은 10초·기본 1MiB·로그 4MiB 상한과 엄격 결과 파싱을 사용하고, exact Production backup manifest는 physical UTF-8 JSON object·64KiB 이하·actual bytes/SHA-256으로 읽으며 dump는 physical root 안에서 bytes·streaming SHA-256을 검증한다.",
+      "evidence": "operations:maintenance-runner => READY_WAIT_P6_ACTUAL_CUTOVER with HTTP/runtime read and write zero; production:operational-health-baseline => health/readiness and 238533-byte backup checksum/restore PASS; failure-first 5/5; focused 21/21 PASS; syntax 349/349; repository unit 611 PASS 6 skips; harness:verify PASS; actual P7 maintenance execution NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
