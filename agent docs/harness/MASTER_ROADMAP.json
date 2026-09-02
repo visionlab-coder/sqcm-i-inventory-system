@@ -358,6 +358,7 @@
           "production-public-probe-native-dns-official-doh-fallback-pass",
           "p7-handover-finalizer-assembler-completion-external-physical-4mib-json-sha256-reader-pass",
           "p7-activation-approval-request-manifest-preflight-orchestrator-external-physical-4mib-json-sha256-reader-pass",
+          "p7-operations-signoff-assembler-ten-input-external-physical-4mib-json-sha256-reader-pass",
           "p7-actual-https-30-day-append-only-slo-collector-ready",
           "p7-production-exact-tls-health-readiness-observer-ready",
           "p7-production-daily-maintenance-read-only-runner-ready",
