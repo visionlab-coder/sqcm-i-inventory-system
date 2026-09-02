@@ -2,42 +2,42 @@ import { CUTOVER_GATE_SEQUENCE } from './production-cutover-orchestrator.mjs';
 
 export const CUTOVER_GATE_ADAPTER_PLAN = Object.freeze({
   artifact: [
-    { id: 'cutover-preflight', script: 'scripts/production-cutover-preflight.mjs', args: [], acceptedStatuses: ['READY_FOR_CHANGE_WINDOW_EXECUTION', 'READY_FOR_CUTOVER_SIGNOFF'] }
+    { id: 'cutover-preflight', script: 'scripts/production-cutover-preflight.mjs', args: [], environment: [], acceptedStatuses: ['READY_FOR_CHANGE_WINDOW_EXECUTION', 'READY_FOR_CUTOVER_SIGNOFF'] }
   ],
   backup_restore: [
-    { id: 'rollback-readiness', script: 'scripts/production-rollback-readiness.mjs', args: [], acceptedStatuses: ['PASS_ROLLBACK_READINESS_DRY_RUN_ONLY'] }
+    { id: 'rollback-readiness', script: 'scripts/production-rollback-readiness.mjs', args: [], environment: [], acceptedStatuses: ['PASS_ROLLBACK_READINESS_DRY_RUN_ONLY'] }
   ],
   migration_review: [
-    { id: 'migration-verify', script: 'scripts/db-verify-migrations.mjs', args: [], acceptedStatuses: ['PASS_EXIT_ZERO'] }
+    { id: 'migration-verify', script: 'scripts/db-verify-migrations.mjs', args: [], environment: ['MIGRATION_DATABASE_URL', 'DATABASE_URL', 'DB_MIGRATION_HISTORY_MODE'], acceptedStatuses: ['PASS_EXIT_ZERO'] }
   ],
   provider_preflight: [
-    { id: 'provider-preflight', script: 'scripts/production-provider-preflight.mjs', args: [], acceptedStatuses: ['PASS'] }
+    { id: 'provider-preflight', script: 'scripts/production-provider-preflight.mjs', args: [], environment: [], acceptedStatuses: ['PASS'] }
   ],
   health_readiness: [
-    { id: 'ingress-publication', script: 'scripts/production-ingress-publication.mjs', args: ['--execute'], acceptedStatuses: ['PASS_INGRESS_PUBLISHED_READY_FOR_TLS_PROBE'] },
-    { id: 'public-probe', script: 'scripts/production-public-probe.mjs', args: [], acceptedStatuses: ['PASS_PUBLIC_HEALTH_READINESS'] }
+    { id: 'ingress-publication', script: 'scripts/production-ingress-publication.mjs', args: ['--execute'], environment: ['CLOUDFLARE_PRODUCTION_DNS_API_TOKEN_FILE', 'PRODUCTION_INGRESS_CONFIRMATION', 'PRODUCTION_ROUTE_DISABLE_CONFIRMATION'], acceptedStatuses: ['PASS_INGRESS_PUBLISHED_READY_FOR_TLS_PROBE'] },
+    { id: 'public-probe', script: 'scripts/production-public-probe.mjs', args: [], environment: [], acceptedStatuses: ['PASS_PUBLIC_HEALTH_READINESS'] }
   ],
   core_smoke: [
-    { id: 'uat-actor-provision', script: 'scripts/production-uat-actor-provision.mjs', args: ['--execute'], acceptedStatuses: ['PASS_PRODUCTION_UAT_ACTORS_PROVISIONED'] },
-    { id: 'role-core-smoke', script: 'scripts/production-role-core-smoke.mjs', args: ['--public'], acceptedStatuses: ['PASS_PRODUCTION_ROLE_CORE_SMOKE'] }
+    { id: 'uat-actor-provision', script: 'scripts/production-uat-actor-provision.mjs', args: ['--execute'], environment: ['PRODUCTION_UAT_ACTOR_APPROVAL_FILE', 'PRODUCTION_UAT_ADMIN_CREDENTIAL_FILE', 'PRODUCTION_UAT_MANAGER_CREDENTIAL_FILE', 'PRODUCTION_UAT_USER_CREDENTIAL_FILE', 'PRODUCTION_UAT_ACTOR_PROVISION_CONFIRMATION'], acceptedStatuses: ['PASS_PRODUCTION_UAT_ACTORS_PROVISIONED'] },
+    { id: 'role-core-smoke', script: 'scripts/production-role-core-smoke.mjs', args: ['--public'], environment: ['PRODUCTION_UAT_ADMIN_CREDENTIAL_FILE', 'PRODUCTION_UAT_MANAGER_CREDENTIAL_FILE', 'PRODUCTION_UAT_USER_CREDENTIAL_FILE', 'PRODUCTION_PUBLIC_ROLE_SMOKE_CONFIRMATION'], acceptedStatuses: ['PASS_PRODUCTION_ROLE_CORE_SMOKE'] }
   ],
   csrf_idempotency: [
-    { id: 'authenticated-idempotency', script: 'scripts/production-authenticated-idempotency.mjs', args: ['--public'], acceptedStatuses: ['PASS_AUTHENTICATED_CSRF_IDEMPOTENCY'] }
+    { id: 'authenticated-idempotency', script: 'scripts/production-authenticated-idempotency.mjs', args: ['--public'], environment: ['PRODUCTION_UAT_ADMIN_CREDENTIAL_FILE', 'PRODUCTION_UAT_WRITE_CONFIRMATION'], acceptedStatuses: ['PASS_AUTHENTICATED_CSRF_IDEMPOTENCY'] }
   ],
   logs_5xx: [
-    { id: 'log-gate', script: 'scripts/production-log-gate.mjs', args: [], acceptedStatuses: ['PASS_LOGS_5XX'] }
+    { id: 'log-gate', script: 'scripts/production-log-gate.mjs', args: [], environment: [], acceptedStatuses: ['PASS_LOGS_5XX'] }
   ],
   nonfunctional: [
-    { id: 'nonfunctional-public', script: 'scripts/production-nonfunctional-baseline.mjs', args: ['--public'], acceptedStatuses: ['PASS_ACTUAL_PUBLIC_NONFUNCTIONAL_GATE'] }
+    { id: 'nonfunctional-public', script: 'scripts/production-nonfunctional-baseline.mjs', args: ['--public'], environment: ['PRODUCTION_PUBLIC_NONFUNCTIONAL_CONFIRMATION'], acceptedStatuses: ['PASS_ACTUAL_PUBLIC_NONFUNCTIONAL_GATE'] }
   ],
   operational_health: [
-    { id: 'operational-health-public', script: 'scripts/production-operational-health-baseline.mjs', args: ['--public'], acceptedStatuses: ['PASS_ACTUAL_POST_CUTOVER_OPERATIONAL_HEALTH'] }
+    { id: 'operational-health-public', script: 'scripts/production-operational-health-baseline.mjs', args: ['--public'], environment: ['PRODUCTION_PUBLIC_OPERATIONAL_HEALTH_CONFIRMATION'], acceptedStatuses: ['PASS_ACTUAL_POST_CUTOVER_OPERATIONAL_HEALTH'] }
   ],
   rollback: [
-    { id: 'rollback-readiness-final', script: 'scripts/production-rollback-readiness.mjs', args: [], acceptedStatuses: ['PASS_ROLLBACK_READINESS_DRY_RUN_ONLY'] }
+    { id: 'rollback-readiness-final', script: 'scripts/production-rollback-readiness.mjs', args: [], environment: [], acceptedStatuses: ['PASS_ROLLBACK_READINESS_DRY_RUN_ONLY'] }
   ],
   uat_signoff: [
-    { id: 'signoff-preflight', script: 'scripts/production-signoff-preflight.mjs', args: [], acceptedStatuses: ['READY_FOR_UAT_SIGNOFF_VALIDATION'] }
+    { id: 'signoff-preflight', script: 'scripts/production-signoff-preflight.mjs', args: [], environment: ['PRODUCTION_UAT_ADMIN_RESULT_FILE', 'PRODUCTION_UAT_MANAGER_RESULT_FILE', 'PRODUCTION_UAT_USER_RESULT_FILE', 'PRODUCTION_BUSINESS_SIGNOFF_FILE', 'PRODUCTION_SECURITY_SIGNOFF_FILE', 'PRODUCTION_OPERATIONS_SIGNOFF_FILE'], acceptedStatuses: ['READY_FOR_UAT_SIGNOFF_VALIDATION'] }
   ]
 });
 
@@ -45,6 +45,7 @@ export const CUTOVER_ROUTE_DISABLE_ADAPTER = Object.freeze({
   id: 'route-disable',
   script: 'scripts/production-route-disable.mjs',
   args: ['--execute'],
+  environment: ['CLOUDFLARE_PRODUCTION_DNS_API_TOKEN_FILE', 'PRODUCTION_ROUTE_DISABLE_CONFIRMATION'],
   acceptedStatuses: ['PASS_PUBLIC_ROUTE_DISABLED']
 });
 
@@ -52,6 +53,7 @@ export const CUTOVER_INGRESS_ORPHAN_RECOVERY_ADAPTER = Object.freeze({
   id: 'ingress-orphan-recovery',
   script: 'scripts/production-ingress-orphan-recovery.mjs',
   args: ['--execute'],
+  environment: ['PRODUCTION_INGRESS_ORPHAN_RECOVERY_CONFIRMATION'],
   acceptedStatuses: [
     'PASS_NO_INGRESS_PARTIAL_STATE',
     'PASS_NO_INGRESS_RECOVERY_TARGET_PROCESS_UNOBSERVED',
@@ -66,7 +68,7 @@ function validatePlanContract(plan) {
   for (const gate of CUTOVER_GATE_SEQUENCE) {
     if (!Array.isArray(plan[gate]) || plan[gate].length === 0) throw new Error(`CUTOVER_GATE_ADAPTER_STEPS_MISSING:${gate}`);
     for (const step of plan[gate]) {
-      if (typeof step.id !== 'string' || typeof step.script !== 'string' || !Array.isArray(step.args)
+      if (typeof step.id !== 'string' || typeof step.script !== 'string' || !Array.isArray(step.args) || !Array.isArray(step.environment)
         || !Array.isArray(step.acceptedStatuses) || step.acceptedStatuses.length === 0) {
         throw new Error(`CUTOVER_GATE_ADAPTER_STEP_INVALID:${gate}`);
       }

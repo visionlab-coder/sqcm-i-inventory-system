@@ -3,8 +3,54 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { writeCreateOnlyJsonOutput } from './operations-create-only-json-output.mjs';
+import {
+  CUTOVER_GATE_ADAPTER_PLAN,
+  CUTOVER_ROUTE_DISABLE_ADAPTER,
+  CUTOVER_INGRESS_ORPHAN_RECOVERY_ADAPTER
+} from './production-cutover-gate-adapters.mjs';
 
 export const PRODUCTION_CUTOVER_RECEIPT_ROOT = 'D:\\seowon_runtime\\sqcm-i-inventory-production\\cutover-receipts';
+
+const SAFE_CUTOVER_CHILD_RUNTIME_ENVIRONMENT = Object.freeze([
+  'PATH', 'PATHEXT', 'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'TEMP', 'TMP', 'TMPDIR',
+  'HOME', 'USERPROFILE', 'LOCALAPPDATA', 'APPDATA'
+]);
+
+const CANONICAL_CUTOVER_STEPS = Object.freeze([
+  ...Object.values(CUTOVER_GATE_ADAPTER_PLAN).flat(),
+  CUTOVER_ROUTE_DISABLE_ADAPTER,
+  CUTOVER_INGRESS_ORPHAN_RECOVERY_ADAPTER
+]);
+
+function sameStringArray(left, right) {
+  return Array.isArray(left) && Array.isArray(right) && JSON.stringify(left) === JSON.stringify(right);
+}
+
+function canonicalCutoverStep(step) {
+  const contract = CANONICAL_CUTOVER_STEPS.find((candidate) => candidate.id === step?.id);
+  if (!contract || contract.script !== step?.script || !sameStringArray(contract.args, step?.args)
+    || !sameStringArray(contract.environment, step?.environment)) {
+    throw new Error('CUTOVER_CHILD_STEP_CONTRACT_INVALID');
+  }
+  return contract;
+}
+
+function copyEnvironmentValue(target, source, name) {
+  const actualKey = Object.keys(source).find((key) => key.toUpperCase() === name);
+  if (actualKey !== undefined && source[actualKey] !== undefined) target[name] = String(source[actualKey]);
+}
+
+export function buildCutoverStepChildEnvironment(step, sourceEnvironment = {}) {
+  const contract = canonicalCutoverStep(step);
+  if (!sourceEnvironment || typeof sourceEnvironment !== 'object' || Array.isArray(sourceEnvironment)) {
+    throw new Error('CUTOVER_CHILD_ENVIRONMENT_SOURCE_INVALID');
+  }
+  const environment = {};
+  for (const name of [...SAFE_CUTOVER_CHILD_RUNTIME_ENVIRONMENT, ...contract.environment]) {
+    copyEnvironmentValue(environment, sourceEnvironment, name);
+  }
+  return environment;
+}
 
 export function extractLastJsonObject(text) {
   const source = String(text || '');
@@ -110,9 +156,9 @@ export function createRuntimeReceiptWriter({
   return writer;
 }
 
-export function spawnNodeStep({ script, args = [], cwd = process.cwd() } = {}) {
+export function spawnNodeStep({ script, args = [], cwd = process.cwd(), environment = {} } = {}) {
   return new Promise((resolve) => {
-    const child = spawn(process.execPath, [script, ...args], { cwd, windowsHide: true, env: process.env, stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(process.execPath, [script, ...args], { cwd, windowsHide: true, env: environment, stdio: ['ignore', 'pipe', 'pipe'] });
     let stdout = '';
     let stderr = '';
     child.stdout.setEncoding('utf8');
@@ -124,10 +170,11 @@ export function spawnNodeStep({ script, args = [], cwd = process.cwd() } = {}) {
   });
 }
 
-export function createProcessStepRunner({ spawnStep = spawnNodeStep, writeReceipt, cwd = process.cwd() } = {}) {
+export function createProcessStepRunner({ spawnStep = spawnNodeStep, writeReceipt, cwd = process.cwd(), sourceEnvironment = process.env } = {}) {
   if (typeof spawnStep !== 'function' || typeof writeReceipt !== 'function') throw new Error('CUTOVER_PROCESS_RUNNER_DEPENDENCY_INVALID');
   return async (step) => {
-    const raw = await spawnStep({ script: step.script, args: step.args, cwd });
+    const environment = buildCutoverStepChildEnvironment(step, sourceEnvironment);
+    const raw = await spawnStep({ script: step.script, args: step.args, cwd, environment });
     const outcome = normalizeStepOutcome({ ...raw, step });
     const summary = buildStepReceiptSummary(step, extractLastJsonObject(raw.stdout));
     const evidenceRef = await writeReceipt({ kind: 'step', gate: step.gate, step: step.id, status: outcome.status, exitCode: outcome.exitCode, summary });
