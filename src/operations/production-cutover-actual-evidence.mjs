@@ -5,6 +5,7 @@ import { TextDecoder } from 'node:util';
 import { CUTOVER_GATE_ADAPTER_PLAN } from './production-cutover-gate-adapters.mjs';
 import { PRODUCTION_CHANGE_WINDOW } from './production-cutover-preflight.mjs';
 import { validateActualCutoverProvenance } from './production-cutover-finalizer.mjs';
+import { productionRoleResultSetPublicationId } from './production-role-result-evidence.mjs';
 
 export const ACTUAL_CUTOVER_ASSEMBLY_CONFIRMATION = 'ACK-P6-ASSEMBLE-ACTUAL-CUTOVER-EVIDENCE';
 export const ACTUAL_TARGET_URL = 'https://inventory.safe-link.co.kr';
@@ -65,7 +66,9 @@ function validReceiptDocument(document, runId) {
     && value?.productionGo === false && ['step', 'gate'].includes(value?.kind);
 }
 
-function validateRoleResult(document, { role, runId, releaseTag, coreGateSha }) {
+function validateRoleResult(document, {
+  role, runId, releaseTag, coreGateSha, roleStepSha, resultSetPublicationId
+}) {
   const value = document?.value;
   return SHA256.test(document?.sha256 || '') && value?.schemaVersion === 1
     && value?.template === false && value?.evidenceType === 'P6_ROLE_UAT_RESULT_ACTUAL'
@@ -73,6 +76,8 @@ function validateRoleResult(document, { role, runId, releaseTag, coreGateSha }) 
     && value?.targetUrl === ACTUAL_TARGET_URL && value?.releaseTag === releaseTag
     && value?.runId === runId && value?.role === role && value?.status === 'PASS'
     && value?.actualProduction === true && value?.coreSmokeGateReceiptSha256 === coreGateSha
+    && value?.roleSmokeStepReceiptSha256 === roleStepSha
+    && value?.resultSetPublicationId === resultSetPublicationId
     && inWindow(value?.checkedAt);
 }
 
@@ -112,8 +117,20 @@ export function assembleActualCutoverEvidence({ receiptDocuments = [], roleResul
   }
 
   const coreGateSha = gateDocuments.get('core_smoke')?.sha256 || '';
+  const roleStepSha = stepDocuments.get('core_smoke:role-core-smoke')?.sha256 || '';
+  const roleCheckedAt = roleResultDocuments.ADMIN?.value?.checkedAt;
+  const resultSetPublicationId = productionRoleResultSetPublicationId({
+    runId, releaseSha, coreGateSha, roleStepSha, checkedAt: roleCheckedAt
+  });
+  if (!SHA256.test(resultSetPublicationId)
+    || !Object.keys(ROLE_MAP).every((role) => roleResultDocuments[role]?.value?.resultSetPublicationId === resultSetPublicationId
+      && roleResultDocuments[role]?.value?.checkedAt === roleCheckedAt)) {
+    failures.push('ROLE_RESULT_SET_PROVENANCE_INVALID');
+  }
   for (const role of Object.keys(ROLE_MAP)) {
-    if (!validateRoleResult(roleResultDocuments[role], { role, runId, releaseTag, coreGateSha })) failures.push(`${role}_ACTUAL_ROLE_RESULT_INVALID`);
+    if (!validateRoleResult(roleResultDocuments[role], {
+      role, runId, releaseTag, coreGateSha, roleStepSha, resultSetPublicationId
+    })) failures.push(`${role}_ACTUAL_ROLE_RESULT_INVALID`);
   }
   for (const area of ['BUSINESS', 'SECURITY', 'OPERATIONS']) {
     if (!validateSignoff(signoffDocuments[area], { area, runId, releaseTag, coreGateSha })) failures.push(`${area}_ACTUAL_SIGNOFF_INVALID`);

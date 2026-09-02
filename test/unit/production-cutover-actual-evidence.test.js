@@ -29,8 +29,10 @@ async function completeInput() {
     receiptDocuments.push({ fileName, sha256: sha(fileName), value: { schemaVersion: 1, runId, checkedAt, kind: 'gate', gate, step: 'summary', status: 'PASS', exitCode: 0, evidenceRefs: refs, productionGo: false } });
   }
   const coreGateSha = receiptDocuments.find((document) => document.value.kind === 'gate' && document.value.gate === 'core_smoke').sha256;
+  const roleStepSha = receiptDocuments.find((document) => document.value.kind === 'step' && document.value.step === 'role-core-smoke').sha256;
+  const resultSetPublicationId = sha(JSON.stringify({ runId, releaseSha, coreGateSha, roleStepSha, checkedAt }));
   const roleResultDocuments = Object.fromEntries(['ADMIN', 'MANAGER', 'USER'].map((role) => [role, {
-    fileName: `${role}.json`, sha256: sha(role), value: { schemaVersion: 1, template: false, evidenceType: 'P6_ROLE_UAT_RESULT_ACTUAL', environment: 'production', activationState: 'actual', targetUrl: 'https://inventory.safe-link.co.kr', releaseTag, runId, role, status: 'PASS', actualProduction: true, coreSmokeGateReceiptSha256: coreGateSha, checkedAt }
+    fileName: `${role}.json`, sha256: sha(role), value: { schemaVersion: 1, template: false, evidenceType: 'P6_ROLE_UAT_RESULT_ACTUAL', environment: 'production', activationState: 'actual', targetUrl: 'https://inventory.safe-link.co.kr', releaseTag, runId, role, status: 'PASS', actualProduction: true, resultSetPublicationId, coreSmokeGateReceiptSha256: coreGateSha, roleSmokeStepReceiptSha256: roleStepSha, checkedAt }
   }]));
   const signoffDocuments = Object.fromEntries(['BUSINESS', 'SECURITY', 'OPERATIONS'].map((area) => [area, {
     fileName: `${area}.json`, sha256: sha(area), value: { schemaVersion: 1, template: false, evidenceType: 'P6_CUTOVER_SIGNOFF_ACTUAL', environment: 'production', activationState: 'actual', targetUrl: 'https://inventory.safe-link.co.kr', releaseTag, runId, area, decision: 'APPROVED', signedByRef: `identity://${area.toLowerCase()}-owner`, signedAt: checkedAt, coreSmokeGateReceiptSha256: coreGateSha }
@@ -67,6 +69,15 @@ test('다른 run 역할 결과와 서명 identity 오류를 거부한다', async
   const result = assembleActualCutoverEvidence(input);
   assert.ok(result.failures.includes('ADMIN_ACTUAL_ROLE_RESULT_INVALID'));
   assert.ok(result.failures.includes('SECURITY_ACTUAL_SIGNOFF_INVALID'));
+});
+
+test('서로 다른 publication set의 역할 결과를 혼합하면 actual P6 증거로 승격하지 않는다', async () => {
+  const { assembleActualCutoverEvidence } = await modulePromise;
+  const input = await completeInput();
+  input.roleResultDocuments.MANAGER.value.resultSetPublicationId = 'f'.repeat(64);
+  const result = assembleActualCutoverEvidence(input);
+  assert.ok(result.failures.includes('ROLE_RESULT_SET_PROVENANCE_INVALID'));
+  assert.equal(result.productionGo, false);
 });
 
 test('contract template은 actual 역할 결과나 서명으로 승격하지 않는다', async () => {

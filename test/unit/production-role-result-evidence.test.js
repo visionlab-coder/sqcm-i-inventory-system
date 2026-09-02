@@ -29,6 +29,8 @@ test('actual Production 역할 summary에서 세 역할 결과 문서를 컴파�
   assert.equal(result.status, 'PASS_PRODUCTION_ROLE_RESULT_EVIDENCE');
   assert.deepEqual(Object.keys(result.documents), ['ADMIN', 'MANAGER', 'USER']);
   assert.ok(Object.values(result.documents).every((document) => document.template === false && document.actualProduction === true));
+  assert.equal(new Set(Object.values(result.documents).map((document) => document.resultSetPublicationId)).size, 1);
+  assert.match(result.documents.ADMIN.resultSetPublicationId, /^[a-f0-9]{64}$/);
   assert.equal(result.productionGo, false);
 });
 
@@ -49,7 +51,7 @@ test('MFA·RBAC 역조건이 하나라도 다르면 역할 결과를 만들지 �
   assert.ok(result.failures.includes('ROLE_SMOKE_MANAGER_ADMIN_EXPECTED_403'));
 });
 
-test('세 역할 결과는 저장소 밖에 전부 또는 0건으로 원자 작성하고 덮어쓰지 않는다', async () => {
+test('세 역할 결과는 저장소 밖에 create-only로 작성하고 덮어쓰지 않는다', async () => {
   const { compileProductionRoleResultEvidence, writeProductionRoleResultEvidence } = await modulePromise;
   const result = compileProductionRoleResultEvidence(input());
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-role-results-'));
@@ -60,4 +62,50 @@ test('세 역할 결과는 저장소 밖에 전부 또는 0건으로 원자 작�
     assert.throws(() => writeProductionRoleResultEvidence(outputs, result.documents, { repositoryRoot: path.join(root, 'different-repo') }), /ALREADY_EXISTS/);
     assert.equal(fs.readdirSync(root).filter((name) => name.includes('.tmp-')).length, 0);
   } finally { fs.rmSync(root, { recursive: true }); }
+});
+
+test('사전 확인 가능한 후속 역할 출력 충돌은 어떤 결과도 게시하지 않는다', async (t) => {
+  const { compileProductionRoleResultEvidence, writeProductionRoleResultEvidence } = await modulePromise;
+  const result = compileProductionRoleResultEvidence(input());
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-role-results-existing-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const outputs = Object.fromEntries(['ADMIN', 'MANAGER', 'USER'].map((role) => [role, path.join(root, `${role}.json`)]));
+  fs.writeFileSync(outputs.MANAGER, '{"owner":"existing"}\n', { flag: 'wx' });
+  assert.throws(
+    () => writeProductionRoleResultEvidence(outputs, result.documents, {
+      repositoryRoot: path.join(root, 'different-repo')
+    }),
+    /ROLE_RESULT_OUTPUT_ALREADY_EXISTS/
+  );
+  assert.equal(fs.existsSync(outputs.ADMIN), false);
+  assert.deepEqual(JSON.parse(fs.readFileSync(outputs.MANAGER, 'utf8')), { owner: 'existing' });
+  assert.equal(fs.existsSync(outputs.USER), false);
+});
+
+test('두 번째 역할 출력 경쟁 시 기존 증거를 삭제하지 않고 partial commit으로 중단한다', async (t) => {
+  const { compileProductionRoleResultEvidence, writeProductionRoleResultEvidence } = await modulePromise;
+  const result = compileProductionRoleResultEvidence(input());
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-role-results-race-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const outputs = Object.fromEntries(['ADMIN', 'MANAGER', 'USER'].map((role) => [role, path.join(root, `${role}.json`)]));
+  const realLink = fs.linkSync.bind(fs);
+  const io = {
+    ...fs,
+    linkSync(sourcePath, outputPath) {
+      if (path.resolve(outputPath) === path.resolve(outputs.MANAGER)) {
+        fs.writeFileSync(outputPath, '{"owner":"competing-run"}\n', { flag: 'wx' });
+      }
+      return realLink(sourcePath, outputPath);
+    }
+  };
+  assert.throws(
+    () => writeProductionRoleResultEvidence(outputs, result.documents, {
+      repositoryRoot: path.join(root, 'different-repo'), processId: 1200, io
+    }),
+    /ROLE_RESULT_OUTPUT_SET_PARTIAL_COMMIT:1_OF_3/
+  );
+  assert.equal(JSON.parse(fs.readFileSync(outputs.ADMIN, 'utf8')).role, 'ADMIN');
+  assert.deepEqual(JSON.parse(fs.readFileSync(outputs.MANAGER, 'utf8')), { owner: 'competing-run' });
+  assert.equal(fs.existsSync(outputs.USER), false);
+  assert.equal(fs.readdirSync(root).some((name) => name.endsWith('.tmp')), false);
 });

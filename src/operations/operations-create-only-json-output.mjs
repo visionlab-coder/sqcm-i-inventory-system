@@ -9,8 +9,7 @@ function physicalDirectory(directory, io) {
     && path.resolve(io.realpathSync(directory)).toLowerCase() === path.resolve(directory).toLowerCase();
 }
 
-export function writeCreateOnlyJsonOutput(outputPath, value, {
-  processId = process.pid,
+export function assertCreateOnlyJsonOutputReady(outputPath, {
   io = fs,
   alreadyExistsCode = 'OUTPUT_ALREADY_EXISTS'
 } = {}) {
@@ -20,8 +19,17 @@ export function writeCreateOnlyJsonOutput(outputPath, value, {
     throw new Error('OUTPUT_DIRECTORY_MISSING_OR_NOT_PHYSICAL');
   }
   if (io.existsSync(output)) throw new Error(alreadyExistsCode);
+  return output;
+}
 
-  const temporary = path.join(directory, `.${path.basename(output)}.${processId}.tmp`);
+export function writeCreateOnlyJsonOutput(outputPath, value, {
+  processId = process.pid,
+  io = fs,
+  alreadyExistsCode = 'OUTPUT_ALREADY_EXISTS'
+} = {}) {
+  const output = assertCreateOnlyJsonOutputReady(outputPath, { io, alreadyExistsCode });
+
+  const temporary = path.join(path.dirname(output), `.${path.basename(output)}.${processId}.tmp`);
   let handle;
   try {
     handle = io.openSync(temporary, 'wx', 0o600);
