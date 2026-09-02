@@ -114,3 +114,8 @@ test('복구 진입점은 no-force exact UUID delete 후 원격 부재를 확인
   assert.match(script, /PRODUCTION_INGRESS_ORPHAN_RECOVERY_CONFIRMATION/);
   assert.match(script, /secretValuesReadOrRecorded:\s*false/);
 });
+
+test('orphan 복구 confirmation은 변경창 입력 Gate에서 사전 무장을 금지한다', async () => {
+  const { MUTATING_CONFIRMATION_NAMES } = await import('../../src/operations/production-change-window-input-readiness.mjs');
+  assert.ok(MUTATING_CONFIRMATION_NAMES.includes('PRODUCTION_INGRESS_ORPHAN_RECOVERY_CONFIRMATION'));
+});
