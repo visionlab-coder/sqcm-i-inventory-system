@@ -1,0 +1,49 @@
+{
+  "packet": "ACC-P6-56-ATOMIC-HARNESS-CONTROL-SNAPSHOT",
+  "status": "PASS_ATOMIC_HARNESS_CONTROL_SNAPSHOT",
+  "failureFirst": {
+    "expectedFailures": 1,
+    "observedFailures": 1,
+    "reason": "goal harness still used direct independent roadmap and queue reads"
+  },
+  "focusedTests": { "total": 9, "passed": 9, "failed": 0, "skipped": 0 },
+  "controlSnapshotContract": {
+    "files": [
+      "agent docs/harness/MASTER_ROADMAP.json",
+      "agent docs/harness/P6_P7_ACCELERATION_QUEUE.json"
+    ],
+    "maximumBytesPerFile": 1048576,
+    "physicalRegularFileRequired": true,
+    "singleReadPerFile": true,
+    "crossFileReadAfterStabilityRequired": true,
+    "fatalUtf8Required": true,
+    "jsonObjectRequired": true,
+    "directIndependentReadCount": 0
+  },
+  "cutoverPreflight": {
+    "status": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockerCount": 0,
+    "protectedServicesPreserved": true,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "syntaxChecks": { "passed": 390, "failed": 0 },
+  "unitTests": { "total": 756, "passed": 749, "failed": 0, "skipped": 7 },
+  "harnessVerify": {
+    "parallelAttempt": "FAIL_QUALITY_RESOURCE_COLLISION",
+    "sequentialRetry": "PASS",
+    "finalResult": "PASS"
+  },
+  "implementationCommit": "8bf66da34fd91100fb3a9f01dd6b12655f4d1960",
+  "qualityCi": {
+    "runId": 33613155608,
+    "testedHeadSha": "8bf66da34fd91100fb3a9f01dd6b12655f4d1960",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "secretValuesReadOrRecorded": false,
+  "externalMutationPerformed": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}
