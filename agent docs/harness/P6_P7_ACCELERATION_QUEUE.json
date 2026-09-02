@@ -1229,6 +1229,14 @@
       "evidence": "failure-first missing module reproduced; focused 5/5 PASS; syntax 420/420; repository unit 876 PASS 8 skips; Harness verify includes assembler dry-run; dry-run READY_WAIT_APPROVED_CHANGE_WINDOW with input read zero and output write zero; implementation SHA f58a8d20f71eb475d3ce5fd498417acc27674fc5; GitHub quality 33668644886 unit and three-tier SUCCESS; actual MFA approval, signoff, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-94-SIGNOFF-ASSEMBLER-CUTOVER-RESUME-INTEGRATION",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "외부 MFA 승인 receipt 이후 actual signoff 3건 조립, 동일 run Gate 12 재개와 최종 P6 evidence 기록이 한 실행 흐름이며 사전 입력 누락은 무읽기·무쓰기, 부분 출력 또는 조립 실패는 route-disable로 fail-closed한다.",
+      "evidence": "failure-first 4 reproduced; focused 21/21 PASS; syntax 420/420; repository unit 880 PASS 8 skips; Harness verify registers atomic resume dry-run; implementation SHA cb3ce8e28c7b5e33729972fbd647993ceb096699; GitHub quality 33670549078 unit and three-tier SUCCESS; actual MFA approval, signoff, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

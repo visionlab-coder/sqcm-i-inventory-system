@@ -347,6 +347,8 @@ P6-G3에서 후보 `e238ab8dab7f…`의 원격 일치, GitHub-hosted quality와 
 
 `ACC-P6-93`에서 unsigned request bundle과 외부 MFA 승인 receipt 3건을 실제 업무·보안·운영 서명 JSON 3건으로 조립하는 `production:signoff-actual-evidence`를 준비했다. 변경창과 exact confirmation 전에는 input read·output write가 0건이며, 실행 시 동일 request set·bundle SHA·run·release·서명자·시각·MFA provider identity·고유 receipt ID를 검증하고 저장소 밖 create-only 출력만 허용한다. failure-first 구현 부재를 재현한 뒤 focused 5/5, 구문 420/420, 단위 876 PASS·8 SKIP, Harness verify와 GitHub quality `33668644886`의 unit·three-tier를 통과했다. 실제 승인·MFA receipt·서명·DNS/TLS·cutover는 `NOT_RUN`이고 전체 상태는 6/8·`productionGo=false`다.
 
+`ACC-P6-94`에서 `production:cutover-execute -- --resume-signoff --assemble-signoffs --execute`가 실제 signoff 3건 조립, 동일 run Gate 12, 최종 actual P6 evidence 기록을 한 흐름으로 수행하도록 연결했다. 변경창·resume 확인·역할 결과·MFA receipt·request bundle·두 조립 확인·외부 신규 출력이 모두 준비되기 전에는 signoff를 읽거나 쓰지 않으며, partial signoff set과 조립·최종화 실패는 exact route-disable 증거를 요구한다. failure-first 4건 뒤 focused 21/21, 구문 420/420, 단위 880 PASS·8 SKIP, Harness verify와 GitHub Quality `33670549078`의 unit·three-tier를 통과했다. 실제 승인·MFA receipt·서명·DNS/TLS·cutover는 `NOT_RUN`이고 전체 상태는 6/8·`productionGo=false`다.
+
 # Phase 74 불변 이미지 릴리스 게이트 (2026-08-15)
 
 - GitHub Actions 외부 참조를 공식 commit SHA로 고정하고, main의 정확한 SHA로 frontend/backend 이미지를 GHCR에 발행하는 workflow를 추가했다.
