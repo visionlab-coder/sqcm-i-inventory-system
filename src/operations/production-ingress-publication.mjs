@@ -8,6 +8,43 @@ export const PRODUCTION_INGRESS_TARGET = Object.freeze({
   configPath: 'D:\\seowon_runtime\\sqcm-i-inventory-production\\cloudflared.yml'
 });
 
+const CLOUDFLARE_IDENTIFIER_PATTERN = /^[a-f0-9]{32}$/i;
+const TUNNEL_CNAME_PATTERN = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.cfargotunnel\.com$/i;
+
+export function selectProductionIngressZone({ zones, expectedName } = {}) {
+  if (expectedName !== PRODUCTION_INGRESS_TARGET.zone || !Array.isArray(zones) || zones.length !== 1) {
+    throw new Error('INGRESS_DNS_ZONE_IDENTITY_INVALID');
+  }
+  const selected = zones[0];
+  if (!selected || !CLOUDFLARE_IDENTIFIER_PATTERN.test(selected.id ?? '')
+    || selected.name !== expectedName || selected.status !== 'active') {
+    throw new Error('INGRESS_DNS_ZONE_IDENTITY_INVALID');
+  }
+  return selected;
+}
+
+export function selectProductionIngressDnsRecord({ records, zoneId, hostname, expectedContent } = {}) {
+  if (!CLOUDFLARE_IDENTIFIER_PATTERN.test(zoneId ?? '')
+    || hostname !== PRODUCTION_INGRESS_TARGET.hostname
+    || !TUNNEL_CNAME_PATTERN.test(expectedContent ?? '')) {
+    throw new Error('INGRESS_DNS_RECORD_TARGET_INVALID');
+  }
+  if (!Array.isArray(records)) throw new Error('INGRESS_DNS_RECORD_RESPONSE_INVALID');
+  if (records.length > 1) throw new Error('INGRESS_DNS_RECORD_IDENTITY_AMBIGUOUS');
+  if (records.length === 0) return null;
+  const selected = records[0];
+  if (!selected || !CLOUDFLARE_IDENTIFIER_PATTERN.test(selected.id ?? '')
+    || selected.zone_id !== zoneId
+    || selected.name !== hostname
+    || selected.type !== 'CNAME'
+    || selected.content !== expectedContent
+    || selected.proxied !== true
+    || selected.ttl !== 1) {
+    throw new Error('INGRESS_DNS_RECORD_TARGET_INVALID');
+  }
+  return selected;
+}
+
 export function evaluateProductionIngressPublicationGate(input) {
   const failures = [];
   for (const key of ['zone', 'hostname', 'tunnelName', 'origin', 'runtimeDirectory', 'configPath']) {

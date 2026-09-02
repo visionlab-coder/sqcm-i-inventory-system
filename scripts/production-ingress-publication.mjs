@@ -9,7 +9,9 @@ import {
   PRODUCTION_INGRESS_CONFIRMATION,
   PRODUCTION_INGRESS_TARGET,
   classifyProductionIngressPublicationResult,
-  evaluateProductionIngressPublicationGate
+  evaluateProductionIngressPublicationGate,
+  selectProductionIngressDnsRecord,
+  selectProductionIngressZone
 } from '../src/operations/production-ingress-publication.mjs';
 import {
   acquireProductionIngressPublicationLease,
@@ -169,18 +171,24 @@ if (gate.status !== 'READY_INGRESS_PUBLICATION_EXECUTION') {
     const token = readOperationsSecretInput(process.env[TOKEN_ENV], { repositoryRoot: projectRoot }).value;
     if (token.length < 20) throw new Error('Cloudflare rollback token reference contract is invalid.');
     const zones = await cloudflare(token, `/zones?name=${encodeURIComponent(PRODUCTION_INGRESS_TARGET.zone)}&status=active&match=all`);
-    if (zones.length !== 1) throw new Error('Exactly one active Cloudflare zone is required.');
-    const zoneId = zones[0].id;
+    const selectedZone = selectProductionIngressZone({ zones, expectedName: PRODUCTION_INGRESS_TARGET.zone });
+    const zoneId = selectedZone.id;
     const recordsPath = `/zones/${zoneId}/dns_records?name=${encodeURIComponent(PRODUCTION_INGRESS_TARGET.hostname)}&per_page=100`;
     let records = await cloudflare(token, recordsPath);
     const expectedContent = `${tunnelId}.cfargotunnel.com`;
-    if (records.length > 1 || (records.length === 1 && (records[0].type !== 'CNAME' || records[0].content !== expectedContent || records[0].proxied !== true))) throw new Error('Existing Production DNS record is not the exact approved proxied tunnel route.');
-    if (records.length === 0) {
+    let selectedRecord = selectProductionIngressDnsRecord({
+      records, zoneId, hostname: PRODUCTION_INGRESS_TARGET.hostname, expectedContent
+    });
+    if (!selectedRecord) {
       await cloudflare(token, `/zones/${zoneId}/dns_records`, { method: 'POST', body: JSON.stringify({ type: 'CNAME', name: PRODUCTION_INGRESS_TARGET.hostname, content: expectedContent, proxied: true, ttl: 1 }) });
       dnsRecordCreated = true;
       records = await cloudflare(token, recordsPath);
+      selectedRecord = selectProductionIngressDnsRecord({
+        records, zoneId, hostname: PRODUCTION_INGRESS_TARGET.hostname, expectedContent
+      });
+      if (!selectedRecord) throw new Error('INGRESS_DNS_RECORD_CREATION_NOT_OBSERVED');
     }
-    const dnsRecordExact = records.length === 1 && records[0].type === 'CNAME' && records[0].content === expectedContent && records[0].proxied === true;
+    const dnsRecordExact = selectedRecord !== null;
     const finalDnsObservation = await publicDnsPublished();
     const classification = classifyProductionIngressPublicationResult({ configValid: true, tunnelConnected, dnsRecordExact, publicDnsPublished: finalDnsObservation.succeeded && finalDnsObservation.published });
     leaseReleased = releaseProductionIngressPublicationLease(lease);
