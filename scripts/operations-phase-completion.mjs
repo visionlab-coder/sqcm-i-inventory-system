@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { loadActualOperationsHandoverBundle, readActualOperationsHandoverEvidenceFile, validateActualOperationsHandoverEvidence } from '../src/operations/operations-handover-finalizer.mjs';
 import { P7_COMPLETION_CONFIRMATION, completeCurrentStateDocument, completeRoadmapDocument, evaluateP7Completion } from '../src/operations/operations-phase-completion.mjs';
+import { readOperationsPhaseCompletionControlSnapshot } from '../src/operations/operations-phase-completion-control-snapshot.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const files = { roadmap: path.join(root, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), queue: path.join(root, 'agent docs', 'harness', 'P6_P7_ACCELERATION_QUEUE.json'), current: path.join(root, 'docs', 'current-state.md'), roadmapDoc: path.join(root, 'docs', 'roadmap.md') };
@@ -16,8 +17,9 @@ try {
   const loaded = readActualOperationsHandoverEvidenceFile(input, { repositoryRoot: root });
   const actualEvidence = loaded.value;
   const validation = validateActualOperationsHandoverEvidence(actualEvidence, { documents: loadActualOperationsHandoverBundle(actualEvidence, { baseDir: path.dirname(loaded.path), repositoryRoot: root }) });
-  const roadmap = JSON.parse(fs.readFileSync(files.roadmap, 'utf8'));
-  const queue = JSON.parse(fs.readFileSync(files.queue, 'utf8'));
+  const control = readOperationsPhaseCompletionControlSnapshot(root);
+  const roadmap = control.roadmap.value;
+  const queue = control.queue.value;
   const result = evaluateP7Completion({ roadmap, queue, actualEvidence, actualEvidenceSha256: loaded.sha256, validation, execute: process.argv.includes('--complete'), confirmation: process.env.P7_COMPLETION_CONFIRMATION });
   if (result.status !== 'READY_APPLY_P7_COMPLETION') {
     console.log(JSON.stringify({ ...result, expectedConfirmation: P7_COMPLETION_CONFIRMATION }, null, 2));
