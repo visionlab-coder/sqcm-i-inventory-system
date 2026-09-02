@@ -22,7 +22,6 @@ function waiting(status, missing = []) {
     externalApprovalCreated: false, productionGo: false
   };
 }
-
 export function evaluateProductionActualSignoffGate({
   insideWindow = false, inputReferencesReady = false, outputsConfigured = false,
   outputsExist = false, assemble = false, confirmed = false
@@ -187,4 +186,3 @@ export function writeProductionActualSignoffDocuments(outputPaths, documents, {
     throw error;
   }
 }
-

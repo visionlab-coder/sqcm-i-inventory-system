@@ -94,4 +94,3 @@ console.log(JSON.stringify({
   externalMutationPerformed: outputDocumentCreatedCount > 0,
   secretValuesReadOrRecorded: false, productionGo: false
 }, null, 2));
-
