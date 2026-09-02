@@ -138,6 +138,7 @@ flowchart LR
 - `ACC-P6-46`에서 rollback readiness의 G3 증거 direct read를 physical JSON·1MiB·realpath·read-after 안정성·fatal UTF-8·object-only bounded reader로 교체했다. 실제 Production 이미지 revision·필수 volume 2/2·과거 drill·backup/restore는 PASS지만 실제 rollback은 `NOT_RUN`이다.
 - `ACC-P6-47`에서 cutover preflight의 backup manifest 직접 무제한 read를 제거하고 exact Production physical manifest 64KiB·realpath·fatal UTF-8·object-only 검증과 실제 dump bytes·streaming SHA-256·restore evidence를 결합했다. 최신 backup 318,811 bytes와 manifest 673 bytes가 PASS했지만 실제 cutover는 `NOT_RUN`이다.
 - `ACC-P6-48`에서 cutover preflight의 health·readiness·anonymous API 응답 직접 무제한 `arrayBuffer()`를 제거하고 각 응답을 5초·1MiB·fatal UTF-8·JSON object-only로 검증했다. 실제 세 응답은 36/241/134 bytes와 exact 200/200/401로 PASS했지만 실제 cutover는 `NOT_RUN`이다.
+- `ACC-P6-49`에서 ingress publication·route-disable의 Cloudflare API와 authoritative DoH A/CNAME 직접 무제한 `response.json()`을 제거하고 API 10초·DoH 5초·1MiB·fatal UTF-8·JSON object-only 공용 reader를 적용했다. 과대 공급자 응답의 게시·미게시 성공 승격을 차단했지만 실제 tunnel·DNS/TLS 변경은 `NOT_RUN`이다.
 
 ## 6. Phase 갱신 절차
 

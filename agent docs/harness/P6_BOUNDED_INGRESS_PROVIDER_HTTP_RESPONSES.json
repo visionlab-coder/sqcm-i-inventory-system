@@ -1,0 +1,39 @@
+{
+  "packet": "ACC-P6-49-BOUNDED-INGRESS-PROVIDER-HTTP-RESPONSES",
+  "status": "PASS_BOUNDED_INGRESS_PROVIDER_HTTP_RESPONSES",
+  "failureFirst": { "expectedFailures": 1, "observedFailures": 1 },
+  "focusedTests": { "total": 27, "passed": 27, "failed": 0, "skipped": 0 },
+  "providerResponseContract": {
+    "consumers": ["CLOUDFLARE_API", "CLOUDFLARE_DOH_A", "CLOUDFLARE_DOH_CNAME"],
+    "maximumBytesPerResponse": 1048576,
+    "providerTimeoutMilliseconds": 10000,
+    "dnsTimeoutMilliseconds": 5000,
+    "fatalUtf8Required": true,
+    "jsonObjectRequired": true,
+    "directResponseJsonCount": 0,
+    "oversizeRejectedBeforeBodyRead": true
+  },
+  "dryRuns": {
+    "ingressPublication": "READY_WAIT_INGRESS_PUBLICATION_INPUTS",
+    "routeDisable": "READY_WAIT_ROUTE_DISABLE_INPUTS",
+    "cutoverPreflight": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockerCount": 0,
+    "externalMutationPerformed": false,
+    "protectedServicesPreserved": true,
+    "productionGo": false
+  },
+  "syntaxChecks": { "passed": 381, "failed": 0 },
+  "unitTests": { "total": 737, "passed": 730, "failed": 0, "skipped": 7 },
+  "harnessVerify": "PASS",
+  "implementationCommit": "7b4fa3ea3658022ebc6959f5f4a102a4d3727dbd",
+  "qualityCi": {
+    "runId": 33604109099,
+    "testedHeadSha": "7b4fa3ea3658022ebc6959f5f4a102a4d3727dbd",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "secretValuesReadOrRecorded": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}
