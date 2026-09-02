@@ -1,0 +1,44 @@
+{
+  "packet": "ACC-P7-51-BOUNDED-OPERATIONS-PREFLIGHT-HTTP-RESPONSES",
+  "status": "PASS_BOUNDED_OPERATIONS_PREFLIGHT_HTTP_RESPONSES",
+  "failureFirst": { "expectedFailures": 5, "observedFailures": 5 },
+  "focusedTests": { "total": 5, "passed": 5, "failed": 0, "skipped": 0 },
+  "syntaxChecks": { "passed": 353, "failed": 0 },
+  "unitTests": { "total": 631, "passed": 625, "failed": 0, "skipped": 6 },
+  "responseContract": {
+    "requestTimeoutMs": 10000,
+    "maximumBytes": 1048576,
+    "contentLengthPrecheck": true,
+    "actualChunkBytesChecked": true,
+    "oversizeReaderCancelled": true,
+    "malformedContentLengthRejected": true,
+    "oidcFatalUtf8Required": true,
+    "oidcJsonObjectRequired": true,
+    "rawResponseAndErrorsRedacted": true
+  },
+  "readOnlyVerification": {
+    "templatePreflight": "PASS",
+    "operationsContracts": "PASS",
+    "liveProviderProbePerformed": false,
+    "externalHttpReadPerformedByOperationsPreflight": false,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "implementationCommit": "46489a50e9d6e82e3cb96ae8b807b0773c0d5d9a",
+  "qualityCi": {
+    "runId": 33582520819,
+    "testedHeadSha": "46489a50e9d6e82e3cb96ae8b807b0773c0d5d9a",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "harnessVerify": { "exitCode": 0, "status": "PASS" },
+  "actualLiveProviderProbePerformed": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

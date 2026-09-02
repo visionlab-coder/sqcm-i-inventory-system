@@ -701,6 +701,14 @@
       "evidence": "operations:improvement-queue-collector => READY_WAIT_P6_ACTUAL_CUTOVER with GitHub read/secret/write zero; failure-first 4/4 over 5 attacks; focused 10/10 PASS; syntax 351/351; repository unit 620 PASS 6 skips; harness:verify PASS; GitHub quality 33581546968 unit and three-tier SUCCESS; actual collection NOT_RUN"
     },
     {
+      "id": "ACC-P7-51-BOUNDED-OPERATIONS-PREFLIGHT-HTTP-RESPONSES",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Operations provider preflight의 OIDC discovery와 AI health/readiness GET 응답은 요청 10초, declared·actual 1MiB 상한, oversize reader 취소를 사용하고 OIDC는 fatal UTF-8 JSON object만 허용하며 무제한 arrayBuffer/json buffering과 오류 원문 노출을 금지한다.",
+      "evidence": "operations:preflight template and operations:contracts PASS without live probe; failure-first 5/5; focused 5/5 PASS; syntax 353/353; repository unit 625 PASS 6 skips; harness:verify PASS; GitHub quality 33582520819 unit and three-tier SUCCESS; actual live provider probe NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

@@ -116,6 +116,7 @@ flowchart LR
 - `ACC-P7-48`에서 P7 maintenance와 P6 operational-health의 Docker process·backup 입력 경계를 통합했다. process는 10초·기본 1MiB·로그 4MiB, exact Production physical manifest는 64KiB fatal UTF-8 JSON object, dump는 bytes·streaming SHA-256을 강제한다.
 - `ACC-P7-49`에서 P7 backup/restore의 모든 Docker child에 작업별 10초~60분 timeout, stderr 64KiB·capture 4MiB 상한, shell 금지와 timeout·출력·stream 실패 child 종료를 적용했다. dump/restore는 streaming하며 실패 원문을 증거에 남기지 않는다.
 - `ACC-P7-50`에서 P7 improvement queue GitHub page response에 15초·declared/actual 1MiB 상한, oversize reader 취소, fatal UTF-8·JSON array-only 계약을 적용하고 무제한 `response.json()` buffering을 제거했다.
+- `ACC-P7-51`에서 Operations provider preflight의 OIDC discovery와 AI health/readiness GET response에 10초·declared/actual 1MiB 상한, oversize reader 취소, fatal UTF-8·JSON object-only 계약을 적용하고 무제한 `arrayBuffer()`·`json()` buffering을 제거했다.
 
 ## 6. Phase 갱신 절차
 
