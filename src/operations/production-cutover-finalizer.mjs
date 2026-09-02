@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { TextDecoder } from 'node:util';
 import gates from './gates.js';
 import { GATE_IDS } from './production-cutover-evidence.mjs';
 
@@ -17,6 +18,28 @@ function pathInsideOrEqual(root, candidate) {
   return relative === '' || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative));
 }
 
+function samePhysicalPath(left, right) {
+  return process.platform === 'win32'
+    ? left.toLowerCase() === right.toLowerCase()
+    : left === right;
+}
+
+function isPhysicalDirectory(stat) {
+  return stat.isDirectory() && !stat.isSymbolicLink() && !(stat.isReparsePoint?.() ?? false);
+}
+
+function isPhysicalFile(stat) {
+  return stat.isFile() && !stat.isSymbolicLink() && !(stat.isReparsePoint?.() ?? false);
+}
+
+function sameFileIdentity(before, after) {
+  return before.size === after.size
+    && before.dev === after.dev
+    && before.ino === after.ino
+    && before.mtimeMs === after.mtimeMs
+    && before.ctimeMs === after.ctimeMs;
+}
+
 export function readActualCutoverEvidenceFile(filePath, {
   repositoryRoot = process.cwd(),
   io = fs,
@@ -31,31 +54,31 @@ export function readActualCutoverEvidenceFile(filePath, {
   const candidate = path.resolve(filePath);
   if (pathInsideOrEqual(repository, candidate)) throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_REFERENCE_INVALID');
   let repositoryReal;
+  let repositoryStat;
   let stat;
   try {
-    const repositoryStat = io.lstatSync(repository);
-    if (!repositoryStat.isDirectory() || repositoryStat.isSymbolicLink() || (repositoryStat.isReparsePoint?.() ?? false)) {
+    repositoryStat = io.lstatSync(repository);
+    if (!isPhysicalDirectory(repositoryStat)) {
       throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_REFERENCE_INVALID');
     }
     repositoryReal = path.resolve(io.realpathSync(repository));
+    if (!samePhysicalPath(repositoryReal, repository)) {
+      throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_REFERENCE_INVALID');
+    }
     stat = io.lstatSync(candidate);
   } catch (error) {
     if (error?.code === 'ENOENT') throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_NOT_FOUND');
     if (error?.name === 'ProductionCutoverFinalizerInputError') throw error;
     throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_REFERENCE_INVALID');
   }
-  if (!stat.isFile() || stat.isSymbolicLink() || (stat.isReparsePoint?.() ?? false)
-    || stat.size < 1 || stat.size > maxBytes) {
+  if (!isPhysicalFile(stat) || stat.size < 1 || stat.size > maxBytes) {
     throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_REFERENCE_INVALID');
   }
   let candidateReal;
   let raw;
   try {
     candidateReal = path.resolve(io.realpathSync(candidate));
-    const samePhysicalPath = process.platform === 'win32'
-      ? candidateReal.toLowerCase() === candidate.toLowerCase()
-      : candidateReal === candidate;
-    if (!samePhysicalPath || pathInsideOrEqual(repositoryReal, candidateReal)) {
+    if (!samePhysicalPath(candidateReal, candidate) || pathInsideOrEqual(repositoryReal, candidateReal)) {
       throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_REFERENCE_INVALID');
     }
     raw = io.readFileSync(candidateReal);
@@ -63,11 +86,36 @@ export function readActualCutoverEvidenceFile(filePath, {
     if (error?.name === 'ProductionCutoverFinalizerInputError') throw error;
     throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_REFERENCE_INVALID');
   }
-  if (!Buffer.isBuffer(raw) || raw.length !== stat.size || raw.length > maxBytes) {
+  if (!Buffer.isBuffer(raw) || raw.length > maxBytes) {
     throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_REFERENCE_INVALID');
   }
+  if (raw.length !== stat.size) throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_UNSTABLE');
+  try {
+    const repositoryStatAfter = io.lstatSync(repository);
+    const repositoryRealAfter = path.resolve(io.realpathSync(repository));
+    const statAfter = io.lstatSync(candidate);
+    const candidateRealAfter = path.resolve(io.realpathSync(candidate));
+    if (!isPhysicalDirectory(repositoryStatAfter)
+      || !isPhysicalFile(statAfter)
+      || !samePhysicalPath(repositoryRealAfter, repositoryReal)
+      || !samePhysicalPath(candidateRealAfter, candidateReal)
+      || !samePhysicalPath(repositoryRealAfter, repository)
+      || !samePhysicalPath(candidateRealAfter, candidate)
+      || pathInsideOrEqual(repositoryRealAfter, candidateRealAfter)
+      || !sameFileIdentity(repositoryStat, repositoryStatAfter)
+      || !sameFileIdentity(stat, statAfter)) {
+      throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_UNSTABLE');
+    }
+  } catch (error) {
+    if (error?.name === 'ProductionCutoverFinalizerInputError') throw error;
+    throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_UNSTABLE');
+  }
+  let source;
+  try { source = new TextDecoder('utf-8', { fatal: true }).decode(raw); } catch {
+    throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_UTF8_INVALID');
+  }
   let value;
-  try { value = JSON.parse(raw.toString('utf8')); } catch { throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_JSON_INVALID'); }
+  try { value = JSON.parse(source); } catch { throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_JSON_INVALID'); }
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw finalizerInputError('ACTUAL_CUTOVER_EVIDENCE_JSON_INVALID');
   }
