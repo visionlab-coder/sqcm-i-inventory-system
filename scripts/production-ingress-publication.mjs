@@ -2,6 +2,8 @@ import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, statSync,
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
+import { fileURLToPath } from 'node:url';
+import { inspectOperationsSecretInputReference, readOperationsSecretInput } from '../src/operations/operations-activation-input-reader.mjs';
 import { PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
 import { PRODUCTION_ROUTE_DISABLE_CONFIRMATION } from '../src/operations/production-route-disable.mjs';
 import {
@@ -16,6 +18,7 @@ const CLOUDFLARED = 'C:\\Program Files (x86)\\cloudflared\\cloudflared.exe';
 const ORIGIN_CERT = 'C:\\Users\\user\\.cloudflared\\cert.pem';
 const CREDENTIAL_DIRECTORY = 'C:\\Users\\user\\.cloudflared';
 const TOKEN_ENV = 'CLOUDFLARE_PRODUCTION_DNS_API_TOKEN_FILE';
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const exactFile = (value) => {
   if (!value || !existsSync(value)) return false;
@@ -85,7 +88,7 @@ const gate = evaluateProductionIngressPublicationGate({
   existingTunnelCount: initialTunnels.length,
   tunnelCredentialPresent: initialTunnelId ? exactFile(credentialPath(initialTunnelId)) : false,
   originCertificatePresent: exactFile(ORIGIN_CERT),
-  rollbackTokenReferencePresent: exactFile(process.env[TOKEN_ENV]),
+  rollbackTokenReferencePresent: inspectOperationsSecretInputReference(process.env[TOKEN_ENV], { repositoryRoot: projectRoot }).present,
   dnsObservationSucceeded: initialDnsObservation.succeeded,
   unexpectedPublicDns: initialDnsPublished && initialTunnels.length === 0,
   execute,
@@ -138,7 +141,7 @@ if (gate.status !== 'READY_INGRESS_PUBLICATION_EXECUTION') {
     const tunnelConnected = (tunnel?.connections || []).length > 0;
     if (!tunnelConnected) throw new Error('Production tunnel did not establish a Cloudflare connection.');
 
-    const token = readFileSync(process.env[TOKEN_ENV], 'utf8').trim();
+    const token = readOperationsSecretInput(process.env[TOKEN_ENV], { repositoryRoot: projectRoot }).value;
     if (token.length < 20) throw new Error('Cloudflare rollback token reference contract is invalid.');
     const zones = await cloudflare(token, `/zones?name=${encodeURIComponent(PRODUCTION_INGRESS_TARGET.zone)}&status=active&match=all`);
     if (zones.length !== 1) throw new Error('Exactly one active Cloudflare zone is required.');

@@ -39,7 +39,7 @@ function physicalFile(stat) {
   return stat.isFile() && !stat.isSymbolicLink() && !(stat.isReparsePoint?.() ?? false);
 }
 
-function readExternalPhysicalInput(filePath, {
+function inspectExternalPhysicalInput(filePath, {
   repositoryRoot,
   io,
   maxBytes,
@@ -81,14 +81,21 @@ function readExternalPhysicalInput(filePath, {
     throw inputError(`${errorPrefix}_REFERENCE_INVALID`);
   }
 
+  return { repository, repositoryStat, repositoryReal, candidate, candidateReal, stat };
+}
+
+function readExternalPhysicalInput(filePath, options) {
+  const { io, maxBytes, errorPrefix } = options;
+  const before = inspectExternalPhysicalInput(filePath, options);
+
   let raw;
   try {
-    raw = io.readFileSync(candidateReal);
+    raw = io.readFileSync(before.candidateReal);
   } catch (error) {
     if (error?.name === 'OperationsActivationInputError') throw error;
     throw inputError(`${errorPrefix}_REFERENCE_INVALID`);
   }
-  if (!Buffer.isBuffer(raw) || raw.length !== stat.size || raw.length > maxBytes) {
+  if (!Buffer.isBuffer(raw) || raw.length !== before.stat.size || raw.length > maxBytes) {
     throw inputError(`${errorPrefix}_REFERENCE_INVALID`);
   }
 
@@ -97,18 +104,18 @@ function readExternalPhysicalInput(filePath, {
   let after;
   let candidateRealAfter;
   try {
-    repositoryAfter = io.lstatSync(repository);
-    repositoryRealAfter = path.resolve(io.realpathSync(repository));
-    after = io.lstatSync(candidate);
-    candidateRealAfter = path.resolve(io.realpathSync(candidate));
+    repositoryAfter = io.lstatSync(before.repository);
+    repositoryRealAfter = path.resolve(io.realpathSync(before.repository));
+    after = io.lstatSync(before.candidate);
+    candidateRealAfter = path.resolve(io.realpathSync(before.candidate));
   } catch {
     throw inputError(`${errorPrefix}_UNSTABLE`);
   }
   if (!physicalDirectory(repositoryAfter) || !physicalFile(after)
-    || !samePhysicalPath(repositoryReal, repositoryRealAfter) || !samePhysicalPath(repositoryRealAfter, repository)
-    || !samePhysicalPath(candidateReal, candidateRealAfter) || !samePhysicalPath(candidateRealAfter, candidate)
+    || !samePhysicalPath(before.repositoryReal, repositoryRealAfter) || !samePhysicalPath(repositoryRealAfter, before.repository)
+    || !samePhysicalPath(before.candidateReal, candidateRealAfter) || !samePhysicalPath(candidateRealAfter, before.candidate)
     || pathInsideOrEqual(repositoryRealAfter, candidateRealAfter)
-    || !sameFileIdentity(repositoryStat, repositoryAfter) || !sameFileIdentity(stat, after)) {
+    || !sameFileIdentity(before.repositoryStat, repositoryAfter) || !sameFileIdentity(before.stat, after)) {
     throw inputError(`${errorPrefix}_UNSTABLE`);
   }
 
@@ -116,7 +123,7 @@ function readExternalPhysicalInput(filePath, {
     raw,
     bytes: raw.length,
     sha256: createHash('sha256').update(raw).digest('hex'),
-    path: candidateReal
+    path: before.candidateReal
   };
 }
 
@@ -208,4 +215,23 @@ export function readOperationsSecretInput(filePath, {
     maximumAllowedBytes: OPERATIONS_SECRET_INPUT_MAX_BYTES,
     errorPrefix: 'OPERATIONS_SECRET_INPUT'
   });
+}
+
+export function inspectOperationsSecretInputReference(filePath, {
+  repositoryRoot = process.cwd(),
+  io = fs,
+  maxBytes = OPERATIONS_SECRET_INPUT_MAX_BYTES
+} = {}) {
+  try {
+    const inspected = inspectExternalPhysicalInput(filePath, {
+      repositoryRoot,
+      io,
+      maxBytes,
+      maximumAllowedBytes: OPERATIONS_SECRET_INPUT_MAX_BYTES,
+      errorPrefix: 'OPERATIONS_SECRET_INPUT'
+    });
+    return { present: true, bytes: inspected.stat.size };
+  } catch {
+    return { present: false, bytes: 0 };
+  }
 }

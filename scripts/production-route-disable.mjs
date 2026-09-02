@@ -1,4 +1,6 @@
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { inspectOperationsSecretInputReference, readOperationsSecretInput } from '../src/operations/operations-activation-input-reader.mjs';
 import { PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-preflight.mjs';
 import {
   PRODUCTION_ROUTE_DISABLE_CONFIRMATION,
@@ -14,11 +16,7 @@ import {
 
 const CLOUDFLARED = 'C:\\Program Files (x86)\\cloudflared\\cloudflared.exe';
 const TOKEN_ENV = 'CLOUDFLARE_PRODUCTION_DNS_API_TOKEN_FILE';
-
-function existingFile(value) {
-  if (!value || !existsSync(value)) return false;
-  try { return statSync(value).isFile(); } catch { return false; }
-}
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 async function cloudflare(token, path, options = {}) {
   return requestRouteDisableCloudflareJson({
@@ -48,7 +46,7 @@ async function main() {
     return;
   }
   const tunnelId = tunnelObservation.tunnelId;
-  const tokenReferencePresent = existingFile(process.env[TOKEN_ENV]);
+  const tokenReferencePresent = inspectOperationsSecretInputReference(process.env[TOKEN_ENV], { repositoryRoot: projectRoot }).present;
   const gate = evaluateProductionRouteDisableGate({
     ...PRODUCTION_ROUTE_DISABLE_TARGET,
     preserveExistingTunnels:true,
@@ -68,7 +66,7 @@ async function main() {
     return;
   }
 
-  const token = readFileSync(process.env[TOKEN_ENV], 'utf8').trim();
+  const token = readOperationsSecretInput(process.env[TOKEN_ENV], { repositoryRoot: projectRoot }).value;
   if (token.length < 20) throw new Error('ROUTE_DISABLE_TOKEN_REFERENCE_INVALID');
   const zones = await cloudflare(token, `/zones?name=${encodeURIComponent(PRODUCTION_ROUTE_DISABLE_TARGET.zone)}&status=active&match=all`);
   if (!Array.isArray(zones) || zones.length !== 1) throw new Error('ROUTE_DISABLE_ZONE_IDENTITY_INVALID');
