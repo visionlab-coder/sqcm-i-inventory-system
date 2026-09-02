@@ -50,7 +50,10 @@ test('DoH 관측은 A·CNAME authoritative 응답을 사용하고 provider 오�
     hostname: 'inventory.safe-link.co.kr',
     fetchImpl: async (url, options) => {
       requests.push({ url, options });
-      return { ok: true, json: async () => ({ Status: 3 }) };
+      return new Response(JSON.stringify({ Status: 3 }), {
+        status: 200,
+        headers: { 'content-type': 'application/dns-json' }
+      });
     }
   });
   assert.deepEqual(success, {

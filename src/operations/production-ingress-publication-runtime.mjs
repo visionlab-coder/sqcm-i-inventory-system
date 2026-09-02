@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { resolve4, resolveCname } from 'node:dns/promises';
+import { readBoundedJsonObjectResponse } from './operations-preflight-http-runtime.mjs';
 
 export const INGRESS_COMMAND_TIMEOUT_MS = 10_000;
 export const INGRESS_PROVIDER_HTTP_TIMEOUT_MS = 10_000;
@@ -42,7 +43,7 @@ export async function requestCloudflareJson({
     throw new Error('INGRESS_PROVIDER_HTTP_FAILED');
   }
   let body;
-  try { body = await response.json(); } catch { throw new Error('INGRESS_PROVIDER_HTTP_INVALID_JSON'); }
+  try { body = await readBoundedJsonObjectResponse(response); } catch { throw new Error('INGRESS_PROVIDER_HTTP_INVALID_JSON'); }
   if (!response.ok || body?.success !== true) throw new Error('INGRESS_PROVIDER_HTTP_REJECTED');
   return body.result;
 }
@@ -83,7 +84,7 @@ export async function observeProductionIngressDnsOverHttps({
         signal: AbortSignal.timeout(timeoutMs)
       });
       if (!response?.ok) return null;
-      const body = await response.json();
+      const body = await readBoundedJsonObjectResponse(response);
       if (body?.Status !== 0 && body?.Status !== 3) return null;
       return {
         nxdomain: body.Status === 3,
