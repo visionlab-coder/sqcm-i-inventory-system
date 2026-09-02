@@ -90,6 +90,35 @@ test('서로 다른 publication set의 역할 결과를 혼합하면 actual P6 �
   assert.equal(result.productionGo, false);
 });
 
+test('rollback cutoff 이후 step 또는 Gate receipt는 actual P6 증거로 승격하지 않는다', async () => {
+  const { assembleActualCutoverEvidence } = await modulePromise;
+  for (const kind of ['step', 'gate']) {
+    const input = await completeInput();
+    input.receiptDocuments.find((document) => document.value.kind === kind).value.checkedAt = '2026-09-11T13:00:00.001Z';
+    const result = assembleActualCutoverEvidence(input);
+    assert.ok(result.failures.includes('CUTOVER_RECEIPT_DOCUMENT_INVALID'), kind);
+    assert.equal(result.productionGo, false, kind);
+  }
+});
+
+test('rollback cutoff 이후 역할 결과와 서명은 actual P6 증거로 승격하지 않는다', async () => {
+  const { assembleActualCutoverEvidence } = await modulePromise;
+  const input = await completeInput();
+  const afterCutoff = '2026-09-11T13:00:00.001Z';
+  const coreGateSha = input.roleResultDocuments.ADMIN.value.coreSmokeGateReceiptSha256;
+  const roleStepSha = input.roleResultDocuments.ADMIN.value.roleSmokeStepReceiptSha256;
+  const resultSetPublicationId = sha(JSON.stringify({ runId, releaseSha, coreGateSha, roleStepSha, checkedAt: afterCutoff }));
+  for (const document of Object.values(input.roleResultDocuments)) {
+    document.value.checkedAt = afterCutoff;
+    document.value.resultSetPublicationId = resultSetPublicationId;
+  }
+  for (const document of Object.values(input.signoffDocuments)) document.value.signedAt = afterCutoff;
+  const result = assembleActualCutoverEvidence(input);
+  assert.ok(result.failures.includes('ADMIN_ACTUAL_ROLE_RESULT_INVALID'));
+  assert.ok(result.failures.includes('BUSINESS_ACTUAL_SIGNOFF_INVALID'));
+  assert.equal(result.productionGo, false);
+});
+
 test('contract template은 actual 역할 결과나 서명으로 승격하지 않는다', async () => {
   const { assembleActualCutoverEvidence } = await modulePromise;
   const input = await completeInput();

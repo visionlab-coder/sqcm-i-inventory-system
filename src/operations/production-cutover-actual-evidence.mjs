@@ -46,11 +46,11 @@ function sameIdentity(before, after) {
     && before.mtimeMs === after.mtimeMs && before.ctimeMs === after.ctimeMs;
 }
 
-const inWindow = (value) => {
+const beforeRollbackCutoff = (value) => {
   const time = Date.parse(value);
   return Number.isFinite(time)
     && time >= Date.parse(PRODUCTION_CHANGE_WINDOW.start)
-    && time <= Date.parse(PRODUCTION_CHANGE_WINDOW.end);
+    && time <= Date.parse(PRODUCTION_CHANGE_WINDOW.rollbackCutoff);
 };
 
 function receiptMap(documents, kind) {
@@ -63,7 +63,7 @@ function receiptMap(documents, kind) {
 function validReceiptDocument(document, runId) {
   const value = document?.value;
   return typeof document?.fileName === 'string' && SHA256.test(document?.sha256 || '')
-    && value?.schemaVersion === 1 && value?.runId === runId && inWindow(value?.checkedAt)
+    && value?.schemaVersion === 1 && value?.runId === runId && beforeRollbackCutoff(value?.checkedAt)
     && value?.productionGo === false && SHA256.test(value?.cutoverBundleSha256 || '') && ['step', 'gate'].includes(value?.kind);
 }
 
@@ -79,7 +79,7 @@ function validateRoleResult(document, {
     && value?.actualProduction === true && value?.coreSmokeGateReceiptSha256 === coreGateSha
     && value?.roleSmokeStepReceiptSha256 === roleStepSha
     && value?.resultSetPublicationId === resultSetPublicationId
-    && inWindow(value?.checkedAt);
+    && beforeRollbackCutoff(value?.checkedAt);
 }
 
 function validateSignoff(document, { area, runId, releaseTag, coreGateSha }) {
@@ -89,7 +89,7 @@ function validateSignoff(document, { area, runId, releaseTag, coreGateSha }) {
     && value?.environment === 'production' && value?.activationState === 'actual'
     && value?.targetUrl === ACTUAL_TARGET_URL && value?.releaseTag === releaseTag
     && value?.runId === runId && value?.area === area && value?.decision === 'APPROVED'
-    && IDENTITY.test(value?.signedByRef || '') && inWindow(value?.signedAt)
+    && IDENTITY.test(value?.signedByRef || '') && beforeRollbackCutoff(value?.signedAt)
     && value?.coreSmokeGateReceiptSha256 === coreGateSha;
 }
 
