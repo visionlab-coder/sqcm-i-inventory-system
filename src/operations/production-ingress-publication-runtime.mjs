@@ -376,6 +376,57 @@ export function runIngressCommand(command, args, {
   }
 }
 
+function escapeRegularExpression(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export function observeProductionIngressProcess({
+  cloudflared,
+  configPath,
+  runCommand = runIngressCommand
+} = {}) {
+  if (typeof cloudflared !== 'string' || !path.isAbsolute(cloudflared)
+    || typeof configPath !== 'string' || !path.isAbsolute(configPath)
+    || typeof runCommand !== 'function') throw new Error('INGRESS_PROCESS_OBSERVATION_INPUT_INVALID');
+  const result = runCommand('powershell.exe', [
+    '-NoProfile', '-NonInteractive', '-Command',
+    'Get-CimInstance Win32_Process -Filter "Name=\'cloudflared.exe\'" | Select-Object ProcessId,ExecutablePath,CommandLine | ConvertTo-Json -Compress'
+  ]);
+  if (!result?.ok) {
+    throw new Error(result?.failure === 'COMMAND_TIMEOUT'
+      ? 'INGRESS_PROCESS_OBSERVATION_TIMEOUT'
+      : 'INGRESS_PROCESS_OBSERVATION_FAILED');
+  }
+  let rows = [];
+  if (result.stdout) {
+    try {
+      const parsed = JSON.parse(result.stdout);
+      rows = Array.isArray(parsed) ? parsed : [parsed];
+    } catch {
+      throw new Error('INGRESS_PROCESS_OBSERVATION_INVALID');
+    }
+  }
+  if (!rows.every((row) => row && !Array.isArray(row)
+    && Number.isSafeInteger(row.ProcessId) && row.ProcessId > 0
+    && typeof row.ExecutablePath === 'string' && typeof row.CommandLine === 'string')) {
+    throw new Error('INGRESS_PROCESS_OBSERVATION_INVALID');
+  }
+  const executable = path.resolve(cloudflared).toLowerCase();
+  const exactConfig = path.resolve(configPath);
+  const escapedConfig = escapeRegularExpression(exactConfig);
+  const configArgument = new RegExp(`(?:^|\\s)--config(?:=|\\s+)(?:"${escapedConfig}"|${escapedConfig})(?=\\s|$)`, 'i');
+  const runArgument = /(?:^|\s)run(?:\s|$)/i;
+  const matches = rows.filter((row) => path.resolve(row.ExecutablePath).toLowerCase() === executable
+    && configArgument.test(row.CommandLine) && runArgument.test(row.CommandLine));
+  if (matches.length > 1) throw new Error('INGRESS_PROCESS_IDENTITY_AMBIGUOUS');
+  if (matches.length === 1) {
+    return { running: true, processId: matches[0].ProcessId, status: 'PASS_INGRESS_PROCESS_EXACT_MATCH' };
+  }
+  const uncertain = rows.some((row) => row.CommandLine.toLowerCase().includes(exactConfig.toLowerCase()));
+  if (uncertain) throw new Error('INGRESS_PROCESS_IDENTITY_UNCERTAIN');
+  return { running: false, processId: null, status: 'PASS_INGRESS_PROCESS_NOT_RUNNING' };
+}
+
 export async function requestCloudflareJson({
   url, token, options = {}, timeoutMs = INGRESS_PROVIDER_HTTP_TIMEOUT_MS, fetchImpl = fetch
 } = {}) {
