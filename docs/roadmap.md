@@ -141,6 +141,7 @@ flowchart LR
 - `ACC-P6-49`에서 ingress publication·route-disable의 Cloudflare API와 authoritative DoH A/CNAME 직접 무제한 `response.json()`을 제거하고 API 10초·DoH 5초·1MiB·fatal UTF-8·JSON object-only 공용 reader를 적용했다. 과대 공급자 응답의 게시·미게시 성공 승격을 차단했지만 실제 tunnel·DNS/TLS 변경은 `NOT_RUN`이다.
 - `ACC-P6-50`에서 ADMIN·MANAGER·USER MFA/RBAC core smoke의 직접 무제한 `response.json()`을 제거하고 10초·1MiB·fatal UTF-8·JSON object-only 공용 reader를 적용했다. 과대·비정상 응답의 인증 성공 승격을 차단했지만 실제 역할 계정·MFA·로그인·서명은 `NOT_RUN`이다.
 - `ACC-P6-51`에서 authenticated CSRF/idempotency runner의 직접 무제한 `response.json()`을 제거하고 10초·1MiB·fatal UTF-8·JSON object-only 공용 reader를 적용했다. 과대·비정상 응답의 쓰기·replay·conflict 성공 승격을 차단했지만 실제 인증 쓰기와 서명은 `NOT_RUN`이다.
+- `ACC-P6-52`에서 CSRF/idempotency 음성 baseline의 직접 무제한 `response.json()`을 제거하고 10초·1MiB·fatal UTF-8·JSON object-only 공용 reader를 적용했다. 과대·비정상 응답의 CSRF 거부 성공 승격을 차단했으며 실제 음성 기준선은 PASS했지만 실제 인증 쓰기와 서명은 `NOT_RUN`이다.
 
 ## 6. Phase 갱신 절차
 
