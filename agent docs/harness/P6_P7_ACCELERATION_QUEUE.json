@@ -1205,6 +1205,14 @@
       "evidence": "failure-first 3 reproduced; deterministic signoffRequestSetId and request preparedAt bound to all three actual signoffs; request time restricted after rollback Gate and before every signoff through rollback cutoff; focused 48 PASS 1 Windows skip; syntax 417/417; repository unit 869 PASS 8 skips; GitHub quality 33663424611 unit and three-tier SUCCESS; actual request, signoff, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-91-PRODUCTION-SIGNOFF-REQUEST-BUNDLE-SHA256-BINDING",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "BUSINESS·SECURITY·OPERATIONS 실제 서명은 사람이 검토한 저장소 밖 물리 unsigned request bundle의 SHA-256을 포함하고 actual assembler가 bundle 전체 계약과 세 unsigned payload를 재검증해야 한다.",
+      "evidence": "failure-first 3 reproduced; physical unsigned request bundle SHA-256 required on all three signoffs and propagated to actual P6 evidence; tampered bundle, mismatched SHA and missing resume reference fail closed; focused 36/36 PASS; syntax 417/417; repository unit 870 PASS 8 skips; Harness verify PASS; GitHub quality 33665080041 unit and three-tier SUCCESS; actual request, signoff, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
