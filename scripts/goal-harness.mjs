@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -6,6 +6,7 @@ import path from 'node:path';
 import { evaluateHarnessBranchProvenance, resolveActiveBranch } from '../src/operations/harness-branch-provenance.mjs';
 import { readOperationsPhaseCompletionControlSnapshot } from '../src/operations/operations-phase-completion-control-snapshot.mjs';
 import { readHarnessReleaseEvidenceControlSnapshot } from '../src/operations/harness-release-evidence-control-snapshot.mjs';
+import { readHarnessCandidateContentSnapshot } from '../src/operations/harness-candidate-content-snapshot.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const projectDir = path.resolve(scriptDir, '..');
@@ -117,14 +118,9 @@ function check() {
         errors.push('REMOTE_COMMIT_PARENT_MISMATCH');
       }
     } else {
-      for (const file of contentFiles) {
-        const absolutePath = path.join(projectDir, file.path);
-        if (!existsSync(absolutePath)) {
-          errors.push(`CANDIDATE_FILE_MISSING:${file.path}`);
-          continue;
-        }
-        const actual = createHash('sha256').update(readFileSync(absolutePath)).digest('hex');
-        if (actual !== file.sha256) errors.push(`CANDIDATE_HASH_MISMATCH:${file.path}`);
+      const contentSnapshot = readHarnessCandidateContentSnapshot(projectDir, contentFiles);
+      for (const file of contentSnapshot.entries) {
+        if (file.sha256 !== file.expectedSha256) errors.push(`CANDIDATE_HASH_MISMATCH:${file.path}`);
       }
     }
     const canonical = contentFiles.map((file) => `${file.path}|${file.sha256}`).join('\n');
