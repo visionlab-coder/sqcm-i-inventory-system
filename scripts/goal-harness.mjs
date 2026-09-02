@@ -5,11 +5,11 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { evaluateHarnessBranchProvenance, resolveActiveBranch } from '../src/operations/harness-branch-provenance.mjs';
 import { readOperationsPhaseCompletionControlSnapshot } from '../src/operations/operations-phase-completion-control-snapshot.mjs';
+import { readHarnessReleaseEvidenceControlSnapshot } from '../src/operations/harness-release-evidence-control-snapshot.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const projectDir = path.resolve(scriptDir, '..');
 const candidatePath = path.join(projectDir, 'agent docs', 'harness', 'P2_RELEASE_CANDIDATE.json');
-const remoteEvidencePath = path.join(projectDir, 'agent docs', 'harness', 'P2_REMOTE_EVIDENCE.json');
 const controlSnapshot = readOperationsPhaseCompletionControlSnapshot(projectDir);
 const state = controlSnapshot.roadmap.value;
 const accelerationQueue = controlSnapshot.queue.value;
@@ -90,10 +90,9 @@ function check() {
     }
   }
   if (existsSync(candidatePath)) {
-    const candidate = JSON.parse(readFileSync(candidatePath, 'utf8'));
-    const remoteEvidence = existsSync(remoteEvidencePath)
-      ? JSON.parse(readFileSync(remoteEvidencePath, 'utf8'))
-      : null;
+    const releaseEvidence = readHarnessReleaseEvidenceControlSnapshot(projectDir);
+    const candidate = releaseEvidence.candidate.value;
+    const remoteEvidence = releaseEvidence.remoteEvidence?.value ?? null;
     const contentFiles = candidate.files.filter((file) => file.sha256);
     if (candidate.candidateFileCount !== candidate.files.length) {
       errors.push('CANDIDATE_FILE_COUNT_MISMATCH');
