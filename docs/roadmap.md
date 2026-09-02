@@ -129,6 +129,7 @@ flowchart LR
 - `ACC-P7-56`에서 P7 activation approval·receipt·control·Secret 공용 external input reader를 atomic snapshot으로 강화했다. actual bytes read 뒤 repository/candidate physical identity·realpath·size를 재검증하고 JSON을 fatal UTF-8로 decode해 read 중 동일 크기 교체·크기 변경·root redirect·invalid encoding을 차단한다.
 - `ACC-P7-57`에서 P7 handover finalizer의 최상위 manifest와 10개 실제 운영 증거 JSON을 atomic snapshot으로 강화했다. actual bytes read 뒤 repository·external base·candidate physical identity·realpath·size를 재검증하고 fatal UTF-8로 decode해 read 중 동일 크기 교체·크기 변경·root/base redirect·invalid encoding을 차단한다.
 - `ACC-P7-58`에서 P7 실제 운영 활성화의 SLO·경보·backup/restore·certificate·on-call·maintenance·improvement queue·operations signoff·handover runner/compiler 18개를 ACC-P7-55의 공용 atomic `MASTER_ROADMAP.json` control reader에 결합했다. activation approval 경로와 실제 운영 증거 생성 경로가 exact repository physical file·1MiB·read-after identity/realpath/size·fatal UTF-8·JSON object 계약을 공유한다.
+- `ACC-P7-59`에서 P6 완료 직후 실행될 P7 handover preflight candidate를 physical JSON·1MiB·read-after 안정성·fatal UTF-8 전용 reader에, `MASTER_ROADMAP.json`을 exact repository atomic control reader에 결합했다. handover 권한 판정의 direct unbounded JSON read를 제거했으며 실제 P6 cutover와 P7 handover는 `NOT_RUN`이다.
 
 ## 6. Phase 갱신 절차
 

@@ -789,6 +789,14 @@
       "evidence": "failure-first 18/18; focused roadmap control regression 24/24 PASS; 18 entrypoint dry-runs WAIT with external mutation zero; syntax 369/369; repository unit 700 PASS 7 skips; harness:verify PASS; GitHub quality 33593271020 unit and three-tier SUCCESS; actual P7 activation and external operations NOT_RUN"
     },
     {
+      "id": "ACC-P7-59-ATOMIC-HANDOVER-PREFLIGHT-CONTROL-INPUTS",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 완료 직후 실행되는 P7 handover preflight의 candidate와 MASTER_ROADMAP.json은 각각 physical JSON object·1 byte~1MiB·read-after 안정성·fatal UTF-8 계약과 exact repository roadmap identity·realpath·size 계약으로 읽으며 direct unbounded read를 사용하지 않는다.",
+      "evidence": "failure-first 1/1; focused handover control regression 16/16 PASS; handover preflight dry-run READY_WAIT_P6_COMPLETION_AND_HANDOVER_INPUTS with contract error zero and 12 pending inputs; syntax 370/370; repository unit 701 PASS 7 skips; harness:verify PASS; GitHub quality 33594167591 unit and three-tier SUCCESS; actual P6 cutover and P7 handover NOT_RUN"
+    },
+    {
       "id": "ACC-P6-41-ATOMIC-PRODUCTION-UAT-INPUTS",
       "phase": "P6",
       "status": "EVIDENCE_COMPLETE",
