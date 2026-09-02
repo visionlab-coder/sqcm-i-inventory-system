@@ -15,5 +15,6 @@
   "roleResultSetPublicationId": null,
   "preSignoffRollbackGateReceiptSha256": null,
   "signoffRequestSetId": null,
-  "signoffRequestPreparedAt": null
+  "signoffRequestPreparedAt": null,
+  "signoffRequestBundleSha256": null
 }

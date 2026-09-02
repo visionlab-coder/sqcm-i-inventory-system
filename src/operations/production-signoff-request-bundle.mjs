@@ -84,7 +84,8 @@ export function buildProductionSignoffRequestBundle({
     signedByRef: null, signedAt: null, coreSmokeGateReceiptSha256: coreGateSha,
     roleResultSetPublicationId: resultSetPublicationId,
     preSignoffRollbackGateReceiptSha256: rollbackGateSha,
-    signoffRequestSetId: requestSetId, signoffRequestPreparedAt: preparedAt
+    signoffRequestSetId: requestSetId, signoffRequestPreparedAt: preparedAt,
+    signoffRequestBundleSha256: null
   }]));
   return {
     schemaVersion: 1, template: true, evidenceType: 'P6_CUTOVER_SIGNOFF_REQUEST_SET',
@@ -95,7 +96,7 @@ export function buildProductionSignoffRequestBundle({
     signoffPayloads, signerInstructions: {
       setTemplateFalse: true,
       setDecisionApproved: true,
-      fillOnly: ['signedByRef', 'signedAt'],
+      fillOnly: ['signedByRef', 'signedAt', 'signoffRequestBundleSha256'],
       preserveProvenanceFields: true
     },
     externalSignatureCreated: false, productionGo: false

@@ -155,6 +155,7 @@ export async function resumeProductionCutoverSignoff({
   checkpointPath = null,
   roleResultReferences = {},
   signoffReferences = {},
+  signoffRequestBundleReference = null,
   now = () => Date.now(),
   receiptRoot = PRODUCTION_CUTOVER_RECEIPT_ROOT,
   ensureReceiptRoot = ensureCutoverReceiptRoot,
@@ -225,6 +226,7 @@ export async function resumeProductionCutoverSignoff({
     const missing = [];
     if (actualEvidenceConfirmation !== ACTUAL_CUTOVER_ASSEMBLY_CONFIRMATION) missing.push('ACTUAL_EVIDENCE_ASSEMBLY_CONFIRMATION_MISSING');
     if (typeof actualEvidenceOutputPath !== 'string' || !actualEvidenceOutputPath.trim()) missing.push('ACTUAL_EVIDENCE_OUTPUT_MISSING');
+    if (typeof signoffRequestBundleReference !== 'string' || !signoffRequestBundleReference.trim()) missing.push('SIGNOFF_REQUEST_BUNDLE_REFERENCE_MISSING');
     if (missing.length) {
       return {
         checkedAt, runId: checkpoint.runId, receiptRoot: root,
@@ -244,10 +246,12 @@ export async function resumeProductionCutoverSignoff({
         .map((role) => [role, loadEvidenceDocument(roleResultReferences[role])]));
       const signoffDocuments = Object.fromEntries(['BUSINESS', 'SECURITY', 'OPERATIONS']
         .map((area) => [area, loadEvidenceDocument(signoffReferences[area])]));
+      const signoffRequestBundleDocument = loadEvidenceDocument(signoffRequestBundleReference);
       const assembled = assembleEvidence({
         receiptDocuments: loadReceiptDocuments(root, checkpoint.runId),
         roleResultDocuments,
         signoffDocuments,
+        signoffRequestBundleDocument,
         runId: checkpoint.runId,
         releaseSha
       });

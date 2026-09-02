@@ -40,13 +40,21 @@ async function completeInput() {
     runId, releaseSha, coreGateSha, rollbackGateSha, resultSetPublicationId,
     preparedAt: signoffRequestPreparedAt
   }));
+  const signoffRequestBundleSha256 = sha('signoff-request-bundle');
   const roleResultDocuments = Object.fromEntries(['ADMIN', 'MANAGER', 'USER'].map((role) => [role, {
     fileName: `${role}.json`, sha256: sha(role), value: { schemaVersion: 1, template: false, evidenceType: 'P6_ROLE_UAT_RESULT_ACTUAL', environment: 'production', activationState: 'actual', targetUrl: 'https://inventory.safe-link.co.kr', releaseTag, runId, role, status: 'PASS', actualProduction: true, resultSetPublicationId, coreSmokeGateReceiptSha256: coreGateSha, roleSmokeStepReceiptSha256: roleStepSha, checkedAt }
   }]));
   const signoffDocuments = Object.fromEntries(['BUSINESS', 'SECURITY', 'OPERATIONS'].map((area) => [area, {
-    fileName: `${area}.json`, sha256: sha(area), value: { schemaVersion: 1, template: false, evidenceType: 'P6_CUTOVER_SIGNOFF_ACTUAL', environment: 'production', activationState: 'actual', targetUrl: 'https://inventory.safe-link.co.kr', releaseTag, runId, area, decision: 'APPROVED', signedByRef: `identity://${area.toLowerCase()}-owner`, signedAt: checkedAt, coreSmokeGateReceiptSha256: coreGateSha, roleResultSetPublicationId: resultSetPublicationId, preSignoffRollbackGateReceiptSha256: rollbackGateSha, signoffRequestSetId, signoffRequestPreparedAt }
+    fileName: `${area}.json`, sha256: sha(area), value: { schemaVersion: 1, template: false, evidenceType: 'P6_CUTOVER_SIGNOFF_ACTUAL', environment: 'production', activationState: 'actual', targetUrl: 'https://inventory.safe-link.co.kr', releaseTag, runId, area, decision: 'APPROVED', signedByRef: `identity://${area.toLowerCase()}-owner`, signedAt: checkedAt, coreSmokeGateReceiptSha256: coreGateSha, roleResultSetPublicationId: resultSetPublicationId, preSignoffRollbackGateReceiptSha256: rollbackGateSha, signoffRequestSetId, signoffRequestPreparedAt, signoffRequestBundleSha256 }
   }]));
-  return { receiptDocuments, roleResultDocuments, signoffDocuments, runId, releaseSha };
+  const signoffPayloads = Object.fromEntries(['BUSINESS', 'SECURITY', 'OPERATIONS'].map((area) => [area, {
+    schemaVersion: 1, template: true, evidenceType: 'P6_CUTOVER_SIGNOFF_ACTUAL', environment: 'production', activationState: 'actual', targetUrl: 'https://inventory.safe-link.co.kr', releaseTag, runId, area, decision: 'NOT_RUN', signedByRef: null, signedAt: null, coreSmokeGateReceiptSha256: coreGateSha, roleResultSetPublicationId: resultSetPublicationId, preSignoffRollbackGateReceiptSha256: rollbackGateSha, signoffRequestSetId, signoffRequestPreparedAt, signoffRequestBundleSha256: null
+  }]));
+  const signoffRequestBundleDocument = {
+    fileName: 'signoff-request-bundle.json', sha256: signoffRequestBundleSha256,
+    value: { schemaVersion: 1, template: true, evidenceType: 'P6_CUTOVER_SIGNOFF_REQUEST_SET', environment: 'production', activationState: 'request', targetUrl: 'https://inventory.safe-link.co.kr', releaseSha, releaseTag, runId, requestSetId: signoffRequestSetId, preparedAt: signoffRequestPreparedAt, roleResultSetPublicationId: resultSetPublicationId, preSignoffRollbackGateReceiptSha256: rollbackGateSha, signoffPayloads, signerInstructions: { setTemplateFalse: true, setDecisionApproved: true, fillOnly: ['signedByRef', 'signedAt', 'signoffRequestBundleSha256'], preserveProvenanceFields: true }, externalSignatureCreated: false, productionGo: false }
+  };
+  return { receiptDocuments, roleResultDocuments, signoffDocuments, signoffRequestBundleDocument, runId, releaseSha };
 }
 
 test('동일 run의 12 Gate·14 step·3 역할·3 서명을 actual P6 증거로 조립한다', async () => {
@@ -58,6 +66,21 @@ test('동일 run의 12 Gate·14 step·3 역할·3 서명을 actual P6 증거로 
   assert.equal(result.evidence.evidenceType, 'P6_CUTOVER_ACTUAL');
   assert.equal(result.evidence.releaseSha, releaseSha);
   assert.equal(result.productionGo, true);
+});
+
+test('실제 서명은 검토한 물리 unsigned request bundle SHA-256에 결박된다', async () => {
+  const { assembleActualCutoverEvidence } = await modulePromise;
+  const tamperedBundle = await completeInput();
+  tamperedBundle.signoffRequestBundleDocument.value.signoffPayloads.SECURITY.area = 'BUSINESS';
+  const tamperedResult = assembleActualCutoverEvidence(tamperedBundle);
+  assert.equal(tamperedResult.productionGo, false);
+  assert.match(tamperedResult.failures.join(','), /SIGNOFF_REQUEST_BUNDLE_INVALID/);
+
+  const mismatchedReference = await completeInput();
+  mismatchedReference.signoffDocuments.OPERATIONS.value.signoffRequestBundleSha256 = 'f'.repeat(64);
+  const mismatchedResult = assembleActualCutoverEvidence(mismatchedReference);
+  assert.equal(mismatchedResult.productionGo, false);
+  assert.match(mismatchedResult.failures.join(','), /OPERATIONS_ACTUAL_SIGNOFF_INVALID/);
 });
 
 test('step 누락과 Gate reference 변조를 fail-closed 한다', async () => {

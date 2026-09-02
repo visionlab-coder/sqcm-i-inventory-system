@@ -133,7 +133,7 @@ test('동일 run 역할·서명 6건 뒤 Gate 12만 재개한다', async () => {
   const references = { ADMIN: true, MANAGER: true, USER: true, BUSINESS: true, SECURITY: true, OPERATIONS: true };
   const result = await resumeProductionCutoverSignoff({
     execute: true, confirmation: SIGNOFF_RESUME_CONFIRMATION, runId: checkpoint.runId, releaseSha: checkpoint.releaseSha,
-    checkpointPath: 'checkpoint', roleResultReferences: references, signoffReferences: references, now: insideWindow,
+    checkpointPath: 'checkpoint', roleResultReferences: references, signoffReferences: references, signoffRequestBundleReference: 'request.json', now: insideWindow,
     ensureReceiptRoot: () => 'synthetic-root', loadCheckpoint: () => checkpoint,
     validateReceipts: () => ({ status: 'PASS_SIGNOFF_RESUME_RECEIPTS', failures: [], receiptCount: 24 }),
     createWriter: () => syntheticWriter(checkpoint.runId),
@@ -188,7 +188,7 @@ test('Gate 12 뒤 actual evidence 조립·저장이 모두 PASS해야 Production
   const references = { ADMIN: 'admin.json', MANAGER: 'manager.json', USER: 'user.json', BUSINESS: 'business.json', SECURITY: 'security.json', OPERATIONS: 'operations.json' };
   const result = await resumeProductionCutoverSignoff({
     execute: true, confirmation: SIGNOFF_RESUME_CONFIRMATION, runId: checkpoint.runId, releaseSha: checkpoint.releaseSha,
-    checkpointPath: 'checkpoint', roleResultReferences: references, signoffReferences: references, now: insideWindow,
+    checkpointPath: 'checkpoint', roleResultReferences: references, signoffReferences: references, signoffRequestBundleReference: 'request.json', now: insideWindow,
     ensureReceiptRoot: () => 'synthetic-root', loadCheckpoint: () => checkpoint,
     validateReceipts: () => ({ status: 'PASS_SIGNOFF_RESUME_RECEIPTS', failures: [], receiptCount: 24 }),
     createWriter: () => syntheticWriter(checkpoint.runId),
@@ -215,7 +215,7 @@ test('Gate 12 뒤 actual evidence 조립 실패는 exact route-disable로 contai
   const calls = [];
   const result = await resumeProductionCutoverSignoff({
     execute: true, confirmation: SIGNOFF_RESUME_CONFIRMATION, runId: checkpoint.runId, releaseSha: checkpoint.releaseSha,
-    checkpointPath: 'checkpoint', roleResultReferences: references, signoffReferences: references, now: insideWindow,
+    checkpointPath: 'checkpoint', roleResultReferences: references, signoffReferences: references, signoffRequestBundleReference: 'request.json', now: insideWindow,
     ensureReceiptRoot: () => 'synthetic-root', loadCheckpoint: () => checkpoint,
     validateReceipts: () => ({ status: 'PASS_SIGNOFF_RESUME_RECEIPTS', failures: [], receiptCount: 24 }),
     createWriter: () => syntheticWriter(checkpoint.runId),
@@ -292,7 +292,7 @@ test('actual finalization 확인 또는 출력 경로가 없으면 Gate 12를 �
     finalizeActualEvidence: true
   });
   assert.equal(result.status, 'READY_WAIT_ACTUAL_EVIDENCE_FINALIZATION_INPUTS');
-  assert.deepEqual(result.missing, ['ACTUAL_EVIDENCE_ASSEMBLY_CONFIRMATION_MISSING', 'ACTUAL_EVIDENCE_OUTPUT_MISSING']);
+  assert.deepEqual(result.missing, ['ACTUAL_EVIDENCE_ASSEMBLY_CONFIRMATION_MISSING', 'ACTUAL_EVIDENCE_OUTPUT_MISSING', 'SIGNOFF_REQUEST_BUNDLE_REFERENCE_MISSING']);
   assert.equal(stepCount, 0);
   assert.equal(result.productionGo, false);
 });

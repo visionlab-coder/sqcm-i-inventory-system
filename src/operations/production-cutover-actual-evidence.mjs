@@ -18,6 +18,7 @@ const RUN_ID = /^[a-f0-9]{8}-[a-f0-9-]{27,35}$/i;
 const SHA256 = /^[a-f0-9]{64}$/;
 const IDENTITY = /^identity:\/\/[A-Za-z0-9._/@:-]+$/;
 const ROLE_MAP = Object.freeze({ ADMIN: 'admin', MANAGER: 'manager', USER: 'employee' });
+const SIGNOFF_AREAS = Object.freeze(['BUSINESS', 'SECURITY', 'OPERATIONS']);
 
 function inputError(code) {
   const error = new Error(code);
@@ -108,7 +109,7 @@ function validateRoleResult(document, {
 
 function validateSignoff(document, {
   area, runId, releaseTag, coreGateSha, resultSetPublicationId, rollbackGateSha,
-  signoffRequestSetId, signoffRequestPreparedAt
+  signoffRequestSetId, signoffRequestPreparedAt, signoffRequestBundleSha256
 }) {
   const value = document?.value;
   return SHA256.test(document?.sha256 || '') && value?.schemaVersion === 1
@@ -121,10 +122,49 @@ function validateSignoff(document, {
     && value?.roleResultSetPublicationId === resultSetPublicationId
     && value?.preSignoffRollbackGateReceiptSha256 === rollbackGateSha
     && value?.signoffRequestSetId === signoffRequestSetId
-    && value?.signoffRequestPreparedAt === signoffRequestPreparedAt;
+    && value?.signoffRequestPreparedAt === signoffRequestPreparedAt
+    && value?.signoffRequestBundleSha256 === signoffRequestBundleSha256;
 }
 
-export function assembleActualCutoverEvidence({ receiptDocuments = [], roleResultDocuments = {}, signoffDocuments = {}, runId, releaseSha } = {}) {
+function validUnsignedSignoffPayload(payload, {
+  area, runId, releaseTag, coreGateSha, resultSetPublicationId, rollbackGateSha,
+  signoffRequestSetId, signoffRequestPreparedAt
+}) {
+  return payload?.schemaVersion === 1 && payload?.template === true
+    && payload?.evidenceType === 'P6_CUTOVER_SIGNOFF_ACTUAL'
+    && payload?.environment === 'production' && payload?.activationState === 'actual'
+    && payload?.targetUrl === ACTUAL_TARGET_URL && payload?.releaseTag === releaseTag
+    && payload?.runId === runId && payload?.area === area && payload?.decision === 'NOT_RUN'
+    && payload?.signedByRef === null && payload?.signedAt === null
+    && payload?.coreSmokeGateReceiptSha256 === coreGateSha
+    && payload?.roleResultSetPublicationId === resultSetPublicationId
+    && payload?.preSignoffRollbackGateReceiptSha256 === rollbackGateSha
+    && payload?.signoffRequestSetId === signoffRequestSetId
+    && payload?.signoffRequestPreparedAt === signoffRequestPreparedAt
+    && payload?.signoffRequestBundleSha256 === null;
+}
+
+function validSignoffRequestBundle(document, context) {
+  const value = document?.value;
+  return SHA256.test(document?.sha256 || '') && value?.schemaVersion === 1
+    && value?.template === true && value?.evidenceType === 'P6_CUTOVER_SIGNOFF_REQUEST_SET'
+    && value?.environment === 'production' && value?.activationState === 'request'
+    && value?.targetUrl === ACTUAL_TARGET_URL && value?.releaseSha === context.releaseSha
+    && value?.releaseTag === context.releaseTag && value?.runId === context.runId
+    && value?.requestSetId === context.signoffRequestSetId
+    && value?.preparedAt === context.signoffRequestPreparedAt
+    && value?.roleResultSetPublicationId === context.resultSetPublicationId
+    && value?.preSignoffRollbackGateReceiptSha256 === context.rollbackGateSha
+    && JSON.stringify(Object.keys(value?.signoffPayloads || {})) === JSON.stringify(SIGNOFF_AREAS)
+    && SIGNOFF_AREAS.every((area) => validUnsignedSignoffPayload(value.signoffPayloads[area], { area, ...context }))
+    && value?.signerInstructions?.setTemplateFalse === true
+    && value?.signerInstructions?.setDecisionApproved === true
+    && JSON.stringify(value?.signerInstructions?.fillOnly) === JSON.stringify(['signedByRef', 'signedAt', 'signoffRequestBundleSha256'])
+    && value?.signerInstructions?.preserveProvenanceFields === true
+    && value?.externalSignatureCreated === false && value?.productionGo === false;
+}
+
+export function assembleActualCutoverEvidence({ receiptDocuments = [], roleResultDocuments = {}, signoffDocuments = {}, signoffRequestBundleDocument = null, runId, releaseSha } = {}) {
   const failures = [];
   if (!RUN_ID.test(runId || '')) failures.push('CUTOVER_RUN_ID_INVALID');
   if (!/^[a-f0-9]{40}$/.test(releaseSha || '')) failures.push('CUTOVER_RELEASE_SHA_INVALID');
@@ -189,6 +229,14 @@ export function assembleActualCutoverEvidence({ receiptDocuments = [], roleResul
     runId, releaseSha, coreGateSha, rollbackGateSha, resultSetPublicationId,
     preparedAt: signoffRequestPreparedAt
   });
+  const signoffRequestBundleSha256 = signoffRequestBundleDocument?.sha256 || '';
+  const signoffRequestContext = {
+    runId, releaseSha, releaseTag, coreGateSha, rollbackGateSha, resultSetPublicationId,
+    signoffRequestSetId: expectedSignoffRequestSetId, signoffRequestPreparedAt
+  };
+  if (!validSignoffRequestBundle(signoffRequestBundleDocument, signoffRequestContext)) {
+    failures.push('SIGNOFF_REQUEST_BUNDLE_INVALID');
+  }
   if (!Number.isFinite(signoffRequestPreparedAtMs)
     || new Date(signoffRequestPreparedAtMs).toISOString() !== signoffRequestPreparedAt
     || !beforeRollbackCutoff(signoffRequestPreparedAt)
@@ -200,10 +248,11 @@ export function assembleActualCutoverEvidence({ receiptDocuments = [], roleResul
       && document?.value?.signoffRequestPreparedAt === signoffRequestPreparedAt)) {
     failures.push('SIGNOFF_REQUEST_SET_PROVENANCE_INVALID');
   }
-  for (const area of ['BUSINESS', 'SECURITY', 'OPERATIONS']) {
+  for (const area of SIGNOFF_AREAS) {
     if (!validateSignoff(signoffDocuments[area], {
       area, runId, releaseTag, coreGateSha, resultSetPublicationId, rollbackGateSha,
-      signoffRequestSetId: expectedSignoffRequestSetId, signoffRequestPreparedAt
+      signoffRequestSetId: expectedSignoffRequestSetId, signoffRequestPreparedAt,
+      signoffRequestBundleSha256
     })) failures.push(`${area}_ACTUAL_SIGNOFF_INVALID`);
   }
   const preSignoffTime = rollbackGateTime;
@@ -221,18 +270,19 @@ export function assembleActualCutoverEvidence({ receiptDocuments = [], roleResul
   const roleResults = Object.entries(ROLE_MAP).map(([sourceRole, role]) => ({
     role, status: 'PASS', evidence: `production ${sourceRole.toLowerCase()} UAT result sha256:${roleResultDocuments[sourceRole].sha256}`
   }));
-  const approvals = Object.fromEntries(['BUSINESS', 'SECURITY', 'OPERATIONS'].map((area) => {
+  const approvals = Object.fromEntries(SIGNOFF_AREAS.map((area) => {
     const document = signoffDocuments[area];
     return [area.toLowerCase(), {
       status: 'APPROVED', signedBy: document.value.signedByRef, signedAt: document.value.signedAt,
-      evidence: `production ${area.toLowerCase()} approval sha256:${document.sha256}`
+      evidence: `production ${area.toLowerCase()} approval sha256:${document.sha256} request-bundle-sha256:${signoffRequestBundleSha256}`
     }];
   }));
   const checkedAt = receiptDocuments.map((document) => document.value.checkedAt).sort().at(-1);
   const evidence = {
     schemaVersion: 1, template: false, environment: 'production', activationState: 'actual',
     evidenceType: 'P6_CUTOVER_ACTUAL', domain: 'p6-cutover', status: 'PASS', checkedAt,
-    runId, releaseSha, releaseTag, cutoverBundleSha256: cutoverBundleSha256[0], targetUrl: ACTUAL_TARGET_URL, gates,
+    runId, releaseSha, releaseTag, cutoverBundleSha256: cutoverBundleSha256[0],
+    signoffRequestBundleSha256, targetUrl: ACTUAL_TARGET_URL, gates,
     pilot: { openCriticalDefects: 0, openHighDefects: 0, roleResults }, approvals, productionGo: true
   };
   const validation = validateActualCutoverProvenance(evidence);

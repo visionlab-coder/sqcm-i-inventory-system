@@ -50,7 +50,9 @@ test('동일 역할 결과 세트와 rollback Gate를 세 비서명 payload에 �
     assert.equal(payload.preSignoffRollbackGateReceiptSha256, rollbackGateSha);
     assert.equal(payload.signoffRequestSetId, result.requestSetId);
     assert.equal(payload.signoffRequestPreparedAt, preparedAt);
+    assert.equal(payload.signoffRequestBundleSha256, null);
   }
+  assert.deepEqual(result.signerInstructions.fillOnly, ['signedByRef', 'signedAt', 'signoffRequestBundleSha256']);
 });
 
 test('혼합 역할 결과 세트와 인과시간 역전을 거부한다', async () => {
