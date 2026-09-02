@@ -166,6 +166,7 @@ flowchart LR
 - `ACC-P6-75`에서 Production ingress 부분 실패 복구 preflight를 추가했다. exact tunnel, 임시·최종 credential 존재, config, process와 public DNS를 Secret 원문 없이 함께 관측하고 관측 실패는 fail-closed하며 부분 산출물은 삭제 없이 복구 검토로 격리한다. 현재 여섯 구성요소는 모두 부재해 orphan 없음이 PASS했고 실제 복구 삭제·tunnel·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-76`에서 Production ingress exact orphan 복구 실행기를 추가했다. 변경창·exact confirmation·single-writer lease·UUID 재관측을 요구하고 no-force tunnel delete 뒤 원격 부재를 확인한 다음 동일 physical identity의 임시 credential만 제거한다. 현재 복구 대상은 0건이며 실제 삭제·tunnel·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-77`에서 cutover ingress publication step 실패 containment를 강화했다. exact public route-disable 뒤 orphan recovery를 조건부 실행하고 두 증거가 모두 확인돼야 격리 PASS한다. 정상 성공 경로는 12 Gate·14 step을 유지하며 실제 복구·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
+- `ACC-P6-78`에서 cutover child step 예외의 gate·step identity를 bounded 상태로 보존했다. ingress publication 예외도 generic handler 실패로 축약되지 않고 route-disable·orphan recovery 격리를 선택하며 오류 원문은 기록하지 않는다. 실제 예외·복구·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 
 ## 6. Phase 갱신 절차
 

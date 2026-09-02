@@ -1101,6 +1101,14 @@
       "evidence": "failure-first 3 reproduced; conditional route-disable then orphan recovery adapter integrated; focused cutover 29 PASS 1 Windows skip; normal success remains 12 Gates and 14 steps; syntax 412/412; repository unit 836 PASS 8 skips; actual orphan preflight PASS_NO_INGRESS_PARTIAL_STATE; harness:verify PASS; GitHub quality 33642846184 unit and three-tier SUCCESS; actual recovery, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-78-PRODUCTION-CUTOVER-STEP-EXCEPTION-CONTAINMENT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Cutover child step 예외는 원문 없이 gate·step identity를 보존해 정규화하고 ingress publication 예외도 route-disable 뒤 orphan recovery를 요구하는 동일 containment 경로로 연결해야 한다.",
+      "evidence": "failure-first 2 reproduced; bounded CUTOVER_GATE_STEP_THROWN gate and step identity added without raw exception; ingress publication throw selects route-disable then orphan recovery; focused 31 PASS 1 Windows skip; normal success remains 12 Gates and 14 steps; syntax 412/412; repository unit 838 PASS 8 skips; harness:verify PASS; GitHub quality 33644261126 completed successfully; actual exception, recovery, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
