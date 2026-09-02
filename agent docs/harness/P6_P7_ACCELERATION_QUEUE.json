@@ -1181,6 +1181,14 @@
       "evidence": "failure-first 2 reproduced; receipt timestamps are non-decreasing by sequence; role result checkedAt equals role smoke step receipt; three signoffs are bounded from rollback gate receipt through signoff-preflight step receipt; focused 31 PASS 1 Windows skip; syntax 414/414; repository unit 862 PASS 8 skips; GitHub quality 33659125646 completed successfully; actual receipt, DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-88-PRODUCTION-SIGNOFF-REVIEWED-EVIDENCE-PROVENANCE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "BUSINESS·SECURITY·OPERATIONS 실제 서명은 동일 역할 결과 publication set과 서명 직전 rollback Gate receipt SHA-256을 직접 참조해 같은 run 안의 다른 검토 대상 혼합을 fail-closed해야 한다.",
+      "evidence": "failure-first 1 reproduced; all three signoffs now require exact roleResultSetPublicationId and preSignoffRollbackGateReceiptSha256; focused 41 PASS 1 Windows skip; syntax 414/414; repository unit 863 PASS 8 skips; GitHub quality 33660339797 completed successfully; actual signoff, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

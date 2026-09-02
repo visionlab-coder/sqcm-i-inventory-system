@@ -1,0 +1,30 @@
+{
+  "packet": "ACC-P6-88-PRODUCTION-SIGNOFF-REVIEWED-EVIDENCE-PROVENANCE",
+  "status": "PASS_PRODUCTION_SIGNOFF_REVIEWED_EVIDENCE_PROVENANCE",
+  "scope": {
+    "signoffAreas": ["BUSINESS", "SECURITY", "OPERATIONS"],
+    "roleResultSetPublicationIdRequired": true,
+    "preSignoffRollbackGateReceiptSha256Required": true,
+    "coreSmokeGateReceiptSha256Preserved": true,
+    "causalTimeBoundaryPreserved": true
+  },
+  "failureFirst": {
+    "reproducedFailureCount": 1,
+    "mixedRoleResultSetAcceptedDetected": true,
+    "mixedRollbackGateReceiptAcceptedDetected": true
+  },
+  "focusedTests": { "total": 42, "passed": 41, "failed": 0, "skipped": 1 },
+  "repositoryChecks": { "syntaxPassed": 414, "unitTotal": 871, "unitPassed": 863, "unitFailed": 0, "unitSkipped": 8 },
+  "implementationCommit": "ae836c13512ae7337274adffab454d6215dde5f6",
+  "qualityCi": { "runId": 33660339797, "status": "SUCCESS" },
+  "actualSignoffValidation": "NOT_RUN",
+  "actualDnsTlsPublication": "NOT_RUN",
+  "actualP6Cutover": "NOT_RUN",
+  "actualP7Activation": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}
