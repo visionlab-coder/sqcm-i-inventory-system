@@ -1,0 +1,44 @@
+{
+  "packet": "ACC-P7-52-BOUNDED-OPERATIONS-PREFLIGHT-MANIFEST-INPUT",
+  "status": "PASS_BOUNDED_OPERATIONS_PREFLIGHT_MANIFEST_INPUT",
+  "failureFirst": { "expectedFailures": 5, "observedFailures": 5 },
+  "focusedTests": { "total": 5, "passed": 5, "failed": 0, "skipped": 0 },
+  "syntaxChecks": { "passed": 355, "failed": 0 },
+  "unitTests": { "total": 636, "passed": 630, "failed": 0, "skipped": 6 },
+  "manifestContract": {
+    "extension": ".json",
+    "minimumBytes": 1,
+    "maximumBytes": 1048576,
+    "physicalRegularFileRequired": true,
+    "realpathMustMatch": true,
+    "readBeforeAndAfterIdentityChecked": true,
+    "actualBytesChecked": true,
+    "fatalUtf8Required": true,
+    "jsonObjectRequired": true,
+    "rawPathAndContentRedactedFromErrors": true
+  },
+  "readOnlyVerification": {
+    "templatePreflight": "PASS",
+    "operationsContracts": "PASS",
+    "liveProviderProbePerformed": false,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "implementationCommit": "cffa3ad984640b688c8fc69ab5f3bd7c6224793a",
+  "qualityCi": {
+    "runId": 33583282289,
+    "testedHeadSha": "cffa3ad984640b688c8fc69ab5f3bd7c6224793a",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "harnessVerify": { "exitCode": 0, "status": "PASS" },
+  "actualLiveProviderProbePerformed": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

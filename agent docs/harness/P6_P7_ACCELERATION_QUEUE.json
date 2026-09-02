@@ -709,6 +709,14 @@
       "evidence": "operations:preflight template and operations:contracts PASS without live probe; failure-first 5/5; focused 5/5 PASS; syntax 353/353; repository unit 625 PASS 6 skips; harness:verify PASS; GitHub quality 33582520819 unit and three-tier SUCCESS; actual live provider probe NOT_RUN"
     },
     {
+      "id": "ACC-P7-52-BOUNDED-OPERATIONS-PREFLIGHT-MANIFEST-INPUT",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Operations provider preflight manifest는 상대경로 사용성을 보존하되 .json physical regular file·realpath 일치·1 byte~1MiB·read 전후 identity와 bytes 안정성·fatal UTF-8·JSON object를 요구하고 symlink/reparse·redirect·empty·oversize·malformed 입력과 원문 노출을 금지한다.",
+      "evidence": "operations:preflight template and operations:contracts PASS without live probe; failure-first 5/5; focused 5/5 PASS; syntax 355/355; repository unit 630 PASS 6 skips; harness:verify PASS; GitHub quality 33583282289 unit and three-tier SUCCESS; actual live provider probe NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
