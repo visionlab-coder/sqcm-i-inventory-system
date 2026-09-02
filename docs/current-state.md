@@ -339,6 +339,8 @@ P6-G3에서 후보 `e238ab8dab7f…`의 원격 일치, GitHub-hosted quality와 
 
 `ACC-P6-89`에서 Gate 1~11 checkpoint와 동일 atomic receipt snapshot 및 세 역할 actual 결과 publication set을 검증해 업무·보안·운영 책임자가 검토할 unsigned 서명 요청 bundle 3건을 저장소 밖 create-only로 조립하는 진입점을 준비했다. 동일 run·release·core/rollback receipt SHA·역할 결과 set을 요청에 고정하며 실제 bundle·서명·identity·MFA·메시지·DNS/TLS·cutover는 `NOT_RUN`이다.
 
+`ACC-P6-90`에서 BUSINESS·SECURITY·OPERATIONS 실제 서명을 deterministic unsigned request set ID와 준비 시각에 결박했다. actual assembler가 run·release·core/rollback receipt·역할 결과 publication set·preparedAt에서 ID를 재계산하고 요청이 rollback Gate 이후 각 서명 이전에 준비됐는지 검증하며 실제 request·서명·DNS/TLS·cutover는 `NOT_RUN`이다.
+
 # Phase 74 불변 이미지 릴리스 게이트 (2026-08-15)
 
 - GitHub Actions 외부 참조를 공식 commit SHA로 고정하고, main의 정확한 SHA로 frontend/backend 이미지를 GHCR에 발행하는 workflow를 추가했다.

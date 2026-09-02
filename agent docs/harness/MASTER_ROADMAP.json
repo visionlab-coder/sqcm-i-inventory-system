@@ -357,6 +357,7 @@
       "production-cutover-evidence-causal-chronology-pass",
       "production-signoff-reviewed-role-result-set-and-rollback-gate-provenance-pass",
       "production-signoff-request-single-receipt-snapshot-bound-bundle-preparation-pass",
+      "production-signoff-request-set-provenance-and-causal-time-binding-pass",
           "same-run-gates-1-to-11-signoff-pause-gate-12-resume-contract-ready",
           "same-run-physical-checkpoint-gate-12-resume-runtime-route-disable-ready",
           "same-run-actual-evidence-finalization-failure-route-disable-ready",

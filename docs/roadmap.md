@@ -178,6 +178,7 @@ flowchart LR
 - `ACC-P6-87`에서 actual P6 assembler가 1~26 receipt checkedAt의 비감소 순서, 역할 결과와 role-core-smoke receipt의 exact 시각, rollback Gate 이후부터 signoff-preflight receipt 이전까지의 실제 서명 경계를 검증하도록 강화했다. 인과 순서가 뒤집힌 증거는 Production GO 후보로 승격하지 않는다. 실제 receipt·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-88`에서 BUSINESS·SECURITY·OPERATIONS 실제 서명을 동일 역할 결과 publication set ID와 서명 직전 rollback Gate receipt SHA-256에 결박했다. 같은 run 안의 다른 역할 결과 세트나 rollback receipt를 참조한 서명은 Production GO 후보로 승격하지 않는다. 실제 서명·DNS/TLS·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-89`에서 Gate 1~11 checkpoint와 동일 atomic receipt snapshot 및 ADMIN·MANAGER·USER actual 역할 결과 publication set을 검증해 BUSINESS·SECURITY·OPERATIONS용 unsigned 서명 요청 bundle 3건을 저장소 밖 create-only로 조립하도록 준비했다. 요청은 동일 run·release·core/rollback receipt SHA·역할 결과 set을 고정하며 실제 bundle·서명·identity·MFA·메시지·DNS/TLS·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
+- `ACC-P6-90`에서 세 실제 서명을 deterministic unsigned request set ID와 준비 시각에 결박했다. actual assembler는 run·release·core/rollback receipt·역할 결과 publication set·preparedAt에서 ID를 재계산하고 요청 준비 시각이 rollback Gate 이후 각 서명 이전이며 rollback cutoff 안인지 검증한다. 실제 request·서명·DNS/TLS·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 
 ## 6. Phase 갱신 절차
 

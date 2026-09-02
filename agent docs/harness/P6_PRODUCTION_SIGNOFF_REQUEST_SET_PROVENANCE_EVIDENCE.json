@@ -1,0 +1,32 @@
+{
+  "packet": "ACC-P6-90-PRODUCTION-SIGNOFF-REQUEST-SET-PROVENANCE",
+  "status": "PASS_PRODUCTION_SIGNOFF_REQUEST_SET_PROVENANCE",
+  "scope": {
+    "signoffAreas": ["BUSINESS", "SECURITY", "OPERATIONS"],
+    "deterministicRequestSetIdRequired": true,
+    "requestPreparedAtRequired": true,
+    "preparedAfterRollbackGateRequired": true,
+    "preparedBeforeEverySignoffRequired": true,
+    "rollbackCutoffPreserved": true
+  },
+  "failureFirst": {
+    "reproducedFailureCount": 3,
+    "missingOrTamperedRequestSetAcceptedDetected": true,
+    "postSignoffRequestPreparationAcceptedDetected": true
+  },
+  "focusedTests": { "total": 49, "passed": 48, "failed": 0, "skipped": 1 },
+  "repositoryChecks": { "syntaxPassed": 417, "unitTotal": 877, "unitPassed": 869, "unitFailed": 0, "unitSkipped": 8 },
+  "implementationCommit": "da7bbb6b36d520f7ce7a55961de53b75b8f62a0d",
+  "qualityCi": { "runId": 33663424611, "status": "SUCCESS" },
+  "actualRequestBundleCreation": "NOT_RUN",
+  "actualSignoffCreation": "NOT_RUN",
+  "actualDnsTlsPublication": "NOT_RUN",
+  "actualP6Cutover": "NOT_RUN",
+  "actualP7Activation": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

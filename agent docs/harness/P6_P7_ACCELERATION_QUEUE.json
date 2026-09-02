@@ -1197,6 +1197,14 @@
       "evidence": "failure-first 4 reproduced; single atomic receipt snapshot and exact three-role result set bound to three unsigned request payloads; signature, identity and message creation zero; focused 28/28 PASS plus single-snapshot regression 14/14 PASS; syntax 417/417; repository unit 868 PASS 8 skips; GitHub quality 33661924708 unit and three-tier SUCCESS; actual bundle, signoff, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-90-PRODUCTION-SIGNOFF-REQUEST-SET-PROVENANCE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "BUSINESS·SECURITY·OPERATIONS 실제 서명은 run·release·core/rollback receipt·역할 결과 publication set·preparedAt에서 계산한 동일 unsigned request set SHA-256을 포함하고 request 준비 시각은 rollback Gate 이후 각 서명 이전이어야 한다.",
+      "evidence": "failure-first 3 reproduced; deterministic signoffRequestSetId and request preparedAt bound to all three actual signoffs; request time restricted after rollback Gate and before every signoff through rollback cutoff; focused 48 PASS 1 Windows skip; syntax 417/417; repository unit 869 PASS 8 skips; GitHub quality 33663424611 unit and three-tier SUCCESS; actual request, signoff, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
