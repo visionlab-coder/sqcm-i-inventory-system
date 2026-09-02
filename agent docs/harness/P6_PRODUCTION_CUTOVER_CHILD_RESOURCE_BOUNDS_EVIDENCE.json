@@ -1,0 +1,52 @@
+{
+  "packet": "ACC-P6-81-PRODUCTION-CUTOVER-CHILD-RESOURCE-BOUNDS",
+  "status": "PASS_PRODUCTION_CUTOVER_CHILD_RESOURCE_BOUNDS",
+  "scope": {
+    "normalGateCount": 12,
+    "normalStepCount": 14,
+    "defaultTimeoutMs": 600000,
+    "maximumAllowedTimeoutMs": 1800000,
+    "defaultCombinedOutputBytes": 1048576,
+    "maximumAllowedCombinedOutputBytes": 4194304,
+    "timeoutTerminatesChild": true,
+    "outputLimitTerminatesChild": true,
+    "closeSynchronized": true,
+    "rawOutputRecordedInReceipt": false,
+    "stalePassSummaryRecordedOnResourceFailure": false
+  },
+  "failureFirst": {
+    "reproducedFailureCount": 3,
+    "outputLimitMissingDetected": true,
+    "timeoutMissingDetected": true,
+    "passOutputOverrodeResourceFailureDetected": true
+  },
+  "focusedTests": {
+    "total": 52,
+    "passed": 51,
+    "failed": 0,
+    "skipped": 1
+  },
+  "repositoryChecks": {
+    "syntaxPassed": 414,
+    "unitTotal": 859,
+    "unitPassed": 851,
+    "unitFailed": 0,
+    "unitSkipped": 8
+  },
+  "implementationCommit": "fe219de8f307469c8f33c9fe5e6fade796b0be24",
+  "qualityCi": {
+    "runId": 33650821145,
+    "status": "SUCCESS"
+  },
+  "harnessVerify": { "status": "PASS", "exitCode": 0 },
+  "actualChildExecution": "NOT_RUN",
+  "actualDnsTlsPublication": "NOT_RUN",
+  "actualP6Cutover": "NOT_RUN",
+  "actualP7Activation": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

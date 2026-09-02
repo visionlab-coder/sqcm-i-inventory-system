@@ -1125,6 +1125,14 @@
       "evidence": "failure-first 3 reproduced; 16 step transitive local dependency bundles bound to gate and id; physical bounded repository snapshots and pre/post spawn digest checks; receipt, checkpoint, resume and actual evidence manifest provenance enforced; focused 43 PASS 1 Windows skip; syntax 414/414; repository unit 847 PASS 8 skips; harness:verify PASS; GitHub quality 33648501041 completed successfully; actual child, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-81-PRODUCTION-CUTOVER-CHILD-RESOURCE-BOUNDS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Cutover child는 bounded timeout과 stdout·stderr 합산 byte 상한을 강제하고 timeout·출력 초과·spawn·signal 실패를 원문 없이 정규화하며 실패 child가 stale PASS summary를 receipt에 남기지 않아야 한다.",
+      "evidence": "failure-first 3 reproduced; default 10 minute timeout with 30 minute hard maximum; combined stdout and stderr default 1 MiB with 4 MiB hard maximum; child termination and close synchronization; four bounded failure statuses; raw output and stale role PASS summary excluded from receipts; focused 51 PASS 1 Windows skip; syntax 414/414; repository unit 851 PASS 8 skips; harness:verify PASS; GitHub quality 33650821145 completed successfully; actual child, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
