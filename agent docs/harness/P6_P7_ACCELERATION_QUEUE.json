@@ -1165,6 +1165,14 @@
       "evidence": "failure-first 2 reproduced; runtime receipt payload now records sequence; actual assembler requires 26 unique continuous receipts in exact step and gate identity order; swapped or duplicated sequence fails closed; focused 51 PASS 1 Windows skip; syntax 414/414; repository unit 859 PASS 8 skips; GitHub quality 33656557105 completed successfully; actual receipt, DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-86-PRODUCTION-CUTOVER-RECEIPT-FILENAME-PAYLOAD-BINDING",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "각 runtime receipt의 물리 파일명은 payload의 canonical UTC checkedAt, 4자리 sequence, kind, Gate와 step으로 재구성한 writer 형식과 정확히 일치해야 하며 rename 변조를 actual P6 증거로 승격하지 않아야 한다.",
+      "evidence": "failure-first 1 reproduced with sequence, checkedAt and kind filename tampering; actual assembler now reconstructs and verifies the canonical runtime receipt filename from payload; focused 29 PASS 1 Windows skip; syntax 414/414; repository unit 860 PASS 8 skips; GitHub quality 33657975871 completed successfully; actual receipt, DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

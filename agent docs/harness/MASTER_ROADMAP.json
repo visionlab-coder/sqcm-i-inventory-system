@@ -353,6 +353,7 @@
       "production-cutover-containment-two-minute-aggregate-time-budget-pass",
       "production-cutover-actual-receipt-role-signoff-rollback-cutoff-pass",
       "production-cutover-receipt-one-to-twenty-six-sequence-provenance-pass",
+      "production-cutover-receipt-filename-payload-binding-pass",
           "same-run-gates-1-to-11-signoff-pause-gate-12-resume-contract-ready",
           "same-run-physical-checkpoint-gate-12-resume-runtime-route-disable-ready",
           "same-run-actual-evidence-finalization-failure-route-disable-ready",

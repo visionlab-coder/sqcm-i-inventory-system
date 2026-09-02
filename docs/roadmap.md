@@ -174,6 +174,7 @@ flowchart LR
 - `ACC-P6-83`에서 2분 containment reserve를 route-disable 50초, ingress orphan recovery 50초, 종료 유예 합계 10초, orchestration 여유 10초로 완전히 분할했다. 상위 timeout 확장과 작은 reserve가 격리 완료 시간을 무효화하지 못하도록 fail-closed한다. 실제 containment·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-84`에서 actual P6 evidence의 step·Gate receipt, 역할 결과와 3개 서명을 변경창 시작부터 22:00 rollback cutoff까지로 제한했다. 22:00 이후 문서는 유효한 형식이어도 Production GO 후보로 승격하지 않는다. 실제 receipt·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-85`에서 runtime receipt JSON에 1~26 sequence를 기록하고 actual P6 assembler가 14개 step·12개 Gate receipt의 연속·고유 sequence와 정해진 identity 순서를 검증하도록 강화했다. 중복·누락·교환 sequence는 Production GO 후보로 승격하지 않는다. 실제 receipt·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
+- `ACC-P6-86`에서 actual P6 assembler가 runtime receipt의 물리 파일명을 payload의 canonical UTC checkedAt·4자리 sequence·kind·Gate·step과 정확히 대조하도록 강화했다. 파일명 rename이나 payload 불일치는 Production GO 후보로 승격하지 않는다. 실제 receipt·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 
 ## 6. Phase 갱신 절차
 
