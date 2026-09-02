@@ -175,12 +175,12 @@ test('정상 cutover child timeout은 rollback cutoff 전 격리 reserve를 남�
     writeReceipt: async () => 'receipt.json',
     spawnStep: async (value) => { calls.push(value); return { exitCode: 0, stdout: '{"status":"READY_FOR_CHANGE_WINDOW_EXECUTION"}', stderr: '' }; },
     timeoutMs: 10000,
-    rollbackDeadlineMs: 5000,
-    rollbackReserveMs: 1000,
+    rollbackDeadlineMs: 125000,
+    rollbackReserveMs: 120000,
     now: () => 1000
   });
   await run(step);
-  assert.equal(calls[0].timeoutMs, 3000);
+  assert.equal(calls[0].timeoutMs, 4000);
 });
 
 test('rollback reserve가 소진되면 정상 child를 spawn하지 않고 bounded receipt를 남긴다', async () => {
@@ -192,9 +192,9 @@ test('rollback reserve가 소진되면 정상 child를 spawn하지 않고 bounde
   const run = createProcessStepRunner({
     writeReceipt: async (value) => { receipts.push(value); return 'receipt.json'; },
     spawnStep: async () => { spawnCount += 1; return { exitCode: 0, stdout: '{"status":"READY_FOR_CHANGE_WINDOW_EXECUTION"}', stderr: '' }; },
-    rollbackDeadlineMs: 5000,
-    rollbackReserveMs: 1000,
-    now: () => 4000
+    rollbackDeadlineMs: 125000,
+    rollbackReserveMs: 120000,
+    now: () => 5000
   });
   const result = await run(step);
   assert.equal(spawnCount, 0);
@@ -202,23 +202,43 @@ test('rollback reserve가 소진되면 정상 child를 spawn하지 않고 bounde
   assert.equal(receipts[0].status, 'FAIL_CUTOVER_CHILD_ROLLBACK_DEADLINE_EXHAUSTED');
 });
 
-test('route-disable containment child는 rollback reserve 소진 뒤에도 bounded 실행된다', async () => {
-  const { createProcessStepRunner } = await modulePromise;
-  const { CUTOVER_ROUTE_DISABLE_ADAPTER } = await adapterModulePromise;
-  const step = { gate: 'route_disable', ...CUTOVER_ROUTE_DISABLE_ADAPTER };
+test('containment child 2개는 rollback reserve 안의 균등한 bounded budget으로 실행된다', async () => {
+  const {
+    createProcessStepRunner,
+    PRODUCTION_CUTOVER_CHILD_TERMINATION_GRACE_MS,
+    PRODUCTION_CUTOVER_CONTAINMENT_ORCHESTRATION_MARGIN_MS
+  } = await modulePromise;
+  const { CUTOVER_ROUTE_DISABLE_ADAPTER, CUTOVER_INGRESS_ORPHAN_RECOVERY_ADAPTER } = await adapterModulePromise;
+  const steps = [
+    { gate: 'route_disable', ...CUTOVER_ROUTE_DISABLE_ADAPTER },
+    { gate: 'ingress_orphan_recovery', ...CUTOVER_INGRESS_ORPHAN_RECOVERY_ADAPTER }
+  ];
   const calls = [];
+  const rollbackReserveMs = 120000;
   const run = createProcessStepRunner({
     writeReceipt: async () => 'receipt.json',
     spawnStep: async (value) => { calls.push(value); return { exitCode: 0, stdout: '{"status":"PASS_PUBLIC_ROUTE_DISABLED"}', stderr: '' }; },
-    timeoutMs: 10000,
+    timeoutMs: 600000,
     rollbackDeadlineMs: 5000,
-    rollbackReserveMs: 1000,
+    rollbackReserveMs,
     now: () => 5000
   });
-  const result = await run(step);
-  assert.equal(result.status, 'PASS_PUBLIC_ROUTE_DISABLED');
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0].timeoutMs, 10000);
+  for (const step of steps) await run(step);
+  const expectedPerStep = Math.floor((rollbackReserveMs
+    - (2 * PRODUCTION_CUTOVER_CHILD_TERMINATION_GRACE_MS)
+    - PRODUCTION_CUTOVER_CONTAINMENT_ORCHESTRATION_MARGIN_MS) / 2);
+  assert.deepEqual(calls.map((call) => call.timeoutMs), [expectedPerStep, expectedPerStep]);
+  assert.ok((calls.reduce((sum, call) => sum + call.timeoutMs, 0)
+    + (2 * PRODUCTION_CUTOVER_CHILD_TERMINATION_GRACE_MS)
+    + PRODUCTION_CUTOVER_CONTAINMENT_ORCHESTRATION_MARGIN_MS) <= rollbackReserveMs);
+});
+
+test('containment 보장보다 작은 rollback reserve는 runner 생성 전에 거부한다', async () => {
+  const { createProcessStepRunner } = await modulePromise;
+  assert.throws(
+    () => createProcessStepRunner({ writeReceipt: async () => 'receipt.json', rollbackReserveMs: 20000 }),
+    /CUTOVER_CHILD_ROLLBACK_RESERVE_TOO_SMALL_FOR_CONTAINMENT/
+  );
 });
 
 test('rollback deadline 계약이 유효하지 않으면 runner 생성 단계에서 거부한다', async () => {

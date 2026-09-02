@@ -9,6 +9,8 @@ export const PRODUCTION_CUTOVER_RECEIPT_ROOT = 'D:\\seowon_runtime\\sqcm-i-inven
 export const PRODUCTION_CUTOVER_CHILD_TIMEOUT_MS = 10 * 60 * 1000;
 export const PRODUCTION_CUTOVER_CHILD_MAX_BUFFER_BYTES = 1024 * 1024;
 export const PRODUCTION_CUTOVER_ROLLBACK_RESERVE_MS = 2 * 60 * 1000;
+export const PRODUCTION_CUTOVER_CHILD_TERMINATION_GRACE_MS = 5 * 1000;
+export const PRODUCTION_CUTOVER_CONTAINMENT_ORCHESTRATION_MARGIN_MS = 10 * 1000;
 const PRODUCTION_CUTOVER_CHILD_MAX_TIMEOUT_MS = 30 * 60 * 1000;
 const PRODUCTION_CUTOVER_CHILD_MAX_ALLOWED_BUFFER_BYTES = 4 * 1024 * 1024;
 const PRODUCTION_CUTOVER_ROLLBACK_MAX_RESERVE_MS = 10 * 60 * 1000;
@@ -208,7 +210,7 @@ export function spawnNodeStep({
       if (failureStatus) return;
       failureStatus = status;
       try { child.kill('SIGKILL'); } catch { /* bounded failure is already recorded */ }
-      forcedSettlement = setTimeout(() => finish(-1), 5000);
+      forcedSettlement = setTimeout(() => finish(-1), PRODUCTION_CUTOVER_CHILD_TERMINATION_GRACE_MS);
       forcedSettlement.unref?.();
     };
     const capture = (target, chunk) => {
@@ -244,6 +246,10 @@ export function createProcessStepRunner({
   if (!Number.isInteger(rollbackReserveMs) || rollbackReserveMs < 1000 || rollbackReserveMs > PRODUCTION_CUTOVER_ROLLBACK_MAX_RESERVE_MS) {
     throw new Error('CUTOVER_CHILD_ROLLBACK_RESERVE_INVALID');
   }
+  const containmentTimeoutMs = Math.floor((rollbackReserveMs
+    - (2 * PRODUCTION_CUTOVER_CHILD_TERMINATION_GRACE_MS)
+    - PRODUCTION_CUTOVER_CONTAINMENT_ORCHESTRATION_MARGIN_MS) / 2);
+  if (containmentTimeoutMs < 1) throw new Error('CUTOVER_CHILD_ROLLBACK_RESERVE_TOO_SMALL_FOR_CONTAINMENT');
   if (typeof now !== 'function') throw new Error('CUTOVER_CHILD_CLOCK_INVALID');
   return async (step) => {
     const bundleKey = `${step?.gate}:${step?.id}`;
@@ -256,6 +262,7 @@ export function createProcessStepRunner({
     let stepTimeoutMs = timeoutMs;
     let raw;
     const containmentStep = step.gate === 'route_disable' || step.gate === 'ingress_orphan_recovery';
+    if (containmentStep) stepTimeoutMs = Math.min(timeoutMs, containmentTimeoutMs);
     if (rollbackDeadlineMs !== null && !containmentStep) {
       const checkedAtMs = Number(now());
       if (!Number.isFinite(checkedAtMs)) throw new Error('CUTOVER_CHILD_CLOCK_INVALID');
