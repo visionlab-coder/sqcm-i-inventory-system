@@ -24,6 +24,21 @@ function samePhysicalPath(left, right) {
     : left === right;
 }
 
+function sameFileIdentity(before, after) {
+  return before.size === after.size
+    && (!Number.isInteger(before.dev) || !Number.isInteger(after.dev) || before.dev === after.dev)
+    && (!Number.isInteger(before.ino) || !Number.isInteger(after.ino) || before.ino === after.ino)
+    && (!Number.isFinite(before.mtimeMs) || !Number.isFinite(after.mtimeMs) || before.mtimeMs === after.mtimeMs);
+}
+
+function physicalDirectory(stat) {
+  return stat.isDirectory() && !stat.isSymbolicLink() && !(stat.isReparsePoint?.() ?? false);
+}
+
+function physicalFile(stat) {
+  return stat.isFile() && !stat.isSymbolicLink() && !(stat.isReparsePoint?.() ?? false);
+}
+
 function readExternalPhysicalInput(filePath, {
   repositoryRoot,
   io,
@@ -43,32 +58,31 @@ function readExternalPhysicalInput(filePath, {
     throw inputError(`${errorPrefix}_REFERENCE_INVALID`);
   }
 
+  let repositoryStat;
   let repositoryReal;
   let stat;
+  let candidateReal;
   try {
-    const repositoryStat = io.lstatSync(repository);
-    if (!repositoryStat.isDirectory() || repositoryStat.isSymbolicLink() || (repositoryStat.isReparsePoint?.() ?? false)) {
+    repositoryStat = io.lstatSync(repository);
+    if (!physicalDirectory(repositoryStat)) {
       throw inputError(`${errorPrefix}_REFERENCE_INVALID`);
     }
     repositoryReal = path.resolve(io.realpathSync(repository));
     stat = io.lstatSync(candidate);
+    candidateReal = path.resolve(io.realpathSync(candidate));
   } catch (error) {
     if (error?.code === 'ENOENT') throw inputError(`${errorPrefix}_NOT_FOUND`);
     if (error?.name === 'OperationsActivationInputError') throw error;
     throw inputError(`${errorPrefix}_REFERENCE_INVALID`);
   }
-  if (!stat.isFile() || stat.isSymbolicLink() || (stat.isReparsePoint?.() ?? false)
+  if (!samePhysicalPath(repositoryReal, repository) || !physicalFile(stat)
+    || !samePhysicalPath(candidateReal, candidate) || pathInsideOrEqual(repositoryReal, candidateReal)
     || stat.size < 1 || stat.size > maxBytes) {
     throw inputError(`${errorPrefix}_REFERENCE_INVALID`);
   }
 
-  let candidateReal;
   let raw;
   try {
-    candidateReal = path.resolve(io.realpathSync(candidate));
-    if (!samePhysicalPath(candidateReal, candidate) || pathInsideOrEqual(repositoryReal, candidateReal)) {
-      throw inputError(`${errorPrefix}_REFERENCE_INVALID`);
-    }
     raw = io.readFileSync(candidateReal);
   } catch (error) {
     if (error?.name === 'OperationsActivationInputError') throw error;
@@ -76,6 +90,26 @@ function readExternalPhysicalInput(filePath, {
   }
   if (!Buffer.isBuffer(raw) || raw.length !== stat.size || raw.length > maxBytes) {
     throw inputError(`${errorPrefix}_REFERENCE_INVALID`);
+  }
+
+  let repositoryAfter;
+  let repositoryRealAfter;
+  let after;
+  let candidateRealAfter;
+  try {
+    repositoryAfter = io.lstatSync(repository);
+    repositoryRealAfter = path.resolve(io.realpathSync(repository));
+    after = io.lstatSync(candidate);
+    candidateRealAfter = path.resolve(io.realpathSync(candidate));
+  } catch {
+    throw inputError(`${errorPrefix}_UNSTABLE`);
+  }
+  if (!physicalDirectory(repositoryAfter) || !physicalFile(after)
+    || !samePhysicalPath(repositoryReal, repositoryRealAfter) || !samePhysicalPath(repositoryRealAfter, repository)
+    || !samePhysicalPath(candidateReal, candidateRealAfter) || !samePhysicalPath(candidateRealAfter, candidate)
+    || pathInsideOrEqual(repositoryRealAfter, candidateRealAfter)
+    || !sameFileIdentity(repositoryStat, repositoryAfter) || !sameFileIdentity(stat, after)) {
+    throw inputError(`${errorPrefix}_UNSTABLE`);
   }
 
   return {
@@ -102,8 +136,11 @@ export function readOperationsActivationInputDocument(filePath, {
     errorPrefix: 'OPERATIONS_ACTIVATION_INPUT'
   });
 
+  let source;
+  try { source = new TextDecoder('utf-8', { fatal: true }).decode(input.raw); }
+  catch { throw inputError('OPERATIONS_ACTIVATION_INPUT_UTF8_INVALID'); }
   let value;
-  try { value = JSON.parse(input.raw.toString('utf8')); }
+  try { value = JSON.parse(source); }
   catch { throw inputError('OPERATIONS_ACTIVATION_INPUT_JSON_INVALID'); }
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw inputError('OPERATIONS_ACTIVATION_INPUT_JSON_INVALID');
