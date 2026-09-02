@@ -66,6 +66,8 @@ const IDENTITY_PATTERN = /^identity:\/\/[A-Za-z0-9._/@:-]+$/;
 const DIGEST_PATTERN = /^[a-f0-9]{64}$/;
 const P6_OPERATIONS_APPROVAL_EVIDENCE_PATTERN = /^production operations approval sha256:([a-f0-9]{64})$/;
 export const OPERATIONS_ACTIVATION_APPROVAL_RECEIPT_TYPE = 'P7_OPERATIONS_ACTIVATION_APPROVAL_RECEIPT';
+export const OPERATIONS_ACTIVATION_BUNDLE_FILE_MAX_BYTES = 4 * 1024 * 1024;
+export const OPERATIONS_ACTIVATION_BUNDLE_TOTAL_MAX_BYTES = 64 * 1024 * 1024;
 const RECEIPT_ROOT_CLAIM_NAME = '.operations-activation-root.json';
 const STANDARD_CHILD_PROFILE = Object.freeze({ id: 'STANDARD', timeoutMs: 30 * 60 * 1000, maxBufferBytes: 1024 * 1024 });
 
@@ -112,48 +114,120 @@ export function operationsActivationApprovalSha256(value) {
 
 const LOCAL_MODULE_SPECIFIER_PATTERN = /(?:\bfrom\s*|\bimport\s*\(\s*|\brequire\s*\(\s*|\bimport\s*)['"](\.{1,2}\/[^'"]+)['"]/g;
 
-function resolveLocalModulePath(fromFile, specifier) {
+function samePhysicalPath(left, right) {
+  const a = path.resolve(left); const b = path.resolve(right);
+  return process.platform === 'win32' ? a.toLowerCase() === b.toLowerCase() : a === b;
+}
+
+function sameFileIdentity(before, after) {
+  return before.size === after.size
+    && (!Number.isInteger(before.dev) || !Number.isInteger(after.dev) || before.dev === after.dev)
+    && (!Number.isInteger(before.ino) || !Number.isInteger(after.ino) || before.ino === after.ino)
+    && (!Number.isFinite(before.mtimeMs) || !Number.isFinite(after.mtimeMs) || before.mtimeMs === after.mtimeMs);
+}
+
+function resolveLocalModulePath(fromFile, specifier, io = fs) {
   const unresolved = path.resolve(path.dirname(fromFile), specifier.split(/[?#]/, 1)[0]);
   const candidates = path.extname(unresolved)
     ? [unresolved]
     : [unresolved, `${unresolved}.mjs`, `${unresolved}.js`, `${unresolved}.cjs`, `${unresolved}.json`, path.join(unresolved, 'index.mjs'), path.join(unresolved, 'index.js')];
-  return candidates.find((candidate) => fs.existsSync(candidate)) ?? null;
+  return candidates.find((candidate) => io.existsSync(candidate)) ?? null;
 }
 
-export function resolveOperationsActivationBundleFiles(projectRoot) {
+export function readOperationsActivationBundleSnapshotFile(candidate, {
+  projectRoot, io = fs, maxFileBytes = OPERATIONS_ACTIVATION_BUNDLE_FILE_MAX_BYTES
+} = {}) {
   if (typeof projectRoot !== 'string' || !path.isAbsolute(projectRoot)) throw new Error('OPERATIONS_ACTIVATION_BUNDLE_ROOT_INVALID');
-  const root = path.resolve(projectRoot); const pending = [...OPERATIONS_ACTIVATION_BUNDLE_ENTRYPOINTS]; const resolved = new Set();
+  if (typeof candidate !== 'string' || !path.isAbsolute(candidate)) throw new Error('OPERATIONS_ACTIVATION_BUNDLE_PATH_INVALID');
+  if (!Number.isInteger(maxFileBytes) || maxFileBytes < 1 || maxFileBytes > OPERATIONS_ACTIVATION_BUNDLE_FILE_MAX_BYTES) {
+    throw new Error('OPERATIONS_ACTIVATION_BUNDLE_FILE_LIMIT_INVALID');
+  }
+  const root = path.resolve(projectRoot); const resolved = path.resolve(candidate); const relative = path.relative(root, resolved);
+  if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) throw new Error('OPERATIONS_ACTIVATION_BUNDLE_PATH_INVALID');
+
+  let rootBefore; let rootRealBefore; let before; let realBefore;
+  try {
+    rootBefore = io.lstatSync(root); rootRealBefore = path.resolve(io.realpathSync(root));
+    before = io.lstatSync(resolved); realBefore = path.resolve(io.realpathSync(resolved));
+  } catch {
+    throw new Error('OPERATIONS_ACTIVATION_BUNDLE_FILE_MISSING');
+  }
+  if (!rootBefore.isDirectory() || rootBefore.isSymbolicLink() || (rootBefore.isReparsePoint?.() ?? false)
+    || !samePhysicalPath(rootRealBefore, root)) throw new Error('OPERATIONS_ACTIVATION_BUNDLE_ROOT_NOT_PHYSICAL');
+  if (!before.isFile() || before.isSymbolicLink() || (before.isReparsePoint?.() ?? false)
+    || !samePhysicalPath(realBefore, resolved)) throw new Error('OPERATIONS_ACTIVATION_BUNDLE_FILE_NOT_PHYSICAL');
+  if (before.size < 1 || before.size > maxFileBytes) throw new Error('OPERATIONS_ACTIVATION_BUNDLE_FILE_SIZE_INVALID');
+
+  let content;
+  try { content = io.readFileSync(resolved); }
+  catch { throw new Error('OPERATIONS_ACTIVATION_BUNDLE_FILE_READ_FAILED'); }
+  if (!Buffer.isBuffer(content)) content = Buffer.from(content);
+  if (content.length !== before.size || content.length < 1 || content.length > maxFileBytes) {
+    throw new Error('OPERATIONS_ACTIVATION_BUNDLE_FILE_UNSTABLE');
+  }
+
+  let rootAfter; let rootRealAfter; let after; let realAfter;
+  try {
+    rootAfter = io.lstatSync(root); rootRealAfter = path.resolve(io.realpathSync(root));
+    after = io.lstatSync(resolved); realAfter = path.resolve(io.realpathSync(resolved));
+  } catch {
+    throw new Error('OPERATIONS_ACTIVATION_BUNDLE_FILE_UNSTABLE');
+  }
+  if (!samePhysicalPath(rootRealBefore, rootRealAfter) || !sameFileIdentity(rootBefore, rootAfter)
+    || !samePhysicalPath(realBefore, realAfter) || !sameFileIdentity(before, after)
+    || !after.isFile() || after.isSymbolicLink() || (after.isReparsePoint?.() ?? false)) {
+    throw new Error('OPERATIONS_ACTIVATION_BUNDLE_FILE_UNSTABLE');
+  }
+
+  let source;
+  try { source = new TextDecoder('utf-8', { fatal: true }).decode(content); }
+  catch { throw new Error('OPERATIONS_ACTIVATION_BUNDLE_FILE_UTF8_INVALID'); }
+  return { relativePath: relative.split(path.sep).join('/'), content, source, bytes: content.length };
+}
+
+export function inspectOperationsActivationBundle(projectRoot, {
+  io = fs,
+  maxFileBytes = OPERATIONS_ACTIVATION_BUNDLE_FILE_MAX_BYTES,
+  maxTotalBytes = OPERATIONS_ACTIVATION_BUNDLE_TOTAL_MAX_BYTES
+} = {}) {
+  if (typeof projectRoot !== 'string' || !path.isAbsolute(projectRoot)) throw new Error('OPERATIONS_ACTIVATION_BUNDLE_ROOT_INVALID');
+  if (!Number.isInteger(maxTotalBytes) || maxTotalBytes < 1 || maxTotalBytes > OPERATIONS_ACTIVATION_BUNDLE_TOTAL_MAX_BYTES) {
+    throw new Error('OPERATIONS_ACTIVATION_BUNDLE_TOTAL_LIMIT_INVALID');
+  }
+  const root = path.resolve(projectRoot); const pending = [...OPERATIONS_ACTIVATION_BUNDLE_ENTRYPOINTS]; const snapshots = new Map(); let totalBytes = 0;
   while (pending.length) {
-    const relativePath = pending.pop(); if (resolved.has(relativePath)) continue;
-    const candidate = path.resolve(root, ...relativePath.split('/')); const relative = path.relative(root, candidate);
-    if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) throw new Error('OPERATIONS_ACTIVATION_BUNDLE_PATH_INVALID');
-    let stat; let realPath;
-    try { stat = fs.lstatSync(candidate); realPath = path.resolve(fs.realpathSync(candidate)); } catch { throw new Error('OPERATIONS_ACTIVATION_BUNDLE_FILE_MISSING'); }
-    if (!stat.isFile() || stat.isSymbolicLink() || (stat.isReparsePoint?.() ?? false) || realPath.toLowerCase() !== candidate.toLowerCase()) {
-      throw new Error('OPERATIONS_ACTIVATION_BUNDLE_FILE_NOT_PHYSICAL');
-    }
-    resolved.add(relativePath);
+    const relativePath = pending.pop(); if (snapshots.has(relativePath)) continue;
+    const candidate = path.resolve(root, ...relativePath.split('/'));
+    const snapshot = readOperationsActivationBundleSnapshotFile(candidate, { projectRoot: root, io, maxFileBytes });
+    if (snapshot.relativePath !== relativePath) throw new Error('OPERATIONS_ACTIVATION_BUNDLE_PATH_INVALID');
+    totalBytes += snapshot.bytes;
+    if (totalBytes > maxTotalBytes) throw new Error('OPERATIONS_ACTIVATION_BUNDLE_TOTAL_SIZE_INVALID');
+    snapshots.set(relativePath, snapshot);
     if (path.extname(candidate) === '.json') continue;
-    const source = fs.readFileSync(candidate, 'utf8');
-    for (const match of source.matchAll(LOCAL_MODULE_SPECIFIER_PATTERN)) {
-      const dependency = resolveLocalModulePath(candidate, match[1]);
+    for (const match of snapshot.source.matchAll(LOCAL_MODULE_SPECIFIER_PATTERN)) {
+      const dependency = resolveLocalModulePath(candidate, match[1], io);
       if (!dependency) throw new Error('OPERATIONS_ACTIVATION_BUNDLE_DEPENDENCY_MISSING');
       const dependencyRelative = path.relative(root, dependency);
       if (!dependencyRelative || dependencyRelative.startsWith('..') || path.isAbsolute(dependencyRelative)) throw new Error('OPERATIONS_ACTIVATION_BUNDLE_DEPENDENCY_OUTSIDE_ROOT');
       pending.push(dependencyRelative.split(path.sep).join('/'));
     }
   }
-  return [...resolved].sort();
+  const ordered = [...snapshots.values()].sort((left, right) => (left.relativePath < right.relativePath ? -1 : left.relativePath > right.relativePath ? 1 : 0));
+  const hash = createHash('sha256'); hash.update('SQCM-I-P7-OPERATIONS-ACTIVATION-BUNDLE-V2\0', 'utf8');
+  for (const snapshot of ordered) {
+    const pathBytes = Buffer.byteLength(snapshot.relativePath, 'utf8');
+    hash.update(`${pathBytes}:`, 'utf8'); hash.update(snapshot.relativePath, 'utf8');
+    hash.update(`:${snapshot.bytes}:`, 'utf8'); hash.update(snapshot.content);
+  }
+  return { files: ordered.map((item) => item.relativePath), totalBytes, sha256: hash.digest('hex') };
 }
 
-export function computeOperationsActivationBundleSha256(projectRoot) {
-  const root = path.resolve(projectRoot); const hash = createHash('sha256');
-  hash.update('SQCM-I-P7-OPERATIONS-ACTIVATION-BUNDLE-V2\0', 'utf8');
-  for (const relativePath of resolveOperationsActivationBundleFiles(root)) {
-    const candidate = path.resolve(root, ...relativePath.split('/')); const content = fs.readFileSync(candidate); const pathBytes = Buffer.byteLength(relativePath, 'utf8');
-    hash.update(`${pathBytes}:`, 'utf8'); hash.update(relativePath, 'utf8'); hash.update(`:${content.length}:`, 'utf8'); hash.update(content);
-  }
-  return hash.digest('hex');
+export function resolveOperationsActivationBundleFiles(projectRoot, options = {}) {
+  return inspectOperationsActivationBundle(projectRoot, options).files;
+}
+
+export function computeOperationsActivationBundleSha256(projectRoot, options = {}) {
+  return inspectOperationsActivationBundle(projectRoot, options).sha256;
 }
 
 const SAFE_CHILD_RUNTIME_ENVIRONMENT = [
