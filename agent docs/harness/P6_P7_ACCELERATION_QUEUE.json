@@ -1077,6 +1077,14 @@
       "evidence": "installed help and official cloudflared source reviewed read-only; TunnelWithToken JSON token field confirmed; failure-first 5 reproduced; focused create/tunnel/DNS/publication 25 PASS; syntax 408/408; repository unit 821 PASS 8 skips; harness:verify PASS; GitHub quality 33637736026 unit and three-tier SUCCESS; actual tunnel create/connect, credential/config publication, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-75-PRODUCTION-INGRESS-ORPHAN-RECOVERY-PREFLIGHT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production ingress의 exact tunnel, 임시·최종 credential 존재, config, process와 public DNS를 Secret 원문 없이 함께 관측하고 provider 관측 실패는 fail-closed하며 부분 산출물은 실제 삭제 없이 명시적 복구 검토로 차단해야 한다.",
+      "evidence": "failure-first 5 reproduced; focused 5 PASS; actual read-only observation PASS_NO_INGRESS_PARTIAL_STATE with six components absent, external mutation zero and secret content read zero; syntax 410/410; repository unit 826 PASS 8 skips; harness:verify PASS; GitHub quality 33639122565 unit and three-tier SUCCESS; actual recovery execution, tunnel/DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

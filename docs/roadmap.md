@@ -163,6 +163,7 @@ flowchart LR
 - `ACC-P6-72`에서 Production public ingress publication의 Cloudflare zone과 DNS record 전체 identity를 게시 전에 고정했다. exact ID·zone/name/status·CNAME·tunnel content·proxied·TTL 조건을 검증하고 record 부재만 생성을 허용하며 생성 뒤 exact record를 재관측해야 성공한다. 실제 DNS 게시·tunnel·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-73`에서 Production public ingress의 Cloudflare tunnel과 connection identity를 고정했다. exact name·UUID·created/deleted 상태와 connection UUID·colo·origin IP·openedAt·pending 형식을 검증하고 non-pending connection만 connected로 인정한다. 실제 tunnel 생성·연결·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 - `ACC-P6-74`에서 cloudflared tunnel create의 token-bearing JSON 출력을 제거했다. Secret 없는 기본 확인문의 exact name·UUID와 bounded 원격 재관측 UUID가 일치한 뒤에만 credential/config를 게시하며 provider create 직후 mutation은 즉시 기록한다. 실제 tunnel 생성·credential/config 게시·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
+- `ACC-P6-75`에서 Production ingress 부분 실패 복구 preflight를 추가했다. exact tunnel, 임시·최종 credential 존재, config, process와 public DNS를 Secret 원문 없이 함께 관측하고 관측 실패는 fail-closed하며 부분 산출물은 삭제 없이 복구 검토로 격리한다. 현재 여섯 구성요소는 모두 부재해 orphan 없음이 PASS했고 실제 복구 삭제·tunnel·DNS/TLS·역할 UAT·P6 cutover·P7 운영 활성화는 `NOT_RUN`이다.
 
 ## 6. Phase 갱신 절차
 

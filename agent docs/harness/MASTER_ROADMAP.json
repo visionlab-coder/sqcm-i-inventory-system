@@ -342,6 +342,7 @@
       "production-ingress-exact-zone-dns-record-publication-identity-pass",
       "production-ingress-exact-tunnel-connection-identity-pass",
       "production-ingress-secret-free-tunnel-create-acknowledgement-pass",
+      "production-ingress-orphan-recovery-read-only-preflight-pass",
           "same-run-gates-1-to-11-signoff-pause-gate-12-resume-contract-ready",
           "same-run-physical-checkpoint-gate-12-resume-runtime-route-disable-ready",
           "same-run-actual-evidence-finalization-failure-route-disable-ready",
