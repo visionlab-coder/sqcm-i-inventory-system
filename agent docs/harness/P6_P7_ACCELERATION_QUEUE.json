@@ -1053,6 +1053,14 @@
       "evidence": "failure-first 6 reproduced; focused route-disable 16 PASS; syntax 405/405; repository unit 804 PASS 8 skips; route-disable dry-run waits with external mutation zero; protected ports and PIDs preserved; harness:verify PASS; GitHub quality 33633647593 unit and three-tier SUCCESS; actual DNS delete, P6 cutover and P7 activation NOT_RUN"
     },
     {
+      "id": "ACC-P6-72-PRODUCTION-INGRESS-EXACT-DNS-PUBLICATION-IDENTITY",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production public ingress publication은 Cloudflare의 exact 32-hex zone/record ID, zone name·active status, record zone ID·hostname·CNAME·tunnel content·proxied=true·ttl=1을 검증하고 record 부재만 생성을 허용하며 생성 뒤 exact record가 재관측될 때만 성공해야 한다.",
+      "evidence": "failure-first 6 reproduced; focused ingress identity, publication and process 19 PASS; syntax 406/406; repository unit 810 PASS 8 skips; ingress publication dry-run waits with external mutation zero; protected ports and PIDs preserved; harness:verify PASS; GitHub quality 33634889262 unit and three-tier SUCCESS; actual DNS publication, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",
