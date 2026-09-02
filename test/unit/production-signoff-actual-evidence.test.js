@@ -113,3 +113,8 @@ test('세 출력은 외부 물리 경로에 create-only로 게시하고 사전 �
   assert.equal(fs.existsSync(outputs.BUSINESS), false);
   assert.equal(fs.existsSync(outputs.OPERATIONS), false);
 });
+
+test('Goal Harness는 실제 서명 조립기 dry-run을 검증 목록에 포함한다', () => {
+  const source = fs.readFileSync(path.resolve(__dirname, '..', '..', 'scripts', 'goal-harness.mjs'), 'utf8');
+  assert.match(source, /\['production-signoff-actual-evidence', 'npm\.cmd', \['run', 'production:signoff-actual-evidence'\]\]/);
+});
