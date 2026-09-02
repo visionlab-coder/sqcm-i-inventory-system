@@ -1,0 +1,51 @@
+{
+  "packet": "ACC-P6-43-SHARED-ATOMIC-PHASE-TRANSITION-CONTROLS",
+  "status": "PASS_SHARED_ATOMIC_PHASE_TRANSITION_CONTROLS",
+  "failureFirst": { "expectedFailures": 1, "observedFailures": 1 },
+  "focusedTests": { "total": 17, "passed": 17, "failed": 0, "skipped": 0 },
+  "pairMutationTests": { "total": 2, "blocked": 2 },
+  "entrypointDryRun": {
+    "status": "READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_FOR_PHASE_PROMOTION",
+    "changesMade": false,
+    "productionGo": false
+  },
+  "syntaxChecks": { "passed": 374, "failed": 0 },
+  "unitTests": { "total": 723, "passed": 716, "failed": 0, "skipped": 7 },
+  "sharedControlContract": {
+    "consumers": ["production-phase-promotion", "operations-phase-completion"],
+    "roadmapMaximumBytes": 1048576,
+    "queueMaximumBytes": 1048576,
+    "eachFileReadCountPerTransition": 1,
+    "pairStabilityRequired": true,
+    "directSeparateJsonReadCount": 0,
+    "actualPhasePromotionPerformed": false,
+    "actualTerminalCompletionPerformed": false
+  },
+  "implementationCommit": "e4789efb7106b01372e710a28acaff67b53394e6",
+  "qualityCi": {
+    "runId": 33597064036,
+    "testedHeadSha": "e4789efb7106b01372e710a28acaff67b53394e6",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "protectedServices": [
+    { "port": 1234, "pid": 6632, "preserved": true },
+    { "port": 11434, "pid": 8588, "preserved": true },
+    { "port": 18765, "pid": 22716, "preserved": true },
+    { "port": 18766, "pid": 65724, "preserved": true }
+  ],
+  "productionCompose": {
+    "services": ["frontend", "backend", "database"],
+    "healthyServiceCount": 3,
+    "frontendBinding": "127.0.0.1:3300",
+    "backendHostPortCount": 0,
+    "databaseHostPortCount": 0
+  },
+  "harnessVerify": { "exitCode": 0, "status": "PASS" },
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

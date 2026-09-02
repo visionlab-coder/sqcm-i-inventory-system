@@ -813,6 +813,14 @@
       "evidence": "failure-first 7/7; focused completion and handover regression 21/21 PASS; cross-file mutation 2/2 blocked; phase completion dry-run READY_WAIT_ACTUAL_HANDOVER_EVIDENCE_FOR_8_OF_8 with changes zero; syntax 374/374; repository unit 715 PASS 7 skips; harness:verify PASS; GitHub quality 33596294018 unit and three-tier SUCCESS; actual 8/8 completion NOT_RUN"
     },
     {
+      "id": "ACC-P6-43-SHARED-ATOMIC-PHASE-TRANSITION-CONTROLS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6→P7 promotion과 P7→8/8 terminal completion은 MASTER_ROADMAP.json과 P6_P7_ACCELERATION_QUEUE.json을 각각 한 번 읽은 동일 bounded atomic pair snapshot reader로 소비하고 direct separate JSON read를 사용하지 않아야 한다.",
+      "evidence": "failure-first 1/1; focused shared phase transition regression 17/17 PASS; pair mutation 2/2 blocked; P6 promotion dry-run READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_FOR_PHASE_PROMOTION with changes zero; syntax 374/374; repository unit 716 PASS 7 skips; harness:verify PASS; GitHub quality 33597064036 unit and three-tier SUCCESS; actual phase promotion and completion NOT_RUN"
+    },
+    {
       "id": "ACC-P6-41-ATOMIC-PRODUCTION-UAT-INPUTS",
       "phase": "P6",
       "status": "EVIDENCE_COMPLETE",
