@@ -119,6 +119,7 @@ flowchart LR
 - `ACC-P7-51`에서 Operations provider preflight의 OIDC discovery와 AI health/readiness GET response에 10초·declared/actual 1MiB 상한, oversize reader 취소, fatal UTF-8·JSON object-only 계약을 적용하고 무제한 `arrayBuffer()`·`json()` buffering을 제거했다.
 - `ACC-P7-52`에서 Operations provider preflight manifest 입력을 `.json` physical file·realpath 일치·1 byte~1MiB·read 전후 안정성·fatal UTF-8·JSON object-only 계약으로 교체하고 직접 무제한 `readFileSync(..., 'utf8')`를 제거했다.
 - `ACC-P7-53`에서 Operations activation receipt-root claim과 single-writer lease 상태 재읽기를 exact receipt root·basename의 physical file·realpath 일치·1 byte~64KiB·read 전후 directory/file identity·actual bytes·fatal UTF-8·JSON object-only 계약으로 교체했다. 과대·symlink/reparse·redirect·malformed 상태는 root 재사용이나 lease 삭제 권한이 될 수 없다.
+- `ACC-P7-54`에서 Operations activation bundle dependency graph와 digest를 각 physical file을 정확히 한 번 읽는 동일 bounded snapshot으로 통합했다. 파일당 4MiB·전체 64MiB, exact root/file realpath, read 전후 identity·size·actual bytes, fatal UTF-8 계약으로 중간 교체·과대 입력과 graph/hash 관측 분리를 차단한다.
 
 ## 6. Phase 갱신 절차
 

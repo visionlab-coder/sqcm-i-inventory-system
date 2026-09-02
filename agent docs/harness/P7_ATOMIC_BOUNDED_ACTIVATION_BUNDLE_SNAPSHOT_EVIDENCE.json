@@ -1,0 +1,51 @@
+{
+  "packet": "ACC-P7-54-ATOMIC-BOUNDED-ACTIVATION-BUNDLE-SNAPSHOT",
+  "status": "PASS_ATOMIC_BOUNDED_ACTIVATION_BUNDLE_SNAPSHOT",
+  "failureFirst": { "expectedFailures": 6, "observedFailures": 6 },
+  "focusedTests": { "total": 30, "passed": 30, "failed": 0, "skipped": 0 },
+  "syntaxChecks": { "passed": 358, "failed": 0 },
+  "unitTests": { "total": 648, "passed": 641, "failed": 0, "skipped": 7 },
+  "snapshotContract": {
+    "singleReadPerFile": true,
+    "graphAndDigestShareSnapshot": true,
+    "perFileMaximumBytes": 4194304,
+    "aggregateMaximumBytes": 67108864,
+    "physicalRootAndFileRequired": true,
+    "realpathMustMatch": true,
+    "rootAndFileIdentityRechecked": true,
+    "actualBytesChecked": true,
+    "fatalUtf8Required": true,
+    "rawPathAndContentRedactedFromErrors": true
+  },
+  "activationBundle": {
+    "rootEntrypointCount": 21,
+    "resolvedPhysicalFileCount": 48,
+    "totalBytes": 337679,
+    "sha256": "02ffa72693649836487e7f8635cdc331987050c826b30ea6d4c174d01f304e66"
+  },
+  "readOnlyVerification": {
+    "orchestratorStatus": "READY_WAIT_P6_ACTUAL_CUTOVER",
+    "childProcessCount": 0,
+    "leaseAcquired": false,
+    "receiptCreated": false,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "implementationCommit": "d2e032faa21f5364c8747ec25ca9131a0c17b6fc",
+  "qualityCi": {
+    "runId": 33585003462,
+    "testedHeadSha": "d2e032faa21f5364c8747ec25ca9131a0c17b6fc",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "harnessVerify": { "exitCode": 0, "status": "PASS" },
+  "actualActivationPerformed": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}
