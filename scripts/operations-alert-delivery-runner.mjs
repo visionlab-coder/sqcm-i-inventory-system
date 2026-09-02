@@ -15,9 +15,10 @@ import {
 } from '../src/operations/operations-alert-delivery-runner.mjs';
 import { REQUIRED_ALERT_SIGNALS, compileOperationsAlertingEvidence } from '../src/operations/operations-alerting-evidence.mjs';
 import { readOperationsActivationInputDocument, readOperationsSecretInput } from '../src/operations/operations-activation-input-reader.mjs';
+import { readOperationsRoadmapControl } from '../src/operations/operations-roadmap-control-reader.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const roadmap = JSON.parse(fs.readFileSync(path.join(projectRoot, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
+const roadmap = readOperationsRoadmapControl(projectRoot).value;
 const p6 = roadmap.phases.find((phase) => phase.id === 'P6');
 const p7 = roadmap.phases.find((phase) => phase.id === 'P7');
 const manifestPath = process.env.P7_ALERT_DELIVERY_PROVIDER_MANIFEST_FILE ? path.resolve(process.env.P7_ALERT_DELIVERY_PROVIDER_MANIFEST_FILE) : null;

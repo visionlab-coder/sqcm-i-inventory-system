@@ -10,9 +10,10 @@ import {
   evaluateOperationsCertificateObserverGate,
   writeCertificateObservationOnce
 } from '../src/operations/operations-certificate-observer.mjs';
+import { readOperationsRoadmapControl } from '../src/operations/operations-roadmap-control-reader.mjs';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const roadmap = JSON.parse(fs.readFileSync(path.join(projectRoot, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
+const roadmap = readOperationsRoadmapControl(projectRoot).value;
 const p6 = roadmap.phases.find((phase) => phase.id === 'P6');
 const p7 = roadmap.phases.find((phase) => phase.id === 'P7');
 const outputPath = process.env.P7_CERTIFICATE_OBSERVATION_INPUT_FILE

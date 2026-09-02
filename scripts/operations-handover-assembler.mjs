@@ -9,9 +9,10 @@ import {
   writeOperationsHandoverManifestOnce
 } from '../src/operations/operations-handover-assembler.mjs';
 import { loadActualOperationsEvidenceDocument, validateActualOperationsHandoverEvidence } from '../src/operations/operations-handover-finalizer.mjs';
+import { readOperationsRoadmapControl } from '../src/operations/operations-roadmap-control-reader.mjs';
 
 const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const roadmap = JSON.parse(fs.readFileSync(path.join(projectDir, 'agent docs', 'harness', 'MASTER_ROADMAP.json'), 'utf8'));
+const roadmap = readOperationsRoadmapControl(projectDir).value;
 const p6 = roadmap.phases.find((phase) => phase.id === 'P6');
 const p7 = roadmap.phases.find((phase) => phase.id === 'P7');
 const execute = process.argv.includes('--assemble');
