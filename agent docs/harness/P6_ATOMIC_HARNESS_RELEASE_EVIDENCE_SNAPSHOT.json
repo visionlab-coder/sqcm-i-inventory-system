@@ -1,0 +1,41 @@
+{
+  "packet": "ACC-P6-57-ATOMIC-HARNESS-RELEASE-EVIDENCE-SNAPSHOT",
+  "status": "PASS_ATOMIC_HARNESS_RELEASE_EVIDENCE_SNAPSHOT",
+  "failureFirst": { "expectedFailures": 5, "observedFailures": 5 },
+  "focusedTests": { "total": 6, "passed": 6, "failed": 0, "skipped": 0 },
+  "releaseEvidenceControlContract": {
+    "files": [
+      "agent docs/harness/P2_RELEASE_CANDIDATE.json",
+      "agent docs/harness/P2_REMOTE_EVIDENCE.json"
+    ],
+    "maximumBytesPerFile": 1048576,
+    "physicalRegularFileRequired": true,
+    "singleReadPerFile": true,
+    "crossFileReadAfterStabilityRequired": true,
+    "fatalUtf8Required": true,
+    "jsonObjectRequired": true,
+    "directIndependentJsonReadCount": 0
+  },
+  "cutoverPreflight": {
+    "status": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockerCount": 0,
+    "protectedServicesPreserved": true,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "syntaxChecks": { "passed": 392, "failed": 0 },
+  "unitTests": { "total": 761, "passed": 754, "failed": 0, "skipped": 7 },
+  "harnessVerify": "PASS",
+  "implementationCommit": "8cf70ae4a68c1a3149d8ef603d93308546071acc",
+  "qualityCi": {
+    "runId": 33614402592,
+    "testedHeadSha": "8cf70ae4a68c1a3149d8ef603d93308546071acc",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "secretValuesReadOrRecorded": false,
+  "externalMutationPerformed": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

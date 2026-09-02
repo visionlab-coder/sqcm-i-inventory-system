@@ -146,6 +146,7 @@ flowchart LR
 - `ACC-P6-54`에서 기존 Production ingress config를 exact runtime `cloudflared.yml` physical file·16KiB·read-after identity/realpath/size·fatal UTF-8로 제한했다. 과대·redirect·교체·invalid encoding은 설정 일치 증거로 승격하지 않으며 실제 tunnel·DNS/TLS 변경은 `NOT_RUN`이다.
 - `ACC-P6-55`에서 `operations:cutover-gate`의 승인 문서를 physical JSON object·4MiB·read-after identity/realpath/size·fatal UTF-8로 제한했다. `--allow-template`은 공식 template 한 경로에만 허용하며 실제 cutover·DNS/TLS·역할 UAT·서명은 `NOT_RUN`이다.
 - `ACC-P6-56`에서 Goal Harness의 `MASTER_ROADMAP.json`·가속 큐를 각각 한 번 읽은 동일 physical bounded snapshot으로 통합했다. 두 파일 전체의 read 전후 repository·file identity/realpath/size를 재검증해 서로 다른 시점의 Phase·READY 상태 조합을 차단했으며 실제 cutover·DNS/TLS·역할 UAT·서명은 `NOT_RUN`이다.
+- `ACC-P6-57`에서 Goal Harness의 `P2_RELEASE_CANDIDATE.json`·`P2_REMOTE_EVIDENCE.json`을 각각 한 번 읽은 동일 physical bounded snapshot으로 통합했다. 전체 read 전후 repository·harness directory·file identity/realpath/size를 재검증해 서로 다른 시점의 candidate·CI·release provenance 조합을 차단했으며 실제 cutover·DNS/TLS·역할 UAT·서명은 `NOT_RUN`이다.
 
 ## 6. Phase 갱신 절차
 
