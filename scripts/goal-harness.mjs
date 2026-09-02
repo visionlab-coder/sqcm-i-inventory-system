@@ -7,6 +7,7 @@ import { evaluateHarnessBranchProvenance, resolveActiveBranch } from '../src/ope
 import { readOperationsPhaseCompletionControlSnapshot } from '../src/operations/operations-phase-completion-control-snapshot.mjs';
 import { readHarnessReleaseEvidenceControlSnapshot } from '../src/operations/harness-release-evidence-control-snapshot.mjs';
 import { readHarnessCandidateContentSnapshot } from '../src/operations/harness-candidate-content-snapshot.mjs';
+import { verifyHarnessRemoteCommitContentAttestation } from '../src/operations/harness-remote-commit-content-attestation.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const projectDir = path.resolve(scriptDir, '..');
@@ -102,20 +103,17 @@ function check() {
       errors.push('CANDIDATE_HASHED_COUNT_MISMATCH');
     }
     if (remoteEvidence?.commit) {
-      const changed = spawnSync('git', [
-        '-c', 'core.quotepath=false',
-        'diff-tree', '--no-commit-id', '--name-only', '-r', remoteEvidence.commit
-      ], { cwd: projectDir, encoding: 'utf8', shell: false });
-      const parent = spawnSync('git', ['rev-parse', `${remoteEvidence.commit}^`], {
-        cwd: projectDir, encoding: 'utf8', shell: false
-      });
-      const expectedPaths = candidate.files.map((file) => file.path).sort();
-      const actualPaths = changed.stdout.trim().split(/\r?\n/).filter(Boolean).sort();
-      if (changed.status !== 0 || JSON.stringify(actualPaths) !== JSON.stringify(expectedPaths)) {
-        errors.push('REMOTE_COMMIT_ALLOWLIST_MISMATCH');
-      }
-      if (parent.status !== 0 || parent.stdout.trim() !== candidate.baseSha) {
-        errors.push('REMOTE_COMMIT_PARENT_MISMATCH');
+      try {
+        verifyHarnessRemoteCommitContentAttestation({
+          projectRoot: projectDir,
+          candidate,
+          remoteEvidence,
+          attestation: releaseEvidence.commitAttestation?.value,
+          candidateControlSha256: releaseEvidence.candidate.sha256,
+          remoteEvidenceControlSha256: releaseEvidence.remoteEvidence.sha256
+        });
+      } catch (error) {
+        errors.push(error?.message ?? 'HARNESS_REMOTE_COMMIT_ATTESTATION_FAILED');
       }
     } else {
       const contentSnapshot = readHarnessCandidateContentSnapshot(projectDir, contentFiles);

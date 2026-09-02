@@ -13,9 +13,11 @@ function fixture(t) {
   fs.mkdirSync(directory, { recursive: true });
   const candidate = path.join(directory, 'P2_RELEASE_CANDIDATE.json');
   const remote = path.join(directory, 'P2_REMOTE_EVIDENCE.json');
+  const attestation = path.join(directory, 'P2_REMOTE_COMMIT_CONTENT_ATTESTATION.json');
   fs.writeFileSync(candidate, '{"candidateFileCount":1,"files":[{"path":"a.js","sha256":null}]}\n');
   fs.writeFileSync(remote, '{"commit":"0123456789012345678901234567890123456789"}\n');
-  return { root, candidate, remote };
+  fs.writeFileSync(attestation, '{"candidateCommit":"0123456789012345678901234567890123456789","actualFiles":[]}\n');
+  return { root, candidate, remote, attestation };
 }
 
 test('release provenance control은 candidate와 remote evidence를 각각 한 번 읽는다', async (t) => {
@@ -27,11 +29,13 @@ test('release provenance control은 candidate와 remote evidence를 각각 한 �
 
   const result = readHarnessReleaseEvidenceControlSnapshot(root, { io });
 
-  assert.equal(reads, 2);
+  assert.equal(reads, 3);
   assert.equal(result.candidate.value.candidateFileCount, 1);
   assert.equal(result.remoteEvidence.value.commit.length, 40);
+  assert.equal(result.commitAttestation.value.candidateCommit.length, 40);
   assert.match(result.candidate.sha256, /^[a-f0-9]{64}$/);
   assert.match(result.remoteEvidence.sha256, /^[a-f0-9]{64}$/);
+  assert.match(result.commitAttestation.sha256, /^[a-f0-9]{64}$/);
 });
 
 test('candidate read 뒤 remote evidence가 바뀌면 혼합 snapshot을 거부한다', async (t) => {
@@ -87,6 +91,7 @@ test('goal harness는 P2 release provenance를 bounded atomic snapshot으로 읽
   const root = path.resolve(__dirname, '..', '..');
   const source = fs.readFileSync(path.join(root, 'scripts', 'goal-harness.mjs'), 'utf8');
   assert.match(source, /readHarnessReleaseEvidenceControlSnapshot/);
+  assert.match(source, /verifyHarnessRemoteCommitContentAttestation/);
   assert.doesNotMatch(source, /JSON\.parse\(readFileSync\(candidatePath/);
   assert.doesNotMatch(source, /JSON\.parse\(readFileSync\(remoteEvidencePath/);
 });

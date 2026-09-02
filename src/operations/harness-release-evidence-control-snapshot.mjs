@@ -7,7 +7,8 @@ export const HARNESS_RELEASE_EVIDENCE_CONTROL_MAX_BYTES = 1024 * 1024;
 
 const RELATIVE_FILES = Object.freeze({
   candidate: ['agent docs', 'harness', 'P2_RELEASE_CANDIDATE.json'],
-  remoteEvidence: ['agent docs', 'harness', 'P2_REMOTE_EVIDENCE.json']
+  remoteEvidence: ['agent docs', 'harness', 'P2_REMOTE_EVIDENCE.json'],
+  commitAttestation: ['agent docs', 'harness', 'P2_REMOTE_COMMIT_CONTENT_ATTESTATION.json']
 });
 
 function controlError(code) {
@@ -152,5 +153,9 @@ export function readHarnessReleaseEvidenceControlSnapshot(projectRoot, {
     bytes: raw[name].length,
     sha256: createHash('sha256').update(raw[name]).digest('hex')
   } : null;
-  return { candidate: entry('candidate'), remoteEvidence: entry('remoteEvidence') };
+  return {
+    candidate: entry('candidate'),
+    remoteEvidence: entry('remoteEvidence'),
+    commitAttestation: entry('commitAttestation')
+  };
 }
