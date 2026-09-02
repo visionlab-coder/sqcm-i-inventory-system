@@ -1,13 +1,13 @@
-import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { evaluateOperationsHandoverPreflight, HANDOVER_DOMAINS } from '../src/operations/operations-handover-preflight.mjs';
+import { readOperationsPreflightManifest } from '../src/operations/operations-preflight-manifest-runtime.mjs';
+import { readOperationsRoadmapControl } from '../src/operations/operations-roadmap-control-reader.mjs';
 
 const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const candidatePath = path.join(projectDir, 'agent docs', 'harness', 'P7_OPERATIONS_HANDOVER_PREFLIGHT_CANDIDATE.json');
-const roadmapPath = path.join(projectDir, 'agent docs', 'harness', 'MASTER_ROADMAP.json');
-const candidate = JSON.parse(fs.readFileSync(candidatePath, 'utf8'));
-const roadmap = JSON.parse(fs.readFileSync(roadmapPath, 'utf8'));
+const candidate = readOperationsPreflightManifest(candidatePath, { cwd: projectDir }).value;
+const roadmap = readOperationsRoadmapControl(projectDir).value;
 const p6 = roadmap.phases.find((phase) => phase.id === 'P6');
 const result = evaluateOperationsHandoverPreflight(candidate, { p6EvidenceComplete: p6?.status === 'evidence-complete' });
 
