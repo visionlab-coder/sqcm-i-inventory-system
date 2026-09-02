@@ -733,6 +733,14 @@
       "evidence": "failure-first 6/6; focused activation regression 30/30 PASS; syntax 358/358; repository unit 641 PASS 7 skips; activation bundle 21 roots 48 physical files 337679 bytes sha256 02ffa72693649836487e7f8635cdc331987050c826b30ea6d4c174d01f304e66; all activation rehearsals and harness:verify PASS; GitHub quality 33585003462 unit and three-tier SUCCESS; actual activation NOT_RUN"
     },
     {
+      "id": "ACC-P7-55-BOUNDED-ACTIVATION-ROADMAP-CONTROL-INPUT",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Operations activation approval request·manifest·preflight·orchestrator가 권한 판정에 사용하는 MASTER_ROADMAP.json은 exact repository physical file에서 1 byte~1MiB, read 전후 root/file identity·realpath·size 안정성, actual bytes, fatal UTF-8와 JSON object-only 계약으로 한 번만 읽어야 한다.",
+      "evidence": "failure-first 6/6; focused activation regression 36/36 PASS; syntax 360/360; repository unit 647 PASS 7 skips; activation bundle 21 roots 49 physical files 341850 bytes sha256 e43432bec3c31e9fce6f8b8928ddbc83470739daac43e70c470cc4b76ddb9448; harness:verify PASS; GitHub quality 33585841983 unit and three-tier SUCCESS; actual activation NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

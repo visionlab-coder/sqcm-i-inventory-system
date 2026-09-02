@@ -1,0 +1,63 @@
+{
+  "packet": "ACC-P7-55-BOUNDED-ACTIVATION-ROADMAP-CONTROL-INPUT",
+  "status": "PASS_BOUNDED_ACTIVATION_ROADMAP_CONTROL_INPUT",
+  "failureFirst": { "expectedFailures": 6, "observedFailures": 6 },
+  "focusedTests": { "total": 36, "passed": 36, "failed": 0, "skipped": 0 },
+  "syntaxChecks": { "passed": 360, "failed": 0 },
+  "unitTests": { "total": 654, "passed": 647, "failed": 0, "skipped": 7 },
+  "roadmapControlContract": {
+    "relativePath": "agent docs/harness/MASTER_ROADMAP.json",
+    "singleRead": true,
+    "maximumBytes": 1048576,
+    "physicalRootAndFileRequired": true,
+    "realpathMustMatch": true,
+    "rootAndFileIdentityRechecked": true,
+    "actualBytesChecked": true,
+    "fatalUtf8Required": true,
+    "jsonObjectRequired": true,
+    "rawPathAndContentRedactedFromErrors": true,
+    "entrypointCount": 4,
+    "observedBytes": 23090,
+    "observedSha256": "2da56e35ee57c30558aa87b751faef67ec72650e0b4d868c7cc893154eb96bac"
+  },
+  "activationBundle": {
+    "rootEntrypointCount": 21,
+    "resolvedPhysicalFileCount": 49,
+    "totalBytes": 341850,
+    "sha256": "e43432bec3c31e9fce6f8b8928ddbc83470739daac43e70c470cc4b76ddb9448"
+  },
+  "readOnlyVerification": {
+    "entrypointStatus": "READY_WAIT_P6_ACTUAL_CUTOVER",
+    "roadmapReadPerEntrypoint": 1,
+    "externalInputDocumentReadCount": 0,
+    "childProcessCount": 0,
+    "leaseAcquired": false,
+    "receiptCreated": false,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "transientVerification": {
+    "unrelatedTest": "operations-backup-restore-runtime-bounds streaming",
+    "observedTimeoutCount": 1,
+    "focusedRerunPassed": 5,
+    "fullRerunPassed": 647,
+    "repeatedSameFailure": false
+  },
+  "implementationCommit": "e95030874faae9119fd849d1f32d8890f896ca2a",
+  "qualityCi": {
+    "runId": 33585841983,
+    "testedHeadSha": "e95030874faae9119fd849d1f32d8890f896ca2a",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "harnessVerify": { "exitCode": 0, "status": "PASS" },
+  "actualActivationPerformed": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}
