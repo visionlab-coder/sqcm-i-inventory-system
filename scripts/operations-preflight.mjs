@@ -1,11 +1,10 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import process from 'node:process';
 import gates from '../src/operations/gates.js';
 import {
   consumeBoundedResponseBody,
   readBoundedJsonObjectResponse
 } from '../src/operations/operations-preflight-http-runtime.mjs';
+import { readOperationsPreflightManifest } from '../src/operations/operations-preflight-manifest-runtime.mjs';
 
 const manifestPath = process.argv[2];
 const allowTemplate = process.argv.includes('--allow-template');
@@ -16,8 +15,9 @@ if (!manifestPath) {
   process.exit(1);
 }
 
-const resolved = path.resolve(manifestPath);
-const manifest = JSON.parse(fs.readFileSync(resolved, 'utf8'));
+const loadedManifest = readOperationsPreflightManifest(manifestPath);
+const resolved = loadedManifest.path;
+const manifest = loadedManifest.value;
 const result = gates.validateOperationsManifest(manifest);
 if (manifest.template === true && !allowTemplate) result.failures.push('template manifest cannot authorize deployment');
 if (manifest.template !== true && manifest.activationState !== 'active' && !allowCandidate) result.failures.push('non-template manifest activationState must be active');
