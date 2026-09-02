@@ -621,6 +621,14 @@
       "evidence": "production:cutover-finalizer => READY_WAIT_ACTUAL_CUTOVER_EVIDENCE; production:phase-promotion => READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_FOR_PHASE_PROMOTION with zero changes; failure-first 5/5 plus 1 Windows skip; focused 10 PASS 1 skip; syntax 341/341; repository unit 575 PASS 3 skips; actual cutover NOT_RUN"
     },
     {
+      "id": "ACC-P6-38-ATOMIC-ACTUAL-CUTOVER-EVIDENCE-SNAPSHOT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual cutover finalizer와 P6→P7 promotion은 actual bytes read 뒤 repository와 candidate의 physical identity·realpath·size를 재검증하고 fatal UTF-8 JSON object만 사용하며 read 중 교체·redirect·invalid encoding을 완료 증거로 승격하지 않는다.",
+      "evidence": "failure-first 4/4; focused finalizer and promotion regression 19 PASS 1 Windows skip; syntax 363/363; repository unit 661 PASS 7 skips; harness:verify PASS; GitHub quality 33588455559 unit and three-tier SUCCESS; actual cutover NOT_RUN"
+    },
+    {
       "id": "ACC-P7-16-BOUNDED-ACTUAL-HANDOVER-EVIDENCE-INPUT",
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
