@@ -845,6 +845,14 @@
       "evidence": "failure-first 1/1; focused rollback and bounded input regression 16/16 PASS; rollback readiness PASS with revisions matched, volumes 2/2, previous drill and backup restore verified; syntax 378/378; repository unit 725 PASS 7 skips; GitHub quality 33600215170 unit and three-tier SUCCESS; actual rollback and external mutation NOT_RUN"
     },
     {
+      "id": "ACC-P6-47-BOUNDED-CUTOVER-BACKUP-PREFLIGHT-CONTROL",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production cutover preflight는 최신 exact Production backup manifest를 physical regular file·realpath containment·1 byte~64KiB·fatal UTF-8·JSON object로 읽고 실제 dump bytes와 streaming SHA-256 및 restore evidence를 모두 재검증해야 한다.",
+      "evidence": "failure-first 1/1; focused preflight and backup runtime regression 20/20 PASS; cutover preflight READY_WAIT_CHANGE_WINDOW with local blockers zero, backup 318811 bytes and manifest 673 bytes checksum verified; syntax 379/379; repository unit 726 PASS 7 skips; harness:verify PASS; GitHub quality 33601613188 unit and three-tier SUCCESS; actual cutover and external mutation NOT_RUN"
+    },
+    {
       "id": "ACC-P6-41-ATOMIC-PRODUCTION-UAT-INPUTS",
       "phase": "P6",
       "status": "EVIDENCE_COMPLETE",
