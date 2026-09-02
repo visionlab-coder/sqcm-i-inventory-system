@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process';
+import { readBoundedJsonObjectResponse } from './operations-preflight-http-runtime.mjs';
 
 export const AUTHENTICATED_IDEMPOTENCY_HTTP_TIMEOUT_MS = 10_000;
 export const AUTHENTICATED_IDEMPOTENCY_PROCESS_TIMEOUT_MS = 10_000;
@@ -34,7 +35,7 @@ export async function requestAuthenticatedIdempotencyHttp({
 
 export async function readAuthenticatedIdempotencyJson(response) {
   try {
-    return await response.json();
+    return await readBoundedJsonObjectResponse(response);
   } catch {
     return {};
   }
