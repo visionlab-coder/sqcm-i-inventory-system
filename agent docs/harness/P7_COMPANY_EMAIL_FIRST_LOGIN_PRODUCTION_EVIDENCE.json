@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "P7-COMPANY-EMAIL-FIRST-LOGIN-PRODUCTION-20260903",
+  "checkedAt": "2026-09-03T07:43:00.000Z",
+  "status": "PASS",
+  "environment": "production",
+  "publicBaseUrl": "https://inventory.safe-link.co.kr",
+  "release": {
+    "sourceSha": "38b2bca7f34a7a950469c8d0cd6d2a4b11e3b7a6",
+    "backendImage": "ghcr.io/visionlab-coder/sqcm-i-inventory-backend:sha-38b2bca7f34a7a950469c8d0cd6d2a4b11e3b7a6",
+    "frontendImage": "ghcr.io/visionlab-coder/sqcm-i-inventory-frontend:sha-38b2bca7f34a7a950469c8d0cd6d2a4b11e3b7a6"
+  },
+  "backup": {
+    "file": "artifacts/backups/seowon-inventory-20260903T074003Z.dump",
+    "bytes": 418109,
+    "sha256": "32946192b38c1d37d2517507d62e6b5692504182eccdd2f5c10b7994ec636599",
+    "restoreDrill": "PASS",
+    "requiredTables": 33,
+    "schemaMigrations": 25,
+    "sourceAndRestoreCountsMatched": true
+  },
+  "trustedRoster": {
+    "sourceRef": "external-local://SQCM-i/control-tower/tf_team.json",
+    "organizationCode": "SEOWON",
+    "departmentCode": "HQ",
+    "emailDomain": "seowonenc.co.kr",
+    "requested": 9,
+    "inserted": 9,
+    "preserved": 0,
+    "activeUsers": 9,
+    "passwordResetRequired": 9,
+    "roles": {
+      "USER": 9
+    },
+    "personalDataRecorded": false
+  },
+  "publicVerification": {
+    "healthStatus": 200,
+    "database": "up",
+    "initialLoginStatus": 200,
+    "initialSessionPasswordResetRequired": true,
+    "businessApiStatusBeforeChange": 403,
+    "businessApiCodeBeforeChange": "PASSWORD_CHANGE_REQUIRED",
+    "logoutStatus": 204,
+    "fullPasswordChangeFlow": "PASS_IN_AUTOMATED_INTEGRATION",
+    "employeeFinalPasswordSetByAutomation": false
+  },
+  "runtimeInvariants": {
+    "composeServices": ["frontend", "backend", "database"],
+    "frontendBinding": "127.0.0.1:3300",
+    "backendHostPorts": 0,
+    "databaseHostPorts": 0,
+    "protectedPortsPreserved": [1234, 11434, 18765, 18766],
+    "protectedPidsPreserved": [6632, 8588, 22716, 65724]
+  },
+  "security": {
+    "initialPasswordRecorded": false,
+    "existingAccountCredentialsChanged": false,
+    "arbitraryDomainRegistrationEnabled": false,
+    "oldSessionsRevokedAfterPasswordChange": true,
+    "auditEvent": "INITIAL_PASSWORD_CHANGED"
+  }
+}
