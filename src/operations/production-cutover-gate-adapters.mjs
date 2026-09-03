@@ -8,7 +8,7 @@ export const CUTOVER_GATE_ADAPTER_PLAN = Object.freeze({
     { id: 'rollback-readiness', script: 'scripts/production-rollback-readiness.mjs', args: [], environment: [], acceptedStatuses: ['PASS_ROLLBACK_READINESS_DRY_RUN_ONLY'] }
   ],
   migration_review: [
-    { id: 'migration-verify', script: 'scripts/db-verify-migrations.mjs', args: [], environment: ['MIGRATION_DATABASE_URL', 'DATABASE_URL', 'DB_MIGRATION_HISTORY_MODE'], acceptedStatuses: ['PASS_EXIT_ZERO'] }
+    { id: 'migration-verify', script: 'scripts/production-migration-verify.mjs', args: [], environment: [], acceptedStatuses: ['PASS_PRODUCTION_MIGRATION_HISTORY'] }
   ],
   provider_preflight: [
     { id: 'provider-preflight', script: 'scripts/production-provider-preflight.mjs', args: [], environment: [], acceptedStatuses: ['PASS'] }

@@ -10,6 +10,9 @@ test('adapter plan은 12 Gate 순서와 실제 public execute 인자를 고정�
   assert.deepEqual(CUTOVER_GATE_ADAPTER_PLAN.health_readiness.map((step) => step.args), [['--execute'], []]);
   assert.deepEqual(CUTOVER_GATE_ADAPTER_PLAN.core_smoke.map((step) => step.args), [['--execute'], ['--public']]);
   assert.deepEqual(CUTOVER_GATE_ADAPTER_PLAN.csrf_idempotency[0].args, ['--public']);
+  assert.equal(CUTOVER_GATE_ADAPTER_PLAN.migration_review[0].script, 'scripts/production-migration-verify.mjs');
+  assert.deepEqual(CUTOVER_GATE_ADAPTER_PLAN.migration_review[0].environment, []);
+  assert.deepEqual(CUTOVER_GATE_ADAPTER_PLAN.migration_review[0].acceptedStatuses, ['PASS_PRODUCTION_MIGRATION_HISTORY']);
 });
 
 test('각 step의 exact 허용 상태와 evidence가 있어야 Gate PASS다', async () => {
