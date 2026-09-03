@@ -27,6 +27,13 @@ test('외부 도메인, 중복, 승인 참조 누락과 짧은 초기 비밀번�
   assert.throws(() => validateCompanyMasterManifest({ ...valid, accounts:[valid.accounts[0], valid.accounts[0]] }), /duplicate/);
 });
 
+test('깨진 UTF-8 대체문자가 포함된 마스터 표시명을 거부한다', () => {
+  assert.throws(
+    () => validateCompanyMasterManifest({ ...valid, accounts:[{ email:'owner@seowonenc.co.kr', displayName:'김�빈' }] }),
+    /encoding/
+  );
+});
+
 test('마스터 전환은 JSON 세션 소유자를 폐기하고 ADMIN ALL 범위를 검증한다', async () => {
   const queries = [];
   let nextId = 100;

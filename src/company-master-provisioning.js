@@ -24,6 +24,7 @@ function validateCompanyMasterManifest(input) {
       throw new Error('company master email domain is invalid.');
     }
     if (!displayName || displayName.length > 100) throw new Error('company master display name is invalid.');
+    if (/\uFFFD/.test(displayName)) throw new Error('company master display name encoding is invalid.');
     if (seen.has(email)) throw new Error('company master manifest contains duplicate email.');
     seen.add(email);
     return { email, displayName };

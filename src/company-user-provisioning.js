@@ -21,6 +21,7 @@ function validateCompanyUserManifest(input) {
       throw new Error('company user email domain is invalid.');
     }
     if (!displayName || displayName.length > 100) throw new Error('company user display name is invalid.');
+    if (/\uFFFD/.test(displayName)) throw new Error('company user display name encoding is invalid.');
     if (seen.has(email)) throw new Error('company user manifest contains duplicate email.');
     seen.add(email);
     return { email, displayName };

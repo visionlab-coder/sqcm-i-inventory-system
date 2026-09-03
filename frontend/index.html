@@ -6,7 +6,7 @@
   <title>서원토건 비품관리</title>
   <link rel="stylesheet" href="/styles.css?v=20260821-p1">
   <link rel="stylesheet" href="/brand.css?v=20260807-p1">
-  <link rel="stylesheet" href="/experience.css?v=20260821-p4">
+  <link rel="stylesheet" href="/experience.css?v=20260903-korean-ux">
   <link rel="stylesheet" href="/evidence.css?v=20260807-p1">
 </head>
 <body>
@@ -37,17 +37,27 @@
         <button class="primary full" type="submit">인증 완료</button>
         <button class="link full" id="mfa-login-back" type="button">로그인으로 돌아가기</button>
       </form>
-      <form id="required-password-change-form" class="login-form hidden">
-        <p class="eyebrow">FIRST LOGIN SECURITY</p>
-        <h2>초기 비밀번호 변경</h2>
-        <p class="muted"><strong id="required-password-change-email"></strong> 계정의 초기 비밀번호를 본인만 아는 비밀번호로 변경해야 업무를 시작할 수 있습니다.</p>
-        <p class="muted">새 비밀번호는 12자 이상이며 대문자·소문자·숫자·특수문자를 모두 포함하세요.</p>
+      <form id="required-password-change-form" class="login-form password-change-form hidden">
+        <header class="auth-form-header">
+          <p class="eyebrow">FIRST LOGIN SECURITY</p>
+          <h2>새 비밀번호를 설정해 주세요</h2>
+          <p class="muted">안전한 첫 로그인을 위해 초기 비밀번호를 변경해야 합니다.</p>
+          <p class="auth-account"><span>로그인 계정</span><strong id="required-password-change-email"></strong></p>
+        </header>
+        <div id="required-password-rules" class="password-requirements">
+          <strong>새 비밀번호 조건</strong>
+          <ul><li>12자 이상</li><li>영문 대문자와 소문자 포함</li><li>숫자와 특수문자 포함</li></ul>
+        </div>
         <div id="required-password-change-error" class="alert error hidden" role="alert"></div>
-        <label>현재 비밀번호<input type="password" name="currentPassword" autocomplete="current-password" required></label>
-        <label>새 비밀번호<input type="password" name="newPassword" autocomplete="new-password" minlength="12" required></label>
-        <label>새 비밀번호 확인<input type="password" name="passwordConfirm" autocomplete="new-password" minlength="12" required></label>
-        <button class="primary full" type="submit">비밀번호 변경 후 시작</button>
-        <button class="link full" id="required-password-change-logout" type="button">다른 계정으로 로그인</button>
+        <div class="auth-field-stack">
+          <label><span>현재 비밀번호</span><input type="password" name="currentPassword" autocomplete="current-password" required></label>
+          <label><span>새 비밀번호</span><input type="password" name="newPassword" autocomplete="new-password" minlength="12" aria-describedby="required-password-rules" required></label>
+          <label><span>새 비밀번호 확인</span><input type="password" name="passwordConfirm" autocomplete="new-password" minlength="12" aria-describedby="required-password-rules" required></label>
+        </div>
+        <div class="auth-form-actions">
+          <button class="primary full" type="submit">새 비밀번호로 시작하기</button>
+          <button class="link full" id="required-password-change-logout" type="button">다른 계정으로 로그인</button>
+        </div>
       </form>
       <form id="invitation-form" class="login-form hidden">
         <p class="eyebrow">ACCOUNT ACTIVATION</p>

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "P7-KOREAN-NAME-AND-UX-REPAIR-20260903",
+  "checkedAt": "2026-09-03T09:09:46.596Z",
+  "status": "PASS",
+  "environment": "production",
+  "publicBaseUrl": "https://inventory.safe-link.co.kr",
+  "displayNameRepair": {
+    "sourceRef": "external-local://SQCM-i/control-tower/tf_team.json",
+    "targetAccounts": 9,
+    "exactUtf8Matches": 9,
+    "auditAction": "COMPANY_DISPLAY_NAME_ENCODING_REPAIRED",
+    "auditRows": 9,
+    "passwordsChanged": false,
+    "rolesChanged": false,
+    "sessionsRevoked": false
+  },
+  "backup": {
+    "path": "D:/seowon_runtime/sqcm-i-inventory-production/backups/pre-korean-display-name-repair-20260903T090540Z.dump",
+    "bytes": 424136,
+    "sha256": "b31ef3cf5aba3391a60041eeadb053033fd3a6e62aec1c874d41215bd965b2c3"
+  },
+  "uxRepair": {
+    "forcedHeadingBreaks": 0,
+    "passwordChangeSections": ["account", "requirements", "fields", "actions"],
+    "passwordRuleDescriptionBound": true,
+    "mobileBreakpointPx": 520,
+    "productionHotfixApplied": true
+  },
+  "verification": {
+    "publicHtmlStatus": 200,
+    "publicCssStatus": 200,
+    "publicJsStatus": 200,
+    "publicHealth": "ok",
+    "unitTests": "915 PASS / 0 FAIL / 8 SKIP",
+    "uiContract": "25/25 PASS",
+    "syntax": "431 files PASS",
+    "actualLoginScreenBrowserCheck": "PASS",
+    "authenticatedPasswordChangeBrowserCheck": "NOT_RUN_USER_CREDENTIAL_REQUIRED"
+  },
+  "runtimeInvariants": {
+    "composeServices": ["frontend", "backend", "database"],
+    "frontendBinding": "127.0.0.1:3300",
+    "backendHostPorts": 0,
+    "databaseHostPorts": 0,
+    "protectedPortsPreserved": [1234, 11434, 18765, 18766],
+    "protectedPidsPreserved": [6632, 8588, 22716, 65724]
+  }
+}

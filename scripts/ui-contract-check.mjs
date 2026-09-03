@@ -35,6 +35,9 @@ for (const [name, pattern] of checks) {
   if (name === 'frontend has no legacy ledger API calls') assert.doesNotMatch(source, pattern, name);
   else assert.match(source, pattern, name);
 }
+const frontendSource = `${index}\n${app}\n${components}\n${baseCss}\n${css}`;
+assert.match(frontendSource, /class="auth-account"[\s\S]*id="required-password-rules"[\s\S]*class="auth-field-stack"[\s\S]*class="auth-form-actions"/, 'first-login guidance groups account, rules, fields, and actions');
+assert.doesNotMatch(app, /<h1>[^<]*<br>/, 'menu headings do not force awkward manual line breaks');
 assert.ok((index.match(/<label/g) || []).length >= 3, 'forms must keep explicit labels');
 assert.match(components, /module\.exports/);
 assert.match(dockerfile, /frontend\/ui-components\.js/);
@@ -44,4 +47,4 @@ assert.match(consentJs, /persistSession:false[\s\S]*autoRefreshToken:false/, 'co
 assert.match(consentJs, /getAuthorizationDetails[\s\S]*approveAuthorization[\s\S]*denyAuthorization/, 'consent implements the Supabase OAuth decision flow');
 assert.match(consentJs, /skipBrowserRedirect\s*:\s*true/, 'consent owns one explicit OAuth redirect path');
 assert.match(stagingNginx, /proxy_set_header\s+X-Forwarded-Proto\s+https;/, 'staging tunnel preserves the public HTTPS scheme for secure cookies');
-console.log(`UI contract checks passed: ${checks.length + 5}`);
+console.log(`UI contract checks passed: ${checks.length + 7}`);

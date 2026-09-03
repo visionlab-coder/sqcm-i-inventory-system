@@ -21,3 +21,10 @@ test('외부 도메인, 중복 이메일, 빈 명단과 짧은 초기 비밀번�
   assert.throws(()=>validateCompanyUserManifest({...valid(),users:[]}),/1 to 500/);
   assert.throws(()=>validateCompanyUserManifest({...valid(),initialPassword:'short'}),/length/);
 });
+
+test('깨진 UTF-8 대체문자가 포함된 표시명을 거부한다', () => {
+  assert.throws(
+    () => validateCompanyUserManifest({...valid(),users:[{email:'employee@seowonenc.co.kr',displayName:'천�연'}]}),
+    /encoding/
+  );
+});
