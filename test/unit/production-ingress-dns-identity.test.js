@@ -41,6 +41,13 @@ test('existing/created record는 전체 exact identity일 때만 publication 성
   assert.equal(selectProductionIngressDnsRecord({ records: [], zoneId, hostname, expectedContent }), null);
 });
 
+test('exact zone endpoint 응답이 zone_id를 생략해도 나머지 전체 identity를 검증한다', async () => {
+  const { selectProductionIngressDnsRecord } = await publicationModule;
+  const record = exactRecord();
+  delete record.zone_id;
+  assert.deepEqual(selectProductionIngressDnsRecord({ records: [record], zoneId, hostname, expectedContent }), record);
+});
+
 test('malformed 또는 복수 record는 create/reuse 전에 fail-closed한다', async () => {
   const { selectProductionIngressDnsRecord } = await publicationModule;
   assert.throws(() => selectProductionIngressDnsRecord({ records: {}, zoneId, hostname, expectedContent }), /INGRESS_DNS_RECORD_RESPONSE_INVALID/);

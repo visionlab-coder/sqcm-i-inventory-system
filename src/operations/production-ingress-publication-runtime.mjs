@@ -582,7 +582,19 @@ export async function observeProductionIngressDns({
   const result = await Promise.race([observation, timeout]);
   clearTimeout(timer);
   if (result.timedOut) return { succeeded: false, published: false, status: 'INGRESS_DNS_OBSERVATION_TIMEOUT' };
-  const published = result.results.some((item) => item.status === 'fulfilled' && Array.isArray(item.value) && item.value.length > 0);
+  const fulfilled = result.results.filter((item) => item.status === 'fulfilled' && Array.isArray(item.value));
+  if (fulfilled.length === 0) {
+    const authoritativeAbsence = result.results.every((item) => item.status === 'rejected'
+      && ['ENODATA', 'ENOTFOUND'].includes(item.reason?.code));
+    return authoritativeAbsence
+      ? { succeeded: true, published: false, status: 'PASS_INGRESS_DNS_OBSERVATION' }
+      : { succeeded: false, published: false, status: 'INGRESS_DNS_OBSERVATION_FAILED' };
+  }
+  const published = fulfilled.some((item) => item.value.length > 0);
+  if (!published && result.results.some((item) => item.status === 'rejected'
+    && !['ENODATA', 'ENOTFOUND'].includes(item.reason?.code))) {
+    return { succeeded: false, published: false, status: 'INGRESS_DNS_OBSERVATION_FAILED' };
+  }
   return { succeeded: true, published, status: 'PASS_INGRESS_DNS_OBSERVATION' };
 }
 
@@ -615,7 +627,10 @@ export async function observeProductionIngressDnsOverHttps({
       return null;
     }
   };
-  const results = await Promise.all(['A', 'CNAME'].map(query));
+  // Query sequentially: some Windows TLS stacks intermittently reset one of
+  // two concurrent DoH requests to the same endpoint during DNS publication.
+  const results = [];
+  for (const type of ['A', 'CNAME']) results.push(await query(type));
   const valid = results.filter(Boolean);
   const published = valid.some((item) => item.published);
   const nxdomain = valid.some((item) => item.nxdomain);
@@ -637,14 +652,17 @@ export async function observeProductionIngressDnsResilient({
   let primary;
   try { primary = await nativeObserve({ hostname }); } catch { primary = null; }
   if (primary?.succeeded === true) return primary;
-  let fallback;
-  try { fallback = await fallbackObserve({ hostname }); } catch { fallback = null; }
-  if (fallback?.succeeded === true) {
-    return {
-      succeeded: true,
-      published: fallback.published === true,
-      status: 'PASS_INGRESS_DNS_OBSERVATION_FALLBACK'
-    };
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    let fallback;
+    try { fallback = await fallbackObserve({ hostname }); } catch { fallback = null; }
+    if (fallback?.succeeded === true) {
+      return {
+        succeeded: true,
+        published: fallback.published === true,
+        status: 'PASS_INGRESS_DNS_OBSERVATION_FALLBACK'
+      };
+    }
+    if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 250));
   }
   return {
     succeeded: false,

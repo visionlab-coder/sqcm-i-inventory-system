@@ -54,3 +54,29 @@ test('DNS resolver 무응답을 bounded 관측 실패로 반환한다', async ()
     status: 'INGRESS_DNS_OBSERVATION_TIMEOUT'
   });
 });
+
+test('DNS resolver 연결 거부는 unpublished로 오판하지 않고 fallback 가능한 실패다', async () => {
+  const { observeProductionIngressDns } = await runtimeModule;
+  const refused = async () => { throw Object.assign(new Error('refused'), { code: 'ECONNREFUSED' }); };
+  const result = await observeProductionIngressDns({
+    hostname: 'inventory.safe-link.co.kr',
+    resolveIpv4: refused,
+    resolveAlias: refused
+  });
+  assert.deepEqual(result, {
+    succeeded: false,
+    published: false,
+    status: 'INGRESS_DNS_OBSERVATION_FAILED'
+  });
+});
+
+test('A resolver 연결 거부와 빈 CNAME 응답의 혼합도 fallback 가능한 실패다', async () => {
+  const { observeProductionIngressDns } = await runtimeModule;
+  const result = await observeProductionIngressDns({
+    hostname: 'inventory.safe-link.co.kr',
+    resolveIpv4: async () => { throw Object.assign(new Error('refused'), { code: 'ECONNREFUSED' }); },
+    resolveAlias: async () => []
+  });
+  assert.equal(result.succeeded, false);
+  assert.equal(result.status, 'INGRESS_DNS_OBSERVATION_FAILED');
+});

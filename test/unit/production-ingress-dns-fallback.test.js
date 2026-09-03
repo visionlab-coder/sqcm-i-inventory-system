@@ -29,6 +29,20 @@ test('native DNS timeout 뒤 DoH published 응답은 published=true로 보존한
   assert.equal(result.status, 'PASS_INGRESS_DNS_OBSERVATION_FALLBACK');
 });
 
+test('첫 DoH transient 실패는 bounded 두 번째 관측으로 복구한다', async () => {
+  const { observeProductionIngressDnsResilient } = await runtimeModule;
+  let attempts = 0;
+  const result = await observeProductionIngressDnsResilient({
+    hostname: 'inventory.safe-link.co.kr',
+    nativeObserve: async () => ({ succeeded: false, published: false }),
+    fallbackObserve: async () => (++attempts === 1
+      ? { succeeded: false, published: false }
+      : { succeeded: true, published: true })
+  });
+  assert.equal(attempts, 2);
+  assert.equal(result.published, true);
+});
+
 test('native와 DoH가 모두 실패하면 unpublished로 승격하지 않고 fail-closed한다', async () => {
   const { observeProductionIngressDnsResilient } = await runtimeModule;
   const result = await observeProductionIngressDnsResilient({

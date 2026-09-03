@@ -91,8 +91,8 @@ function ensureConfig(id) {
 async function main() {
 const execute = process.argv.includes('--execute');
 const now = new Date();
-const initialTunnel = selectedTunnel();
 const initialDnsObservation = await publicDnsPublished();
+const initialTunnel = selectedTunnel();
 const initialDnsPublished = initialDnsObservation.published;
 const initialTunnelId = initialTunnel?.id || null;
 const gate = evaluateProductionIngressPublicationGate({
