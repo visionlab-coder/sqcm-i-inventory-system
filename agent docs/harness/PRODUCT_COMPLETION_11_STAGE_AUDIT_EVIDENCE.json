@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "auditedAt": "2026-09-03T06:00:53.739Z",
-  "status": "HOLD_PATCH_RELEASE_PROMOTION_OPERATIONS_QUALIFICATION_IN_PROGRESS",
+  "status": "PASS_PRODUCT_11_OF_11_OPERATIONS_QUALIFICATION_IN_PROGRESS",
   "productDelivery": {
-    "passedStages": 10,
+    "passedStages": 11,
     "totalStages": 11,
     "productionGo": true,
-    "blockedStage": 9,
-    "blockedReason": "QS_6_16_0_NOT_YET_IN_DEPLOYED_IMMUTABLE_IMAGE"
+    "blockedStage": null,
+    "blockedReason": null
   },
   "phaseLifecycle": {
     "completedPhases": 7,
@@ -26,16 +26,18 @@
     "dependencyAudit": {
       "sourceVulnerabilities": 0,
       "sourceQsVersion": "6.16.0",
-      "deployedQsVersion": "6.15.3",
-      "deploymentStatus": "PATCH_NOT_YET_PROMOTED"
+      "deployedQsVersion": "6.16.0",
+      "deploymentStatus": "PATCH_PROMOTED_AND_VERIFIED"
     },
     "harnessVerify": "PASS"
   },
   "release": {
-    "deployedRevision": "d91d9c322799d17a323144ee0df80eb8abac2e55",
-    "auditedHead": "99dd5e4225d22fc85a259846a8e686acc357dcf2",
-    "githubQualityRunId": 33717469636,
-    "githubQualityConclusion": "success"
+    "deployedRevision": "93aa5b8fde5a6ac29758afb91acbef278bdfae49",
+    "auditedHead": "93aa5b8fde5a6ac29758afb91acbef278bdfae49",
+    "githubQualityRunId": 33724774152,
+    "githubReleaseImagesRunId": 33724774164,
+    "githubQualityConclusion": "success",
+    "githubReleaseImagesConclusion": "success"
   },
   "operationsQualification": {
     "status": "IN_PROGRESS",
@@ -58,7 +60,7 @@
     "APPLY_LOCAL_APPLICATION_MIGRATION_026"
   ],
   "secretValuesRecorded": false,
-  "externalMutationPerformed": false,
-  "immediateReleaseGate": "PATCH-QS-6.16.0-RELEASE-AND-DEPLOY",
+  "externalMutationPerformed": true,
+  "immediateReleaseGate": "COMPLETE",
   "nextReady": "P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF"
 }
