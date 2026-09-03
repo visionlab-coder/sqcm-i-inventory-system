@@ -45,6 +45,13 @@ test('삭제 대상은 exact zone·record id·name·type·content·proxied ident
   }), exactRecord());
 });
 
+test('exact zone endpoint 응답의 생략된 zone_id는 나머지 삭제 identity로 보완한다', async () => {
+  const { selectProductionRouteDisableRecord } = await routeModule;
+  const record = exactRecord();
+  delete record.zone_id;
+  assert.deepEqual(selectProductionRouteDisableRecord({ records: [record], zoneId, hostname, expectedContent }), record);
+});
+
 test('DNS record가 없으면 idempotent null을 반환한다', async () => {
   const { selectProductionRouteDisableRecord } = await routeModule;
   assert.equal(selectProductionRouteDisableRecord({ records: [], zoneId, hostname, expectedContent }), null);

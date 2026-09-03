@@ -24,7 +24,7 @@ export function selectProductionRouteDisableRecord({ records, zoneId, hostname, 
   const selected = records[0];
   if (!selected || !CLOUDFLARE_IDENTIFIER_PATTERN.test(zoneId ?? '')
     || !CLOUDFLARE_IDENTIFIER_PATTERN.test(selected.id ?? '')
-    || selected.zone_id !== zoneId
+    || (selected.zone_id !== undefined && selected.zone_id !== zoneId)
     || selected.name !== hostname
     || selected.type !== 'CNAME'
     || selected.content !== expectedContent

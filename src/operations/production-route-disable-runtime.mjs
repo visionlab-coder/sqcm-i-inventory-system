@@ -3,6 +3,7 @@ import {
   INGRESS_DNS_TIMEOUT_MS,
   INGRESS_PROVIDER_HTTP_TIMEOUT_MS,
   observeProductionIngressDns,
+  observeProductionIngressDnsResilient,
   requestCloudflareJson,
   runIngressCommand
 } from './production-ingress-publication-runtime.mjs';
@@ -77,7 +78,9 @@ export async function observeProductionRouteDisableDns({
   resolveAlias,
   timeoutMs = ROUTE_DISABLE_DNS_TIMEOUT_MS
 } = {}) {
-  const result = await observeProductionIngressDns({ hostname, resolveIpv4, resolveAlias, timeoutMs });
+  const result = resolveIpv4 || resolveAlias
+    ? await observeProductionIngressDns({ hostname, resolveIpv4, resolveAlias, timeoutMs })
+    : await observeProductionIngressDnsResilient({ hostname });
   if (!result.succeeded) {
     return {
       succeeded: false,
