@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "P7-COMPANY-MASTER-PRODUCTION-20260903",
+  "checkedAt": "2026-09-03T08:04:23.564Z",
+  "status": "PASS",
+  "environment": "production",
+  "publicBaseUrl": "https://inventory.safe-link.co.kr",
+  "approvalReference": "USER_APPROVAL_20260903_MASTERS",
+  "accounts": [
+    {
+      "email": "mb.kim@seowonenc.co.kr",
+      "role": "ADMIN",
+      "status": "ACTIVE",
+      "scopeType": "ALL",
+      "isSystemAdmin": true,
+      "passwordResetRequired": true,
+      "mfaEnabled": false,
+      "mfaEnrollmentRequiredAfterPasswordChange": true
+    },
+    {
+      "email": "visionlab@seowonenc.co.kr",
+      "role": "ADMIN",
+      "status": "ACTIVE",
+      "scopeType": "ALL",
+      "isSystemAdmin": true,
+      "passwordResetRequired": true,
+      "mfaEnabled": false,
+      "mfaEnrollmentRequiredAfterPasswordChange": true
+    }
+  ],
+  "provisioning": {
+    "requested": 2,
+    "inserted": 2,
+    "updated": 0,
+    "auditEvents": 2,
+    "activeSessionsAfterVerificationLogout": 0,
+    "initialPasswordRecorded": false
+  },
+  "publicVerification": {
+    "accountsChecked": 2,
+    "loginStatus": 200,
+    "role": "ADMIN",
+    "isSystemAdmin": true,
+    "passwordResetRequired": true,
+    "businessApiStatusBeforePasswordChange": 403,
+    "businessApiCodeBeforePasswordChange": "PASSWORD_CHANGE_REQUIRED",
+    "logoutStatus": 204,
+    "result": "PASS"
+  },
+  "recovery": {
+    "backupFile": "artifacts/backups/seowon-inventory-20260903T075011Z.dump",
+    "backupBytes": 419173,
+    "backupSha256": "d836fc8fa844d42352284ef772e580578ac0bce79d9937f378817edebe29a21d",
+    "isolatedRestoreDrill": "PASS",
+    "requiredTables": 33,
+    "schemaMigrations": 25
+  },
+  "runtimeInvariants": {
+    "composeServices": ["frontend", "backend", "database"],
+    "backendHostPorts": 0,
+    "databaseHostPorts": 0,
+    "protectedPorts": [1234, 11434, 18765, 18766],
+    "protectedPids": [6632, 8588, 22716, 65724]
+  },
+  "priorFailureRemediation": {
+    "cause": "SESSION_STORE_COLUMN_CONTRACT_MISMATCH",
+    "invalidReference": "user_sessions.user_id",
+    "correctedReference": "user_sessions.sess.userId and pendingMfaUserId",
+    "failedTransactionsRolledBack": true,
+    "regressionTests": "3/3 PASS"
+  }
+}
