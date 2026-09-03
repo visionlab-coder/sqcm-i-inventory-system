@@ -1,10 +1,10 @@
 # SQCM-i 비품관리 시스템 전체 로드맵
 
 <!-- HARNESS_STATUS_START -->
-Harness 진행: **6 / 8 Phase 완료**
-현재 Phase: **P6**
-현재 READY: `P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF`
-Production GO: **false**
+Harness 진행: **7 / 8 Phase 완료**
+현재 Phase: **P7**
+현재 READY: `P7-G0-OPERATIONS-HANDOVER-PREFLIGHT`
+Production GO: **true**
 <!-- HARNESS_STATUS_END -->
 
 기준일: 2026-09-01
@@ -35,8 +35,8 @@ flowchart LR
     P2 -->|"main SHA·CI·이미지 digest"| P3["P3 AI PC 연동<br/>✅ 완료"]
     P3 --> P4["P4 Staging 인프라·배포<br/>✅ 완료"]
     P4 --> P5["P5 역할별 UAT<br/>✅ 19/19·서명 3/3"]
-    P5 --> P6["P6 Production 전환<br/>🔄 G2 Git·CI·이미지 PASS"]
-    P6 --> P7["P7 운영·유지보수 활성화<br/>⏳ 대기"]
+    P5 --> P6["P6 Production 전환<br/>✅ actual cutover 완료"]
+    P6 --> P7["P7 운영·유지보수 활성화<br/>🔄 G0 인수 preflight"]
 
     classDef done fill:#DCFCE7,stroke:#15803D,color:#14532D,stroke-width:2px;
     classDef active fill:#DBEAFE,stroke:#1D4ED8,color:#1E3A8A,stroke-width:4px;
@@ -44,15 +44,15 @@ flowchart LR
     classDef hold fill:#FEF3C7,stroke:#B45309,color:#78350F,stroke-width:2px;
     classDef blocked fill:#FEE2E2,stroke:#B91C1C,color:#7F1D1D,stroke-width:4px;
     class P0,P1,P2,P3,P4,P5 done;
-    class P6 active;
-    class P7 pending;
+    class P6 done;
+    class P7 active;
 ```
 
-진척도: **6 / 8 Phase 완료**
+진척도: **7 / 8 Phase 완료**
 
-현재 위치: **P6 Production 전환**
+현재 위치: **P7 운영·유지보수 활성화**
 
-다음 Phase: **P7 운영·유지보수 활성화** — P6 전환 증거 완료 전에는 시작하지 않는다.
+다음 Gate: **P7-G0-OPERATIONS-HANDOVER-PREFLIGHT**
 
 ## 3. 실행 Phase 판정표
 
@@ -64,8 +64,8 @@ flowchart LR
 | P3 AI PC 연동 | 독립 bridge/runtime/model, G1~G5, fallback | ✅ 증거 있는 완료 | checksum, listener, TLS·인증, health/ready, 계약·rollback PASS | G0~G5, Pilot UAT 19/19, 승인 3/3, Defender·경보 receipt PASS |
 | P4 Staging 인프라·배포 | 전용 hostname, 공급자, Secret reference, backup, staging 배포 | ✅ 증거 있는 완료 | backup→migration→불변 이미지→health/smoke→rollback PASS | non-seed·DNS/TLS·provider·OIDC·backup/migration·rollback·off-site readback·signoff 3/3 PASS |
 | P5 역할별 UAT | 19개 UAT와 업무·보안·운영 책임자 검수 | ✅ 증거 있는 완료 | staging 19개 PASS, Critical/High 0, 책임자 실제 서명 | 기술 UAT 19/19·Critical/High 0·업무/보안/운영 전자서명 3/3 |
-| P6 Production 전환 | 최종 승인, cutover, 관측·복구 확인 | 🔄 진행 중 | P3~P5 PASS, 승인된 변경 시간, cutover·rollback 증거 | 후보 `e238ab8…`의 CI·불변 이미지, AI PC loopback Production 3서비스, migration 25/25, backup·restore·rollback PASS. UAT actor transaction provision, exact Cloudflare ingress publication·route-disable, active branch provenance, 12개 Gate별 실패 격리 매트릭스, 순차 실행 상태 머신, 14-step adapter, redacted receipt runner, runId·SHA actual evidence assembler, 역할별 actual 결과 compiler, Gate 1~11→서명→Gate 12·actual finalizer 원자 재개·실패 자동 route-disable, actual 증거 기반 P6 완료/P7 활성화 전환기와 변경창 입력 5참조 미무장 준비 Gate가 준비됐고 실제 참조는 0/5, 공개 DNS/TLS·실사용자 MFA·최종 서명·actual 생성은 남음. READY `P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF` |
-| P7 운영·유지보수 활성화 | 백업, 경보, 온콜, 정기 점검, 개선 큐 | ⏳ 미착수 | 운영 백업·경보 수신·복구훈련과 책임자 인수 | 운영 8영역 compiler·책임자 signoff input assembler/compiler, exact HTTPS 30일 SLO 수집기, 5종 경보 delivery runner, exact TLS 관측기, primary→escalation on-call drill runner, 일일점검 runner, consistent snapshot off-site backup·격리 restore runner, canonical 승인 digest·release SHA·single-writer lease·receipt root 단일 승인 run 귀속·no-overwrite 영수증이 적용된 19단계 1회 1단계 재개 오케스트레이터, 10문서 합성 종단 리허설과 actual 인수 뒤 8/8 원자 완료 전환기 PASS. 실제 활성화는 P6 완료 후 시작 |
+| P6 Production 전환 | 최종 승인, cutover, 관측·복구 확인 | ✅ 증거 있는 완료 | P3~P5 PASS, 승인된 변경 시간, cutover·rollback 증거 | 후보 `e238ab8…`의 CI·불변 이미지, AI PC loopback Production 3서비스, migration 25/25, backup·restore·rollback PASS. UAT actor transaction provision, exact Cloudflare ingress publication·route-disable, active branch provenance, 12개 Gate별 실패 격리 매트릭스, 순차 실행 상태 머신, 14-step adapter, redacted receipt runner, runId·SHA actual evidence assembler, 역할별 actual 결과 compiler, Gate 1~11→서명→Gate 12·actual finalizer 원자 재개·실패 자동 route-disable, actual 증거 기반 P6 완료/P7 활성화 전환기와 변경창 입력 5참조 미무장 준비 Gate가 준비됐고 실제 참조는 0/5, 공개 DNS/TLS·실사용자 MFA·최종 서명·actual 생성은 남음. READY `P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF` |
+| P7 운영·유지보수 활성화 | 백업, 경보, 온콜, 정기 점검, 개선 큐 | 🔄 진행 중 | 운영 백업·경보 수신·복구훈련과 책임자 인수 | 운영 8영역 compiler·책임자 signoff input assembler/compiler, exact HTTPS 30일 SLO 수집기, 5종 경보 delivery runner, exact TLS 관측기, primary→escalation on-call drill runner, 일일점검 runner, consistent snapshot off-site backup·격리 restore runner, canonical 승인 digest·release SHA·single-writer lease·receipt root 단일 승인 run 귀속·no-overwrite 영수증이 적용된 19단계 1회 1단계 재개 오케스트레이터, 10문서 합성 종단 리허설과 actual 인수 뒤 8/8 원자 완료 전환기 PASS. 실제 활성화는 P6 완료 후 시작 |
 
 ## 4. 전역지침 11단계 연결
 

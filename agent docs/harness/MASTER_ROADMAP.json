@@ -5,14 +5,22 @@
   "repository": "D:\\seowon_projects\\sqcm-i-inventory-system",
   "branch": "codex/p6-ai-pc-postgres-production",
   "goal": "P2부터 P7까지 증거 기반으로 한 Phase씩 완료하고 37봇과 보호 서비스를 보존한다.",
-  "currentPhase": "P6",
-  "completedPhases": 6,
+  "currentPhase": "P7",
+  "completedPhases": 7,
   "totalPhases": 8,
   "invariants": {
-    "dockerServices": ["frontend", "backend", "database"],
-    "protectedPorts": [1234, 11434, 18765],
+    "dockerServices": [
+      "frontend",
+      "backend",
+      "database"
+    ],
+    "protectedPorts": [
+      1234,
+      11434,
+      18765
+    ],
     "preserveDirtyWorktree": true,
-    "productionGo": false
+    "productionGo": true
   },
   "authority": {
     "localReadAndVerification": "local-autonomous",
@@ -152,27 +160,27 @@
           "g5-current-user-assigned-admin-manager-user",
           "g5-current-user-assigned-business-security-operations",
           "g5-uat-matrix-19-items-pending-not-falsely-passed",
-          "g5-role-api-technical-preflight-1-of-1-pass"
-          ,"g5-integration-20-of-20-pass"
-          ,"g5-browser-user-manager-admin-pass"
-          ,"g5-mobile-390x844-no-overflow-console-zero"
-          ,"g5-backup-restore-32-tables-22-migrations-match"
-          ,"g5-dependency-recovery-503-to-200-pass"
-          ,"g5-ocr-invalid-input-400-defect-resolved"
-          ,"g5-backend-rollback-4dda-health-smoke-role-db22-pass"
-          ,"g5-candidate-forward-b9f0-smoke-role-ai-pass"
-          ,"g5-frontend-database-containers-preserved"
-          ,"g5-business-security-operations-3-of-3-approved-p3-only"
-          ,"g5-external-provider-preflight-hold-no-scanner-alert"
-          ,"g5-defender-4-18-26070-9-signature-1-457-324-0"
-          ,"g5-defender-clean-and-eicar-infected-pass"
-          ,"g5-infected-unknown-timeout-fail-closed"
-          ,"g5-windows-session-alert-three-categories-receipt-pass"
-          ,"g5-application-eicar-pdf-http422-storage-zero"
-          ,"g5-unit-122-of-122-integration-20-of-20-security-uat-1-of-1"
-          ,"g5-backend-final-digest-ff3eeeff"
-          ,"g5-bridge-security-reload-30392-to-65400"
-          ,"g5-uat-19-pass-0-fail-0-not-run"
+          "g5-role-api-technical-preflight-1-of-1-pass",
+          "g5-integration-20-of-20-pass",
+          "g5-browser-user-manager-admin-pass",
+          "g5-mobile-390x844-no-overflow-console-zero",
+          "g5-backup-restore-32-tables-22-migrations-match",
+          "g5-dependency-recovery-503-to-200-pass",
+          "g5-ocr-invalid-input-400-defect-resolved",
+          "g5-backend-rollback-4dda-health-smoke-role-db22-pass",
+          "g5-candidate-forward-b9f0-smoke-role-ai-pass",
+          "g5-frontend-database-containers-preserved",
+          "g5-business-security-operations-3-of-3-approved-p3-only",
+          "g5-external-provider-preflight-hold-no-scanner-alert",
+          "g5-defender-4-18-26070-9-signature-1-457-324-0",
+          "g5-defender-clean-and-eicar-infected-pass",
+          "g5-infected-unknown-timeout-fail-closed",
+          "g5-windows-session-alert-three-categories-receipt-pass",
+          "g5-application-eicar-pdf-http422-storage-zero",
+          "g5-unit-122-of-122-integration-20-of-20-security-uat-1-of-1",
+          "g5-backend-final-digest-ff3eeeff",
+          "g5-bridge-security-reload-30392-to-65400",
+          "g5-uat-19-pass-0-fail-0-not-run"
         ],
         "report": "docs/phase-reports/94_P3_G5_Defender_Local_Alert_Integration.md"
       },
@@ -239,13 +247,8 @@
     {
       "id": "P6",
       "name": "Production 전환",
-      "status": "in-progress",
-      "readyWork": {
-        "id": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
-        "description": "승인된 2026-09-03 10:00~13:00 KST 변경창에서만 inventory.safe-link.co.kr DNS/TLS를 loopback 검증 완료 후보에 연결하고 실제 사용자 로그인·MFA, 관측 및 업무·보안·운영 최종 서명을 검증한다.",
-        "authority": "external-input",
-        "nextGate": "P7-G0-OPERATIONS-HANDOVER-PREFLIGHT"
-      },
+      "status": "evidence-complete",
+      "readyWork": null,
       "lastEvidence": {
         "date": "2026-09-01",
         "result": "PASS_AI_PC_LOOPBACK_PRODUCTION_DEPLOY_BACKUP_RESTORE_ROLLBACK",
@@ -333,35 +336,35 @@
           "production-role-core-smoke-redacted-summary-three-actual-role-result-compiler-ready",
           "production-role-result-three-output-create-only-partial-commit-set-provenance-pass",
           "production-cutover-control-output-fsync-hardlink-no-replace-pass",
-      "production-ingress-config-credential-fsync-hardlink-no-replace-pass",
-      "production-ingress-single-writer-owned-lease-pass",
-      "production-ingress-stale-lease-explicit-windowed-recovery-pass",
-      "production-ingress-exact-process-identity-single-pid-pass",
-      "production-ingress-process-spawn-acknowledged-pid-pass",
-      "production-route-disable-exact-zone-dns-record-identity-pass",
-      "production-ingress-exact-zone-dns-record-publication-identity-pass",
-      "production-ingress-exact-tunnel-connection-identity-pass",
-      "production-ingress-secret-free-tunnel-create-acknowledgement-pass",
-      "production-ingress-orphan-recovery-read-only-preflight-pass",
-      "production-ingress-orphan-recovery-windowed-no-force-executor-pass",
-      "production-cutover-ingress-publication-failure-route-disable-orphan-recovery-containment-pass",
-      "production-cutover-step-exception-bounded-identity-orphan-containment-pass",
-      "production-cutover-step-specific-child-environment-allowlist-pass",
-      "production-cutover-step-transitive-bundle-receipt-resume-provenance-pass",
-      "production-cutover-child-timeout-output-signal-bounded-failure-pass",
-      "production-cutover-rollback-cutoff-containment-reserve-budget-pass",
-      "production-cutover-containment-two-minute-aggregate-time-budget-pass",
-      "production-cutover-actual-receipt-role-signoff-rollback-cutoff-pass",
-      "production-cutover-receipt-one-to-twenty-six-sequence-provenance-pass",
-      "production-cutover-receipt-filename-payload-binding-pass",
-      "production-cutover-evidence-causal-chronology-pass",
-      "production-signoff-reviewed-role-result-set-and-rollback-gate-provenance-pass",
-      "production-signoff-request-single-receipt-snapshot-bound-bundle-preparation-pass",
-      "production-signoff-request-set-provenance-and-causal-time-binding-pass",
-      "production-signoff-request-physical-bundle-sha256-binding-pass",
-      "production-signoff-mfa-approval-receipt-sha256-binding-pass",
-      "production-signoff-actual-document-create-only-assembler-pass",
-      "production-signoff-assembler-cutover-resume-atomic-integration-pass",
+          "production-ingress-config-credential-fsync-hardlink-no-replace-pass",
+          "production-ingress-single-writer-owned-lease-pass",
+          "production-ingress-stale-lease-explicit-windowed-recovery-pass",
+          "production-ingress-exact-process-identity-single-pid-pass",
+          "production-ingress-process-spawn-acknowledged-pid-pass",
+          "production-route-disable-exact-zone-dns-record-identity-pass",
+          "production-ingress-exact-zone-dns-record-publication-identity-pass",
+          "production-ingress-exact-tunnel-connection-identity-pass",
+          "production-ingress-secret-free-tunnel-create-acknowledgement-pass",
+          "production-ingress-orphan-recovery-read-only-preflight-pass",
+          "production-ingress-orphan-recovery-windowed-no-force-executor-pass",
+          "production-cutover-ingress-publication-failure-route-disable-orphan-recovery-containment-pass",
+          "production-cutover-step-exception-bounded-identity-orphan-containment-pass",
+          "production-cutover-step-specific-child-environment-allowlist-pass",
+          "production-cutover-step-transitive-bundle-receipt-resume-provenance-pass",
+          "production-cutover-child-timeout-output-signal-bounded-failure-pass",
+          "production-cutover-rollback-cutoff-containment-reserve-budget-pass",
+          "production-cutover-containment-two-minute-aggregate-time-budget-pass",
+          "production-cutover-actual-receipt-role-signoff-rollback-cutoff-pass",
+          "production-cutover-receipt-one-to-twenty-six-sequence-provenance-pass",
+          "production-cutover-receipt-filename-payload-binding-pass",
+          "production-cutover-evidence-causal-chronology-pass",
+          "production-signoff-reviewed-role-result-set-and-rollback-gate-provenance-pass",
+          "production-signoff-request-single-receipt-snapshot-bound-bundle-preparation-pass",
+          "production-signoff-request-set-provenance-and-causal-time-binding-pass",
+          "production-signoff-request-physical-bundle-sha256-binding-pass",
+          "production-signoff-mfa-approval-receipt-sha256-binding-pass",
+          "production-signoff-actual-document-create-only-assembler-pass",
+          "production-signoff-assembler-cutover-resume-atomic-integration-pass",
           "same-run-gates-1-to-11-signoff-pause-gate-12-resume-contract-ready",
           "same-run-physical-checkpoint-gate-12-resume-runtime-route-disable-ready",
           "same-run-actual-evidence-finalization-failure-route-disable-ready",
@@ -442,13 +445,26 @@
         "evidence": "agent docs/harness/P6_G4_CUTOVER_PREFLIGHT_EVIDENCE.json",
         "report": "docs/phase-reports/128_P6_G4_Production_Cutover_Preflight.md"
       },
-      "completionGate": "P3~P5 PASS와 승인된 cutover·rollback 증거"
+      "completionGate": "P3~P5 PASS와 승인된 cutover·rollback 증거",
+      "completionEvidence": {
+        "date": "2026-09-03",
+        "result": "PASS_ACTUAL_PRODUCTION_CUTOVER",
+        "runId": "c0901830-e0f4-45ac-b0c7-6eddf6318480",
+        "releaseSha": "d91d9c322799d17a323144ee0df80eb8abac2e55",
+        "sha256": "2cbae48fd8ed1c61ac43632c60ad9a699c7b52b982cd4a0922fe51dcfbe4c3c1",
+        "targetUrl": "https://inventory.safe-link.co.kr"
+      }
     },
     {
       "id": "P7",
       "name": "운영·유지보수 활성화",
-      "status": "not-started",
-      "readyWork": null,
+      "status": "in-progress",
+      "readyWork": {
+        "id": "P7-G0-OPERATIONS-HANDOVER-PREFLIGHT",
+        "description": "P6 actual cutover 증거를 기준으로 운영 8영역과 운영 책임자 인수 입력을 검증한다.",
+        "authority": "local-autonomous",
+        "nextGate": "P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+      },
       "completionGate": "백업·경보 수신·복구훈련·온콜과 운영 책임자 인수 증거"
     }
   ],

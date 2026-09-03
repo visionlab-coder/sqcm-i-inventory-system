@@ -1,10 +1,10 @@
 # 서원토건 비품관리 시스템 최신 단일 현황
 
 <!-- HARNESS_STATUS_START -->
-Harness 진행: **6 / 8 Phase 완료**
-현재 Phase: **P6**
-현재 READY: `P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF`
-Production GO: **false**
+Harness 진행: **7 / 8 Phase 완료**
+현재 Phase: **P7**
+현재 READY: `P7-G0-OPERATIONS-HANDOVER-PREFLIGHT`
+Production GO: **true**
 <!-- HARNESS_STATUS_END -->
 
 기준일: 2026-09-01
@@ -13,7 +13,7 @@ Production GO: **false**
 현재 작업 브랜치: `codex/p6-ai-pc-postgres-production` (배포 후보 `e238ab8dab7f4729298ceb7ecc0f874a4a08829a`)
 최신 릴리스 기준 main: `79a12924106b378d2337898c76a4dd431634b78d`
 
-상태: **P5 staging UAT 19/19·서명 3/3 완료 / P6-G3 AI PC loopback Production 배포·복구 PASS / P6-G4 공개 전환 대기 / Production NO-GO**
+상태: **P6 actual Production cutover 증거 완료 / P7-G0 운영 인수 preflight 진행 / Production GO**
 
 이 문서는 현재 상태의 단일 정본이다. 과거 Phase 보고서의 당시 수치와 설계 결정은 역사 증거로 보존하되 현재 판정에는 이 문서와 실제 코드·테스트 결과를 우선한다.
 
@@ -203,7 +203,7 @@ Production GO: **false**
 - 논리 백업의 SHA-256을 확인하고 임시 DB에 복원해 필수 테이블 33/33, migration 25/25와 행 수 일치를 검증했다.
 - 실제 3서비스 중지 rollback으로 3300 포트 폐쇄와 두 named volume 보존을 확인한 뒤 같은 digest 이미지로 재기동·스모크를 재통과했다.
 - staging 3서비스와 보호 포트/PID `1234/6632`, `11434/8588`, `18765/22716`, `18766/65724`는 보존됐다.
-- 공개 DNS/TLS, 실제 Production 사용자 로그인·MFA, 최종 서명은 아직 없으므로 `productionGo=false`다. 다음 READY는 `P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF`다.
+- P6 actual cutover 증거가 검증되어 `productionGo=true`다. 다음 READY는 `P7-G0-OPERATIONS-HANDOVER-PREFLIGHT`다.
 
 ## 2026-09-01 P6-G2 GitHub-hosted CI·불변 이미지
 
@@ -337,7 +337,7 @@ P5는 migration 025와 staging backend 재배포 후 **19 PASS·0 FAIL·0 PENDIN
 
 P6-G3에서 후보 `e238ab8dab7f…`의 원격 일치, GitHub-hosted quality와 release-images 성공, AI PC loopback Production 3서비스 배포, migration 25/25, backup·restore와 실제 중지형 rollback·재기동을 통과했다. main merge·공개 전환은 실행하지 않았다.
 
-현재 유일한 READY는 **P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF**다. 사전점검은 `READY_WAIT_CHANGE_WINDOW`이며 승인된 변경창 `2026-09-03 10:00~13:00 KST`에서 전용 Production tunnel·공개 DNS/TLS, 실제 사용자 로그인·MFA, 관측·최종 서명을 검증한다. 변경창 입력 봉투는 물리 참조 0/5·mutating 확인값 사전 무장 0개로 `READY_WAIT_CHANGE_WINDOW_INPUT_REFERENCES`다. 그 전까지 서비스는 `127.0.0.1:3300` 격리를 유지하며 Production은 `NO-GO`다. P6 actual 완료 뒤 exact HTTPS를 UTC 하루 1회 저장소 밖 원장에 축적하는 30일 SLO 수집기, exact TLS·health/readiness 관측기, P7 actual 인수 10문서 통과 뒤 Harness를 8/8 COMPLETE로 닫는 fail-closed 종단 전환기까지 로컬 준비됐다.
+현재 유일한 READY는 **P7-G0-OPERATIONS-HANDOVER-PREFLIGHT**다. P6 actual cutover 증거의 SHA와 운영 8영역·운영 책임자 인수 입력을 검증한다.
 
 `ACC-P6-89`에서 Gate 1~11 checkpoint와 동일 atomic receipt snapshot 및 세 역할 actual 결과 publication set을 검증해 업무·보안·운영 책임자가 검토할 unsigned 서명 요청 bundle 3건을 저장소 밖 create-only로 조립하는 진입점을 준비했다. 동일 run·release·core/rollback receipt SHA·역할 결과 set을 요청에 고정하며 실제 bundle·서명·identity·MFA·메시지·DNS/TLS·cutover는 `NOT_RUN`이다.
 
