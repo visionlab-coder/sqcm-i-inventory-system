@@ -47,6 +47,7 @@ async function post(path, session, body) {
       redirect:'manual',
       headers:{
         cookie:session.cookie,
+        origin:target,
         'content-type':'application/json',
         'x-csrf-token':session.token,
         'idempotency-key':crypto.randomUUID()

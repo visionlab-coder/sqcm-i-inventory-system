@@ -1,5 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const roleSmokeModule = import('../../src/operations/production-role-core-smoke.mjs');
 const pass = {
@@ -34,4 +36,9 @@ test('역할 권한 또는 익명 401이 다르면 실패한다', async () => {
   const result = evaluateRoleCoreSmoke({ ...pass, MANAGER: { ...pass.MANAGER, admin:200 }, anonymousItems:200 });
   assert.ok(result.failures.includes('MANAGER_ADMIN_EXPECTED_403'));
   assert.ok(result.failures.includes('ANONYMOUS_ITEMS_NOT_401'));
+});
+
+test('실제 로그인 쓰기 요청은 선택된 target의 same-origin 헤더를 전송한다', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../../scripts/production-role-core-smoke.mjs'), 'utf8');
+  assert.match(source, /origin:target/);
 });
