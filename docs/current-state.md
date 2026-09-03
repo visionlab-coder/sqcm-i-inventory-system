@@ -3,19 +3,26 @@
 <!-- HARNESS_STATUS_START -->
 Harness 진행: **7 / 8 Phase 완료**
 현재 Phase: **P7**
-현재 READY: `P7-G0-OPERATIONS-HANDOVER-PREFLIGHT`
+현재 READY: `P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF`
 Production GO: **true**
 <!-- HARNESS_STATUS_END -->
 
-기준일: 2026-09-01
+기준일: 2026-09-03
 
 릴리스 기준 브랜치: `main`
 현재 작업 브랜치: `codex/p6-ai-pc-postgres-production` (배포 후보 `e238ab8dab7f4729298ceb7ecc0f874a4a08829a`)
 최신 릴리스 기준 main: `79a12924106b378d2337898c76a4dd431634b78d`
 
-상태: **P6 actual Production cutover 증거 완료 / P7-G0 운영 인수 preflight 진행 / Production GO**
+상태: **P6 actual Production cutover 증거 완료 / P7-G0 PASS / P7-G1 운영 활성화·인수 진행 / Production GO**
 
 이 문서는 현재 상태의 단일 정본이다. 과거 Phase 보고서의 당시 수치와 설계 결정은 역사 증거로 보존하되 현재 판정에는 이 문서와 실제 코드·테스트 결과를 우선한다.
+
+## 2026-09-03 P6 완료 및 P7-G0 운영 인수 사전점검
+
+- P6 actual cutover run `c0901830-e0f4-45ac-b0c7-6eddf6318480`은 12/12 Gate, ADMIN·MANAGER·USER 실제 UAT, MFA 결박 업무·보안·운영 서명 3/3을 통과했고 `productionGo=true`다.
+- 배포 release는 `d91d9c322799d17a323144ee0df80eb8abac2e55`, actual evidence SHA-256은 `2cbae48fd8ed1c61ac43632c60ad9a699c7b52b982cd4a0922fe51dcfbe4c3c1`이다.
+- P7-G0 계약 오류는 0건이다. 실제 HTTPS SLO 1/30일, TLS 인증서, 일일 유지보수 6종 증거를 생성했다.
+- P7-G1에는 SLO 29일, 외부 경보 5종, off-site backup·격리 restore, 온콜 ACK, GitHub triage, 최종 운영 책임자 MFA 인수가 남았다.
 
 ## 2026-09-01 P6-G4 공개 전환 사전점검
 
