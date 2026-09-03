@@ -417,8 +417,8 @@
       "phase": "P7_PREP",
       "status": "EVIDENCE_COMPLETE",
       "authority": "local-autonomous",
-      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 물리 token 참조와 승인된 triage attestation을 사용해 전용 GitHub operations Issue queue를 읽기 전용 수집하고, 고정 label과 단일 bounded JSON metadata만 compiler 호환 actual export로 저장소 밖에 원자적으로 1회 기록한다.",
-      "evidence": "operations:improvement-queue-collector => READY_WAIT_P6_ACTUAL_CUTOVER; GitHub read/write/Issue mutation/secret read zero; focused 6/6 PASS; exact repository·operations label·source/severity/status label parity·owner/acceptance/triage/next-action·blocked dependency enforced"
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 승인된 triage attestation과, private repository용 물리 token 또는 명시적 public anonymous-read mode를 사용해 전용 GitHub operations Issue queue를 읽기 전용 수집하고, 고정 label과 단일 bounded JSON metadata만 compiler 호환 actual export로 저장소 밖에 원자적으로 1회 기록한다.",
+      "evidence": "2026-09-03 public GitHub API read probe => HTTP 200, operations queue 0 items, mutation 0; explicit anonymous mode implemented without secret read; focused 11/11 PASS; collector dry-run with anonymous approval => missing only triageAttestation and output; exact repository·operations label·source/severity/status label parity·owner/acceptance/triage/next-action·blocked dependency enforced"
     },
     {
       "id": "ACC-P7-21-PRODUCTION-FIVE-SIGNAL-ALERT-DELIVERY-RUNNER",

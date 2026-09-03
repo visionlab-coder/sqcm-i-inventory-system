@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-09-03T03:47:02.154Z",
+  "status": "PASS_P7_G1_GITHUB_PUBLIC_READ_BLOCKER_REDUCED",
+  "environment": "production",
+  "repository": "visionlab-coder/sqcm-i-inventory-system",
+  "label": "operations",
+  "publicApiProbe": {
+    "httpStatus": 200,
+    "openItemCount": 0,
+    "mutationCount": 0
+  },
+  "collector": {
+    "anonymousReadSupported": true,
+    "secretReadAllowedInAnonymousMode": false,
+    "focusedTests": {
+      "passed": 11,
+      "failed": 0
+    },
+    "actualExportStatus": "NOT_RUN",
+    "remainingInputs": [
+      "triageAttestation",
+      "output",
+      "exactConfirmation"
+    ]
+  },
+  "productionGo": true,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "nextReady": "P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

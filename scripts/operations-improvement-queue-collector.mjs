@@ -22,6 +22,7 @@ const p7 = roadmap.phases.find((phase) => phase.id === 'P7');
 const tokenPath = process.env.P7_GITHUB_API_TOKEN_FILE ? path.resolve(process.env.P7_GITHUB_API_TOKEN_FILE) : null;
 const attestationPath = process.env.P7_IMPROVEMENT_QUEUE_TRIAGE_ATTESTATION_FILE ? path.resolve(process.env.P7_IMPROVEMENT_QUEUE_TRIAGE_ATTESTATION_FILE) : null;
 const outputPath = process.env.P7_IMPROVEMENT_QUEUE_INPUT_FILE ? path.resolve(process.env.P7_IMPROVEMENT_QUEUE_INPUT_FILE) : null;
+const anonymousPublicReadApproved = process.env.P7_GITHUB_PUBLIC_ANONYMOUS_READ === 'ACK-P7-GITHUB-PUBLIC-ANONYMOUS-READ';
 
 function externalPhysicalFile(candidate) {
   if (!candidate || !path.relative(projectRoot, candidate).startsWith('..')) return false;
@@ -42,7 +43,7 @@ function externalNewFile(candidate) {
   } catch { return false; }
 }
 
-async function fetchAllOperationsIssues(token) {
+async function fetchAllOperationsIssues(token = null) {
   const issues = [];
   for (let page = 1; page <= 10; page += 1) {
     const url = new URL(`https://api.github.com/repos/${IMPROVEMENT_QUEUE_REPOSITORY}/issues`);
@@ -50,13 +51,14 @@ async function fetchAllOperationsIssues(token) {
     url.searchParams.set('labels', IMPROVEMENT_QUEUE_LABEL);
     url.searchParams.set('per_page', '100');
     url.searchParams.set('page', String(page));
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
+    const headers = {
         Accept: 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2022-11-28',
         'User-Agent': 'sqcm-i-operations-queue-collector'
-      },
+    };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const response = await fetch(url, {
+      headers,
       signal: AbortSignal.timeout(15000)
     });
     if (!response.ok) throw new Error(`GITHUB_ISSUE_READ_FAILED_${response.status}`);
@@ -72,6 +74,7 @@ const gate = evaluateImprovementQueueCollectionGate({
   p7InProgress: p7?.status === 'in-progress',
   productionGo: roadmap.invariants?.productionGo === true,
   tokenReferencePresent: externalPhysicalFile(tokenPath),
+  anonymousPublicReadApproved,
   attestationPresent: externalPhysicalFile(attestationPath),
   outputConfigured: externalNewFile(outputPath),
   outputExists: Boolean(outputPath && fs.existsSync(outputPath)),
@@ -91,9 +94,12 @@ if (gate.githubReadAllowed) {
     const checkedAt = new Date().toISOString();
     const attestationInput = readOperationsActivationInputDocument(attestationPath, { repositoryRoot: projectRoot });
     const attestation = validateImprovementQueueTriageAttestation(attestationInput.value, { checkedAt });
-    const token = readOperationsSecretInput(tokenPath, { repositoryRoot: projectRoot }).value;
-    secretValueUsed = true;
-    if (token.length < 20 || /\s/.test(token)) throw new Error('GITHUB_TOKEN_REFERENCE_INVALID');
+    let token = null;
+    if (gate.secretReadAllowed) {
+      token = readOperationsSecretInput(tokenPath, { repositoryRoot: projectRoot }).value;
+      secretValueUsed = true;
+      if (token.length < 20 || /\s/.test(token)) throw new Error('GITHUB_TOKEN_REFERENCE_INVALID');
+    }
     githubReadPerformed = true;
     const issues = await fetchAllOperationsIssues(token);
     issueCount = issues.length;
@@ -113,6 +119,8 @@ if (gate.githubReadAllowed) {
 console.log(JSON.stringify({
   checkedAt: new Date().toISOString(), status,
   requiredTokenEnvironment: 'P7_GITHUB_API_TOKEN_FILE',
+  anonymousReadEnvironment: 'P7_GITHUB_PUBLIC_ANONYMOUS_READ',
+  anonymousReadApproved: anonymousPublicReadApproved,
   requiredAttestationEnvironment: 'P7_IMPROVEMENT_QUEUE_TRIAGE_ATTESTATION_FILE',
   requiredOutputEnvironment: 'P7_IMPROVEMENT_QUEUE_INPUT_FILE',
   confirmationEnvironment: 'P7_IMPROVEMENT_QUEUE_COLLECTION_CONFIRMATION',

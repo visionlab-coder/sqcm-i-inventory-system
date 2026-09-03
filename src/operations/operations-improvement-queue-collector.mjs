@@ -70,6 +70,7 @@ export function evaluateImprovementQueueCollectionGate({
   p7InProgress = false,
   productionGo = false,
   tokenReferencePresent = false,
+  anonymousPublicReadApproved = false,
   attestationPresent = false,
   outputConfigured = false,
   outputExists = false,
@@ -81,7 +82,7 @@ export function evaluateImprovementQueueCollectionGate({
   if (!productionGo) return waiting('READY_WAIT_PRODUCTION_GO');
   if (outputExists) return waiting('PASS_IMPROVEMENT_QUEUE_EXPORT_ALREADY_COMPLETE');
   const missing = [];
-  if (!tokenReferencePresent) missing.push('tokenReference');
+  if (!tokenReferencePresent && !anonymousPublicReadApproved) missing.push('githubReadCredentialOrAnonymousApproval');
   if (!attestationPresent) missing.push('triageAttestation');
   if (!outputConfigured) missing.push('output');
   if (missing.length) return waiting('READY_WAIT_IMPROVEMENT_QUEUE_COLLECTION_INPUTS', missing);
@@ -92,7 +93,7 @@ export function evaluateImprovementQueueCollectionGate({
     missing,
     githubReadAllowed: true,
     localEvidenceWriteAllowed: true,
-    secretReadAllowed: true
+    secretReadAllowed: tokenReferencePresent
   };
 }
 

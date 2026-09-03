@@ -42,11 +42,29 @@ test('P6 actual·P7 활성화·Production GO 전에는 GitHub read와 write를 �
 test('token·attestation·output·execute·exact confirmation을 fail-closed한다', async () => {
   const { evaluateImprovementQueueCollectionGate } = await modulePromise;
   const active = { p6EvidenceComplete: true, p7InProgress: true, productionGo: true };
-  assert.deepEqual(evaluateImprovementQueueCollectionGate(active).missing, ['tokenReference', 'triageAttestation', 'output']);
+  assert.deepEqual(evaluateImprovementQueueCollectionGate(active).missing, ['githubReadCredentialOrAnonymousApproval', 'triageAttestation', 'output']);
   const ready = { ...active, tokenReferencePresent: true, attestationPresent: true, outputConfigured: true };
   assert.equal(evaluateImprovementQueueCollectionGate(ready).status, 'PASS_IMPROVEMENT_QUEUE_COLLECTION_DRY_RUN_READY');
   assert.equal(evaluateImprovementQueueCollectionGate({ ...ready, execute: true }).status, 'READY_WAIT_IMPROVEMENT_QUEUE_COLLECTION_CONFIRMATION');
   assert.equal(evaluateImprovementQueueCollectionGate({ ...ready, execute: true, confirmed: true }).githubReadAllowed, true);
+});
+
+test('공개 repository는 token 대신 명시적 anonymous read mode를 허용하고 secret read를 열지 않는다', async () => {
+  const { evaluateImprovementQueueCollectionGate } = await modulePromise;
+  const ready = {
+    p6EvidenceComplete: true,
+    p7InProgress: true,
+    productionGo: true,
+    anonymousPublicReadApproved: true,
+    attestationPresent: true,
+    outputConfigured: true,
+    execute: true,
+    confirmed: true
+  };
+  const result = evaluateImprovementQueueCollectionGate(ready);
+  assert.equal(result.status, 'READY_COLLECT_PRODUCTION_IMPROVEMENT_QUEUE');
+  assert.equal(result.githubReadAllowed, true);
+  assert.equal(result.secretReadAllowed, false);
 });
 
 test('triage attestation은 승인·책임자·최근/다음 7일·미추적 0건을 요구한다', async () => {
