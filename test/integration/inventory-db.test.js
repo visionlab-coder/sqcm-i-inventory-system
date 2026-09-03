@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createPool } = require('../../src/db');
+const { createPool, migrationFilesForTarget } = require('../../src/db');
 const { createItem, updateItem, deactivateItem, checkoutItem, returnItem } = require('../../src/services/inventory-service');
 
 const databaseUrl = process.env.INTEGRATION_DATABASE_URL;
@@ -36,7 +36,7 @@ test('PostgreSQL에서 등록 → 대여 → 반납 왕복이 수량 무결성�
     const audit = await pool.query("SELECT count(*)::int AS count FROM audit_logs WHERE entity_id IN ($1,$2)", [String(itemId), String(loanId)]);
     assert.ok(audit.rows[0].count >= 5);
     const migrations = await pool.query("SELECT version FROM schema_migrations ORDER BY version");
-    assert.deepEqual(migrations.rows.map(row => row.version), ['001_init.sql', '002_audit_trace.sql', '003_enterprise_inventory.sql', '004_procurement_inspection_assets.sql', '005_organization_invitations.sql', '006_reference_data_lifecycle.sql', '007_asset_status_reason_reference.sql', '008_asset_evidence_files.sql', '009_mfa_credentials.sql', '010_department_scope_backfill.sql', '011_multistage_approvals.sql', '012_return_evidence.sql', '013_oidc_identity.sql', '014_api_idempotency.sql', '015_outbox_delivery.sql', '016_canonical_ledger_org_isolation.sql', '017_cost_control_tco.sql', '018_automation_rules_notifications.sql', '019_ai_cost_recommendations.sql', '020_asset_financial_profile_trigger.sql', '021_ai_quality_feedback.sql', '022_cost_roi_savings.sql']);
+    assert.deepEqual(migrations.rows.map(row => row.version), await migrationFilesForTarget('application'));
   } finally {
     if (loanId || itemId) {
       await pool.query("DELETE FROM audit_logs WHERE entity_id = ANY($1::text[])", [[String(itemId || ''), String(loanId || '')]]);

@@ -1,0 +1,72 @@
+{
+  "packet": "ACC-P7-16-BOUNDED-ACTUAL-HANDOVER-EVIDENCE-INPUT",
+  "status": "PASS_BOUNDED_ACTUAL_HANDOVER_EVIDENCE_INPUT",
+  "failureFirst": {
+    "expectedFailures": 6,
+    "observedFailures": 6,
+    "platformSkips": 1
+  },
+  "focusedTests": {
+    "total": 22,
+    "passed": 21,
+    "failed": 0,
+    "skipped": 1
+  },
+  "syntaxChecks": {
+    "passed": 342,
+    "failed": 0
+  },
+  "unitTests": {
+    "total": 586,
+    "passed": 582,
+    "failed": 0,
+    "skipped": 4
+  },
+  "inputContract": {
+    "topLevelAbsoluteExternalJsonRequired": true,
+    "childRelativePathConfinedToExternalBase": true,
+    "repositoryInternalRejected": true,
+    "physicalRegularFileRequired": true,
+    "symlinkReparseAndParentRedirectRejected": true,
+    "minimumBytes": 1,
+    "maximumBytesPerFile": 4194304,
+    "jsonObjectRequired": true,
+    "actualBytesAndSha256Computed": true,
+    "rawParseAndFilesystemErrorsRedacted": true,
+    "finalizerAssemblerAndCompletionShareReader": true
+  },
+  "readOnlyRun": {
+    "finalizerStatus": "READY_WAIT_P6_COMPLETION_AND_HANDOVER_EVIDENCE",
+    "phaseCompletionStatus": "READY_WAIT_ACTUAL_HANDOVER_EVIDENCE_FOR_8_OF_8",
+    "actualEvidencePresent": false,
+    "changesMade": false,
+    "productionGo": false
+  },
+  "implementationCommits": [
+    "75b285688eb36559addde4e85bb0d8340d92cf43",
+    "79e8105340d055df4923333ab0fd5d1881311dab",
+    "c83e0ac5c82f8bb087bc47294661fb1855cfd7da"
+  ],
+  "qualityCi": {
+    "runId": 33574636520,
+    "testedHeadSha": "c83e0ac5c82f8bb087bc47294661fb1855cfd7da",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "harnessVerify": {
+    "exitCode": 0,
+    "operationsHandoverFinalizer": "PASS",
+    "operationsPhaseCompletion": "PASS",
+    "productionPublicProbe": "READY_WAIT_DNS_TLS_PUBLICATION",
+    "status": "PASS"
+  },
+  "repositoryHygiene": "PASS",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

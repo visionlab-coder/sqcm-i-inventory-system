@@ -1,0 +1,54 @@
+{
+  "packet": "ACC-P6-22-BOUNDED-INGRESS-PUBLICATION-ADAPTERS",
+  "status": "PASS_BOUNDED_INGRESS_PUBLICATION_ADAPTERS",
+  "failureFirst": {
+    "expectedFailures": 4,
+    "observedFailures": 4
+  },
+  "limits": {
+    "commandTimeoutMs": 10000,
+    "commandMaxBufferBytes": 1048576,
+    "providerHttpTimeoutMs": 10000,
+    "dnsObservationTimeoutMs": 5000
+  },
+  "focusedTests": {
+    "total": 11,
+    "passed": 11,
+    "failed": 0
+  },
+  "syntaxChecks": {
+    "passed": 313,
+    "failed": 0
+  },
+  "unitTests": {
+    "total": 497,
+    "passed": 496,
+    "failed": 0,
+    "skipped": 1
+  },
+  "dryRun": {
+    "status": "READY_WAIT_INGRESS_PUBLICATION_INPUTS",
+    "pending": [
+      "CLOUDFLARE_ROLLBACK_TOKEN_REFERENCE_MISSING"
+    ],
+    "externalMutationPerformed": false,
+    "actualProductionIngress": "NOT_RUN",
+    "productionGo": false
+  },
+  "qualityCi": {
+    "runId": 33557945699,
+    "testedHeadSha": "6f18d665b3e01bb66147f61ab694c6a7f7fe228f",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "repositoryHygiene": "PASS",
+  "harnessVerify": "PASS",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "template": true,
+  "environment": "production",
+  "activationState": "actual",
+  "evidenceType": "PRODUCTION_OPERATIONS_SIGNOFF_EXPORT",
+  "targetUrl": "https://inventory.safe-link.co.kr",
+  "releaseSha": null,
+  "p6CutoverEvidenceSha256": null,
+  "signoff": {
+    "decision": "APPROVED",
+    "role": "OPERATIONS_OWNER",
+    "signedByRef": null,
+    "signedAt": null,
+    "receiptId": null,
+    "blockingExceptionCount": null,
+    "attestations": [
+      { "domain": "slo", "status": "NOT_RUN", "evidenceSha256": null },
+      { "domain": "alerting", "status": "NOT_RUN", "evidenceSha256": null },
+      { "domain": "backup", "status": "NOT_RUN", "evidenceSha256": null },
+      { "domain": "restore", "status": "NOT_RUN", "evidenceSha256": null },
+      { "domain": "certificate", "status": "NOT_RUN", "evidenceSha256": null },
+      { "domain": "onCall", "status": "NOT_RUN", "evidenceSha256": null },
+      { "domain": "maintenance", "status": "NOT_RUN", "evidenceSha256": null },
+      { "domain": "improvementQueue", "status": "NOT_RUN", "evidenceSha256": null }
+    ],
+    "acceptedDuties": [
+      "on_call",
+      "alert_response",
+      "backup_restore",
+      "certificate_renewal",
+      "daily_maintenance",
+      "improvement_triage"
+    ]
+  }
+}

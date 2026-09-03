@@ -1,0 +1,54 @@
+{
+  "packet": "ACC-P7-58-ATOMIC-OPERATIONS-ROADMAP-CONTROL-CONSUMERS",
+  "status": "PASS_ATOMIC_OPERATIONS_ROADMAP_CONTROL_CONSUMERS",
+  "failureFirst": { "expectedFailures": 18, "observedFailures": 18 },
+  "focusedTests": { "total": 24, "passed": 24, "failed": 0, "skipped": 0 },
+  "entrypointDryRuns": {
+    "count": 18,
+    "waitCount": 18,
+    "failureCount": 0,
+    "externalMutationCount": 0
+  },
+  "syntaxChecks": { "passed": 369, "failed": 0 },
+  "unitTests": { "total": 707, "passed": 700, "failed": 0, "skipped": 7 },
+  "controlContract": {
+    "consumerCount": 18,
+    "maximumBytes": 1048576,
+    "exactRepositoryPhysicalFileRequired": true,
+    "repositoryIdentityRechecked": true,
+    "repositoryRealpathRechecked": true,
+    "roadmapIdentityRechecked": true,
+    "roadmapRealpathRechecked": true,
+    "roadmapSizeRechecked": true,
+    "fatalUtf8Required": true,
+    "jsonObjectRequired": true,
+    "directUnboundedReadCount": 0
+  },
+  "implementationCommit": "3b57e7a764375066a1ecc988a72cd0a624c15d9d",
+  "qualityCi": {
+    "runId": 33593271020,
+    "testedHeadSha": "3b57e7a764375066a1ecc988a72cd0a624c15d9d",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "protectedServices": [
+    { "port": 1234, "pid": 6632, "preserved": true },
+    { "port": 11434, "pid": 8588, "preserved": true },
+    { "port": 18765, "pid": 22716, "preserved": true },
+    { "port": 18766, "pid": 65724, "preserved": true }
+  ],
+  "productionCompose": {
+    "services": ["frontend", "backend", "database"],
+    "healthyServiceCount": 3,
+    "frontendBinding": "127.0.0.1:3300",
+    "backendHostPortCount": 0,
+    "databaseHostPortCount": 0
+  },
+  "harnessVerify": { "exitCode": 0, "status": "PASS" },
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

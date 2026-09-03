@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "workId": "P4-G0-SUPABASE-RESTORE-AUDIT-THEN-PROVIDER-SECRET-REFERENCES",
+  "evidenceId": "P4-G0-SUPABASE-PROVENANCE-SECURITY-AUDIT-20260829",
+  "checkedAt": "2026-08-29T15:17:05.3877083+09:00",
+  "status": "PASS_AUDIT_REJECT_REUSE_DEDICATED_PROJECT_REQUIRED",
+  "phaseProgress": "4 / 8",
+  "sourceState": {
+    "branch": "codex/fix-sidebar-accessibility",
+    "head": "dfc37e3bfa60ea69a54900678897ee6b3a0eb078",
+    "dirtyWorktreePreserved": true
+  },
+  "supabaseProject": {
+    "organizationId": "vhbfoqrknvvqebdzavmb",
+    "organization": "visionlab-safe-link",
+    "organizationPlan": "free",
+    "projectId": "wzmzpuxpcpuvuacwmslj",
+    "projectName": "visionlab-coder's Project",
+    "status": "ACTIVE_HEALTHY",
+    "region": "ap-northeast-1",
+    "postgresVersion": "17.6.1.063",
+    "publicTableCount": 41,
+    "publicRowCount": 0,
+    "migrationCount": 6,
+    "migrationNames": [
+      "step1_auth_init",
+      "step2_tbm_init",
+      "step3_chat_init",
+      "step5_voice_init",
+      "fix_sites_policy",
+      "enable_chat_creation"
+    ],
+    "provenanceSignals": [
+      "sites",
+      "profiles",
+      "tbm_notices",
+      "nfc_workers",
+      "stop_work_alerts",
+      "claim13_hash_chain_events",
+      "tf_strategic_plans"
+    ],
+    "provenanceDecision": "EXISTING_SAFE_LINK_TBM_NFC_SAFETY_SYSTEM",
+    "inventoryReuseDecision": "REJECT_REUSE_EXISTING_PROJECT"
+  },
+  "advisorSummary": {
+    "security": {
+      "total": 30,
+      "error": 3,
+      "warn": 21,
+      "info": 6,
+      "criticalFindings": [
+        {
+          "name": "policy_exists_rls_disabled",
+          "target": "public.tbm_notices",
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0007_policy_exists_rls_disabled"
+        },
+        {
+          "name": "security_definer_view",
+          "target": "public.nfc_worker_identity_duplicates",
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0010_security_definer_view"
+        },
+        {
+          "name": "rls_disabled_in_public",
+          "target": "public.tbm_notices",
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0013_rls_disabled_in_public"
+        }
+      ],
+      "additionalWarnings": {
+        "rlsEnabledNoPolicy": 6,
+        "mutableFunctionSearchPath": 6,
+        "anonExecutableSecurityDefinerFunctions": 7,
+        "authenticatedExecutableSecurityDefinerFunctions": 7,
+        "leakedPasswordProtectionDisabled": 1
+      }
+    },
+    "performance": {
+      "total": 174,
+      "warn": 69,
+      "info": 105,
+      "error": 0
+    }
+  },
+  "safetyDecision": {
+    "existingProjectChangesAllowed": false,
+    "sqlExecuted": false,
+    "migrationApplied": false,
+    "authOrStorageChanged": false,
+    "securityAutoRemediationApplied": false,
+    "reason": "The project is an existing SAFE-LINK system with unresolved security findings; inventory staging requires an isolated project."
+  },
+  "runtimeState": {
+    "syntheticStagingServicesHealthy": 3,
+    "syntheticStagingFrontend": "127.0.0.1:3100",
+    "originalInventoryServicesHealthy": 3,
+    "protectedListeners": [
+      {"port": 1234, "pid": 6632, "preserved": true},
+      {"port": 11434, "pid": 8588, "preserved": true},
+      {"port": 18765, "pid": 22716, "preserved": true},
+      {"port": 18766, "pid": 65400, "preserved": true},
+      {"port": 18767, "pid": 28532, "preserved": true}
+    ]
+  },
+  "completedChecklist": [
+    "project-restored-active-healthy",
+    "public-schema-41-tables-read",
+    "six-migrations-read",
+    "safe-link-provenance-confirmed",
+    "security-advisors-30-read",
+    "performance-advisors-174-read",
+    "reuse-rejected-without-external-write"
+  ],
+  "blockedReasons": [
+    "DEDICATED_INVENTORY_SUPABASE_PROJECT_NOT_CREATED",
+    "SUPABASE_TARGET_ORGANIZATION_NOT_USER_CONFIRMED",
+    "PROJECT_COST_NOT_QUOTED_OR_CONFIRMED",
+    "PITR_PAID_ADD_ON_NOT_APPROVED",
+    "PROVIDER_SECRET_REFERENCES_INCOMPLETE"
+  ],
+  "nextReady": "P4-G0-DEDICATED-SUPABASE-PROJECT-ORG-COST-AND-CREATION-CONFIRMATION",
+  "productionGo": false
+}

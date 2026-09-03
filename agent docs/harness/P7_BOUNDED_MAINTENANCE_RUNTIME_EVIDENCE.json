@@ -1,0 +1,89 @@
+{
+  "packet": "ACC-P7-48-BOUNDED-MAINTENANCE-RUNTIME",
+  "status": "PASS_BOUNDED_MAINTENANCE_RUNTIME",
+  "failureFirst": {
+    "expectedFailures": 5,
+    "observedFailures": 5
+  },
+  "focusedTests": {
+    "total": 21,
+    "passed": 21,
+    "failed": 0,
+    "skipped": 0
+  },
+  "syntaxChecks": {
+    "passed": 349,
+    "failed": 0
+  },
+  "unitTests": {
+    "total": 617,
+    "passed": 611,
+    "failed": 0,
+    "skipped": 6
+  },
+  "runtimeContract": {
+    "dockerProcessTimeoutMs": 10000,
+    "defaultProcessMaximumBytes": 1048576,
+    "logProcessMaximumBytes": 4194304,
+    "windowsHidden": true,
+    "rawProcessErrorsRedacted": true,
+    "strictContainerRevisionDatabaseAndLogParsing": true
+  },
+  "backupContract": {
+    "manifestNamePattern": "seowon-inventory-YYYYMMDDTHHMMSSZ.dump.json",
+    "manifestMaximumBytes": 65536,
+    "physicalRegularManifestRequired": true,
+    "symlinkReparseAndParentRedirectRejected": true,
+    "fatalUtf8DecodingRequired": true,
+    "jsonObjectRequired": true,
+    "actualManifestBytesAndSha256Computed": true,
+    "backupPathMustRemainInsidePhysicalRoot": true,
+    "backupBytesAndStreamingSha256Verified": true,
+    "stagingManifestExcludedByExactNamePattern": true
+  },
+  "readOnlyRuns": {
+    "maintenanceRunner": {
+      "status": "READY_WAIT_P6_ACTUAL_CUTOVER",
+      "externalHttpReadPerformed": false,
+      "localRuntimeReadPerformed": false,
+      "localEvidenceWritePerformed": false
+    },
+    "productionOperationalHealth": {
+      "status": "PASS_LOOPBACK_BASELINE_READY_FOR_POST_CUTOVER_RECHECK",
+      "frontendStatus": 200,
+      "backendStatus": 200,
+      "readinessStatus": 200,
+      "backupBytes": 238533,
+      "backupVerified": true,
+      "restoreVerified": true
+    },
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "alternativeResolution": {
+    "initialFailure": "STAGING_MANIFEST_SHARED_DUMP_JSON_SUFFIX",
+    "resolution": "EXACT_PRODUCTION_BACKUP_MANIFEST_NAME_PATTERN",
+    "securityBoundaryChanged": false,
+    "providerChanged": false
+  },
+  "implementationCommit": "69ef9767b03a50f72e6aea3fed74e699a222aa9c",
+  "qualityCi": {
+    "runId": 33580084906,
+    "testedHeadSha": "69ef9767b03a50f72e6aea3fed74e699a222aa9c",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "harnessVerify": {
+    "exitCode": 0,
+    "status": "PASS"
+  },
+  "actualMaintenanceExecutionPerformed": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

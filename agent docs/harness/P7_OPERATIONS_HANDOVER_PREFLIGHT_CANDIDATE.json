@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-09-01T21:22:46+09:00",
+  "template": false,
+  "environment": "production",
+  "activationState": "preflight",
+  "p7Status": "not-started",
+  "productionGo": false,
+  "domains": {
+    "slo": { "availabilityTargetPercent": 99.5, "p95TargetMs": 1000, "measurementWindowDays": 30, "measurementEvidenceRef": null },
+    "alerting": { "requiredSignals": ["availability", "latency_p95", "http_5xx", "backup_failure", "certificate_expiry"], "receiptEvidenceRef": null, "ownerRef": null },
+    "backup": { "rpoMinutes": 1440, "retentionDays": 30, "offsiteEvidenceRef": null },
+    "restore": { "rtoMinutes": 240, "drillEvidenceRef": null },
+    "certificate": { "hostname": "inventory.safe-link.co.kr", "renewalLeadDays": 30, "expiryEvidenceRef": null, "renewalOwnerRef": null },
+    "onCall": { "primaryOwnerRef": null, "escalationOwnerRef": null, "scheduleEvidenceRef": null, "drillEvidenceRef": null },
+    "maintenance": { "scheduleContractRef": "docs/maintenance.md", "executionEvidenceRef": null },
+    "improvementQueue": { "queueRef": null, "triageOwnerRef": null }
+  },
+  "onCallEvidenceAutomation": {
+    "command": "npm.cmd run operations:oncall-evidence -- --compile",
+    "inputContract": "agent docs/harness/P7_ONCALL_HANDOVER_INPUT_CONTRACT.json",
+    "status": "READY_WAIT_P6_COMPLETION_AND_ONCALL_HANDOVER",
+    "actualEvidenceCreated": false
+  },
+  "maintenanceEvidenceAutomation": {
+    "command": "npm.cmd run operations:maintenance-evidence -- --compile",
+    "inputContract": "agent docs/harness/P7_MAINTENANCE_EXECUTION_INPUT_CONTRACT.json",
+    "status": "READY_WAIT_P6_COMPLETION_AND_MAINTENANCE_EXECUTION",
+    "actualEvidenceCreated": false
+  },
+  "improvementQueueEvidenceAutomation": {
+    "command": "npm.cmd run operations:improvement-queue-evidence -- --compile",
+    "inputContract": "agent docs/harness/P7_IMPROVEMENT_QUEUE_INPUT_CONTRACT.json",
+    "status": "READY_WAIT_P6_COMPLETION_AND_IMPROVEMENT_QUEUE_EXPORT",
+    "actualEvidenceCreated": false
+  },
+  "operationsSignoffEvidenceAutomation": {
+    "command": "npm.cmd run operations:signoff-evidence -- --compile",
+    "inputContract": "agent docs/harness/P7_OPERATIONS_SIGNOFF_INPUT_CONTRACT.json",
+    "status": "READY_WAIT_P6_COMPLETION_AND_OPERATIONS_SIGNOFF",
+    "actualEvidenceCreated": false
+  },
+  "evidencePipelineRehearsal": {
+    "command": "npm.cmd run operations:evidence-pipeline-rehearsal",
+    "status": "PASS_SYNTHETIC_OPERATIONS_EVIDENCE_PIPELINE_REHEARSAL",
+    "compilerCount": 8,
+    "verifiedDocumentCount": 10,
+    "syntheticOnly": true,
+    "actualEvidenceCreated": false
+  }
+}

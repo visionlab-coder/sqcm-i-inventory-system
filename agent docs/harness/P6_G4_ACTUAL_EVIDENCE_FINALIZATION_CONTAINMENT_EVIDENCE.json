@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "packet": "ACC-P6-17-ACTUAL-EVIDENCE-FINALIZATION-AND-ROLLBACK-CONTAINMENT",
+  "status": "EVIDENCE_COMPLETE",
+  "checkedAt": "2026-09-01T14:22:26.686Z",
+  "implementation": {
+    "sameRunFinalization": true,
+    "requiredReceiptCount": 26,
+    "requiredRoleResults": 3,
+    "requiredIdentitySignoffs": 3,
+    "externalAtomicOutput": true,
+    "assemblyFailureRequiresExactRouteDisable": true
+  },
+  "verification": {
+    "focusedUnit": "10/10 PASS",
+    "syntax": "246/246 PASS",
+    "repositoryUnit": "366 PASS, 0 FAIL, 1 Windows symlink SKIP",
+    "dryRun": "PASS_SIGNOFF_RESUME_ENTRYPOINT_DRY_RUN",
+    "actualProductionExecution": "NOT_RUN"
+  },
+  "invariants": {
+    "productionGo": false,
+    "externalMutationPerformed": false,
+    "secretsRecorded": false
+  },
+  "nextReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF"
+}

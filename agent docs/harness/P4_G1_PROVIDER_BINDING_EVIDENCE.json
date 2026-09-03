@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "workId": "P4-G1-STAGING-PROVIDER-ROUTES-AND-SECRET-REFERENCES",
+  "checkedAt": "2026-08-31T13:30:04+09:00",
+  "status": "PARTIAL_EXTERNAL_RESOURCES_CREATED_DNS_FAIL_CLOSED",
+  "supabaseProject": "iuoljosldyymkburagwj",
+  "storage": {
+    "bucket": "sqcm-i-inventory-staging",
+    "public": false,
+    "fileSizeLimitMiB": 5,
+    "allowedMimeTypes": ["image/jpeg", "image/png", "application/pdf"],
+    "s3Protocol": true,
+    "credentialScope": "server-only project access; project currently has one bucket",
+    "probe": {"headBucket": "PASS", "putGetHash": "PASS", "cleanup": "REMOVED"}
+  },
+  "oidc": {
+    "serverEnabled": true,
+    "dynamicRegistration": false,
+    "siteUrl": "https://inventory-staging.safe-link.co.kr",
+    "authorizationPath": "/oauth/consent",
+    "issuer": "https://iuoljosldyymkburagwj.supabase.co/auth/v1",
+    "signingKey": "CURRENT_ES256_P256",
+    "clientType": "confidential",
+    "registrationType": "manual",
+    "redirectUri": "https://inventory-staging.safe-link.co.kr/api/auth/oidc/callback",
+    "pkce": "S256",
+    "discovery": "PASS",
+    "authorizationRedirect": "302_TO_EXACT_CONSENT_PATH_WITH_AUTHORIZATION_ID",
+    "remaining": ["live consent flow verification after non-seed staging deployment"]
+  },
+  "uatAuthIdentity": {
+    "environment": "staging",
+    "roles": ["ADMIN", "MANAGER", "USER"],
+    "applicationUsers": 3,
+    "authUsers": 3,
+    "autoConfirmed": 3,
+    "confirmationEmailsSent": 0,
+    "identityLinks": 3,
+    "distinctSubjects": 3,
+    "roleScopes": ["ALL", "ORGANIZATION", "DEPARTMENT"],
+    "passwordSignIn": "3/3 PASS_HTTP_200",
+    "sessionCleanup": "3/3 LOGOUT_HTTP_204",
+    "issuerSubjectInvariant": "PASS",
+    "passwordStorage": "PROTECTED_IGNORED_LOCAL_ENV_ONLY",
+    "secretValuesRecorded": false
+  },
+  "providerAdapters": {
+    "supabaseS3": "IMPLEMENTED",
+    "supabaseOidc": "IMPLEMENTED_WITH_PKCE_AND_ID_TOKEN_VERIFICATION",
+    "httpsEventPublisher": "IMPLEMENTED",
+    "bridgeEventReceipt": "PASS_202_AND_STABLE_IDEMPOTENT_RECEIPT",
+    "stagingNginxRoutes": "CONFIGURED_NOT_DEPLOYED",
+    "oauthConsentUi": "IMPLEMENTED_LOCAL_CONTRACT_PASS_LIVE_FLOW_NOT_RUN"
+  },
+  "secretHandling": {
+    "path": ".env.staging.local",
+    "gitIgnored": true,
+    "acl": "CURRENT_USER_AND_SYSTEM_ONLY",
+    "valuesRecorded": false
+  },
+  "cloudflare": {
+    "tunnelId": "994b5a27-cba4-4958-aecf-ed43db8730ef",
+    "hostname": "inventory-staging.safe-link.co.kr",
+    "dnsPublished": false,
+    "connectorActive": false,
+    "reason": "synthetic stack still has seed users and OAuth consent/user provisioning is incomplete; public exposure is fail-closed"
+  },
+  "verification": {
+    "focusedProviderTests": "9/9 PASS",
+    "unit": "139/139 PASS",
+    "syntax": "115 PASS",
+    "composeServices": ["backend", "database", "frontend"],
+    "nginxSyntax": "PASS",
+    "npmAudit": "0 known vulnerabilities",
+    "oauthConsentUiContract": "20 PASS",
+    "frontendImageBuild": "PASS"
+  },
+  "protectedListeners": [
+    {"port": 1234, "pid": 6632, "preserved": true},
+    {"port": 11434, "pid": 8588, "preserved": true},
+    {"port": 18765, "pid": 22716, "preserved": true},
+    {"port": 18766, "pid": 65724, "preserved": true},
+    {"port": 18767, "pid": 28532, "preserved": true}
+  ],
+  "blockedReasons": [
+    "OIDC_CONSENT_LIVE_FLOW_NOT_RUN",
+    "SYNTHETIC_SEED_STACK_MUST_NOT_BE_PUBLIC",
+    "HTTPS_PROVIDER_ROUTES_CONFIGURED_BUT_NOT_DEPLOYED"
+  ],
+  "nextReady": "P4-G1-STAGING-PROVIDER-ROUTES-AND-SECRET-REFERENCES",
+  "productionGo": false
+}

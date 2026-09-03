@@ -1,0 +1,59 @@
+{
+  "gate": "P6-G2-RELEASE-CANDIDATE-GIT-CI-AND-IMMUTABLE-IMAGES",
+  "date": "2026-09-01",
+  "status": "PASS",
+  "approval": "P6-G2 승인: 현재 P6 변경 파일을 정확한 allowlist로 commit·push하고 GitHub-hosted CI 및 불변 이미지 생성을 진행",
+  "source": {
+    "branch": "codex/p6-ai-pc-postgres-production",
+    "candidateSha": "a73dda495e8365612c24cd9c9f4070a9aa8548e6",
+    "remoteShaMatched": true,
+    "draftPullRequest": "https://github.com/visionlab-coder/sqcm-i-inventory-system/pull/23",
+    "merged": false,
+    "allowlistedFileCount": 47,
+    "forbiddenFileCount": 0,
+    "secretSignatureCount": 0
+  },
+  "githubHostedCI": {
+    "workflow": "quality",
+    "runId": 33466804085,
+    "runNumber": 45,
+    "conclusion": "success",
+    "candidateSha": "a73dda495e8365612c24cd9c9f4070a9aa8548e6"
+  },
+  "immutableImages": {
+    "workflow": "release-images",
+    "runId": 33466895762,
+    "runNumber": 9,
+    "conclusion": "success",
+    "candidateSha": "a73dda495e8365612c24cd9c9f4070a9aa8548e6",
+    "backend": {
+      "reference": "ghcr.io/visionlab-coder/sqcm-i-inventory-backend:sha-a73dda495e8365612c24cd9c9f4070a9aa8548e6",
+      "indexDigest": "sha256:8de4fb1545deb2fd2bdbfbf1c7752709921f8d11914cba79d01ccecb915efd3d",
+      "platforms": ["linux/amd64", "linux/arm64"]
+    },
+    "frontend": {
+      "reference": "ghcr.io/visionlab-coder/sqcm-i-inventory-frontend:sha-a73dda495e8365612c24cd9c9f4070a9aa8548e6",
+      "indexDigest": "sha256:dc41a39f871289a3382e1c48bb263b656158ca92b7a94da37f111519a8e0f49d",
+      "platforms": ["linux/amd64", "linux/arm64"]
+    },
+    "provenanceAttestationsCreated": true
+  },
+  "preserved": {
+    "protectedListeners": [
+      {"port": 1234, "expectedPid": 6632, "actualPid": 6632},
+      {"port": 11434, "expectedPid": 8588, "actualPid": 8588},
+      {"port": 18765, "expectedPid": 22716, "actualPid": 22716}
+    ],
+    "stagingServices": ["frontend:healthy", "backend:healthy", "database:healthy"]
+  },
+  "notPerformed": [
+    "main merge",
+    "release tag",
+    "Production Secret creation",
+    "Production migration",
+    "Production deployment",
+    "DNS/TLS cutover"
+  ],
+  "productionGo": false,
+  "nextReady": "P6-G3-AI-PC-PRODUCTION-SECRETS-MIGRATION-DEPLOY-AND-ROLLBACK"
+}

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "template": true,
+  "environment": "production",
+  "activationState": "actual",
+  "evidenceType": "PRODUCTION_ONCALL_HANDOVER_EXPORT",
+  "targetUrl": "https://inventory.safe-link.co.kr",
+  "schedule": {
+    "scheduleRef": null,
+    "timezone": "Asia/Seoul",
+    "continuousCoverage": false,
+    "effectiveFrom": null,
+    "effectiveUntil": null,
+    "primaryOwnerRef": null,
+    "escalationOwnerRef": null,
+    "primaryAcceptedAt": null,
+    "escalationAcceptedAt": null
+  },
+  "drill": {
+    "drillId": null,
+    "channelRef": null,
+    "primaryOwnerRef": null,
+    "escalationOwnerRef": null,
+    "initiatedAt": null,
+    "primaryAcknowledgedAt": null,
+    "primaryReceiptId": null,
+    "escalationTriggeredAt": null,
+    "escalationAcknowledgedAt": null,
+    "escalationReceiptId": null
+  }
+}

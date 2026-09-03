@@ -1,0 +1,372 @@
+{
+  "gate": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "evidenceType": "CHANGE_WINDOW_PREFLIGHT",
+  "checkedAt": "2026-09-01T21:31:07+09:00",
+  "status": "READY_WAIT_CHANGE_WINDOW",
+  "productionGo": false,
+  "automatedPreflight": {
+    "command": "npm.cmd run production:cutover-preflight",
+    "status": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockers": [],
+    "unitTests": "4/4 PASS",
+    "repositoryRegression": "321/321 PASS",
+    "harnessRegistered": true
+  },
+  "harnessBranchProvenance": {
+    "roadmapBranch": "codex/p6-ai-pc-postgres-production",
+    "actualBranch": "codex/p6-ai-pc-postgres-production",
+    "status": "PASS",
+    "unitTests": "4/4 PASS",
+    "sources": ["GITHUB_HEAD_REF", "GITHUB_REF_NAME", "git symbolic-ref --short HEAD"],
+    "failClosed": ["active branch unresolved", "roadmap branch missing", "roadmap and active branch mismatch"]
+  },
+  "cutoverEvidenceCandidate": {
+    "path": "agent docs/harness/P6_G4_CUTOVER_EVIDENCE_CANDIDATE.json",
+    "localGatePassCount": 4,
+    "pendingGateCount": 8,
+    "productionGo": false,
+    "validatorStatus": "PASS_CANDIDATE_FAIL_CLOSED",
+    "validatorFailureCount": 22
+  },
+  "cutoverOrchestratorAutomation": {
+    "command": "npm.cmd run production:cutover-orchestrator",
+    "status": "PASS_CUTOVER_ORCHESTRATOR_DRY_RUN",
+    "unitTests": "5/5 PASS",
+    "requiredGateCount": 12,
+    "rollbackCutoff": "22:00 KST",
+    "publicationAction": "npm.cmd run production:ingress-publication -- --execute then npm.cmd run production:public-probe",
+    "failureAction": "npm.cmd run production:rollback-readiness then npm.cmd run production:route-disable -- --execute",
+    "preserve": ["loopback services", "named volumes"],
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "cutoverFailureMatrixAutomation": {
+    "command": "npm.cmd run production:cutover-failure-matrix",
+    "status": "PASS_CUTOVER_12_GATE_FAILURE_MATRIX_REHEARSAL",
+    "unitTests": "5/5 PASS",
+    "scenarioCount": 12,
+    "containedFailureCount": 12,
+    "routeDisableVerificationCount": 12,
+    "checks": ["stop at failed Gate", "skip all later Gates", "exact public route disable verified", "malformed result fail-closed", "unverified route disable blocked", "synthetic all-pass remains NO-GO"],
+    "actualCutoverExecuted": false,
+    "actualRouteDisabled": false,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "cutoverEvidenceFinalizerAutomation": {
+    "command": "npm.cmd run production:cutover-finalizer",
+    "status": "READY_WAIT_ACTUAL_CUTOVER_EVIDENCE",
+    "unitTests": "5/5 PASS",
+    "checks": ["exact 12 unique PASS gates", "three Production role results", "business/security/operations approvals", "template=false", "activationState=actual", "immutable SHA release tag", "exact Production URL", "productionGo=true"],
+    "rejectedProvenance": ["template", "staging", "loopback", "baseline", "not run", "pending"],
+    "actualEvidencePresent": false,
+    "secretValuesReadOrRecorded": false,
+    "productionGo": false
+  },
+  "publicProbeAutomation": {
+    "command": "npm.cmd run production:public-probe",
+    "status": "READY_WAIT_DNS_TLS_PUBLICATION",
+    "unitTests": "4/4 PASS",
+    "expectedHttpsPaths": ["/health", "/api/health", "/api/readiness", "/api/items", "/assets/seowon-official-logo-reversed.png"],
+    "outsideWindowPublicationFailsClosed": true,
+    "actualPublicHealthReadiness": "NOT_RUN"
+  },
+  "ingressPublicationAutomation": {
+    "command": "npm.cmd run production:ingress-publication",
+    "executeCommand": "npm.cmd run production:ingress-publication -- --execute",
+    "status": "READY_WAIT_INGRESS_PUBLICATION_INPUTS",
+    "target": {
+      "zone": "safe-link.co.kr",
+      "hostname": "inventory.safe-link.co.kr",
+      "tunnel": "sqcm-i-inventory-production",
+      "origin": "http://127.0.0.1:3300",
+      "runtimeConfig": "D:\\seowon_runtime\\sqcm-i-inventory-production\\cloudflared.yml"
+    },
+    "requiredEnvironment": [
+      "CLOUDFLARE_PRODUCTION_DNS_API_TOKEN_FILE",
+      "PRODUCTION_INGRESS_CONFIRMATION=ACK-2026-09-11-PUBLISH-PRODUCTION-INGRESS",
+      "PRODUCTION_ROUTE_DISABLE_CONFIRMATION=ACK-2026-09-11-DISABLE-PRODUCTION-ROUTE"
+    ],
+    "integrationPreflight": "ALLOW_WITH_CONDITIONS",
+    "unitTests": "7/7 PASS",
+    "pending": ["Cloudflare rollback token file reference", "approved change window"],
+    "createsOnly": ["exact named tunnel if absent", "exact runtime ingress config if absent", "one hidden tunnel connector if disconnected", "exact proxied CNAME if absent"],
+    "preserves": ["existing tunnels", "staging", "loopback Production services", "named volumes"],
+    "externalMutationPerformed": false,
+    "actualProductionIngress": "NOT_RUN",
+    "productionGo": false
+  },
+  "logGateAutomation": {
+    "command": "npm.cmd run production:log-gate",
+    "status": "PASS_BASELINE_READY_FOR_POST_CUTOVER_RECHECK",
+    "baselineWindowMinutes": 15,
+    "unitTests": "3/3 PASS",
+    "checks": ["HTTP 5xx", "fatal backend events", "error-level records", "outbox retries", "dead letters"],
+    "actualPostCutoverLogs5xx": "NOT_RUN"
+  },
+  "roleSmokePreflightAutomation": {
+    "command": "npm.cmd run production:role-preflight",
+    "status": "READY_WAIT_ROLE_USERS_MFA_AND_CREDENTIAL_REFERENCES",
+    "unitTests": "4/4 PASS",
+    "requiredRoles": ["ADMIN", "MANAGER", "USER"],
+    "activeUsersByRole": {"ADMIN": 0, "MANAGER": 0, "USER": 0},
+    "mfaUsersByRole": {"ADMIN": 0, "MANAGER": 0, "USER": 0},
+    "credentialReferenceEnvironment": [
+      "PRODUCTION_UAT_ADMIN_CREDENTIAL_FILE",
+      "PRODUCTION_UAT_MANAGER_CREDENTIAL_FILE",
+      "PRODUCTION_UAT_USER_CREDENTIAL_FILE"
+    ],
+    "credentialReferencesPresent": 0,
+    "actualRoleCoreSmoke": "NOT_RUN",
+    "secretValuesReadOrRecorded": false
+  },
+  "uatActorProvisionAutomation": {
+    "command": "npm.cmd run production:uat-actor-provision",
+    "executeCommand": "npm.cmd run production:uat-actor-provision -- --execute",
+    "status": "READY_WAIT_UAT_ACTOR_PROVISION_INPUTS",
+    "requiredEnvironment": [
+      "PRODUCTION_UAT_ACTOR_APPROVAL_FILE",
+      "PRODUCTION_UAT_ADMIN_CREDENTIAL_FILE",
+      "PRODUCTION_UAT_MANAGER_CREDENTIAL_FILE",
+      "PRODUCTION_UAT_USER_CREDENTIAL_FILE",
+      "PRODUCTION_UAT_ACTOR_PROVISION_CONFIRMATION=ACK-2026-09-11-PROVISION-PRODUCTION-UAT-ACTORS"
+    ],
+    "transactionChecks": ["exact SEOWON/HQ", "identity conflict fail-closed", "bcrypt cost 12", "encrypted TOTP", "three RBAC scopes", "existing sessions revoked", "three audit records", "worker temporary file removed"],
+    "containerCompatibility": "worker modules PASS; /tmp writable; required schema columns 28/28",
+    "unitTests": "7/7 PASS",
+    "pending": ["Production actor approval reference", "ADMIN/MANAGER/USER credential references", "approved change window"],
+    "actualProductionActors": "NOT_RUN",
+    "externalMutationPerformed": false,
+    "secretValuesReadOrRecorded": false,
+    "productionGo": false
+  },
+  "roleCoreSmokeRunnerAutomation": {
+    "command": "npm.cmd run production:role-core-smoke",
+    "publicCommand": "npm.cmd run production:role-core-smoke -- --public",
+    "status": "READY_WAIT_ROLE_CREDENTIAL_REFERENCES",
+    "unitTests": "4/4 PASS",
+    "publicTargetUnitTests": "6/6 PASS",
+    "targetKind": "loopback",
+    "checks": ["MFA challenge", "invalid MFA 401", "valid TOTP", "role identity", "dashboard/cost/admin RBAC", "anonymous 401", "logout"],
+    "publicTarget": "https://inventory.safe-link.co.kr",
+    "publicExecutionRequires": ["approved change window", "PRODUCTION_PUBLIC_ROLE_SMOKE_CONFIRMATION"],
+    "credentialReferencesPresent": 0,
+    "actualRoleCoreSmoke": "NOT_RUN",
+    "secretValuesReadOrRecorded": false
+  },
+  "nonfunctionalBaselineAutomation": {
+    "command": "npm.cmd run production:nonfunctional-baseline",
+    "publicCommand": "npm.cmd run production:nonfunctional-baseline -- --public",
+    "status": "PASS_LOOPBACK_BASELINE_READY_FOR_PUBLIC_RECHECK",
+    "target": "http://127.0.0.1:3300",
+    "requests": 60,
+    "concurrency": 6,
+    "maxP95Ms": 1000,
+    "maxErrorRate": 0,
+    "checks": ["health load", "security headers", "anonymous 401", "cross-site 403"],
+    "publicTarget": "https://inventory.safe-link.co.kr",
+    "publicExecutionRequires": ["approved change window", "PRODUCTION_PUBLIC_NONFUNCTIONAL_CONFIRMATION"],
+    "publicTargetUnitTests": "4/4 PASS",
+    "actualPublicNonfunctionalGate": "NOT_RUN"
+  },
+  "operationalHealthBaselineAutomation": {
+    "command": "npm.cmd run production:operational-health-baseline",
+    "publicCommand": "npm.cmd run production:operational-health-baseline -- --public",
+    "status": "PASS_LOOPBACK_BASELINE_READY_FOR_POST_CUTOVER_RECHECK",
+    "target": "http://127.0.0.1:3300",
+    "checks": ["health/readiness", "old outbox", "expired sessions", "stuck idempotency", "recent 5xx", "backup checksum/age", "restore drill/age"],
+    "publicTarget": "https://inventory.safe-link.co.kr",
+    "publicExecutionRequires": ["approved change window", "PRODUCTION_PUBLIC_OPERATIONAL_HEALTH_CONFIRMATION"],
+    "publicTargetUnitTests": "4/4 PASS",
+    "actualPostCutoverOperationalHealth": "NOT_RUN"
+  },
+  "csrfIdempotencyBaselineAutomation": {
+    "command": "npm.cmd run production:csrf-idempotency-baseline",
+    "status": "PASS_NEGATIVE_AND_SCHEMA_BASELINE_READY_FOR_AUTHENTICATED_RECHECK",
+    "target": "http://127.0.0.1:3300",
+    "checks": ["missing CSRF token 403/CSRF_INVALID", "no session creation", "idempotency columns 10/10", "unique user/key index", "stuck/invalid status zero"],
+    "actualAuthenticatedIdempotentWriteReplay": "NOT_RUN"
+  },
+  "authenticatedCsrfIdempotencyRunnerAutomation": {
+    "command": "npm.cmd run production:authenticated-idempotency",
+    "publicCommand": "npm.cmd run production:authenticated-idempotency -- --public",
+    "status": "READY_WAIT_ADMIN_CREDENTIAL_AND_WRITE_CONFIRMATION",
+    "unitTests": "4/4 PASS",
+    "publicTargetUnitTests": "5/5 PASS",
+    "checks": ["missing CSRF 403/CSRF_INVALID", "first write 201", "same-key replay", "different-payload 409", "database single row and audit", "cleanup zero", "logout"],
+    "credentialReferencePresent": false,
+    "writeConfirmationPresent": false,
+    "publicTarget": "https://inventory.safe-link.co.kr",
+    "publicExecutionRequires": ["approved change window", "PRODUCTION_UAT_WRITE_CONFIRMATION"],
+    "actualAuthenticatedCsrfIdempotency": "NOT_RUN",
+    "secretValuesReadOrRecorded": false
+  },
+  "rollbackReadinessAutomation": {
+    "command": "npm.cmd run production:rollback-readiness",
+    "status": "PASS_ROLLBACK_READINESS_DRY_RUN_ONLY",
+    "unitTests": "4/4 PASS",
+    "checks": ["candidate image revisions", "postgres/file volumes 2/2", "previous stop/port-close/recovery drill", "backup/restore", "22:00 cutoff", "dedicated route removal plan"],
+    "actualPostCutoverRollback": "NOT_RUN"
+  },
+  "routeDisableAutomation": {
+    "command": "npm.cmd run production:route-disable",
+    "executeCommand": "npm.cmd run production:route-disable -- --execute",
+    "status": "READY_WAIT_ROUTE_DISABLE_INPUTS",
+    "target": {
+      "zone": "safe-link.co.kr",
+      "hostname": "inventory.safe-link.co.kr",
+      "tunnel": "sqcm-i-inventory-production"
+    },
+    "requiredEnvironment": [
+      "CLOUDFLARE_PRODUCTION_DNS_API_TOKEN_FILE",
+      "PRODUCTION_ROUTE_DISABLE_CONFIRMATION=ACK-2026-09-11-DISABLE-PRODUCTION-ROUTE"
+    ],
+    "leastPrivilege": "Cloudflare Zone Read and DNS Edit for safe-link.co.kr only",
+    "unitTests": "6/6 PASS",
+    "pending": ["production tunnel", "Cloudflare API token file reference", "approved change window"],
+    "exactCnameAndTunnelIdMatchRequiredBeforeDelete": true,
+    "tunnelOrServiceStopPerformed": false,
+    "externalMutationPerformed": false,
+    "actualPostCutoverRouteDisable": "NOT_RUN"
+  },
+  "signoffPreflightAutomation": {
+    "command": "npm.cmd run production:signoff-preflight",
+    "status": "READY_WAIT_PRODUCTION_UAT_AND_SIGNOFF_REFERENCES",
+    "unitTests": "4/4 PASS",
+    "requiredRoleResultReferences": ["PRODUCTION_UAT_ADMIN_RESULT_FILE", "PRODUCTION_UAT_MANAGER_RESULT_FILE", "PRODUCTION_UAT_USER_RESULT_FILE"],
+    "requiredSignoffReferences": ["PRODUCTION_BUSINESS_SIGNOFF_FILE", "PRODUCTION_SECURITY_SIGNOFF_FILE", "PRODUCTION_OPERATIONS_SIGNOFF_FILE"],
+    "referencesPresent": 0,
+    "candidatePendingStateVerified": true,
+    "actualProductionUatSignoff": "NOT_RUN",
+    "secretValuesReadOrRecorded": false
+  },
+  "source": {
+    "branch": "codex/p6-ai-pc-postgres-production",
+    "headSha": "2aa9309503e8690ae0e91d6566c27ea5124235cd",
+    "remoteShaMatched": true,
+    "deployedCandidateSha": "e238ab8dab7f4729298ceb7ecc0f874a4a08829a"
+  },
+  "changeWindow": {
+    "start": "2026-09-11T20:00:00+09:00",
+    "rollbackCutoff": "2026-09-11T22:00:00+09:00",
+    "end": "2026-09-11T23:00:00+09:00",
+    "insideWindow": false,
+    "publicChangesAllowedNow": false
+  },
+  "localProduction": {
+    "composeProject": "seowon-inventory-production",
+    "services": ["frontend:healthy", "backend:healthy", "database:healthy"],
+    "frontendBinding": "127.0.0.1:3300",
+    "backendHostPortCount": 0,
+    "databaseHostPortCount": 0,
+    "smoke": {
+      "/health": 200,
+      "/api/health": 200,
+      "/api/readiness": 200,
+      "/api/items": 401,
+      "/assets/seowon-official-logo-reversed.png": 200
+    },
+    "applicationMigrations": "25/25",
+    "productionUsers": 0,
+    "seedUsersCreated": false
+  },
+  "backup": {
+    "manifest": "artifacts/backups/seowon-inventory-20260901T042822Z.dump.json",
+    "bytes": 238533,
+    "sha256Present": true,
+    "restoreVerified": true,
+    "restoreDrillAt": "2026-09-01T04:28:32.812Z"
+  },
+  "publicIngress": {
+    "hostname": "inventory.safe-link.co.kr",
+    "dnsA": "NXDOMAIN",
+    "dnsCname": "NXDOMAIN",
+    "httpsHealth": "HOST_NOT_FOUND",
+    "productionTunnel": "MISSING",
+    "productionRuntimeConfig": "MISSING",
+    "cloudflareRollbackTokenReference": "MISSING",
+    "proposedTunnelName": "sqcm-i-inventory-production",
+    "proposedOrigin": "http://127.0.0.1:3300",
+    "existingTunnelsPreserved": [
+      {"name": "sqcm-i", "connectionCount": 4},
+      {"name": "sqcm-i-inventory-staging", "connectionCount": 4}
+    ],
+    "cloudflaredVersion": "2026.7.1",
+    "cloudflaredRecommendedVersionObserved": "2026.8.3",
+    "cloudflaredUpgradePerformed": false
+  },
+  "cutoverContract": {
+    "requiredGateCount": 12,
+    "templateValid": true,
+    "templateAuthorizesCutover": false,
+    "actualEvidenceExists": false,
+    "actualRoleResults": "NOT_RUN",
+    "actualApprovals": "NOT_RUN"
+  },
+  "protectedServices": [
+    {"port": 1234, "expectedPid": 6632, "actualPid": 6632, "preserved": true},
+    {"port": 11434, "expectedPid": 8588, "actualPid": 8588, "preserved": true},
+    {"port": 18765, "expectedPid": 22716, "actualPid": 22716, "preserved": true},
+    {"port": 18766, "expectedPid": 65724, "actualPid": 65724, "preserved": true}
+  ],
+  "passed": [
+    "HARNESS_CONTRACT_PASS",
+    "REMOTE_SHA_MATCH",
+    "LOCAL_PRODUCTION_THREE_SERVICES_HEALTHY",
+    "LOOPBACK_ONLY_FRONTEND",
+    "BACKEND_DATABASE_HOST_PORT_ZERO",
+    "LOCAL_SMOKE_PASS",
+    "MIGRATIONS_25_OF_25",
+    "BACKUP_RESTORE_VERIFIED",
+    "CUTOVER_TEMPLATE_12_GATE_CONTRACT_VALID",
+    "AUTOMATED_CUTOVER_PREFLIGHT_PASS",
+    "AUTOMATED_PREFLIGHT_UNIT_TESTS_4_OF_4_PASS",
+    "REPOSITORY_UNIT_TESTS_321_OF_321_PASS",
+    "PRODUCTION_PROVIDER_PREFLIGHT_PASS",
+    "PUBLIC_DNS_TLS_HEALTH_READINESS_PROBE_AUTOMATION_READY",
+    "EXACT_PRODUCTION_INGRESS_PUBLICATION_EXECUTOR_READY",
+    "LOGS_5XX_OUTBOX_BASELINE_AND_CUTOVER_GATE_AUTOMATION_READY",
+    "ROLE_CORE_SMOKE_PREFLIGHT_AUTOMATION_READY",
+    "PRODUCTION_UAT_ACTOR_TRANSACTION_PROVISION_EXECUTOR_READY",
+    "ROLE_MFA_RBAC_CORE_SMOKE_RUNNER_READY",
+    "PUBLIC_ROLE_MFA_RBAC_CHANGE_WINDOW_TARGET_GATE_READY",
+    "NONFUNCTIONAL_LOOPBACK_BASELINE_AND_PUBLIC_RECHECK_AUTOMATION_READY",
+    "PUBLIC_NONFUNCTIONAL_CHANGE_WINDOW_TARGET_GATE_READY",
+    "OPERATIONAL_HEALTH_LOOPBACK_BASELINE_AND_POST_CUTOVER_RECHECK_AUTOMATION_READY",
+    "PUBLIC_OPERATIONAL_HEALTH_CHANGE_WINDOW_TARGET_GATE_READY",
+    "CSRF_NEGATIVE_AND_IDEMPOTENCY_SCHEMA_BASELINE_AUTOMATION_READY",
+    "AUTHENTICATED_CSRF_IDEMPOTENCY_WRITE_REPLAY_RUNNER_READY",
+    "PUBLIC_AUTHENTICATED_CSRF_IDEMPOTENCY_CHANGE_WINDOW_TARGET_GATE_READY",
+    "CHANGE_WINDOW_12_GATE_CUTOVER_ORCHESTRATOR_DRY_RUN_PASS",
+    "CHANGE_WINDOW_12_GATE_FAILURE_MATRIX_ROUTE_DISABLE_REHEARSAL_PASS",
+    "ROLLBACK_READINESS_DRY_RUN_AUTOMATION_READY",
+    "EXACT_CLOUDFLARE_PUBLIC_ROUTE_DISABLE_EXECUTOR_READY",
+    "UAT_SIGNOFF_REFERENCE_PREFLIGHT_AUTOMATION_READY",
+    "CUTOVER_EVIDENCE_LOCAL_GATES_4_OF_12_PASS",
+    "CUTOVER_EVIDENCE_EXTERNAL_GATES_8_OF_12_PENDING",
+    "CUTOVER_CANDIDATE_FAIL_CLOSED_VALIDATOR_PASS",
+    "ACTUAL_CUTOVER_EVIDENCE_FULL_CONTRACT_FINALIZER_READY",
+    "EXISTING_CLOUDFLARE_TUNNELS_PRESERVED",
+    "PROTECTED_SERVICES_PRESERVED"
+  ],
+  "notRun": [
+    "PRODUCTION_TUNNEL_CREATION",
+    "PUBLIC_DNS_PUBLICATION",
+    "TLS_ISSUANCE_AND_EXTERNAL_HTTPS_PROBE",
+    "PRODUCTION_ADMIN_MANAGER_USER_LOGIN",
+    "PRODUCTION_MFA_AND_RBAC_NEGATIVE_TESTS",
+    "PRODUCTION_ALERT_RECEIPT",
+    "BUSINESS_SECURITY_OPERATIONS_SIGNOFF"
+  ],
+  "blockedReasons": [
+    "OUTSIDE_APPROVED_CHANGE_WINDOW",
+    "PRODUCTION_TUNNEL_MISSING",
+    "CLOUDFLARE_ROLLBACK_TOKEN_REFERENCE_MISSING",
+    "PRODUCTION_DNS_NXDOMAIN",
+    "PRODUCTION_USERS_ZERO",
+    "PRODUCTION_UAT_ACTOR_APPROVAL_AND_CREDENTIAL_REFERENCES_MISSING",
+    "ACTUAL_CUTOVER_EVIDENCE_MISSING",
+    "FINAL_SIGNOFF_NOT_RUN"
+  ],
+  "nextAction": "Provide the least-privilege Cloudflare token file reference plus the approved Production UAT actor and three credential file references, keep loopback Production healthy, and run the exact provision/publication/cutover sequence only at the approved 2026-09-11 20:00 KST window."
+}

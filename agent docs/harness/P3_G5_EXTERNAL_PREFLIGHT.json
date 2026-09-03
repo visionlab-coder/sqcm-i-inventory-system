@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-08-25",
+  "status": "ALLOW_WITH_CONDITIONS_LOCAL_PILOT",
+  "environment": "LOCAL_PILOT",
+  "malwareScanner": {
+    "currentDriver": "external",
+    "provider": "Microsoft Defender Antivirus",
+    "versionOrDigest": "engine 4.18.26070.9; signature 1.457.324.0",
+    "endpoint": "http://host.docker.internal:18766/security/scan",
+    "credentialReference": "existing P3 bridge bearer key-file mounted read-only",
+    "auditDestination": "local bridge health and P3 evidence",
+    "result": "PASS_CLEAN_INFECTED_UNKNOWN_TIMEOUT_FAIL_CLOSED"
+  },
+  "alerting": {
+    "provider": "Windows Session Message",
+    "channel": "interactive-user-session",
+    "recipient": "PROJECT_OWNER_CURRENT_USER",
+    "credentialReference": "existing P3 bridge bearer key-file mounted read-only",
+    "auditDestination": "D:\\seowon_runtime\\sqcmi-inventory-ai\\logs\\security-alerts.jsonl",
+    "result": "PASS_INFECTED_UNKNOWN_TIMEOUT_RECEIPTS"
+  },
+  "dataFlow": "local synthetic UAT data -> local backend -> authenticated loopback P3 bridge -> local Microsoft Defender and current-user Windows session -> local JSONL audit",
+  "permissionsRequested": [],
+  "changesMadeToExternalSystems": false,
+  "recovery": "backend rollback tag seowon-inventory-backend:p3-pre-defender and bridge security config removal",
+  "requiredInputs": [],
+  "conditions": [
+    "local pilot only",
+    "no company file leaves the AI PC",
+    "production still requires HTTPS provider and production Secret references"
+  ],
+  "decision": "ALLOW_WITH_CONDITIONS"
+}

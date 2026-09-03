@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "workId": "P6-G1-OCI-ACCOUNT-SEOUL-HOME-REGION-AND-BILLING-GUARD",
+  "checkedAt": "2026-09-01",
+  "status": "HOLD_USER_IDENTITY_AND_PAYMENT_VERIFICATION",
+  "productionGo": false,
+  "databaseLicense": {
+    "product": "PostgreSQL 16",
+    "licenseCostUsd": 0,
+    "paymentMethodRequiredByPostgresql": false
+  },
+  "cloudAccount": {
+    "provider": "Oracle Cloud Infrastructure",
+    "signupPageOpened": true,
+    "nonEssentialCookiesRejected": true,
+    "accountCreated": false,
+    "homeRegion": "ap-seoul-1",
+    "homeRegionSelected": false,
+    "homeRegionChangeableAfterProvisioning": false
+  },
+  "identityVerification": {
+    "providerRequiresAccurateContactAndBillingInformation": true,
+    "providerRequiresPaymentMethodVerification": true,
+    "temporaryAuthorizationHoldPossible": true,
+    "actualServiceChargeAuthorized": false,
+    "userActionsRequired": [
+      "billing country and legal name entry",
+      "actively monitored email verification",
+      "address and phone entry",
+      "captcha or anti-abuse verification when presented",
+      "credit or eligible debit card verification"
+    ]
+  },
+  "billingGuard": {
+    "accountMode": "FREE_ONLY",
+    "payAsYouGoUpgradeAllowed": false,
+    "paidAddonsAllowed": false,
+    "payableResourcesAllowed": false,
+    "alwaysFreeA1Target": "2 OCPU and 12 GB total",
+    "alwaysFreeBlockVolumeTargetGb": 100,
+    "capacityAvailability": "NOT_VERIFIED",
+    "idleReclamationRisk": true
+  },
+  "externalChangesMade": [
+    "opened Oracle Cloud Free Tier signup page",
+    "rejected non-essential cookies"
+  ],
+  "externalChangesNotMade": [
+    "personal information entry",
+    "email verification",
+    "payment method entry",
+    "OCI tenancy creation",
+    "home region provisioning",
+    "VM, network, reserved IP, or runner creation",
+    "paid upgrade or charge"
+  ],
+  "nextReady": "P6-G1-OCI-ACCOUNT-SEOUL-HOME-REGION-AND-BILLING-GUARD"
+}

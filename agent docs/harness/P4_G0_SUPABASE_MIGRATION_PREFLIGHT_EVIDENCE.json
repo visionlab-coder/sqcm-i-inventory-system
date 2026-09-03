@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "workId": "P4-G0-SUPABASE-MIGRATION-AND-PROVIDER-CONTRACT-PREFLIGHT",
+  "evidenceId": "P4-G0-SUPABASE-MIGRATION-PROVIDER-PREFLIGHT-20260829",
+  "checkedAt": "2026-08-29T15:29:43.4110320+09:00",
+  "status": "HOLD_REMOTE_MIGRATION_RLS_AND_SECRET_CONTRACT_GAP",
+  "target": {
+    "organization": "sqcm-i-inventory",
+    "projectId": "iuoljosldyymkburagwj",
+    "region": "ap-southeast-1",
+    "remoteTableCountBefore": 0,
+    "remoteMigrationCountBefore": 0,
+    "remoteWritesPerformed": false
+  },
+  "migrationAudit": {
+    "fileCount": 22,
+    "first": "001_init.sql",
+    "last": "022_cost_roi_savings.sql",
+    "ordering": "PASS_LEXICOGRAPHIC_FORWARD_ONLY",
+    "checksumModel": "SHA256_NORMALIZED_LINE_ENDINGS_WITH_LEGACY_CRLF_COMPATIBILITY",
+    "destructiveStatements": {
+      "dropTableColumnDatabaseSchema": 0,
+      "truncate": 0,
+      "alterType": 0
+    },
+    "privilegedStatements": {
+      "createExtension": 0,
+      "securityDefiner": 0,
+      "functions": 3,
+      "triggers": 2
+    },
+    "supabaseAccessControlStatements": {
+      "enableRls": 0,
+      "policies": 0,
+      "grants": 0,
+      "revokes": 0
+    }
+  },
+  "postgres17IsolationTest": {
+    "image": "postgres:17-alpine",
+    "container": "seowon-inventory-pg17-preflight",
+    "loopbackRandomPort": true,
+    "migrationApply": "PASS_22_OF_22",
+    "migrationVerify": "PASS_22_OF_22",
+    "checksumUnit": "PASS_2_OF_2",
+    "publicBaseTablesAfter": 53,
+    "rlsEnabledTablesAfter": 0,
+    "policiesAfter": 0,
+    "schemaMigrationRows": 22,
+    "temporaryContainerRemoved": true
+  },
+  "providerContract": {
+    "operationsManifestTemplateOnly": true,
+    "secretReferenceCount": 9,
+    "secretReferencesApprovedActual": 0,
+    "requiredReferenceNames": [
+      "OIDC_CLIENT_SECRET",
+      "STORAGE_CREDENTIALS",
+      "MALWARE_SCANNER_TOKEN",
+      "EVENT_PUBLISHER_TOKEN",
+      "ALERTING_TOKEN",
+      "AI_PROVIDER_API_KEY",
+      "SESSION_SECRET",
+      "MFA_ENCRYPTION_KEY",
+      "POSTGRES_PASSWORD"
+    ],
+    "databaseUrlReferenceMissing": true,
+    "supabasePublishableKeyReferenceMissing": true,
+    "supabaseServiceRoleReferenceNotApproved": true
+  },
+  "decision": {
+    "postgres17Compatibility": "PASS",
+    "migrationIntegrity": "PASS",
+    "supabaseRemoteMigration": "BLOCKED",
+    "reason": "Applying the current migrations would create 53 public tables with zero RLS-enabled tables and zero policies; actual provider Secret references are also absent."
+  },
+  "protectedState": {
+    "originalInventoryServicesHealthy": 3,
+    "syntheticStagingServicesHealthy": 3,
+    "protectedListenersPreserved": true
+  },
+  "blockedReasons": [
+    "SUPABASE_PUBLIC_TABLE_RLS_MISSING",
+    "SUPABASE_PUBLIC_TABLE_POLICY_MISSING",
+    "PROVIDER_SECRET_REFERENCES_TEMPLATE_ONLY",
+    "DATABASE_URL_SECRET_REFERENCE_MISSING",
+    "STORAGE_OIDC_EVENT_PITR_NOT_CONFIGURED"
+  ],
+  "nextReady": "P4-G0-SUPABASE-RLS-AND-PRIVILEGE-MIGRATION-DESIGN",
+  "productionGo": false
+}

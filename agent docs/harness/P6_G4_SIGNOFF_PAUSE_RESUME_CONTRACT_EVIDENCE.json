@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-09-01T13:55:30.968Z",
+  "packet": "ACC-P6-15-CUTOVER-SIGNOFF-PAUSE-AND-RESUME-CONTRACT",
+  "phase": "P6",
+  "status": "PASS_SIGNOFF_PAUSE_RESUME_CONTRACT_PREPARATION",
+  "contract": {
+    "preSignoffGateCount": 11,
+    "sameRunRequired": true,
+    "sameReleaseShaRequired": true,
+    "roleResultCountRequired": 3,
+    "identitySignoffCountRequired": 3,
+    "exactResumeConfirmationRequired": true,
+    "rollbackCutoff": "2026-09-11T13:00:00.000Z",
+    "crossRunBlocked": true,
+    "afterCutoffRouteDisableRequired": true
+  },
+  "verification": {
+    "focusedPassed": 5,
+    "focusedFailed": 0,
+    "syntaxPassed": 243,
+    "unitPassed": 355,
+    "unitFailed": 0,
+    "platformSkipped": 1,
+    "harnessVerify": "PASS",
+    "rehearsalStatus": "PASS_SIGNOFF_PAUSE_RESUME_CONTRACT_REHEARSAL"
+  },
+  "actual": {
+    "executorIntegrated": false,
+    "pauseResumeExecuted": false,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "nextPacket": "ACC-P6-16-CUTOVER-SIGNOFF-RESUME-RUNTIME-INTEGRATION"
+}

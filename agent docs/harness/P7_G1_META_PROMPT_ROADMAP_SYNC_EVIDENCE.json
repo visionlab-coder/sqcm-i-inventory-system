@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-09-03T03:55:10.334Z",
+  "status": "PASS_P7_G1_META_PROMPT_AND_ROADMAP_SYNC",
+  "harness": {
+    "progress": "7 / 8",
+    "currentPhase": "P7",
+    "readyWork": "P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF",
+    "productionGo": true,
+    "checkStatus": "PASS"
+  },
+  "promptContract": {
+    "strict": true,
+    "requiredGroupsPassed": 8,
+    "requiredGroupsTotal": 8,
+    "warnings": 0,
+    "placeholders": 0
+  },
+  "documents": [
+    "agent docs/prompts/79_장기_Goal_Harness_메타프롬프트.md",
+    "docs/roadmap.md",
+    "agent docs/reports/290_P7_G1_Meta_Prompt_And_Roadmap_Sync.md"
+  ],
+  "phaseCompleted": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "nextReady": "P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

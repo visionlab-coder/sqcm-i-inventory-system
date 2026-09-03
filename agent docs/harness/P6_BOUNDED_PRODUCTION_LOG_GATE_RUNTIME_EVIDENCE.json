@@ -1,0 +1,66 @@
+{
+  "packet": "ACC-P6-32-BOUNDED-PRODUCTION-LOG-GATE-RUNTIME",
+  "status": "PASS_BOUNDED_PRODUCTION_LOG_GATE_RUNTIME",
+  "failureFirst": {
+    "expectedFailures": 6,
+    "observedFailures": 6
+  },
+  "limits": {
+    "processTimeoutMs": 10000,
+    "defaultMaxBufferBytes": 1048576,
+    "logMaxBufferBytes": 4194304
+  },
+  "focusedTests": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0
+  },
+  "syntaxChecks": {
+    "passed": 332,
+    "failed": 0
+  },
+  "unitTests": {
+    "total": 548,
+    "passed": 547,
+    "failed": 0,
+    "skipped": 1
+  },
+  "readOnlyRun": {
+    "status": "PASS_BASELINE_READY_FOR_POST_CUTOVER_RECHECK",
+    "http5xxCount": 0,
+    "fatalEventCount": 0,
+    "errorLevelCount": 0,
+    "outboxRetryCount": 0,
+    "outboxDeadLetterCount": 0,
+    "requiresPostCutoverRecheck": true,
+    "databaseWrites": 0,
+    "actualPostCutoverLogGate": "NOT_RUN",
+    "productionGo": false
+  },
+  "parserContract": {
+    "exactSingleContainerRequired": true,
+    "jsonObjectLogLinesRequired": true,
+    "twoNonNegativeOutboxCountsRequired": true,
+    "errorsRedacted": true
+  },
+  "qualityCi": {
+    "runId": 33568641849,
+    "testedHeadSha": "55d0d0d29fe43e59a88a30fe884035681a96dc27",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "harnessVerify": {
+    "exitCode": 0,
+    "productionLogGate": "PASS",
+    "status": "PASS"
+  },
+  "repositoryHygiene": "PASS",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

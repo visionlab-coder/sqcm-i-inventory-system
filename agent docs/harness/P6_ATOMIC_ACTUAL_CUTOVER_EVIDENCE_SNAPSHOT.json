@@ -1,0 +1,42 @@
+{
+  "packet": "ACC-P6-38-ATOMIC-ACTUAL-CUTOVER-EVIDENCE-SNAPSHOT",
+  "status": "PASS_ATOMIC_ACTUAL_CUTOVER_EVIDENCE_SNAPSHOT",
+  "failureFirst": { "expectedFailures": 4, "observedFailures": 4 },
+  "focusedTests": { "total": 20, "passed": 19, "failed": 0, "skipped": 1 },
+  "syntaxChecks": { "passed": 363, "failed": 0 },
+  "unitTests": { "total": 668, "passed": 661, "failed": 0, "skipped": 7 },
+  "snapshotContract": {
+    "maximumBytes": 4194304,
+    "repositoryIdentityRechecked": true,
+    "repositoryRealpathRechecked": true,
+    "candidateIdentityRechecked": true,
+    "candidateRealpathRechecked": true,
+    "candidateSizeRechecked": true,
+    "sameSizeReplacementRejected": true,
+    "sizeMutationRejected": true,
+    "fatalUtf8Required": true,
+    "rawPathAndContentRedactedFromErrors": true
+  },
+  "readOnlyVerification": {
+    "finalizerStatus": "READY_WAIT_ACTUAL_CUTOVER_EVIDENCE",
+    "phasePromotionStatus": "READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_FOR_PHASE_PROMOTION",
+    "actualEvidencePresent": false,
+    "changesMade": false,
+    "productionGo": false
+  },
+  "implementationCommit": "11b3a3b539f5171f776dd0ece05cdd1dcb157aef",
+  "qualityCi": {
+    "runId": 33588455559,
+    "testedHeadSha": "11b3a3b539f5171f776dd0ece05cdd1dcb157aef",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "harnessVerify": { "exitCode": 0, "status": "PASS" },
+  "actualCutoverPerformed": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

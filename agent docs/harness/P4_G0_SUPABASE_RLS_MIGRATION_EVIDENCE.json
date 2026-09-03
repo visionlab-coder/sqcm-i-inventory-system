@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "workId": "P4-G0-SUPABASE-RLS-AND-PRIVILEGE-MIGRATION-DESIGN",
+  "evidenceId": "P4-G0-SUPABASE-RLS-MIGRATION-DESIGN-20260829",
+  "checkedAt": "2026-08-29T15:40:48.5450682+09:00",
+  "status": "PASS_LOCAL_DESIGN_HOLD_REMOTE_APPLY_APPROVAL",
+  "target": {
+    "projectId": "iuoljosldyymkburagwj",
+    "projectStatus": "ACTIVE_HEALTHY",
+    "postgresVersion": "17.6.1.166",
+    "remotePublicTables": 0,
+    "remoteMigrations": 0,
+    "remoteWritesPerformed": false
+  },
+  "migration": {
+    "file": "db/migrations/023_supabase_data_api_lockdown.sql",
+    "forwardOnly": true,
+    "forceRowLevelSecurity": false,
+    "enableRlsAllPublicBaseTables": true,
+    "conditionalRoles": ["anon", "authenticated", "service_role"],
+    "revokedSurfaces": ["schema_usage", "table_privileges", "sequence_privileges", "function_execute", "future_default_privileges", "public_rpc_execute", "public_schema_create"]
+  },
+  "postgres17Isolation": {
+    "image": "postgres:17-alpine",
+    "migrationApply": "PASS_23_OF_23",
+    "migrationVerify": "PASS_23_OF_23",
+    "publicBaseTables": 53,
+    "rlsEnabledTables": 53,
+    "policies": 0,
+    "anonSchemaUsage": false,
+    "anonSelectableTables": 0,
+    "authenticatedSchemaUsage": false,
+    "authenticatedSelectableTables": 0,
+    "serviceRoleSchemaUsage": false,
+    "serviceRoleSelectableTables": 0,
+    "ownerVisibleTables": 53,
+    "ownerBusinessRoundTrip": "PASS_1_OF_1",
+    "temporaryContainersRemoved": true
+  },
+  "verification": {
+    "focusedUnit": "PASS_5_OF_5",
+    "allUnit": "PASS_125_OF_125",
+    "javascriptSyntax": "PASS_108",
+    "integrationOwner": "PASS_1_OF_1",
+    "promptContractStrict": "PASS_8_OF_8",
+    "harnessCheck": "PASS_ZERO_ERRORS",
+    "secretPatternScan": "PASS_ZERO_MATCHES",
+    "gitDiffCheck": "PASS_WARNINGS_ONLY_LINE_ENDINGS"
+  },
+  "protectedState": {
+    "inventoryLocalServicesHealthy": 3,
+    "syntheticStagingServicesHealthy": 3,
+    "protectedListeners": [
+      {"port": 1234, "pid": 6632, "preserved": true},
+      {"port": 11434, "pid": 8588, "preserved": true},
+      {"port": 18765, "pid": 22716, "preserved": true},
+      {"port": 18766, "pid": 65400, "preserved": true},
+      {"port": 18767, "pid": 28532, "preserved": true}
+    ]
+  },
+  "decision": {
+    "localDesign": "PASS",
+    "remoteApply": "EXPLICIT_APPROVAL_REQUIRED",
+    "approvalTarget": "Supabase project iuoljosldyymkburagwj",
+    "approvalAction": "Apply migrations 001 through 023 to the currently empty dedicated project, then run security advisors and schema assertions"
+  },
+  "blockedReasons": ["REMOTE_MIGRATION_EXPLICIT_APPROVAL_REQUIRED", "DATABASE_SECRET_REFERENCE_NOT_CONFIGURED"],
+  "nextReady": "P4-G0-SUPABASE-RLS-MIGRATION-APPLY-APPROVAL",
+  "productionGo": false
+}

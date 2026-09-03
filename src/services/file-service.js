@@ -34,6 +34,11 @@ function storageKey(organizationId, extension, now = new Date()) {
   return `${organizationId}/${now.getUTCFullYear()}/${String(now.getUTCMonth()+1).padStart(2,'0')}/${crypto.randomBytes(20).toString('hex')}.${extension}`;
 }
 
+function requireCleanScan(scan) {
+  if (scan?.status !== 'clean') throw new DomainError('악성코드 검사에서 안전하지 않은 파일로 판정되었습니다.',422);
+  return scan;
+}
+
 async function uploadAssetFile({ pool, fileStore, malwareScanner, maxBytes, user, assetId, input, trace }) {
   requirePermission(user, 'asset.update');
   const id = positiveInteger(assetId, '자산번호');
@@ -43,7 +48,7 @@ async function uploadAssetFile({ pool, fileStore, malwareScanner, maxBytes, user
   await requireDepartmentAccess(pool,user,asset.department_id);
   const normalized = normalizeUpload(input,maxBytes);
   const scan = await malwareScanner.scan(input.content,{ contentType:normalized.contentType,originalName:normalized.originalName });
-  if (scan?.status !== 'clean') throw new DomainError('악성코드 검사에서 안전하지 않은 파일로 판정되었습니다.',422);
+  requireCleanScan(scan);
   const key = storageKey(asset.organization_id,normalized.media.ext);
   const checksum = crypto.createHash('sha256').update(input.content).digest('hex');
   await fileStore.write(key,input.content);
@@ -77,4 +82,4 @@ async function deactivateAssetFile({ pool, user, assetId, fileId, trace }) {
   return repository.deactivate(pool,user.id,file,trace);
 }
 
-module.exports = { TYPES, MEDIA, normalizeUpload, storageKey, uploadAssetFile, getAssetFile, deactivateAssetFile };
+module.exports = { TYPES, MEDIA, normalizeUpload, storageKey, requireCleanScan, uploadAssetFile, getAssetFile, deactivateAssetFile };

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-09-03T05:01:42.062Z",
+  "status": "PASS_P7_G1_SLO_DUPLICATE_PROBE_SUPPRESSED",
+  "environment": "production",
+  "targetUrl": "https://inventory.safe-link.co.kr",
+  "sampleCount": 1,
+  "collectorStatus": "PASS_SLO_SAMPLE_ALREADY_RECORDED_FOR_UTC_DAY",
+  "externalHttpReadPerformed": false,
+  "localEvidenceWritePerformed": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "focusedTests": {
+    "passed": 6,
+    "failed": 0
+  },
+  "phaseCompleted": false,
+  "nextReady": "P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

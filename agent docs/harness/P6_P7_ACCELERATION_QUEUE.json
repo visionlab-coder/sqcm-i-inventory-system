@@ -1,0 +1,1264 @@
+{
+  "schemaVersion": 1,
+  "goal": "P6 외부 Gate를 약화하지 않고 남은 실제 실행 자동화와 P7 인수 준비를 선행해 8/8 완료 시간을 단축한다.",
+  "currentPhase": "P7",
+  "readyPacket": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
+  "rules": {
+    "readyCount": 1,
+    "waitingIsFailure": false,
+    "alternateAfterFailureCount": 2,
+    "stopAfterSameFailureCount": 3,
+    "p7ActivationBeforeP6Complete": false,
+    "productionGo": true
+  },
+  "packets": [
+    {
+      "id": "ACC-P6-01-PRODUCTION-ROLE-CORE-SMOKE-RUNNER",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "ADMIN·MANAGER·USER의 MFA 로그인과 역할·401/403 역조건을 Secret 출력 없이 실제 Production HTTPS 또는 승인된 loopback target에서 실행하는 fail-closed runner와 단위 회귀가 존재한다.",
+      "evidence": "npm.cmd run production:role-core-smoke => READY_WAIT_ROLE_CREDENTIAL_REFERENCES; focused 4/4 PASS; repository 184/184 PASS"
+    },
+    {
+      "id": "ACC-P6-02-AUTHENTICATED-CSRF-IDEMPOTENCY-RUNNER",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "승인된 시험계정으로 정상 CSRF 쓰기와 동일 idempotency key replay를 검증하고 데이터 정리·감사 증거를 남기는 runner가 존재한다.",
+      "evidence": "default loopback and exact --public target modes separated; outside-window public write fails closed; focused 9/9 PASS; actual write NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-03-CHANGE-WINDOW-CUTOVER-ORCHESTRATOR",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "20:00 시간 Gate부터 22:00 rollback cutoff까지 12개 Gate를 순서대로 실행하고 하나라도 실패하면 route 차단 절차로 전환하는 orchestrator dry-run이 PASS한다.",
+      "evidence": "npm.cmd run production:cutover-orchestrator => PASS_CUTOVER_ORCHESTRATOR_DRY_RUN; rollback action is exact production:route-disable executor; route-disable focused 6/6 PASS and dry-run READY_WAIT_ROUTE_DISABLE_INPUTS; external mutation zero"
+    },
+    {
+      "id": "ACC-P6-04-CUTOVER-EVIDENCE-FINALIZER",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "실제 증거만 12개 Gate와 역할 결과·3개 서명으로 조립하며 staging·template 증거 승격을 거부한다.",
+      "evidence": "npm.cmd run production:cutover-finalizer => READY_WAIT_ACTUAL_CUTOVER_EVIDENCE; focused 5/5 PASS; exact 12 unique gates·three role results·three approvals·immutable SHA·exact URL enforced; template·staging·loopback·baseline and incomplete evidence rejected"
+    },
+    {
+      "id": "ACC-P6-05-PRODUCTION-INGRESS-PUBLICATION",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "승인 변경창에서만 exact Production tunnel·runtime ingress config·proxied CNAME을 만들고, rollback token과 route-disable 확인 없이는 게시하지 않는 fail-closed 실행기와 회귀가 존재한다.",
+      "evidence": "npm.cmd run production:ingress-publication => READY_WAIT_INGRESS_PUBLICATION_INPUTS; exact target and preservation contract focused 7/7 PASS; cutover Gate 5 publication then public probe; actual tunnel/config/DNS/process mutation zero"
+    },
+    {
+      "id": "ACC-P6-06-PRODUCTION-UAT-ACTOR-PROVISIONING",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "승인 파일과 역할별 credential reference가 일치할 때만 변경창에서 세 Production UAT actor를 한 transaction으로 생성·갱신하고 MFA·scope·session revoke·audit를 검증한다.",
+      "evidence": "npm.cmd run production:uat-actor-provision => READY_WAIT_UAT_ACTOR_PROVISION_INPUTS; focused 7/7 PASS; current image worker modules and required schema 28/28 compatible; actual account/MFA/DB mutation zero"
+    },
+    {
+      "id": "ACC-P6-07-HARNESS-BRANCH-PROVENANCE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "MASTER_ROADMAP branch와 실제 local 또는 GitHub Actions branch가 정확히 일치하며 detached·missing·mismatch 상태를 Harness가 fail-closed 한다.",
+      "evidence": "stale codex/fix-sidebar-accessibility corrected to codex/p6-ai-pc-postgres-production; focused 4/4 PASS; npm.cmd run harness:check PASS"
+    },
+    {
+      "id": "ACC-P6-08-12-GATE-FAILURE-MATRIX-REHEARSAL",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "12개 cutover Gate 각각을 단일 실패 지점으로 주입해 해당 Gate까지만 실행되고 이후 Gate가 중단되며 exact public route-disable 확인 전에는 격리 완료나 Production GO로 승격되지 않음을 합성 매트릭스로 증명한다.",
+      "evidence": "npm.cmd run production:cutover-failure-matrix => PASS_CUTOVER_12_GATE_FAILURE_MATRIX_REHEARSAL; focused 5/5 PASS; 12/12 failures contained; 12/12 route-disable verified; malformed result and unverified disable fail-closed; actual cutover/route mutation zero"
+    },
+    {
+      "id": "ACC-P6-09-CHANGE-WINDOW-EXECUTION-ENGINE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "승인 변경창과 외부 실행 확인을 선검사하고 12개 Gate를 정확한 순서로 실행하며, cutoff 또는 첫 실패 뒤에는 이후 Gate를 중단하고 exact public route-disable 증거 전에는 격리 완료나 Production GO로 승격하지 않는다.",
+      "evidence": "npm.cmd run production:cutover-execution-rehearsal => PASS_CUTOVER_EXECUTION_ENGINE_REHEARSAL; focused 6/6 PASS; repository 327/327 PASS; outside-window/unconfirmed zero execution; first failure/cutoff stop and route-disable fail-closed; actual external mutation zero"
+    },
+    {
+      "id": "ACC-P6-10-CUTOVER-GATE-HANDLER-ADAPTERS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "12개 Gate의 실제 runner·public/execute 인자·허용 PASS 상태를 구조화하고 exit 0의 READY_WAIT 상태나 evidence reference 누락을 Gate PASS로 승격하지 않는다.",
+      "evidence": "npm.cmd run production:cutover-adapter-rehearsal => PASS_CUTOVER_GATE_ADAPTER_REHEARSAL; 12 Gates/14 steps; focused 6/6 PASS; repository 333/333 PASS; WAIT/empty evidence/plan mutation fail-closed; actual external mutation zero"
+    },
+    {
+      "id": "ACC-P6-11-CUTOVER-PROCESS-RUNNER-AND-RUNTIME-RECEIPTS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "구조화된 14개 step을 Node child process로 실행하고 상태를 정규화하며, 저장소 밖 물리 디렉터리에 stdout·stderr·Secret을 제외한 step·Gate receipt를 원자적으로 1회 기록한다.",
+      "evidence": "npm.cmd run production:cutover-process-runner-rehearsal => PASS_CUTOVER_PROCESS_RUNNER_REHEARSAL; 12 Gates/14 steps/26 receipts; focused 2 PASS 1 platform skip; repository 335 PASS 1 platform skip; Harness PASS; actual process/external mutation zero"
+    },
+    {
+      "id": "ACC-P6-12-CUTOVER-EXECUTION-ENTRYPOINT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "실제 실행 진입점이 변경창·exact 확인 문자열·물리 receipt root를 process handler 구성 전에 검증하고, dry-run·변경창 밖·미확인·root 실패에서는 child process와 파일 변경이 모두 0건이다.",
+      "evidence": "npm.cmd run production:cutover-execute => PASS_CUTOVER_EXECUTION_ENTRYPOINT_DRY_RUN; focused 7 PASS 1 Windows platform skip; repository 340 PASS 1 platform skip; Harness PASS; synthetic confirmed path 12 Gates/14 steps/26 receipts; actual cutover/runtime receipt/external mutation zero"
+    },
+    {
+      "id": "ACC-P6-13-CUTOVER-RUN-PROVENANCE-AND-ACTUAL-EVIDENCE-ASSEMBLER",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "동일 runId의 12 Gate·14 step receipt와 SHA-256, 실제 세 역할 결과·업무/보안/운영 identity 서명을 검증해 finalizer 및 P7 호환 actual P6 증거를 저장소 밖에 원자적으로 1회 조립하며 template·변조·교차 run을 거부한다.",
+      "evidence": "npm.cmd run production:cutover-actual-evidence => READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_INPUTS; focused 5/5 PASS; repository 345 PASS 1 Windows platform skip; run identity rehearsal 1/1; actual assembly/output/external mutation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-14-AUTOMATIC-PRODUCTION-ROLE-RESULT-EVIDENCE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "role-core-smoke step receipt가 비밀값 없이 허용된 MFA·RBAC 상태만 요약하고, 동일 runId·release SHA·core_smoke Gate SHA를 검증해 ADMIN·MANAGER·USER actual 결과 3건을 저장소 밖에 원자적으로 함께 생성하며 loopback·불완전 MFA/RBAC·교차 run·덮어쓰기를 거부한다.",
+      "evidence": "npm.cmd run production:role-result-evidence => READY_WAIT_PRODUCTION_ROLE_RESULT_INPUTS; focused 5/5 PASS; repository 350 PASS 1 Windows platform skip; Harness verify PASS; actual role result creation/external mutation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-15-CUTOVER-SIGNOFF-PAUSE-AND-RESUME-CONTRACT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Gate 1~11의 동일 run·release SHA·변경창 PASS receipt만 signoff pause checkpoint로 인정하고 역할 결과 3건·identity 서명 3건·exact 확인 뒤 Gate 12 재개만 허용하며 교차 run/SHA와 rollback cutoff 이후 재개는 route-disable 필수로 차단한다.",
+      "evidence": "npm.cmd run production:cutover-signoff-resume-rehearsal => PASS_SIGNOFF_PAUSE_RESUME_CONTRACT_REHEARSAL; focused 5/5 PASS; repository 355 PASS 1 Windows platform skip; Harness verify PASS; actual pause/resume/route mutation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-16-CUTOVER-SIGNOFF-RESUME-RUNTIME-INTEGRATION",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "실제 cutover 실행기가 Gate 1~11 뒤 저장소 밖 물리 checkpoint를 원자 기록하고 동일 run의 Gate/step receipt SHA와 역할 결과·서명 6건을 검증한 뒤 Gate 12만 이어 실행하며 변조·cutoff·Gate 실패에서는 exact route-disable adapter와 evidence를 요구한다.",
+      "evidence": "npm.cmd run production:cutover-signoff-resume-runtime-rehearsal => PASS_SIGNOFF_RESUME_RUNTIME_REHEARSAL; same run 11+1 Gates, 14 steps, 26 receipts, 1 physical checkpoint; focused 9/9 PASS; repository 364 PASS 1 Windows platform skip; actual Production mutation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-17-ACTUAL-EVIDENCE-FINALIZATION-AND-ROLLBACK-CONTAINMENT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Gate 12 뒤 동일 run의 26 receipt·세 역할 결과·세 identity 서명을 actual assembler와 finalizer에 연결해 저장소 밖에 원자 기록하며 조립·검증·쓰기 실패 시 exact public route-disable evidence 없이는 격리 완료나 Production GO로 승격하지 않는다.",
+      "evidence": "resume executor same-run finalization and fail-closed route-disable integrated; focused 10/10 PASS; repository 366 PASS 1 Windows platform skip; dry-run zero mutation; actual Production finalization/route mutation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-18-ATOMIC-SIGNOFF-FINALIZATION-ENTRYPOINT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "실제 signoff resume CLI는 Gate 12와 actual evidence finalizer를 항상 원자 흐름으로 실행하고 두 exact 확인 문자열·저장소 밖 출력 경로를 Gate 12 전에 요구하며, 누락 시 process 0건이고 사후 실패는 exact route-disable evidence를 요구한다.",
+      "evidence": "failure-first contract reproduced; focused 11/11 PASS; repository 367 PASS 1 Windows platform skip; resume execute defaults to finalization; dual confirmation and external output preflight before Gate 12; dry-run zero mutation; actual Production execution NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-19-ACTUAL-CUTOVER-PHASE-PROMOTION",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "저장소 밖 actual P6 evidence·SHA·exact 확인·깨끗한 worktree가 모두 검증된 경우에만 P6 완료·P7 진행·7/8·Production GO와 사람용 상태 블록을 한 실행에서 갱신하며 P7 G0 Harness verifier가 즉시 존재한다.",
+      "evidence": "production:phase-promotion dry-run READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_FOR_PHASE_PROMOTION; focused 5/5 PASS; real document promotion contract PASS filesWritten 0; repository 372 PASS 1 Windows platform skip; actual promotion NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-01-OPERATIONS-HANDOVER-PREFLIGHT",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "SLO·경보·백업·복원·인증서·온콜·정기점검·개선 큐의 입력 계약과 fail-closed 검사기가 준비되며 P7 상태는 미착수로 유지된다.",
+      "evidence": "npm.cmd run operations:handover-preflight => READY_WAIT_P6_COMPLETION_AND_HANDOVER_INPUTS; contract errors 0; focused 4/4 PASS; repository 200/200 PASS; P7 not-started"
+    },
+    {
+      "id": "ACC-P6-20-CHANGE-WINDOW-INPUT-READINESS-ENVELOPE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "변경창 전 Cloudflare rollback token, UAT 승인·세 역할 credential의 저장소 밖 물리 참조 5건과 actual evidence 출력 parent를 단일 판정하고, 모든 mutating 확인값은 실행 시점 전까지 미설정이어야 한다.",
+      "evidence": "production:change-window-input-readiness => READY_WAIT_CHANGE_WINDOW_INPUT_REFERENCES; reference 0/5; confirmations armed 0; failures 0; focused 5/5 PASS; external mutation zero"
+    },
+    {
+      "id": "ACC-P6-21-BOUNDED-CUTOVER-PROVIDER-OBSERVATION",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production cutover preflight의 Git·Docker·PowerShell·Cloudflare 외부 명령을 10초 이내로 제한하고, Cloudflare tunnel timeout·실패·malformed JSON을 오류 원문 없이 fail-closed 상태로 판정해 상시 Harness가 공급자 응답 대기에 무기한 정지하지 않는다.",
+      "evidence": "failure-first 3/3 reproduced; focused 7/7 PASS; production:cutover-preflight completed with READY_WAIT_CHANGE_WINDOW, localBlockers 0, Cloudflare tunnel observation PASS, existing tunnels preserved; syntax 311/311; repository unit 492 PASS 1 Windows platform skip; repository hygiene PASS; external mutation zero"
+    },
+    {
+      "id": "ACC-P6-22-BOUNDED-INGRESS-PUBLICATION-ADAPTERS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "변경창의 exact Production ingress publication에서 Cloudflare CLI·PowerShell 관측은 10초·1MiB, Cloudflare API는 10초, DNS 관측은 5초 상한을 사용한다. timeout·실패·비정상 응답은 오류·Secret 원문 없이 fail-closed하며 초기 DNS 관측 실패 시 tunnel·DNS 변경 전에 중단한다.",
+      "evidence": "failure-first 4/4 reproduced; focused 11/11 PASS; production:ingress-publication dry-run READY_WAIT_INGRESS_PUBLICATION_INPUTS with external mutation zero; syntax 313/313; repository unit 496 PASS 1 Windows platform skip; repository hygiene PASS; actual Production ingress publication NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-23-BOUNDED-ROUTE-DISABLE-PROVIDER-ADAPTERS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "rollback 격리의 exact Production route-disable에서 Cloudflare tunnel CLI는 10초·1MiB, API는 10초, DNS 관측은 5초 상한을 사용한다. timeout·실패·비정상 응답은 오류·Secret 원문 없이 fail-closed하고 초기 tunnel 관측 실패는 token read·DNS API 전에 중단한다.",
+      "evidence": "failure-first 4/4 reproduced; focused 10/10 PASS; production:route-disable dry-run READY_WAIT_ROUTE_DISABLE_INPUTS with tunnel observation PASS and external mutation zero; syntax 315/315; repository unit 500 PASS 1 Windows platform skip; repository hygiene PASS; actual Production route deletion NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-24-BOUNDED-PUBLIC-DNS-HTTPS-PROBE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Gate 5 public probe의 A·CNAME 관측은 5초, exact HTTPS 5경로는 각각 10초 상한으로 동시에 실행한다. DNS 관측 timeout·실패는 HTTP 호출 0건으로 fail-closed하고 endpoint 오류·응답 원문을 기록하지 않는다.",
+      "evidence": "failure-first 4/4 reproduced; focused 8/8 PASS; production:public-probe dry-run READY_WAIT_DNS_TLS_PUBLICATION with bounded DNS observation PASS and endpoint requests NOT_RUN; syntax 317/317; repository unit 504 PASS 1 Windows platform skip; repository hygiene PASS; actual public HTTPS probe NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-25-BOUNDED-ROLE-CORE-SMOKE-HTTP",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "ADMIN·MANAGER·USER 역할 core smoke의 모든 HTTP 요청을 10초로 제한하고 timeout·network·JSON 오류를 credential·응답 원문 없이 fail-closed한다. MFA 뒤 중간 실패는 활성 시험 세션의 bounded logout cleanup을 시도한다.",
+      "evidence": "failure-first 4/4 reproduced; focused 15/15 PASS; production:role-core-smoke dry-run READY_WAIT_ROLE_CREDENTIAL_REFERENCES with actual login NOT_RUN; syntax 319/319; repository unit 509 PASS 1 Windows platform skip; repository hygiene PASS; actual Production role smoke NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-26-BOUNDED-AUTHENTICATED-IDEMPOTENCY-RUNTIME",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Gate 7 authenticated CSRF/idempotency의 HTTP 요청과 Docker 조회·SQL을 각각 10초로 제한하고 process 출력은 1MiB로 제한한다. timeout·network·process·JSON 오류는 credential·provider·stdout/stderr 원문 없이 fail-closed하며 중간 실패에도 합성 자산·idempotency DB 정리와 logout을 독립적으로 모두 시도한다.",
+      "evidence": "failure-first 5/5 reproduced; focused 16/16 PASS; production:authenticated-idempotency dry-run READY_WAIT_ADMIN_CREDENTIAL_AND_WRITE_CONFIRMATION with HTTP/process/DB mutation zero; syntax 321/321; repository unit 516 PASS 1 Windows platform skip; repository hygiene PASS; actual authenticated write NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-27-BOUNDED-UAT-ACTOR-PROVISIONING-RUNTIME",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production UAT actor provisioning의 Docker 관측·copy·cleanup은 10초, transaction worker는 60초, 모든 process 출력은 1MiB로 제한한다. timeout·process·worker JSON·cleanup 오류는 credential·stdout/stderr 원문 없이 fail-closed하고 임시 worker 삭제 완료 전에는 provisioning 성공을 출력하지 않는다.",
+      "evidence": "failure-first 5/5 reproduced; focused 12/12 PASS; production:uat-actor-provision dry-run READY_WAIT_UAT_ACTOR_PROVISION_INPUTS with process/account/DB mutation zero; syntax 323/323; repository unit 521 PASS 1 Windows platform skip; repository hygiene PASS; actual Production actor provisioning NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-28-BOUNDED-ROLE-PREFLIGHT-RUNTIME",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production role preflight의 Docker container·role/MFA SQL 조회를 각각 10초·1MiB로 제한한다. timeout·process·container·SQL 파싱 오류는 stdout/stderr 원문 없이 fail-closed하고 malformed·duplicate·unknown role 행을 준비 미완료 0명으로 오인하지 않는다.",
+      "evidence": "failure-first 5/5 reproduced; focused 9/9 PASS; production:role-preflight READY_WAIT_ROLE_USERS_MFA_AND_CREDENTIAL_REFERENCES with ADMIN/MANAGER/USER active and MFA zero, credential references 0/3, read-only Docker queries 2 and DB writes zero; syntax 325/325; repository unit 526 PASS 1 Windows platform skip; repository hygiene PASS; actual role core smoke NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-29-BOUNDED-PROVIDER-PREFLIGHT-RUNTIME",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production provider preflight의 backend container 조회는 10초, 5종 provider probe는 최대 150초, 모든 process 출력은 1MiB로 제한한다. timeout·process·container·observation JSON 오류는 stdout/stderr·provider 오류 원문 없이 fail-closed한다.",
+      "evidence": "failure-first 5/5 reproduced; focused 8/8 PASS; production:provider-preflight read-only PASS for PostgreSQL storage, Defender bridge, AI health/readiness and loopback event publisher; syntax 327/327; repository unit 531 PASS 1 Windows platform skip; repository hygiene PASS; account/DB/provider mutation zero"
+    },
+    {
+      "id": "ACC-P6-30-BOUNDED-CSRF-IDEMPOTENCY-BASELINE-RUNTIME",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production negative CSRF와 idempotency schema baseline의 HTTP·Docker·SQL을 각각 10초, process 출력을 1MiB로 제한한다. timeout·network·process·container·DB 파싱 오류는 응답·stdout/stderr 원문 없이 fail-closed하고 count/schema는 정확한 비음수 정수 계약만 허용한다.",
+      "evidence": "failure-first 6/6 reproduced; focused 6/6 PASS; production:csrf-idempotency-baseline proves 403 CSRF_INVALID, session count unchanged, schema 10/10, unique index 1, stuck/invalid zero; syntax 329/329; repository unit 537 PASS 1 Windows platform skip; repository hygiene PASS; actual authenticated replay NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-31-INGRESS-DNS-DOH-FALLBACK",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "native A·CNAME DNS 관측이 timeout·실패할 때만 Cloudflare 공개 DNS-over-HTTPS A·CNAME authoritative 응답으로 대체 관측한다. published와 NXDOMAIN 충돌, 비정상 JSON, HTTP 실패 또는 두 경로 실패는 unpublished로 추측하지 않고 fail-closed한다.",
+      "evidence": "repeated harness ingress DNS observation failure reproduced; failure-first 4/4; focused native/DoH 7/7 PASS; production:ingress-publication read-only READY_WAIT with mutation zero; syntax 330/330; repository unit 541 PASS 1 Windows platform skip; provider response raw redacted"
+    },
+    {
+      "id": "ACC-P6-32-BOUNDED-PRODUCTION-LOG-GATE-RUNTIME",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production log Gate의 Docker container·backend log·outbox SQL 조회를 10초로 제한하고 process 출력은 일반 1MiB·로그 4MiB로 제한한다. timeout·process·container·malformed JSON·outbox count 오류는 stdout/stderr·provider 원문 없이 fail-closed하며 outbox 결과는 정확히 두 개 비음수 정수만 허용한다.",
+      "evidence": "failure-first 6/6 reproduced; focused existing/runtime 9/9 PASS; production:log-gate read-only baseline proves 5xx/fatal/error/outbox retry/dead-letter zero and requires post-cutover recheck; syntax 332/332; repository unit 547 PASS 1 Windows platform skip; repository hygiene PASS; actual post-cutover log gate NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-33-BOUNDED-PRODUCTION-NONFUNCTIONAL-RUNTIME",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production nonfunctional baseline child를 120초·1MiB로 제한하고 unrelated Secret 환경·raw stderr를 전달하지 않는다. child exit 0뿐 아니라 exact target·60 requests·zero error·p95 1000ms 이하·security headers·anonymous 401·cross-site 403을 엄격 파싱하며 모든 HTTP는 10초 상한을 사용한다.",
+      "evidence": "failure-first 6/6 reproduced; focused runtime/target 10/10 PASS; production:nonfunctional-baseline loopback 60 requests zero error p95 13ms and security contract PASS; syntax 334/334; repository unit 553 PASS 1 Windows platform skip; repository hygiene PASS; actual public nonfunctional gate NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-34-BOUNDED-PRODUCTION-OPERATIONAL-HEALTH-RUNTIME",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production operational health의 Docker container·SQL·backend log 조회를 10초로 제한하고 process 출력은 일반 1MiB·로그 4MiB로 제한한다. container·3개 counter·JSON log를 엄격 파싱하고 backup은 physical path·actual bytes·streaming SHA-256으로 검증하며 오류 원문 없이 fail-closed한다.",
+      "evidence": "failure-first 7/7 reproduced; focused runtime/target 11/11 PASS; production:operational-health-baseline proves loopback health/readiness 200, counters and recent 5xx zero, physical 238533-byte backup checksum and restore PASS; syntax 336/336; repository unit 560 PASS 1 Windows platform skip; repository hygiene PASS; actual post-cutover operational health NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-03-ACTUAL-HANDOVER-EVIDENCE-BUNDLE",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 완료는 P6 cutover, 운영 8영역과 운영 서명의 실제 JSON 파일 10건을 path·SHA-256·도메인 측정값으로 검증하고 문자열-only·누락·변조·staging 증거를 거부한다.",
+      "evidence": "operations:handover-finalizer requires schemaVersion 2 and 10 verified documents; focused 5/5 PASS; repository 250/250 PASS; actual activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-04-HANDOVER-MANIFEST-ASSEMBLER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 완료와 P7 활성화 뒤 실제 10문서가 준비된 경우에만 SHA-256 manifest를 저장소 밖에 원자적으로 1회 조립하며 기존 파일을 덮어쓰지 않는다.",
+      "evidence": "npm.cmd run operations:handover-assembler => READY_WAIT_P6_COMPLETION_AND_HANDOVER_FILES; 10 inputs plus output required; focused 6/6 PASS; repository 256/256 PASS; manifest creation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-05-PRODUCTION-SLO-EVIDENCE-COMPILER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 완료·P7 활성화 뒤 exact Production URL의 30일 측정 원본에서 가용성·p95를 직접 계산하고, 임계치·기간·날짜 커버리지·SHA provenance를 통과한 SLO actual 문서만 저장소 밖에 원자적으로 1회 작성한다.",
+      "evidence": "npm.cmd run operations:slo-evidence => READY_WAIT_P6_COMPLETION_AND_SLO_INPUT; contract template cannot authorize actual evidence; focused 7/7 PASS; default dry-run; actual 30-day measurement and evidence creation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-06-PRODUCTION-ALERTING-EVIDENCE-COMPILER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 완료·P7 활성화 뒤 Production 경보 공급자 export의 availability·latency_p95·http_5xx·backup_failure·certificate_expiry 5종 receipt를 공급자·채널·수신자·책임자·시각·SHA provenance와 함께 검증하고 actual alerting 문서를 저장소 밖에 원자적으로 1회 작성한다.",
+      "evidence": "npm.cmd run operations:alerting-evidence => READY_WAIT_P6_COMPLETION_AND_ALERT_RECEIPTS; focused 7/7 PASS; template·staging·loopback·missing/reordered/unreceived/duplicate receipt rejected; actual receipts and evidence creation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-07-PRODUCTION-BACKUP-RESTORE-EVIDENCE-COMPILER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 완료·P7 활성화 뒤 24시간 RPO 안의 checksum 검증된 off-site Production backup과 4시간 RTO 안의 격리 restore drill을 동일 원본·backup ID·운영 책임자·SHA provenance로 검증하고 backup·restore actual 문서 2건을 저장소 밖에 원자적으로 작성한다.",
+      "evidence": "npm.cmd run operations:backup-restore-evidence => READY_WAIT_P6_COMPLETION_AND_BACKUP_RESTORE_DRILL; focused 7/7 PASS; 30-day retention·off-site checksum·matching count digest·migration match·isolated target enforced; actual drill and evidence creation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-08-PRODUCTION-CERTIFICATE-EVIDENCE-COMPILER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 완료·P7 활성화 뒤 exact Production HTTPS의 최근 TLS 관측에서 hostname·chain·protocol·fingerprint·유효기간·health/readiness와 갱신 책임자를 검증하고 30일 이상 잔여 인증서만 actual certificate 문서로 저장소 밖에 원자적으로 작성한다.",
+      "evidence": "npm.cmd run operations:certificate-evidence => READY_WAIT_P6_COMPLETION_AND_CERTIFICATE_OBSERVATION; focused 7/7 PASS; exact hostname·verified chain·TLSv1.2/1.3·fresh observation·30-day renewal lead·health/readiness enforced; actual observation and evidence creation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-09-PRODUCTION-ONCALL-EVIDENCE-COMPILER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 완료·P7 활성화 뒤 30일 이상 연속 당번표의 서로 다른 primary·escalation 책임자 수락과 최근 7일 escalation drill의 5분·15분 acknowledgement receipt를 검증하고 actual onCall 문서를 저장소 밖에 원자적으로 작성한다.",
+      "evidence": "npm.cmd run operations:oncall-evidence => READY_WAIT_P6_COMPLETION_AND_ONCALL_HANDOVER; focused 7/7 PASS; Asia/Seoul·30-day coverage·distinct owners·5/15-minute receipts·7-day freshness enforced; actual assignment/message/drill/evidence creation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-10-PRODUCTION-MAINTENANCE-EVIDENCE-COMPILER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 완료·P7 활성화 뒤 docs/maintenance.md의 일일 Production 점검 6종, 불변 release SHA, 운영자, 고유 receipt, 실행·다음 일정과 차단 finding 0건을 검증하고 actual maintenance 문서를 저장소 밖에 원자적으로 작성한다.",
+      "evidence": "npm.cmd run operations:maintenance-evidence => READY_WAIT_P6_COMPLETION_AND_MAINTENANCE_EXECUTION; focused 7/7 PASS; exact target·immutable SHA·six ordered daily checks·24-hour freshness/next schedule·unique receipts enforced; actual maintenance/evidence creation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-11-PRODUCTION-IMPROVEMENT-QUEUE-EVIDENCE-COMPILER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 완료·P7 활성화 뒤 전용 GitHub operations Issue queue의 최근 export·7일 triage·책임자·고유 receipt·미추적 finding 0건과 각 open item의 분류·담당자·수용조건·30일 후속기한을 검증하고 actual improvementQueue 문서를 저장소 밖에 원자적으로 작성한다.",
+      "evidence": "npm.cmd run operations:improvement-queue-evidence => READY_WAIT_P6_COMPLETION_AND_IMPROVEMENT_QUEUE_EXPORT; focused 7/7 PASS; exact repository/queue·24-hour export·7-day triage·unique issue refs·owner/acceptance/next-action·blocked dependency enforced; actual issue mutation/evidence creation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-12-PRODUCTION-OPERATIONS-SIGNOFF-EVIDENCE-COMPILER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 완료·P7 활성화 뒤 운영 책임자의 실제 승인 export가 exact Production URL·불변 release·P6 cutover SHA·8개 운영 영역 고유 PASS SHA·전체 운영 업무 수락·차단 예외 0건을 충족할 때만 finalizer 호환 actual signoff 문서를 저장소 밖에 원자적으로 작성한다.",
+      "evidence": "npm.cmd run operations:signoff-evidence => READY_WAIT_P6_COMPLETION_AND_OPERATIONS_SIGNOFF; focused 7/7 PASS; exact target·immutable release/P6 SHA·eight ordered unique domain attestations·operations owner identity·six duties·24-hour signoff enforced; actual signature/external mutation/evidence creation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-13-PRODUCTION-OPERATIONS-EVIDENCE-PIPELINE-REHEARSAL",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "8개 운영 영역 compiler·운영 서명 compiler·manifest assembler·10문서 finalizer를 합성 전용 임시 공간에서 종단 연결하고 SHA 변조 차단과 임시 산출물 제거를 검증하되 실제 운영 증거 또는 Production GO로 승격하지 않는다.",
+      "evidence": "npm.cmd run operations:evidence-pipeline-rehearsal => PASS_SYNTHETIC_OPERATIONS_EVIDENCE_PIPELINE_REHEARSAL; focused 4/4 PASS; 8 compilers·8 domains·10 verified documents·schema 2 manifest; tamper fail-closed; temporary artifacts/external mutation/actual evidence zero"
+    },
+    {
+      "id": "ACC-P7-16-PRODUCTION-SLO-30-DAY-COLLECTOR",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 exact Production HTTPS health/readiness를 UTC 하루 1회 저장소 밖 물리 JSONL 원장에 기록하고 연속 30일이 되면 compiler 호환 export를 원자적으로 한 번 생성한다.",
+      "evidence": "2026-09-03 actual ledger 1/30; same UTC day rerun => PASS_SLO_SAMPLE_ALREADY_RECORDED_FOR_UTC_DAY with externalHttpReadPerformed=false and write=false; failure-first duplicate preflight test, focused 6/6 PASS; one UTC sample/day, physical external target, lock cleanup, 30 consecutive days and overwrite rejection enforced"
+    },
+    {
+      "id": "ACC-P7-17-PRODUCTION-TLS-CERTIFICATE-OBSERVER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 exact Production hostname을 신뢰 저장소 검증 TLS로 읽고 health/readiness 200과 peer certificate protocol·serial·SHA-256 fingerprint·유효기간을 compiler 호환 관측 JSON으로 저장소 밖에 원자적으로 한 번 기록한다.",
+      "evidence": "operations:certificate-observer => READY_WAIT_P6_ACTUAL_CUTOVER; external HTTP read/write zero; focused 5/5 PASS; exact hostname·verified chain·TLSv1.2/1.3·health/readiness 200·external physical one-time output enforced"
+    },
+    {
+      "id": "ACC-P7-18-PRODUCTION-DAILY-MAINTENANCE-RUNNER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 exact Production frontend/API/readiness, PostgreSQL SELECT, 최근 15분 5xx 로그, 최근 로그인 실패 추세와 24시간 이내 backup checksum을 읽기 전용으로 검증하고 실제 운영자·다음 일정 참조를 포함한 compiler 호환 6종 일일 점검 export를 저장소 밖에 원자적으로 한 번 기록한다.",
+      "evidence": "operations:maintenance-runner => READY_WAIT_P6_ACTUAL_CUTOVER; HTTP/runtime read and write zero; focused 5/5 PASS; immutable deployed SHA·six checks·adaptive login spike·backup checksum/age·external once-only output enforced"
+    },
+    {
+      "id": "ACC-P7-19-PRODUCTION-OFFSITE-BACKUP-ISOLATED-RESTORE-RUNNER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 exact Production PostgreSQL의 exported repeatable-read snapshot과 counts를 사용해 승인·암호화·별도 failure-domain 저장소에 checksum backup을 쓰고 임시 격리 DB에서 33 tables·25 migrations·row counts 일치와 4시간 RTO를 검증한 compiler 호환 drill export를 생성한다.",
+      "evidence": "operations:backup-restore-runner => READY_WAIT_P6_ACTUAL_CUTOVER; Production/off-site/DB mutation zero; focused 6/6 PASS; exact snapshot·root hash attestation·30-day retention·isolated restore/drop·count/migration digest enforced"
+    },
+    {
+      "id": "ACC-P7-20-PRODUCTION-GITHUB-IMPROVEMENT-QUEUE-COLLECTOR",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 승인된 triage attestation과, private repository용 물리 token 또는 명시적 public anonymous-read mode를 사용해 전용 GitHub operations Issue queue를 읽기 전용 수집하고, 고정 label과 단일 bounded JSON metadata만 compiler 호환 actual export로 저장소 밖에 원자적으로 1회 기록한다.",
+      "evidence": "2026-09-03 public GitHub API read probe => HTTP 200, operations queue 0 items, mutation 0; explicit anonymous mode implemented without secret read; focused 11/11 PASS; collector dry-run with anonymous approval => missing only triageAttestation and output; exact repository·operations label·source/severity/status label parity·owner/acceptance/triage/next-action·blocked dependency enforced"
+    },
+    {
+      "id": "ACC-P7-21-PRODUCTION-FIVE-SIGNAL-ALERT-DELIVERY-RUNNER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 승인된 공급자 manifest·물리 credential·exact 확인이 있을 때만 availability·latency_p95·http_5xx·backup_failure·certificate_expiry 5종 시험 경보를 고정 run 멱등키로 순차 전송하고 실제 DELIVERED receipt를 compiler 호환 export로 저장소 밖에 원자적으로 1회 기록한다.",
+      "evidence": "operations:alert-delivery-runner => READY_WAIT_P6_ACTUAL_CUTOVER; message/secret/write zero; focused 7/7 PASS; public HTTPS provider·recipient/owner provenance·deterministic idempotency·ordered unique DELIVERED receipts·5-minute latency enforced; actual delivery NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-22-PRODUCTION-ONCALL-ESCALATION-DRILL-RUNNER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 승인된 Asia/Seoul 30일 연속 당번표와 서로 다른 수락 책임자, 공개 HTTPS provider·물리 credential·exact 확인이 있을 때 PRIMARY와 ESCALATION 시험을 역할별 멱등키로 순차 발송하고 5분·15분 이내 실제 ACK receipt를 compiler 호환 export로 저장소 밖에 원자적으로 1회 기록한다.",
+      "evidence": "operations:oncall-drill-runner => READY_WAIT_P6_ACTUAL_CUTOVER; message/secret/write zero; focused 7/7 PASS; approved schedule·distinct accepted owners·public HTTPS provider·deterministic role idempotency·ordered unique ACK receipts·5/15-minute limits enforced; actual drill NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-23-PRODUCTION-OPERATIONS-SIGNOFF-INPUT-ASSEMBLER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 실제 P6 cutover와 운영 8영역 문서, 최근 OPERATIONS_OWNER 승인 receipt의 release·SHA·업무 수락을 교차검증하고 compiler 호환 signoff input을 저장소 밖에 원자적으로 1회 조립한다. 책임자 지정·서명 생성은 하지 않는다.",
+      "evidence": "operations:signoff-input-assembler => READY_WAIT_P6_ACTUAL_CUTOVER; input read/write/signature zero; focused 7/7 PASS; P6 GO·eight actual domains·immutable release·exact unique hashes·recent owner receipt·six duties·zero blocking exceptions enforced; actual signoff NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-24-PRODUCTION-OPERATIONS-ACTIVATION-ORCHESTRATOR",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO와 exact 19단계·10행위 승인이 있을 때만 SLO부터 종단 완료까지 한 호출에 한 단계씩 수행하고 redacted append-only receipt로 재개한다. WAIT는 실패로 세지 않으며 동일 단계 FAIL 3회면 PAUSED한다.",
+      "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; child/read/write zero; focused 8/8 PASS; exact approval·one-step execution·receipt sequence/command/digest/runId integrity·WAIT resume·three-failure stop enforced; actual activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-25-PRODUCTION-OPERATIONS-ACTIVATION-SINGLE-WRITER-LEASE",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "상시 Heartbeat가 겹쳐도 동일 run의 다음 외부 단계는 단일 process만 실행하고 두 번째 실행은 안전 대기한다. crash stale lease는 자동 삭제하지 않으며 30일 SLO의 장기 WAIT attempt도 정렬 가능한 영수증으로 재개한다.",
+      "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; lease/write/child zero; focused 11/11 PASS; atomic single-writer lease·owner-only release·stale lock preservation·4-digit attempts through 9999 enforced; actual activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-26-PRODUCTION-OPERATIONS-RECEIPT-ROOT-OWNERSHIP-AND-NO-OVERWRITE",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "한 receipt root는 최초 승인 run에 영속 귀속되고 다른 run은 lease·child 실행 전에 차단한다. receipt 최종화 경쟁에서도 기존 증거를 교체하지 않으며 실패 시 원본과 임시파일 정리를 보존한다.",
+      "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; root claim/lease/write/child zero; failure-first 2 EXPECTED FAIL then focused 13/13 PASS; persistent hashed run ownership and hard-link no-replace receipt finalization enforced; actual activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-27-PRODUCTION-OPERATIONS-ACTIVATION-APPROVAL-RELEASE-PROVENANCE-BINDING",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "같은 run ID라도 승인 manifest 또는 release SHA가 바뀌면 기존 root·lease·receipt를 재사용하지 않는다. JSON key 순서와 무관한 canonical approval digest를 사용하고 모든 재개 증거가 현재 승인·릴리스와 정확히 일치해야 한다.",
+      "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; approval/root/lease/write/child zero; failure-first 2 EXPECTED FAIL then focused 16/16 PASS; schema 2 root claim·lease·receipt bind canonical approval SHA-256 and release SHA; actual activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-28-OPERATIONS-ACTIVATION-CHILD-ENVIRONMENT-ALLOWLIST",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "운영 활성화 19개 child는 안전한 runtime 변수와 현재 단계에 명시된 환경변수만 받는다. 상위 프로세스의 unrelated Secret, GitHub token 또는 NODE_OPTIONS를 child에 상속하지 않는다.",
+      "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; child/write zero; failure-first 2 EXPECTED FAIL then focused 18/18 PASS; exact 19-step environment contract and filtered child environment enforced; actual activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-29-OPERATIONS-ACTIVATION-BUNDLE-APPROVAL-BINDING",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "운영 활성화 승인은 오케스트레이터 source·entrypoint, 19개 child script와 재귀 로컬 정적 의존성 graph의 exact 경로·bytes SHA-256을 고정한다. 승인 뒤 실행 번들이 바뀌면 approval read 후 lease·child·receipt 전에 거부한다.",
+      "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; activation bundle not read before P6 actual; failure-first 2 EXPECTED FAIL then focused 20/20 PASS; exact physical root and transitive local dependency graph byte digest bound into approval provenance; actual activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-30-OPERATIONS-ACTIVATION-MFA-APPROVAL-RECEIPT-ANCHOR",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "운영 활성화 manifest는 별도 OPERATIONS_OWNER MFA 승인 receipt의 물리 SHA-256, P6 actual cutover SHA-256과 P6 OPERATIONS 서명 SHA·동일 identity·동일 19단계/10행위/번들/run/release를 모두 연결해야 한다.",
+      "evidence": "operations:activation-orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER; approval receipt read/verify zero before P6 actual; failure-first 2 EXPECTED FAIL then focused 22/22 PASS; physical approval receipt and P6 operations signoff anchoring enforced before lease child receipt; actual approval and activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-31-OPERATIONS-ACTIVATION-APPROVAL-REQUEST-ASSEMBLER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 물리 P6 cutover 증거와 현재 activation bundle SHA-256을 결합해 OPERATIONS_OWNER에게 전달할 exact 승인 요청 payload를 저장소 밖에 원자적으로 1회 조립한다. 승인·MFA·메시지·서명은 생성하지 않는다.",
+      "evidence": "operations:activation-approval-request => READY_WAIT_P6_ACTUAL_CUTOVER; input read/write/approval/message zero; failure-first 4 EXPECTED FAIL then focused 4/4 PASS; exact P6 release/run/operations signoff SHA, current activation bundle, 19 steps, 10 actions, MFA and 45-day limit assembled; actual approval NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-32-OPERATIONS-ACTIVATION-APPROVAL-MANIFEST-ASSEMBLER",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 unsigned request와 별도 OPERATIONS_OWNER MFA approval receipt를 P6·현재 bundle과 교차검증해 오케스트레이터 실행용 approval manifest를 저장소 밖에 원자적으로 1회 조립한다. 승인·서명·MFA·메시지·activation은 실행하지 않는다.",
+      "evidence": "operations:activation-approval-manifest => READY_WAIT_P6_ACTUAL_CUTOVER; input read/write/approval/signature/message/activation zero; failure-first 5 EXPECTED FAIL then focused 5/5 PASS; exact request-receipt-P6-release-run-bundle-identity-19 steps-10 actions and 45-day expiry enforced; actual approval and activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-33-OPERATIONS-ACTIVATION-APPROVAL-CHAIN-READ-ONLY-PREFLIGHT",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 P6 cutover·unsigned request·OPERATIONS_OWNER MFA receipt·실행 manifest·현재 bundle의 exact 체인을 activation 실행 전에 읽기 전용으로 검증한다. lease·child·receipt·로컬 쓰기·외부 변경은 열지 않는다.",
+      "evidence": "operations:activation-approval-preflight => READY_WAIT_P6_ACTUAL_CUTOVER; input read/lease/child/receipt/write zero; failure-first 4 EXPECTED FAIL then focused 4/4 PASS; exact request-receipt-manifest-P6-current bundle content and 45-day expiry verified before activation; actual approval and activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-34-OPERATIONS-ACTIVATION-APPROVAL-PIPELINE-SYNTHETIC-REHEARSAL",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "request 조립·합성 MFA receipt·manifest 조립·read-only preflight를 저장소 밖 임시 물리 파일 4개로 종단 연결하고 request·receipt·manifest 변조를 모두 차단한 뒤 임시 산출물을 제거한다. 결과를 실제 승인·activation·Production GO로 승격하지 않는다.",
+      "evidence": "operations:activation-approval-pipeline-rehearsal => PASS_SYNTHETIC_OPERATIONS_ACTIVATION_APPROVAL_PIPELINE_REHEARSAL; 4 stages, 4 physical documents, 3/3 tamper rejection, temporary artifacts zero; failure-first 3 EXPECTED FAIL then focused 3/3 PASS; actual approval/activation/external mutation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-35-OPERATIONS-ACTIVATION-APPROVAL-TO-ORCHESTRATOR-SYNTHETIC-REHEARSAL",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "물리 P6 actual·unsigned request·합성 OPERATIONS_OWNER MFA receipt·실행 manifest를 read-only preflight와 activation 오케스트레이터 승인 검증에 연속 연결하고 receipt-root 소유권·첫 PASS receipt·다음 단계 선택 호환성을 증명한다. child·외부 변경·실제 승인·Production GO는 실행하지 않는다.",
+      "evidence": "operations:activation-approval-to-orchestrator-rehearsal => PASS_SYNTHETIC_OPERATIONS_ACTIVATION_APPROVAL_TO_ORCHESTRATOR_REHEARSAL; 6 physical documents, approval chain and orchestrator approval verified, slo-collect receipt advances to slo-compile, 3/3 tamper rejection, temporary artifacts zero; failure-first 3 EXPECTED FAIL then focused 3/3 PASS; child/actual activation/external mutation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-36-OPERATIONS-ACTIVATION-19-STEP-PHYSICAL-RECEIPT-SEQUENCE-SYNTHETIC-REHEARSAL",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "동일 승인 manifest와 receipt-root에 결박된 19개 activation step PASS receipt를 정확한 순서·파일명·attempt로 물리 기록하고 마지막 선택이 PASS_OPERATIONS_ACTIVATION_SEQUENCE_COMPLETE인지 검증한다. sequence·approval provenance·완결성 변조를 차단하고 child·외부 변경은 실행하지 않는다.",
+      "evidence": "operations:activation-full-sequence-rehearsal => PASS_SYNTHETIC_OPERATIONS_ACTIVATION_FULL_SEQUENCE_REHEARSAL; 19 steps and 19 receipts, 24 physical documents, sequence complete, 3/3 tamper rejection, temporary artifacts zero; failure-first 3 EXPECTED FAIL then focused combined 6/6 PASS; child/actual activation/external mutation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-37-OPERATIONS-ACTIVATION-19-STEP-WAIT-RESUME-SEQUENCE-SYNTHETIC-REHEARSAL",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "19개 activation 단계마다 attempt 1 WAIT receipt를 물리 기록한 뒤 동일 단계 attempt 2 PASS로 재개하고 최종 sequence complete까지 전진한다. attempt gap·terminal PASS 이후 receipt·교차 run을 차단하고 실제 child·외부 변경은 실행하지 않는다.",
+      "evidence": "operations:activation-wait-resume-sequence-rehearsal => PASS_SYNTHETIC_OPERATIONS_ACTIVATION_WAIT_RESUME_SEQUENCE_REHEARSAL; 19 WAIT and 19 PASS receipts, 19 resume verifications, 43 physical documents, sequence complete, 3/3 tamper rejection, temporary artifacts zero; failure-first 3 EXPECTED FAIL then focused combined 9/9 PASS; child/actual activation/external mutation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-38-OPERATIONS-ACTIVATION-19-STEP-THREE-FAILURE-CONTAINMENT-MATRIX-SYNTHETIC-REHEARSAL",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "19개 activation 단계를 각각 실패 표적으로 삼아 앞 단계 PASS 뒤 동일 FAIL receipt 3개에서 정확히 정지하고 이후 단계 receipt가 0건인지 물리 파일로 검증한다. 실패 2회·4회·교차 run 변조를 차단하고 실제 child·외부 변경은 실행하지 않는다.",
+      "evidence": "operations:activation-three-failure-matrix-rehearsal => PASS_SYNTHETIC_OPERATIONS_ACTIVATION_THREE_FAILURE_MATRIX_REHEARSAL; 19/19 contained after exactly 3 failures, 228 receipts, 251 physical documents, later-step receipts zero, 3/3 tamper rejection, temporary artifacts zero; failure-first 3 EXPECTED FAIL then focused combined 9/9 PASS; child/actual activation/external mutation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-39-OPERATIONS-ACTIVATION-PROCESS-RUNNER-SYNTHETIC-REHEARSAL",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "실제 activation 진입점이 사용하는 process runner를 별도 모듈로 고정하고, 합성 child 결과 19개를 allowlist 환경·마지막 JSON 상태·물리 redacted receipt·sequence complete까지 연결한다. malformed JSON·exit 1·민감 stdout/stderr가 PASS 또는 원문 증거로 승격되지 않아야 하며 실제 child·외부 변경은 실행하지 않는다.",
+      "evidence": "operations:activation-process-runner-rehearsal => PASS_SYNTHETIC_OPERATIONS_ACTIVATION_PROCESS_RUNNER_REHEARSAL; 19 synthetic child calls, 19 activation receipts, 36 physical documents, sequence complete, unexpected environment propagation zero, 4/4 negative scenarios, bounded alternate profiles 2/2, secret occurrence zero, temporary artifacts zero; focused 31/31 PASS; actual child/activation/external mutation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-40-OPERATIONS-ACTIVATION-CHILD-TERMINATION-DIAGNOSTICS",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "실제 activation child의 timeout·출력 한도 초과·spawn 오류·signal 종료를 원문 오류나 stdout/stderr 없이 제한된 실패 상태로 정규화하고, PASS 형태 출력이 있어도 비정상 종료를 FAIL receipt로 고정해 동일 실패의 대체 경로 판단 근거를 보존한다.",
+      "evidence": "actual Node child timeout and maxBuffer overflow normalized to bounded failure states; timeout with PASS-shaped stdout remains FAIL receipt; focused 27/27 PASS; syntax 309/309; repository unit 485 PASS 1 Windows platform skip; activation bundle 44 physical files sha256 0534b2fc044809d14baa1236b7342b5dfe1362c7434b6cfc9af2db8dc32816c7; actual Production child/external mutation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-41-OPERATIONS-ACTIVATION-RESOURCE-FAILURE-ALTERNATE-PROFILE",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "동일 timeout 또는 출력 한도 실패가 연속 2회 발생한 경우에만 세 번째 시도에 bounded 대체 실행 프로필을 한 번 적용하고, receipt에 기록된 프로필을 이전 실패 체인에서 재계산해 변조를 거부한다. 혼합·spawn·signal 실패에는 자원이나 권한을 확대하지 않는다.",
+      "evidence": "failure-first 3/3 reproduced; timeout alternate 4-hour cap and output alternate 4-MiB cap selected only at exact two same consecutive failures; physical receipts prove two FAIL then alternate PASS and profile tamper rejection; mixed/non-resource failures remain STANDARD; focused 31/31 PASS; syntax 309/309; repository unit 489 PASS 1 Windows platform skip; bundle 44 files sha256 f4b615ff493f0768dc520a46e02bb62026e85997c69065ecc100a8b29a688c1a; actual Production child/external mutation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-15-ACTUAL-HANDOVER-TERMINAL-COMPLETION",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 actual 운영 인수 10문서가 SHA-256과 측정 계약을 통과하고 exact 확인이 있을 때만 P7을 증거 완료, Harness를 8/8 COMPLETE, READY를 0건으로 원자 전환한다.",
+      "evidence": "operations:phase-completion defaults to READY_WAIT_ACTUAL_HANDOVER_EVIDENCE_FOR_8_OF_8; focused 4/4 PASS; terminal Harness allows 0 in-progress and 0 READY only at 8/8; actual completion NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-35-BOUNDED-PRODUCTION-ROLLBACK-READINESS-RUNTIME",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production rollback readiness의 Docker ps·inspect·volume ls가 10초·1MiB로 제한되고 단일 container·inspect identity·불변 revision·중복 없는 volume 결과를 엄격 파싱해 timeout·과대 출력·malformed 결과를 원문 없이 fail-closed한다.",
+      "evidence": "production:rollback-readiness => PASS_ROLLBACK_READINESS_DRY_RUN_ONLY; failure-first 6/6; focused 10/10 PASS; syntax 338/338; repository unit 566 PASS 1 Windows platform skip; actual post-cutover rollback NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-36-PHYSICAL-EXTERNAL-SIGNOFF-REFERENCE-PREFLIGHT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production 역할 결과 3건과 업무·보안·운영 서명 3건은 저장소 밖 절대경로의 고유 physical JSON regular file이어야 하며 symlink·reparse·상대경로·저장소 경로·빈/과대 파일·physical 중복 reference는 실제 입력 준비로 승격되지 않는다.",
+      "evidence": "production:signoff-preflight => READY_WAIT_PRODUCTION_UAT_AND_SIGNOFF_REFERENCES with 0/6 actual references; failure-first 5/5; focused 8 PASS 1 Windows platform skip; syntax 340/340; repository unit 570 PASS 2 Windows platform skips; actual signoff NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-37-BOUNDED-ACTUAL-CUTOVER-EVIDENCE-INPUT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual cutover finalizer와 P6→P7 promotion은 저장소 밖 절대경로의 physical JSON object만 4MiB 이하로 읽고 actual bytes·SHA-256을 계산하며 저장소 내부·symlink/reparse·parent redirect·malformed/array·과대 입력을 원문 없이 fail-closed한다.",
+      "evidence": "production:cutover-finalizer => READY_WAIT_ACTUAL_CUTOVER_EVIDENCE; production:phase-promotion => READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_FOR_PHASE_PROMOTION with zero changes; failure-first 5/5 plus 1 Windows skip; focused 10 PASS 1 skip; syntax 341/341; repository unit 575 PASS 3 skips; actual cutover NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-38-ATOMIC-ACTUAL-CUTOVER-EVIDENCE-SNAPSHOT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual cutover finalizer와 P6→P7 promotion은 actual bytes read 뒤 repository와 candidate의 physical identity·realpath·size를 재검증하고 fatal UTF-8 JSON object만 사용하며 read 중 교체·redirect·invalid encoding을 완료 증거로 승격하지 않는다.",
+      "evidence": "failure-first 4/4; focused finalizer and promotion regression 19 PASS 1 Windows skip; syntax 363/363; repository unit 661 PASS 7 skips; harness:verify PASS; GitHub quality 33588455559 unit and three-tier SUCCESS; actual cutover NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-39-ATOMIC-ACTUAL-CUTOVER-ASSEMBLY-INPUTS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual cutover evidence assembler는 receipt root·26개 expected receipt와 역할 결과·서명 입력을 bounded atomic snapshot으로 읽고 repository/root/candidate identity·realpath·size, fatal UTF-8 JSON object와 집계 상한을 검증해 read 중 교체·redirect·과대 입력을 actual evidence로 조립하지 않는다.",
+      "evidence": "failure-first 5/5; focused assembler, executor and role-result regression 25/25 PASS; syntax 364/364; repository unit 666 PASS 7 skips; harness:verify PASS; GitHub quality 33589230425 unit and three-tier SUCCESS; actual cutover assembly NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-40-ATOMIC-SIGNOFF-RESUME-CHECKPOINT-AND-RECEIPTS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Gate 12 signoff resume는 checkpoint와 Gate 1~11 receipt를 bounded atomic snapshot으로 읽고 repository·receipt root·candidate identity·realpath·size, fatal UTF-8 JSON object를 검증해 read 중 교체·redirect·invalid encoding을 같은 run 재개 증거로 사용하지 않는다.",
+      "evidence": "failure-first 5/5; focused signoff resume, executor and runtime rehearsal regression 24/24 PASS; syntax 365/365; repository unit 671 PASS 7 skips; harness:verify PASS; GitHub quality 33590197995 unit and three-tier SUCCESS; actual Gate 12 signoff resume NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-16-BOUNDED-ACTUAL-HANDOVER-EVIDENCE-INPUT",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 actual handover finalizer, manifest assembler와 8/8 terminal completion은 저장소 밖 physical JSON object와 10개 하위 문서를 각각 4MiB 이하로 읽고 actual bytes·SHA-256을 계산하며 저장소 내부·상대경로 탈출·symlink/reparse·parent redirect·malformed/array·과대 입력을 원문 없이 fail-closed한다.",
+      "evidence": "operations:handover-finalizer => READY_WAIT_P6_COMPLETION_AND_HANDOVER_EVIDENCE; operations:phase-completion => READY_WAIT_ACTUAL_HANDOVER_EVIDENCE_FOR_8_OF_8 with zero changes; failure-first 6/6 plus 1 Windows skip; focused 21 PASS 1 skip; syntax 342/342; repository unit 582 PASS 4 skips; GitHub quality unit and three-tier SUCCESS; repeated native DNS timeout resolved through existing authoritative DoH alternate path and full harness:verify PASS; actual operations handover NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-42-BOUNDED-ACTIVATION-APPROVAL-CHAIN-INPUTS",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 activation의 P6 actual evidence·unsigned request·MFA receipt·approval manifest와 재개 receipt는 저장소 밖 absolute physical JSON object만 4MiB 이하로 읽고 actual bytes·SHA-256을 계산하며 저장소 내부·symlink/reparse·parent redirect·malformed/array·과대 입력을 원문 없이 fail-closed한다.",
+      "evidence": "approval request·manifest·read-only preflight·orchestrator => READY_WAIT_P6_ACTUAL_CUTOVER with input read/child/lease/receipt/external mutation zero; failure-first 5/5; focused 42 PASS 1 Windows skip; syntax 344/344; repository unit 587 PASS 5 skips; harness:verify PASS; GitHub quality unit and three-tier SUCCESS; actual approval and activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-43-BOUNDED-OPERATIONS-SIGNOFF-ASSEMBLER-INPUTS",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Operations signoff assembler의 P6 actual·운영 8영역·OPERATIONS_OWNER approval receipt 10개 입력은 저장소 밖 absolute physical JSON object만 4MiB 이하로 읽고 actual bytes·SHA-256을 사용하며 저장소 내부·symlink/reparse·parent redirect·malformed/array·과대 입력을 원문 없이 fail-closed한다.",
+      "evidence": "operations:signoff-input-assembler => READY_WAIT_P6_ACTUAL_CUTOVER with input read/output/external mutation zero; failure-first 1/1; focused 13 PASS 1 Windows skip; syntax 344/344; repository unit 588 PASS 5 skips; harness:verify PASS; actual operations signoff assembly NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-44-BOUNDED-OPERATIONS-EVIDENCE-COMPILER-INPUTS",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 운영 8영역 compiler의 actual 입력은 저장소 밖 absolute physical JSON object만 4MiB 이하로 읽고 actual bytes·SHA-256을 provenance로 사용하며 저장소 내부·symlink/reparse·parent redirect·malformed/array·과대 입력을 원문 없이 fail-closed한다.",
+      "evidence": "8 compiler default entrypoints => P6 completion WAIT with evidence creation zero; failure-first 8/8; focused 64/64 PASS; syntax 345/345; repository unit 596 PASS 5 skips; harness:verify PASS; actual operations evidence compilation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-45-BOUNDED-OPERATIONS-RUNNER-CONTROL-INPUTS",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "경보·백업/복원·온콜·개선큐 runner의 provider manifest와 approval attestation 4개 제어 JSON은 저장소 밖 absolute physical JSON object만 4MiB 이하로 읽으며 저장소 내부·symlink/reparse·parent redirect·malformed/array·과대 입력을 원문 없이 fail-closed한다.",
+      "evidence": "4 runner default entrypoints => READY_WAIT_P6_ACTUAL_CUTOVER with secret use and external mutation zero; failure-first 4/4; focused 30/30 PASS; syntax 346/346; repository unit 600 PASS 5 skips; harness:verify PASS; actual runner execution NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-46-BOUNDED-OPERATIONS-SECRET-INPUTS",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "경보·온콜·개선큐 runner의 credential 파일은 저장소 밖 absolute physical UTF-8 파일만 64KiB 이하로 읽으며 저장소 내부·symlink/reparse·parent redirect·invalid UTF-8·빈 값을 원문 없이 fail-closed한다.",
+      "evidence": "3 runner default entrypoints => READY_WAIT_P6_ACTUAL_CUTOVER with secret read and external mutation zero; failure-first 4/4; focused 28 PASS 2 Windows skips; syntax 347/347; repository unit 603 PASS 6 skips; harness:verify PASS; actual credential read and runner execution NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-47-BOUNDED-SLO-LEDGER-INPUT",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 SLO JSONL ledger는 저장소 밖 absolute physical UTF-8 파일만 64KiB 이하로 읽고 actual bytes·SHA-256을 계산하며 P6 actual cutover 전에는 원장 content를 읽지 않고 append와 export 재읽기 모두 같은 bounded reader를 사용한다.",
+      "evidence": "operations:slo-collector => READY_WAIT_P6_ACTUAL_CUTOVER with sampleCount 0, HTTP read and write zero; failure-first 3/3; focused 16 PASS 2 Windows skips; syntax 348/348; repository unit 606 PASS 6 skips; harness:verify PASS; actual ledger read and Production SLO collection NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-48-BOUNDED-MAINTENANCE-RUNTIME",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 maintenance Docker 호출은 10초·기본 1MiB·로그 4MiB 상한과 엄격 결과 파싱을 사용하고, exact Production backup manifest는 physical UTF-8 JSON object·64KiB 이하·actual bytes/SHA-256으로 읽으며 dump는 physical root 안에서 bytes·streaming SHA-256을 검증한다.",
+      "evidence": "operations:maintenance-runner => READY_WAIT_P6_ACTUAL_CUTOVER with HTTP/runtime read and write zero; production:operational-health-baseline => health/readiness and 238533-byte backup checksum/restore PASS; failure-first 5/5; focused 21/21 PASS; syntax 349/349; repository unit 611 PASS 6 skips; harness:verify PASS; actual P7 maintenance execution NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-49-BOUNDED-BACKUP-RESTORE-RUNTIME",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 backup/restore의 모든 Docker child는 shell 없이 container discovery 10초, metadata 60초, snapshot·restore 60분, dump 30분과 stderr 64KiB·capture 4MiB 상한을 사용하고 timeout·출력·stream 실패 시 child를 종료하며 dump/restore는 streaming한다.",
+      "evidence": "operations:backup-restore-runner => READY_WAIT_P6_ACTUAL_CUTOVER with Production read/off-site write/DB mutation zero; failure-first 5/5; focused 11/11 PASS; syntax 351/351; repository unit 616 PASS 6 skips; harness:verify PASS; GitHub quality 33580854494 unit and three-tier SUCCESS; actual backup/restore execution NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-50-BOUNDED-IMPROVEMENT-QUEUE-HTTP-RESPONSE",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 improvement queue GitHub response는 요청 15초, 페이지별 declared·actual 1MiB 상한, oversize reader 취소, fatal UTF-8와 JSON array-only 계약을 사용하고 무제한 response.json buffering과 오류 원문 노출을 금지한다.",
+      "evidence": "operations:improvement-queue-collector => READY_WAIT_P6_ACTUAL_CUTOVER with GitHub read/secret/write zero; failure-first 4/4 over 5 attacks; focused 10/10 PASS; syntax 351/351; repository unit 620 PASS 6 skips; harness:verify PASS; GitHub quality 33581546968 unit and three-tier SUCCESS; actual collection NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-51-BOUNDED-OPERATIONS-PREFLIGHT-HTTP-RESPONSES",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Operations provider preflight의 OIDC discovery와 AI health/readiness GET 응답은 요청 10초, declared·actual 1MiB 상한, oversize reader 취소를 사용하고 OIDC는 fatal UTF-8 JSON object만 허용하며 무제한 arrayBuffer/json buffering과 오류 원문 노출을 금지한다.",
+      "evidence": "operations:preflight template and operations:contracts PASS without live probe; failure-first 5/5; focused 5/5 PASS; syntax 353/353; repository unit 625 PASS 6 skips; harness:verify PASS; GitHub quality 33582520819 unit and three-tier SUCCESS; actual live provider probe NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-52-BOUNDED-OPERATIONS-PREFLIGHT-MANIFEST-INPUT",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Operations provider preflight manifest는 상대경로 사용성을 보존하되 .json physical regular file·realpath 일치·1 byte~1MiB·read 전후 identity와 bytes 안정성·fatal UTF-8·JSON object를 요구하고 symlink/reparse·redirect·empty·oversize·malformed 입력과 원문 노출을 금지한다.",
+      "evidence": "operations:preflight template and operations:contracts PASS without live probe; failure-first 5/5; focused 5/5 PASS; syntax 355/355; repository unit 630 PASS 6 skips; harness:verify PASS; GitHub quality 33583282289 unit and three-tier SUCCESS; actual live provider probe NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-53-BOUNDED-ACTIVATION-STATE-FILES",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Operations activation receipt-root claim과 single-writer lease 재읽기는 exact receipt root와 basename의 physical regular file·realpath 일치·1 byte~64KiB·read 전후 directory/file identity 및 actual bytes 안정성·fatal UTF-8·JSON object를 요구하고 symlink/reparse·redirect·empty·oversize·malformed 입력과 원문 노출을 금지한다.",
+      "evidence": "failure-first 6/6; focused activation regression 29 PASS 1 skip; syntax 357/357; repository unit 635 PASS 7 skips; activation bundle 48 physical files PASS; all activation rehearsals and harness:verify PASS; GitHub quality 33584127768 unit and three-tier SUCCESS; actual activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-54-ATOMIC-BOUNDED-ACTIVATION-BUNDLE-SNAPSHOT",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Operations activation bundle dependency graph와 digest는 각 physical file을 한 번만 읽은 동일한 bounded snapshot에서 생성하고 파일당 4MiB·전체 64MiB, exact realpath, read 전후 root/file identity·size 안정성, actual bytes와 fatal UTF-8을 강제한다.",
+      "evidence": "failure-first 6/6; focused activation regression 30/30 PASS; syntax 358/358; repository unit 641 PASS 7 skips; activation bundle 21 roots 48 physical files 337679 bytes sha256 02ffa72693649836487e7f8635cdc331987050c826b30ea6d4c174d01f304e66; all activation rehearsals and harness:verify PASS; GitHub quality 33585003462 unit and three-tier SUCCESS; actual activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-55-BOUNDED-ACTIVATION-ROADMAP-CONTROL-INPUT",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Operations activation approval request·manifest·preflight·orchestrator가 권한 판정에 사용하는 MASTER_ROADMAP.json은 exact repository physical file에서 1 byte~1MiB, read 전후 root/file identity·realpath·size 안정성, actual bytes, fatal UTF-8와 JSON object-only 계약으로 한 번만 읽어야 한다.",
+      "evidence": "failure-first 6/6; focused activation regression 36/36 PASS; syntax 360/360; repository unit 647 PASS 7 skips; activation bundle 21 roots 49 physical files 341850 bytes sha256 e43432bec3c31e9fce6f8b8928ddbc83470739daac43e70c470cc4b76ddb9448; harness:verify PASS; GitHub quality 33585841983 unit and three-tier SUCCESS; actual activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-56-ATOMIC-ACTIVATION-EXTERNAL-INPUT-SNAPSHOT",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 activation의 외부 approval·receipt·control·Secret 입력 공용 reader는 actual bytes를 읽은 뒤 repository와 candidate의 physical identity·realpath·size를 다시 검증하고 JSON을 fatal UTF-8로 decode해 읽기 중 교체와 invalid encoding을 승인 근거로 사용할 수 없게 한다.",
+      "evidence": "failure-first 5/5; focused input regression 16 PASS 2 skips; syntax 361/361; repository unit 652 PASS 7 skips; activation bundle 21 roots 49 physical files 343397 bytes sha256 95b2c494627dbd33899e668a97b0edc6bfa19ba4d670b3af56bb2a3b3b8f431e; harness:verify PASS; GitHub quality 33586665241 unit and three-tier SUCCESS; actual activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-57-ATOMIC-OPERATIONS-HANDOVER-EVIDENCE-SNAPSHOT",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 handover finalizer의 최상위 manifest와 10개 실제 운영 증거 JSON은 actual bytes read 뒤 repository·external base·candidate의 physical identity·realpath·size를 재검증하고 fatal UTF-8 JSON object만 사용하며 read 중 교체·redirect·invalid encoding을 완료 증거로 승격하지 않는다.",
+      "evidence": "failure-first 5/5; focused handover regression 20 PASS 1 Windows skip; syntax 362/362; repository unit 657 PASS 7 skips; activation bundle 21 roots 49 physical files 345517 bytes sha256 a65d6a06f3ec07aed688861902adcb2238e1fe25d400d374ecee6c4402f889a6; harness:verify PASS; GitHub quality 33587580937 unit and three-tier SUCCESS; actual handover and activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-58-ATOMIC-OPERATIONS-ROADMAP-CONTROL-CONSUMERS",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 운영 활성화의 18개 SLO·경보·backup/restore·certificate·on-call·maintenance·improvement queue·signoff·handover runner/compiler는 Phase 권한 정본 MASTER_ROADMAP.json을 exact repository physical file·1 byte~1MiB·read 전후 root/file identity·realpath·size·actual bytes·fatal UTF-8·JSON object 전용 공용 reader로 읽어야 한다.",
+      "evidence": "failure-first 18/18; focused roadmap control regression 24/24 PASS; 18 entrypoint dry-runs WAIT with external mutation zero; syntax 369/369; repository unit 700 PASS 7 skips; harness:verify PASS; GitHub quality 33593271020 unit and three-tier SUCCESS; actual P7 activation and external operations NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-59-ATOMIC-HANDOVER-PREFLIGHT-CONTROL-INPUTS",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 완료 직후 실행되는 P7 handover preflight의 candidate와 MASTER_ROADMAP.json은 각각 physical JSON object·1 byte~1MiB·read-after 안정성·fatal UTF-8 계약과 exact repository roadmap identity·realpath·size 계약으로 읽으며 direct unbounded read를 사용하지 않는다.",
+      "evidence": "failure-first 1/1; focused handover control regression 16/16 PASS; handover preflight dry-run READY_WAIT_P6_COMPLETION_AND_HANDOVER_INPUTS with contract error zero and 12 pending inputs; syntax 370/370; repository unit 701 PASS 7 skips; harness:verify PASS; GitHub quality 33594167591 unit and three-tier SUCCESS; actual P6 cutover and P7 handover NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-60-ATOMIC-HANDOVER-PREFLIGHT-PAIR-SNAPSHOT",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 handover preflight의 candidate와 MASTER_ROADMAP.json은 각각 한 번 읽은 actual bytes로 동일 pair snapshot을 구성하고 두 파일 전체의 read 전후 root/file identity·realpath·size 안정성을 확인해 cross-file TOCTOU를 fail-closed해야 한다.",
+      "evidence": "failure-first 5/5; focused pair and handover regression 23/23 PASS; cross-file mutation 2/2 blocked; handover preflight dry-run READY_WAIT_P6_COMPLETION_AND_HANDOVER_INPUTS with contract error zero and 12 pending inputs; syntax 372/372; repository unit 708 PASS 7 skips; harness:verify PASS; GitHub quality 33595349963 unit and three-tier SUCCESS; actual P6 cutover and P7 handover NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-61-ATOMIC-PHASE-COMPLETION-CONTROL-SNAPSHOT",
+      "phase": "P7_PREP",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 actual handover 뒤 8/8 terminal completion이 사용하는 MASTER_ROADMAP.json과 P6_P7_ACCELERATION_QUEUE.json은 각각 한 번 읽은 actual bytes로 동일 pair snapshot을 구성하고 두 파일 전체의 read 전후 root/file identity·realpath·size 안정성을 검증해야 한다.",
+      "evidence": "failure-first 7/7; focused completion and handover regression 21/21 PASS; cross-file mutation 2/2 blocked; phase completion dry-run READY_WAIT_ACTUAL_HANDOVER_EVIDENCE_FOR_8_OF_8 with changes zero; syntax 374/374; repository unit 715 PASS 7 skips; harness:verify PASS; GitHub quality 33596294018 unit and three-tier SUCCESS; actual 8/8 completion NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-43-SHARED-ATOMIC-PHASE-TRANSITION-CONTROLS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6→P7 promotion과 P7→8/8 terminal completion은 MASTER_ROADMAP.json과 P6_P7_ACCELERATION_QUEUE.json을 각각 한 번 읽은 동일 bounded atomic pair snapshot reader로 소비하고 direct separate JSON read를 사용하지 않아야 한다.",
+      "evidence": "failure-first 1/1; focused shared phase transition regression 17/17 PASS; pair mutation 2/2 blocked; P6 promotion dry-run READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_FOR_PHASE_PROMOTION with changes zero; syntax 374/374; repository unit 716 PASS 7 skips; harness:verify PASS; GitHub quality 33597064036 unit and three-tier SUCCESS; actual phase promotion and completion NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-44-BOUNDED-CUTOVER-CANDIDATE-CONSUMERS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 G4 cutover 실행·actual evidence·role result·signoff·candidate 검사 진입점은 동일 candidate JSON을 physical regular file·realpath 일치·1 byte~1MiB·read 전후 안정성·fatal UTF-8·JSON object 전용 공용 bounded reader로 읽고 direct unbounded read를 사용하지 않아야 한다.",
+      "evidence": "failure-first 1/1; focused candidate reader regression 6/6 PASS; 5 entrypoint dry-runs fail-closed with external mutation zero and productionGo false; syntax 375/375; repository unit 717 PASS 7 skips; harness:verify PASS; GitHub quality 33597939948 unit and three-tier SUCCESS; actual cutover, UAT and signoff NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-45-ATOMIC-CUTOVER-EVIDENCE-CONTROL-SNAPSHOT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 G4 candidate 검사에 사용하는 G3·G4·P5·provider·candidate 5개 JSON은 각각 한 번 읽은 actual bytes로 동일 bounded physical snapshot을 구성하고 전체 read 전후 repository root와 모든 파일 identity·realpath·size 안정성을 검증해야 한다.",
+      "evidence": "failure-first 1/1; focused atomic evidence regression 8/8 PASS; cross-file mutation 2/2 blocked; candidate fail-closed 4 PASS and 8 PENDING; syntax 377/377; repository unit 724 PASS 7 skips; harness check PASS; GitHub quality 33599251899 unit and three-tier SUCCESS; actual cutover, UAT and signoff NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-46-BOUNDED-ROLLBACK-G3-CONTROL",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production rollback readiness가 참조하는 G3 배포·백업·복구 증거는 physical regular JSON file·realpath 일치·1 byte~1MiB·read 전후 안정성·fatal UTF-8·JSON object 전용 bounded reader로 읽고 direct unbounded read를 사용하지 않아야 한다.",
+      "evidence": "failure-first 1/1; focused rollback and bounded input regression 16/16 PASS; rollback readiness PASS with revisions matched, volumes 2/2, previous drill and backup restore verified; syntax 378/378; repository unit 725 PASS 7 skips; GitHub quality 33600215170 unit and three-tier SUCCESS; actual rollback and external mutation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-47-BOUNDED-CUTOVER-BACKUP-PREFLIGHT-CONTROL",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production cutover preflight는 최신 exact Production backup manifest를 physical regular file·realpath containment·1 byte~64KiB·fatal UTF-8·JSON object로 읽고 실제 dump bytes와 streaming SHA-256 및 restore evidence를 모두 재검증해야 한다.",
+      "evidence": "failure-first 1/1; focused preflight and backup runtime regression 20/20 PASS; cutover preflight READY_WAIT_CHANGE_WINDOW with local blockers zero, backup 318811 bytes and manifest 673 bytes checksum verified; syntax 379/379; repository unit 726 PASS 7 skips; harness:verify PASS; GitHub quality 33601613188 unit and three-tier SUCCESS; actual cutover and external mutation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-48-BOUNDED-CUTOVER-PREFLIGHT-HTTP-CONTROL",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production cutover preflight의 health·readiness·anonymous API 응답은 각각 5초 timeout·declared/actual 1MiB 상한·fatal UTF-8·JSON object-only bounded reader로 소비하고 direct unbounded body buffering을 사용하지 않아야 한다.",
+      "evidence": "failure-first 1/1; focused HTTP and cutover preflight regression 14/14 PASS; actual three responses 36/241/134 bytes and exact 200/200/401 JSON objects; cutover preflight READY_WAIT_CHANGE_WINDOW with local blockers zero and smoke PASS; syntax 380/380; repository unit 727 PASS 7 skips; harness:verify PASS; GitHub quality 33602773238 unit and three-tier SUCCESS; actual cutover and external mutation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-49-BOUNDED-INGRESS-PROVIDER-HTTP-RESPONSES",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production ingress publication과 route-disable의 Cloudflare API 및 authoritative DoH A·CNAME 응답은 timeout과 declared/actual 1MiB 상한, fatal UTF-8·JSON object-only 공용 bounded reader를 사용하고 direct unbounded response JSON parsing을 사용하지 않아야 한다.",
+      "evidence": "failure-first 1/1; focused ingress, DoH, route-disable and HTTP runtime regression 27/27 PASS; oversize API rejected before body read and oversize DoH not promoted to unpublished success; ingress/route-disable/cutover dry-runs WAIT with external mutation zero and local blockers zero; syntax 381/381; repository unit 730 PASS 7 skips; harness:verify PASS; GitHub quality 33604109099 unit and three-tier SUCCESS; actual ingress, DNS/TLS and external mutation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-50-BOUNDED-ROLE-CORE-SMOKE-HTTP-RESPONSES",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production ADMIN·MANAGER·USER MFA/RBAC core smoke의 HTTP JSON 응답은 10초 timeout과 declared/actual 1MiB 상한, fatal UTF-8·JSON object-only 공용 bounded reader로 소비하고 과대·비정상 본문을 인증 성공 근거로 사용하지 않아야 한다.",
+      "evidence": "failure-first 1/1; focused role smoke, role result and HTTP runtime regression 20/20 PASS; oversize role response rejected before body read and reduced to empty fail-closed object; role smoke/preflight/cutover dry-runs WAIT with role users and credential references zero, external mutation zero and local blockers zero; syntax 382/382; repository unit 732 PASS 7 skips; harness:verify PASS; GitHub quality 33605286537 unit and three-tier SUCCESS; actual role login, MFA and signoff NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-51-BOUNDED-AUTHENTICATED-IDEMPOTENCY-HTTP-RESPONSES",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production authenticated CSRF/idempotency runner의 HTTP JSON 응답은 10초 timeout과 declared/actual 1MiB 상한, fatal UTF-8·JSON object-only 공용 bounded reader로 소비하고 과대·비정상 본문을 인증 쓰기·replay·conflict 성공 근거로 사용하지 않아야 한다.",
+      "evidence": "failure-first 1/1; focused authenticated idempotency, CSRF baseline and HTTP runtime regression 23/23 PASS; oversize authenticated response rejected before body read and reduced to empty fail-closed object; authenticated runner waits for credential and write confirmation while CSRF negative/schema baseline passes; cutover preflight WAIT with external mutation zero and local blockers zero; syntax 383/383; repository unit 734 PASS 7 skips; harness:verify PASS; GitHub quality 33606367073 unit and three-tier SUCCESS; actual authenticated write, replay, conflict and signoff NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-52-BOUNDED-CSRF-IDEMPOTENCY-BASELINE-HTTP-RESPONSES",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production CSRF/idempotency negative baseline의 HTTP JSON 응답은 10초 timeout과 declared/actual 1MiB 상한, fatal UTF-8·JSON object-only 공용 bounded reader로 소비하고 과대·비정상 본문을 CSRF 거부 성공 근거로 사용하지 않아야 한다.",
+      "evidence": "failure-first 1/1; focused CSRF baseline, authenticated idempotency and HTTP runtime regression 31/31 PASS; oversize baseline response rejected before body read and reduced to empty fail-closed object; loopback missing-token 403 CSRF_INVALID, session unchanged, idempotency columns 10/10, stuck and invalid rows zero; cutover preflight WAIT with external mutation zero and local blockers zero; syntax 384/384; repository unit 736 PASS 7 skips; harness:verify PASS; GitHub quality 33607771278 unit and three-tier SUCCESS; actual authenticated write, replay, conflict and signoff NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-53-BOUNDED-PHASE-PROMOTION-INPUTS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6 actual cutover 뒤 P6→P7 승격기는 exact current-state와 roadmap physical files를 파일당 1MiB·read-after identity/realpath/size·fatal UTF-8로 읽고, clean worktree 검사는 10초·1MiB·shell 금지 bounded Git process를 사용해야 한다.",
+      "evidence": "failure-first 1/1; focused phase promotion runtime, state transition and atomic control snapshot regression 17/17 PASS; oversize document rejected before content read, invalid UTF-8 and disallowed path fail closed; Git status timeout and output bounded without shell; dry-run waits for actual cutover evidence with document and phase changes zero; cutover preflight WAIT with local blockers zero; syntax 386/386; repository unit 740 PASS 7 skips; harness:verify PASS; GitHub quality 33608849214 unit and three-tier SUCCESS; actual P6 promotion and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-54-BOUNDED-PRODUCTION-INGRESS-CONFIG",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "기존 Production ingress 설정은 exact runtime의 cloudflared.yml physical file만 16KiB·read-after identity/realpath/size·fatal UTF-8로 읽고 과대·redirect·교체·invalid encoding을 설정 일치 증거로 인정하지 않아야 한다.",
+      "evidence": "failure-first 1/1; focused ingress config, provider HTTP and DNS fallback regression 26/26 PASS; oversize config rejected before content read, invalid UTF-8 and disallowed basename fail closed; ingress dry-run READY_WAIT_INGRESS_PUBLICATION_INPUTS and cutover preflight READY_WAIT_CHANGE_WINDOW with external mutation zero and local blockers zero; syntax 387/387; repository unit 744 PASS 7 skips; harness:verify PASS; GitHub quality 33610222240 unit and three-tier SUCCESS; actual tunnel, DNS/TLS, role UAT and signoff NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-55-BOUNDED-CUTOVER-GATE-EVIDENCE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "operations:cutover-gate는 physical JSON object만 4MiB·read-after identity/realpath/size·fatal UTF-8로 읽고 과대·redirect·교체·invalid encoding·array를 전환 승인 증거로 인정하지 않으며 allow-template은 공식 template 한 경로에만 제한해야 한다.",
+      "evidence": "failure-first 4/4; focused cutover input and 12-Gate contract regression 11/11 PASS; oversize evidence rejected before content read, invalid UTF-8 and array root fail closed; operations contracts validates official 1548-byte template with SHA and 12 gates without Production authorization; cutover preflight WAIT with external mutation zero and local blockers zero; syntax 389/389; repository unit 748 PASS 7 skips; harness:verify PASS; GitHub quality 33611621580 unit and three-tier SUCCESS; actual cutover gate, DNS/TLS, role UAT and signoff NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-56-ATOMIC-HARNESS-CONTROL-SNAPSHOT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Goal Harness는 MASTER_ROADMAP.json과 P6_P7_ACCELERATION_QUEUE.json을 각각 한 번만 읽은 동일 physical bounded snapshot으로 판정하고 전체 read 전후 두 파일과 repository identity·realpath·size 안정성을 검증해 혼합 Phase·READY 상태를 허용하지 않아야 한다.",
+      "evidence": "failure-first 1/1; focused harness and atomic pair regression 9/9 PASS; cross-file mutation 2/2 blocked; oversize, invalid UTF-8, array and realpath redirect fail closed; cutover preflight WAIT with external mutation zero and local blockers zero; syntax 390/390; repository unit 749 PASS 7 skips; sequential harness:verify PASS after one parallel duplicate-quality resource collision; GitHub quality 33613155608 unit and three-tier SUCCESS; actual cutover, DNS/TLS, role UAT and signoff NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-57-ATOMIC-HARNESS-RELEASE-EVIDENCE-SNAPSHOT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Goal Harness는 P2_RELEASE_CANDIDATE.json과 P2_REMOTE_EVIDENCE.json을 각각 한 번만 읽은 동일 physical bounded snapshot으로 판정하고 전체 read 전후 repository·harness directory·두 파일 identity·realpath·size 안정성을 검증해 혼합 candidate·CI·release provenance를 허용하지 않아야 한다.",
+      "evidence": "failure-first 5/5; focused harness release provenance regression 6/6 PASS; candidate-to-remote mutation blocked; oversize, invalid UTF-8 and array fail closed; cutover preflight WAIT with external mutation zero and local blockers zero; syntax 392/392; repository unit 754 PASS 7 skips; harness:verify PASS; GitHub quality 33614402592 unit and three-tier SUCCESS; actual cutover, DNS/TLS, role UAT and signoff NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-58-BOUNDED-HARNESS-CANDIDATE-CONTENT-SNAPSHOT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Goal Harness의 release candidate content fallback은 저장소 상대 정규 경로·중복 없음·physical regular file·exact realpath를 강제하고 파일당 8MiB·최대 512개·합계 64MiB를 읽기 전에 검사하며 각 파일을 한 번 읽은 뒤 전체 집합 identity·realpath·size 안정성을 재검증해야 한다.",
+      "evidence": "failure-first 5/5; focused candidate content snapshot regression 5/5 PASS; path escape, duplicate and oversize rejected before content read; cross-file mutation blocked; cutover preflight WAIT with external mutation zero and local blockers zero; syntax 394/394; repository unit 759 PASS 7 skips; harness:verify PASS; GitHub quality 33615976460 unit and three-tier SUCCESS; actual cutover, DNS/TLS, role UAT and signoff NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-59-RECOVERABLE-PHASE-TRANSITION-SNAPSHOT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P6→P7 promotion과 P7→8/8 terminal completion은 동일 atomic control snapshot의 actual raw bytes와 bounded Git·문서 snapshot을 rollback 원본으로 사용해 부분 쓰기 실패에서도 검증된 이전 bytes를 복원해야 한다.",
+      "evidence": "failure-first 2/2; focused phase transition regression 13/13 PASS; phase promotion and terminal completion dry-runs WAIT with changes zero; cutover preflight WAIT with external mutation zero and local blockers zero; syntax 394/394; repository unit 760 PASS 7 skips; harness:verify PASS; GitHub quality 33617836288 unit and three-tier SUCCESS; actual phase transition, DNS/TLS, role UAT and signoff NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-60-REMOTE-COMMIT-CONTENT-ATTESTATION",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "역사적 P2 candidate manifest와 remote candidate commit의 actual blobs를 bounded Git으로 재검증하고 mismatch는 별도 atomic attestation에 기록하되 현재 deployment basis로 승격하지 않아야 한다.",
+      "evidence": "failure-first 5/5; focused remote content attestation regression 8/8 PASS; actual candidate commit 12 files and 66547 bytes verified, 7 historical hashes matched and 5 mismatched, deploymentBasis false; cutover preflight WAIT with external mutation zero and local blockers zero; syntax 396/396; repository unit 763 PASS 7 skips; harness:verify PASS; GitHub quality 33619409081 unit and three-tier SUCCESS; actual cutover, DNS/TLS, role UAT and signoff NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-41-ATOMIC-PRODUCTION-UAT-INPUTS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production UAT 승인·ADMIN·MANAGER·USER credential JSON은 저장소 밖 absolute physical regular file·exact realpath·1 byte~64KiB·read 전후 repository/file identity와 size 안정성·fatal UTF-8·JSON object-only 계약으로 읽고 symlink/reparse·redirect·교체·과대·invalid encoding을 실행 입력으로 인정하지 않는다.",
+      "evidence": "failure-first 7/7; focused UAT input regression 58/58 PASS; syntax 367/367; repository unit 678 PASS 7 skips; fresh Production backup 318811 bytes and isolated restore 33/33 tables 25/25 migrations PASS; harness:verify PASS; GitHub quality 33591475433 unit and three-tier SUCCESS; actual credentials read and Production UAT NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-42-ATOMIC-CLOUDFLARE-TOKEN-INPUT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production Cloudflare DNS rollback token은 저장소 밖 absolute physical Secret file·exact realpath·1 byte~64KiB·read 전후 repository/file identity와 size 안정성·fatal UTF-8 계약으로 읽고, dry-run presence inspection에서는 Secret content를 읽지 않으며 ingress publication과 route-disable이 같은 bounded atomic reader를 사용한다.",
+      "evidence": "failure-first 4/4; focused Cloudflare token and activation input regression 38 PASS 2 Windows skips; syntax 368/368; repository unit 682 PASS 7 skips; ingress dry-run READY_WAIT_INGRESS_PUBLICATION_INPUTS and route-disable dry-run READY_WAIT_ROUTE_DISABLE_INPUTS with token content read zero; harness:verify PASS; GitHub quality 33592297934 unit and three-tier SUCCESS; actual token read and DNS/tunnel/route mutation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-62-CREATE-ONLY-OPERATIONS-EVIDENCE-OUTPUTS",
+      "phase": "P7",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "P7 단일 운영 증거 writer는 physical output directory의 fsync된 임시파일을 hard-link no-replace로 게시하고, 최종 경로 경쟁 선점 시 기존 bytes를 보존하며 임시파일을 남기지 않아야 한다.",
+      "evidence": "shared create-only writer adopted by 16 single-document outputs; race winner bytes preserved; focused 110 PASS 1 Windows skip; syntax 399/399; repository unit 766 PASS 8 skips; operations evidence pipeline 10/10 synthetic documents PASS; activation bundle 21 roots 52 files; harness:verify PASS; GitHub quality 33620934459 unit and three-tier SUCCESS; actual P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-63-BACKUP-RESTORE-PAIR-PUBLICATION-INTEGRITY",
+      "phase": "P7",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "backup·restore 증거쌍은 각 출력을 fsync·hard-link no-replace로 게시하고 두 번째 출력 경쟁 시 기존 최종 파일을 삭제하지 않으며 명시적 1/2 부분 게시로 중단하고, 인수 finalizer는 같은 pairPublicationId·source SHA·owner 참조만 결합해야 한다.",
+      "evidence": "per-output create-only publication; explicit OUTPUT_PAIR_PARTIAL_COMMIT:1_OF_2; own first and competitor second bytes preserved; shared pair provenance and mixed-pair handover rejection; focused 20 PASS 1 Windows skip; syntax 399/399; repository unit 768 PASS 8 skips; operations evidence pipeline 10/10 synthetic documents PASS; activation bundle 21 roots 52 files; harness:verify PASS; GitHub quality 33622260422 unit and three-tier SUCCESS; actual P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-64-ROLE-RESULT-SET-PUBLICATION-INTEGRITY",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "ADMIN·MANAGER·USER actual 역할 결과는 세 출력을 게시 전에 검증하고 출력별 fsync·hard-link no-replace로 게시하며 경쟁 시 기존 최종 파일을 삭제하지 않고 명시적 부분 게시로 중단하고, actual cutover assembler는 동일 run·release·Gate·step·checkedAt에 결합된 resultSetPublicationId만 허용해야 한다.",
+      "evidence": "failure-first 3 reproduced; preflight known later conflict publishes zero; runtime second-output race preserves own and competitor bytes with explicit 1/3 partial commit; shared resultSetPublicationId and mixed-set cutover rejection; focused 14 PASS 1 Windows skip; syntax 399/399; repository unit 771 PASS 8 skips; activation bundle 21 roots 52 files; harness:verify PASS; GitHub quality 33623582143 unit and three-tier SUCCESS; actual role UAT, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-65-CUTOVER-CONTROL-OUTPUT-DURABILITY",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "actual cutover 최종 증거·signoff pause checkpoint·12-Gate step/summary receipt는 기존 저장소 밖 물리 경로 계약을 유지하며 fsync된 임시파일을 hard-link no-replace로 게시하고, 최종 경로 경쟁 시 선점 bytes를 보존하며 임시파일을 제거해야 한다.",
+      "evidence": "failure-first 6 reproduced; three control writers use shared durable create-only publication; three publication races preserve competitor bytes and remove temporary files; focused 22 PASS 2 Windows skips; syntax 399/399; repository unit 774 PASS 8 skips; process runner 12 Gate/14 step/26 receipt rehearsal and signoff resume physical checkpoint rehearsal PASS; activation bundle 21 roots 52 files; harness:verify PASS; GitHub quality 33624966275 unit and three-tier SUCCESS; actual P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-66-PRODUCTION-INGRESS-PUBLICATION-DURABILITY",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production cloudflared config와 tunnel credential은 fsync 뒤 hard-link no-replace로 게시하고, 경쟁 시 기존 최종 bytes를 보존하며 Secret 원문을 읽지 않는다. tunnel create 성공은 후속 credential 파싱·게시 실패 전에도 외부 변경으로 정확히 기록한다.",
+      "evidence": "failure-first 4 reproduced; Windows read-only fsync EPERM 2 reproduced and replaced by r+ flush handle without content read; focused 31 PASS; syntax 400/400; repository unit 779 PASS 8 skips; ingress dry-run READY_WAIT_INPUTS with zero mutation; cutover preflight local blockers 0 and 3 services healthy; harness:verify PASS; GitHub quality 33626411866 unit and three-tier SUCCESS; actual P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-67-PRODUCTION-INGRESS-SINGLE-WRITER-LEASE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "actual ingress publication은 tunnel 생성 전에 create-only 단일 writer lease를 획득하고, 동시 두 번째 실행은 외부 변경 없이 대기하며, 정상·오류 종료는 자기 소유 lease만 해제하고 stale·다른 owner lease를 자동 삭제하지 않아야 한다.",
+      "evidence": "failure-first 3 reproduced; focused ingress 34 PASS; syntax 400/400; repository unit 782 PASS 8 skips; cutover preflight local blockers 0 and 3 services healthy; harness:verify PASS; GitHub quality 33628196250 unit and three-tier SUCCESS; actual P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-68-PRODUCTION-INGRESS-LEASE-RECOVERY",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "stale ingress lease 복구는 dry-run을 기본으로 하고 실제 삭제는 5분 이상 age·owner PID 부재·승인 변경창·exact confirmation과 삭제 직전 물리 identity·owner 재검증을 모두 요구하며 교체된 lease를 삭제하지 않아야 한다.",
+      "evidence": "failure-first 5 reproduced; focused ingress and recovery 14 PASS; syntax 402/402; repository unit 788 PASS 8 skips; recovery dry-run PASS lease absent zero mutation; cutover preflight local blockers 0 and 3 services healthy; harness:verify PASS; GitHub quality 33629524930 unit and three-tier SUCCESS; actual lease recovery, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-69-PRODUCTION-INGRESS-PROCESS-IDENTITY",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "기존 Production cloudflared process는 exact executable path·정확한 --config Windows 인자·단일 PID를 모두 만족할 때만 재사용하고 부분 문자열·실행 파일 불일치·다중 PID·관측 오류에서는 새 process를 시작하지 않아야 한다.",
+      "evidence": "failure-first 5 reproduced; focused ingress 19 PASS; syntax 403/403; repository unit 793 PASS 8 skips; initial GitHub unit failure 33630769277 isolated to Linux host Windows target path semantics and replaced by path.win32 normalization; harness:verify PASS; GitHub quality 33631041611 unit and three-tier SUCCESS; actual process start/stop, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-70-PRODUCTION-INGRESS-PROCESS-SPAWN-ACKNOWLEDGEMENT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production cloudflared process 시작은 exact Windows 경로·인자로 spawn한 뒤 비동기 spawn acknowledgement와 유효 PID를 확인해야만 성공으로 기록하고, 오류·invalid PID·5초 timeout은 원문 없이 fail-closed하며 timeout 또는 invalid PID child를 best-effort 정리해야 한다.",
+      "evidence": "failure-first 5 reproduced; focused process start and identity 10 PASS; syntax 404/404; repository unit 798 PASS 8 skips; ingress dry-run waits with external mutation zero; protected ports and PIDs preserved; harness:verify PASS; GitHub quality 33632375755 unit and three-tier SUCCESS; actual process start/stop, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-71-PRODUCTION-ROUTE-DISABLE-EXACT-DNS-IDENTITY",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production public route rollback은 Cloudflare의 exact 32-hex zone/record ID, zone name·active status, record zone ID·hostname·CNAME·tunnel content·proxied=true를 모두 검증한 selected record만 삭제하고 malformed·복수·불일치 응답에서는 외부 변경 전에 fail-closed해야 한다.",
+      "evidence": "failure-first 6 reproduced; focused route-disable 16 PASS; syntax 405/405; repository unit 804 PASS 8 skips; route-disable dry-run waits with external mutation zero; protected ports and PIDs preserved; harness:verify PASS; GitHub quality 33633647593 unit and three-tier SUCCESS; actual DNS delete, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-72-PRODUCTION-INGRESS-EXACT-DNS-PUBLICATION-IDENTITY",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production public ingress publication은 Cloudflare의 exact 32-hex zone/record ID, zone name·active status, record zone ID·hostname·CNAME·tunnel content·proxied=true·ttl=1을 검증하고 record 부재만 생성을 허용하며 생성 뒤 exact record가 재관측될 때만 성공해야 한다.",
+      "evidence": "failure-first 6 reproduced; focused ingress identity, publication and process 19 PASS; syntax 406/406; repository unit 810 PASS 8 skips; ingress publication dry-run waits with external mutation zero; protected ports and PIDs preserved; harness:verify PASS; GitHub quality 33634889262 unit and three-tier SUCCESS; actual DNS publication, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-73-PRODUCTION-INGRESS-EXACT-TUNNEL-CONNECTION-IDENTITY",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production ingress는 exact tunnel name·UUID·created/deleted 상태와 connection UUID·colo·origin IP·openedAt·pending 형식을 검증하고 단일 exact tunnel의 non-pending connection만 connected로 인정하며 malformed·복수 응답에서는 외부 변경 전에 fail-closed해야 한다.",
+      "evidence": "read-only provider schema observed without values or secrets; failure-first 6 reproduced; focused tunnel/DNS/publication 20 PASS; syntax 407/407; repository unit 816 PASS 8 skips; ingress dry-run waits with external mutation zero; protected ports and PIDs preserved; harness:verify PASS; GitHub quality 33636215007 unit and three-tier SUCCESS; actual tunnel create/connect, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-74-PRODUCTION-INGRESS-SECRET-FREE-TUNNEL-CREATE-ACKNOWLEDGEMENT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production ingress tunnel create는 token을 포함하는 JSON 출력을 요청·파싱하지 않고 Secret 없는 default acknowledgement의 exact name·UUID와 bounded 원격 재관측 UUID가 일치한 뒤에만 credential/config를 게시해야 하며 provider create 직후 mutation 상태는 즉시 기록해야 한다.",
+      "evidence": "installed help and official cloudflared source reviewed read-only; TunnelWithToken JSON token field confirmed; failure-first 5 reproduced; focused create/tunnel/DNS/publication 25 PASS; syntax 408/408; repository unit 821 PASS 8 skips; harness:verify PASS; GitHub quality 33637736026 unit and three-tier SUCCESS; actual tunnel create/connect, credential/config publication, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-75-PRODUCTION-INGRESS-ORPHAN-RECOVERY-PREFLIGHT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production ingress의 exact tunnel, 임시·최종 credential 존재, config, process와 public DNS를 Secret 원문 없이 함께 관측하고 provider 관측 실패는 fail-closed하며 부분 산출물은 실제 삭제 없이 명시적 복구 검토로 차단해야 한다.",
+      "evidence": "failure-first 5 reproduced; focused 5 PASS; actual read-only observation PASS_NO_INGRESS_PARTIAL_STATE with six components absent, external mutation zero and secret content read zero; syntax 410/410; repository unit 826 PASS 8 skips; harness:verify PASS; GitHub quality 33639122565 unit and three-tier SUCCESS; actual recovery execution, tunnel/DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-76-PRODUCTION-INGRESS-ORPHAN-RECOVERY-EXECUTOR",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Production ingress exact orphan만 승인 변경창·exact confirmation·single-writer lease 아래 no-force UUID delete하고 원격 tunnel 부재 뒤 동일 physical identity의 임시 credential을 원문 read 없이 제거해야 하며 복구 confirmation은 변경창 전에 사전 무장되지 않아야 한다.",
+      "evidence": "cloudflared delete help reviewed read-only; failure-first 6 reproduced; unrelated elevated cloudflared metadata issue reproduced and alternate no-target-only nonblocking path applied without permission expansion; focused recovery and change-window 13 PASS; syntax 412/412; repository unit 833 PASS 8 skips; harness:verify PASS; GitHub quality 33641167628 unit and three-tier SUCCESS; actual recovery deletion, tunnel/DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-77-PRODUCTION-CUTOVER-INGRESS-ORPHAN-CONTAINMENT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Cutover ingress publication step 자체가 실패하면 exact public route-disable 뒤 orphan recovery를 조건부 실행하고 두 step의 exact PASS와 evidence가 모두 없으면 격리 완료로 승격하지 않아야 한다.",
+      "evidence": "failure-first 3 reproduced; conditional route-disable then orphan recovery adapter integrated; focused cutover 29 PASS 1 Windows skip; normal success remains 12 Gates and 14 steps; syntax 412/412; repository unit 836 PASS 8 skips; actual orphan preflight PASS_NO_INGRESS_PARTIAL_STATE; harness:verify PASS; GitHub quality 33642846184 unit and three-tier SUCCESS; actual recovery, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-78-PRODUCTION-CUTOVER-STEP-EXCEPTION-CONTAINMENT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Cutover child step 예외는 원문 없이 gate·step identity를 보존해 정규화하고 ingress publication 예외도 route-disable 뒤 orphan recovery를 요구하는 동일 containment 경로로 연결해야 한다.",
+      "evidence": "failure-first 2 reproduced; bounded CUTOVER_GATE_STEP_THROWN gate and step identity added without raw exception; ingress publication throw selects route-disable then orphan recovery; focused 31 PASS 1 Windows skip; normal success remains 12 Gates and 14 steps; syntax 412/412; repository unit 838 PASS 8 skips; harness:verify PASS; GitHub quality 33644261126 completed successfully; actual exception, recovery, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-79-PRODUCTION-CUTOVER-CHILD-ENVIRONMENT-ALLOWLIST",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Cutover 정상 14개와 containment 2개 child는 canonical step별 환경 allowlist와 안전한 OS runtime 변수만 받아야 하며 unrelated Secret, GitHub token, NODE_OPTIONS 및 변조 step은 spawn 전에 차단되어야 한다.",
+      "evidence": "failure-first 3 reproduced; 12 Gate normal 14 steps plus route-disable and ingress orphan recovery exact environment contracts; unrelated Secret, GITHUB_TOKEN and NODE_OPTIONS propagation 0; tampered id/script/args/environment blocked before spawn; focused 20 PASS 1 Windows skip; syntax 412/412; repository unit 840 PASS 8 skips; harness:verify PASS; GitHub quality 33645880344 completed successfully; actual child, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-80-PRODUCTION-CUTOVER-STEP-BUNDLE-PROVENANCE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Cutover 정상 14개와 containment 2개 step의 gate·ID·전이 로컬 source bundle SHA-256을 child 실행 전후, receipt, checkpoint, resume 및 actual evidence 전체에 동일하게 결합하고 source 변경을 fail-closed 차단해야 한다.",
+      "evidence": "failure-first 3 reproduced; 16 step transitive local dependency bundles bound to gate and id; physical bounded repository snapshots and pre/post spawn digest checks; receipt, checkpoint, resume and actual evidence manifest provenance enforced; focused 43 PASS 1 Windows skip; syntax 414/414; repository unit 847 PASS 8 skips; harness:verify PASS; GitHub quality 33648501041 completed successfully; actual child, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-81-PRODUCTION-CUTOVER-CHILD-RESOURCE-BOUNDS",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Cutover child는 bounded timeout과 stdout·stderr 합산 byte 상한을 강제하고 timeout·출력 초과·spawn·signal 실패를 원문 없이 정규화하며 실패 child가 stale PASS summary를 receipt에 남기지 않아야 한다.",
+      "evidence": "failure-first 3 reproduced; default 10 minute timeout with 30 minute hard maximum; combined stdout and stderr default 1 MiB with 4 MiB hard maximum; child termination and close synchronization; four bounded failure statuses; raw output and stale role PASS summary excluded from receipts; focused 51 PASS 1 Windows skip; syntax 414/414; repository unit 851 PASS 8 skips; harness:verify PASS; GitHub quality 33650821145 completed successfully; actual child, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-82-PRODUCTION-CUTOVER-ROLLBACK-DEADLINE-BUDGET",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "정상 cutover child timeout은 rollback cutoff 전 2분 containment reserve를 남긴 실제 시간 예산을 넘지 않아야 하고, 예산 소진 뒤 정상 child는 실행하지 않되 route-disable·ingress orphan recovery는 bounded 실행할 수 있어야 한다.",
+      "evidence": "failure-first 3 reproduced; normal step timeout is minimum of default and rollback cutoff minus current time minus 2 minute reserve; exhausted budget records bounded failure with zero normal child spawn; route-disable and ingress orphan recovery remain executable with bounded profile; initial and signoff resume executors pass the same deadline and clock; focused 30 PASS 1 Windows skip; syntax 414/414; repository unit 855 PASS 8 skips; harness:verify PASS; GitHub quality 33652418703 completed successfully; actual child, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-83-PRODUCTION-CUTOVER-CONTAINMENT-TIME-BUDGET",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "rollback cutoff 전 2분 reserve 안에서 route-disable과 ingress orphan recovery의 child timeout·종료 유예·orchestration 여유가 모두 끝나야 하며 상위 timeout 설정이나 작은 reserve가 containment 예산을 확대 또는 무효화하지 않아야 한다.",
+      "evidence": "failure-first 2 reproduced; default 120 second reserve is partitioned into two 50 second containment child timeouts, two 5 second termination grace intervals and 10 second orchestration margin; caller timeout expansion is capped and undersized reserve rejected; focused 31 PASS 1 Windows skip; syntax 414/414; repository unit 856 PASS 8 skips; cutover preflight local blockers zero; GitHub quality 33653761361 completed successfully; actual containment, DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-84-PRODUCTION-CUTOVER-RECEIPT-ROLLBACK-CUTOFF",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "step·Gate receipt, 역할별 실제 UAT 결과와 업무·보안·운영 서명은 승인 변경창 시작부터 22:00 rollback cutoff 사이에 생성된 경우에만 actual P6 증거와 Production GO 후보가 될 수 있어야 한다.",
+      "evidence": "failure-first 2 reproduced; step and gate receipt, role result and signoff timestamps are now restricted to change-window start through rollback cutoff; post-cutoff otherwise-valid documents fail closed; focused 33 PASS; syntax 414/414; repository unit 858 PASS 8 skips; GitHub quality 33655224048 completed successfully; actual receipt, DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-85-PRODUCTION-CUTOVER-RECEIPT-SEQUENCE-PROVENANCE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "14개 step과 12개 Gate receipt는 runtime JSON payload에 1~26 연속·고유 sequence를 기록하고, actual P6 assembler가 sequence와 정해진 step/Gate identity 순서를 모두 검증해야 한다.",
+      "evidence": "failure-first 2 reproduced; runtime receipt payload now records sequence; actual assembler requires 26 unique continuous receipts in exact step and gate identity order; swapped or duplicated sequence fails closed; focused 51 PASS 1 Windows skip; syntax 414/414; repository unit 859 PASS 8 skips; GitHub quality 33656557105 completed successfully; actual receipt, DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-86-PRODUCTION-CUTOVER-RECEIPT-FILENAME-PAYLOAD-BINDING",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "각 runtime receipt의 물리 파일명은 payload의 canonical UTC checkedAt, 4자리 sequence, kind, Gate와 step으로 재구성한 writer 형식과 정확히 일치해야 하며 rename 변조를 actual P6 증거로 승격하지 않아야 한다.",
+      "evidence": "failure-first 1 reproduced with sequence, checkedAt and kind filename tampering; actual assembler now reconstructs and verifies the canonical runtime receipt filename from payload; focused 29 PASS 1 Windows skip; syntax 414/414; repository unit 860 PASS 8 skips; GitHub quality 33657975871 completed successfully; actual receipt, DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-87-PRODUCTION-CUTOVER-EVIDENCE-CAUSAL-CHRONOLOGY",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "receipt checkedAt은 sequence 순서로 역행하지 않고, 역할 결과 시각은 role-core-smoke receipt와 같으며, 실제 서명은 pre-signoff rollback Gate 이후부터 signoff-preflight receipt 이전에 생성돼야 한다.",
+      "evidence": "failure-first 2 reproduced; receipt timestamps are non-decreasing by sequence; role result checkedAt equals role smoke step receipt; three signoffs are bounded from rollback gate receipt through signoff-preflight step receipt; focused 31 PASS 1 Windows skip; syntax 414/414; repository unit 862 PASS 8 skips; GitHub quality 33659125646 completed successfully; actual receipt, DNS/TLS, role UAT, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-88-PRODUCTION-SIGNOFF-REVIEWED-EVIDENCE-PROVENANCE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "BUSINESS·SECURITY·OPERATIONS 실제 서명은 동일 역할 결과 publication set과 서명 직전 rollback Gate receipt SHA-256을 직접 참조해 같은 run 안의 다른 검토 대상 혼합을 fail-closed해야 한다.",
+      "evidence": "failure-first 1 reproduced; all three signoffs now require exact roleResultSetPublicationId and preSignoffRollbackGateReceiptSha256; focused 41 PASS 1 Windows skip; syntax 414/414; repository unit 863 PASS 8 skips; GitHub quality 33660339797 completed successfully; actual signoff, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-89-PRODUCTION-SIGNOFF-REQUEST-BUNDLE-PREPARATION",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "Gate 1~11 checkpoint와 동일 receipt snapshot 및 ADMIN·MANAGER·USER actual 역할 결과 publication set을 검증해 BUSINESS·SECURITY·OPERATIONS가 서명할 run·release·core/rollback receipt provenance를 고정한 unsigned 요청 3건을 저장소 밖 create-only bundle로 조립해야 한다.",
+      "evidence": "failure-first 4 reproduced; single atomic receipt snapshot and exact three-role result set bound to three unsigned request payloads; signature, identity and message creation zero; focused 28/28 PASS plus single-snapshot regression 14/14 PASS; syntax 417/417; repository unit 868 PASS 8 skips; GitHub quality 33661924708 unit and three-tier SUCCESS; actual bundle, signoff, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-90-PRODUCTION-SIGNOFF-REQUEST-SET-PROVENANCE",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "BUSINESS·SECURITY·OPERATIONS 실제 서명은 run·release·core/rollback receipt·역할 결과 publication set·preparedAt에서 계산한 동일 unsigned request set SHA-256을 포함하고 request 준비 시각은 rollback Gate 이후 각 서명 이전이어야 한다.",
+      "evidence": "failure-first 3 reproduced; deterministic signoffRequestSetId and request preparedAt bound to all three actual signoffs; request time restricted after rollback Gate and before every signoff through rollback cutoff; focused 48 PASS 1 Windows skip; syntax 417/417; repository unit 869 PASS 8 skips; GitHub quality 33663424611 unit and three-tier SUCCESS; actual request, signoff, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-91-PRODUCTION-SIGNOFF-REQUEST-BUNDLE-SHA256-BINDING",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "BUSINESS·SECURITY·OPERATIONS 실제 서명은 사람이 검토한 저장소 밖 물리 unsigned request bundle의 SHA-256을 포함하고 actual assembler가 bundle 전체 계약과 세 unsigned payload를 재검증해야 한다.",
+      "evidence": "failure-first 3 reproduced; physical unsigned request bundle SHA-256 required on all three signoffs and propagated to actual P6 evidence; tampered bundle, mismatched SHA and missing resume reference fail closed; focused 36/36 PASS; syntax 417/417; repository unit 870 PASS 8 skips; Harness verify PASS; GitHub quality 33665080041 unit and three-tier SUCCESS; actual request, signoff, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-92-PRODUCTION-SIGNOFF-MFA-RECEIPT-BINDING",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "BUSINESS·SECURITY·OPERATIONS 실제 서명은 별도 MFA 승인 receipt의 물리 SHA-256과 동일 run·release·request set·request bundle·signer·signedAt에 결속되고 receipt 누락·MFA 미검증·SHA 불일치에서는 Gate 12와 Production GO를 fail-closed해야 한다.",
+      "evidence": "failure-first 3 counterexamples covered; three physical MFA receipt references required before signoff resume; receipt contract and unsigned templates bound to request bundle; focused 46 PASS; syntax 417/417; repository unit 871 PASS 8 skips; Harness verify PASS; GitHub quality 33666946831 unit and three-tier SUCCESS; actual MFA receipt, signoff, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-93-PRODUCTION-SIGNOFF-ACTUAL-DOCUMENT-ASSEMBLER",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "변경창 안에서 생성된 BUSINESS·SECURITY·OPERATIONS MFA 승인 receipt 3건과 검토된 unsigned request bundle을 검증해 receipt SHA-256에 결박된 actual 서명 문서 3건을 저장소 밖 create-only로 함께 조립하며 승인 자체를 생성하지 않아야 한다.",
+      "evidence": "failure-first missing module reproduced; focused 5/5 PASS; syntax 420/420; repository unit 876 PASS 8 skips; Harness verify includes assembler dry-run; dry-run READY_WAIT_APPROVED_CHANGE_WINDOW with input read zero and output write zero; implementation SHA f58a8d20f71eb475d3ce5fd498417acc27674fc5; GitHub quality 33668644886 unit and three-tier SUCCESS; actual MFA approval, signoff, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-94-SIGNOFF-ASSEMBLER-CUTOVER-RESUME-INTEGRATION",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "외부 MFA 승인 receipt 이후 actual signoff 3건 조립, 동일 run Gate 12 재개와 최종 P6 evidence 기록이 한 실행 흐름이며 사전 입력 누락은 무읽기·무쓰기, 부분 출력 또는 조립 실패는 route-disable로 fail-closed한다.",
+      "evidence": "failure-first 4 reproduced; focused 21/21 PASS; syntax 420/420; repository unit 880 PASS 8 skips; Harness verify registers atomic resume dry-run; implementation SHA cb3ce8e28c7b5e33729972fbd647993ceb096699; GitHub quality 33670549078 unit and three-tier SUCCESS; actual MFA approval, signoff, DNS/TLS, P6 cutover and P7 activation NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-64-ACTIVATION-SIGNOFF-LIFECYCLE-PROVENANCE-REHEARSAL",
+      "phase": "P7",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "동일 release SHA와 exact Production target 아래 19단계 운영 활성화 receipt sequence와 운영 인수 10문서 compiler·assembler·finalizer가 종단 호환되며 경계 변조는 fail-closed한다.",
+      "evidence": "failure-first missing module 3/3 reproduced; focused 4/4 PASS and combined regression 10/10 PASS; syntax 423/423; repository unit 885 PASS 8 skips; Harness verify PASS and includes lifecycle rehearsal; implementation SHA 2325b9b67a52e4abb8d2840d8aee84238e9bffb6; GitHub quality 33691770517 unit and three-tier SUCCESS; actual P6 cutover, P7 activation, operations evidence and signoff NOT_RUN"
+    },
+    {
+      "id": "ACC-P6-95-2026-09-03-CHANGE-WINDOW-CONTRACT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "사용자가 승인한 2026-09-03 10:00~13:00 KST 변경창과 12:00 rollback cutoff가 활성 실행기·테스트·Harness·로드맵에 동일하게 고정되고 외부 변경은 변경창 전 fail-closed해야 한다.",
+      "evidence": "UTC 01:00~04:00, cutoff 03:00으로 동기화; focused Production cutover 68 PASS 1 Windows skip; repository unit 885 PASS 8 skips; Harness verify PASS; local blockers 0; actual DNS/TLS, UAT account, MFA and Production GO NOT_RUN"
+    },
+    {
+      "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
+      "phase": "P7",
+      "status": "READY",
+      "authority": "external-input",
+      "acceptance": "P6 완료 후 실제 경보 수신, off-site backup, 복원훈련, 온콜 인수와 운영 책임자 서명이 연결된다.",
+      "preparationEvidence": "operations:activation-signoff-lifecycle-rehearsal => PASS_SYNTHETIC_OPERATIONS_ACTIVATION_SIGNOFF_LIFECYCLE_REHEARSAL; same release SHA and exact Production target bind 19 activation steps to 10 verified handover documents; operations:handover-finalizer remains READY_WAIT_P6_COMPLETION_AND_HANDOVER_EVIDENCE; actual activation and signoff NOT_RUN"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "template": false,
+  "activationState": "candidate",
+  "generatedFrom": {
+    "p6g3": "agent docs/harness/P6_G3_AI_PC_PRODUCTION_DEPLOY_ROLLBACK_EVIDENCE.json",
+    "p6g4Preflight": "agent docs/harness/P6_G4_CUTOVER_PREFLIGHT_EVIDENCE.json",
+    "p5Signoff": "agent docs/harness/P5_G2_STAGING_UAT_SIGNOFF_EVIDENCE.json",
+    "providerPreflight": "agent docs/harness/P6_G4_PROVIDER_PREFLIGHT_EVIDENCE.json"
+  },
+  "generatedAt": "2026-09-03T10:42:59+09:00",
+  "releaseTag": "sha-d91d9c322799d17a323144ee0df80eb8abac2e55",
+  "targetUrl": "https://inventory.safe-link.co.kr",
+  "localGatePassCount": 4,
+  "pendingGateCount": 8,
+  "gates": [
+    {"id":"artifact","status":"PASS","evidence":"P6_G3_AI_PC_PRODUCTION_DEPLOY_ROLLBACK_EVIDENCE.json: immutable candidate SHA and backend/frontend index digests verified"},
+    {"id":"backup_restore","status":"PASS","evidence":"P6_G3_AI_PC_PRODUCTION_DEPLOY_ROLLBACK_EVIDENCE.json: logical backup SHA-256 and isolated restore 33/33 tables, migrations 25/25 verified"},
+    {"id":"migration_review","status":"PASS","evidence":"P6_G3_AI_PC_PRODUCTION_DEPLOY_ROLLBACK_EVIDENCE.json: PostgreSQL application migrations 25/25 and seeds disabled"},
+    {"id":"provider_preflight","status":"PASS","evidence":"P6_G4_PROVIDER_PREFLIGHT_EVIDENCE.json: PostgreSQL storage, Defender/alert, AI health/readiness and event publisher read-only probes verified"},
+    {"id":"health_readiness","status":"PENDING","evidence":""},
+    {"id":"core_smoke","status":"PENDING","evidence":""},
+    {"id":"logs_5xx","status":"PENDING","evidence":""},
+    {"id":"rollback","status":"PENDING","evidence":""},
+    {"id":"csrf_idempotency","status":"PENDING","evidence":""},
+    {"id":"operational_health","status":"PENDING","evidence":""},
+    {"id":"nonfunctional","status":"PENDING","evidence":""},
+    {"id":"uat_signoff","status":"PENDING","evidence":""}
+  ],
+  "pilot": {
+    "openCriticalDefects": null,
+    "openHighDefects": null,
+    "stagingBaseline": "19/19 PASS; Production validation is not run",
+    "roleResults": [
+      {"role":"employee","status":"PENDING","evidence":""},
+      {"role":"manager","status":"PENDING","evidence":""},
+      {"role":"admin","status":"PENDING","evidence":""}
+    ]
+  },
+  "approvals": {
+    "business": {"status":"PENDING","signedBy":"","signedAt":""},
+    "security": {"status":"PENDING","signedBy":"","signedAt":""},
+    "operations": {"status":"PENDING","signedBy":"","signedAt":""}
+  },
+  "productionGo": false
+}

@@ -1,0 +1,76 @@
+{
+  "packet": "ACC-P6-76-PRODUCTION-INGRESS-ORPHAN-RECOVERY-EXECUTOR",
+  "status": "PASS_PRODUCTION_INGRESS_ORPHAN_RECOVERY_EXECUTOR",
+  "scope": {
+    "exactOrphanStateRequired": true,
+    "dryRunDefault": true,
+    "approvedChangeWindowRequired": true,
+    "exactConfirmationRequired": true,
+    "singleWriterLeaseRequired": true,
+    "tunnelUuidReobservationRequired": true,
+    "forceDeleteAllowed": false,
+    "remoteAbsenceRequiredBeforeCredentialRemoval": true,
+    "temporaryCredentialPhysicalIdentityRequired": true,
+    "confirmationPrearmingAllowed": false
+  },
+  "failureFirst": {
+    "reproducedFailureCount": 6,
+    "missingExecutionEvaluator": true,
+    "missingStableCredentialRemoval": true,
+    "missingRecoveryEntrypoint": true
+  },
+  "alternatePath": {
+    "initialIssue": "UNRELATED_CLOUDFLARED_PROCESS_METADATA_UNAVAILABLE",
+    "noRecoveryTargetMayProceedWithoutProcessIdentity": true,
+    "orphanStateStillRequiresCompleteProcessObservation": true,
+    "permissionOrDeletionScopeExpanded": false
+  },
+  "focusedTests": {
+    "total": 13,
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0
+  },
+  "repositoryChecks": {
+    "syntaxPassed": 412,
+    "unitTotal": 841,
+    "unitPassed": 833,
+    "unitFailed": 0,
+    "unitSkipped": 8
+  },
+  "implementationCommits": [
+    "1fae6b583b6d4c0d7afc4e316d4eef5b7be42963",
+    "99970af78f6e0706ad3313dc8cd93473a5632413"
+  ],
+  "qualityCi": {
+    "runId": 33641167628,
+    "testedHeadSha": "99970af78f6e0706ad3313dc8cd93473a5632413",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "actualDryRun": {
+    "status": "PASS_NO_INGRESS_RECOVERY_TARGET_PROCESS_UNOBSERVED",
+    "tunnelPresent": false,
+    "temporaryCredentialPresent": false,
+    "recoveryRequired": false,
+    "processObservationComplete": false
+  },
+  "protectedServices": [
+    { "port": 1234, "pid": 6632, "preserved": true },
+    { "port": 11434, "pid": 8588, "preserved": true },
+    { "port": 18765, "pid": 22716, "preserved": true },
+    { "port": 18766, "pid": 65724, "preserved": true }
+  ],
+  "harnessVerify": { "status": "PASS", "exitCode": 0 },
+  "actualRecoveryExecution": "NOT_RUN",
+  "actualTunnelDeletion": "NOT_RUN",
+  "actualCredentialDeletion": "NOT_RUN",
+  "actualP6Cutover": "NOT_RUN",
+  "actualP7Activation": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

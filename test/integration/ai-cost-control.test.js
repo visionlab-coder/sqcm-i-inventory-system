@@ -72,13 +72,27 @@ test('cost command center and AI read contracts are org-scoped and operational',
   const search = await searchResponse.json();
   assert.ok(Array.isArray(search.results));
 
-  const ocrResponse = await fetch(`${baseUrl}/api/enterprise/ai/ocr`, {
+  const invalidOcrResponse = await fetch(`${baseUrl}/api/enterprise/ai/ocr`, {
     method: 'POST',
     headers: { ...headers, 'content-type': 'application/json', 'x-csrf-token': session.csrfToken },
     body: JSON.stringify({ organizationId })
   });
-  assert.equal(ocrResponse.status, 501);
-  assert.equal((await ocrResponse.json()).extraction.status, 'NOT_CONFIGURED');
+  assert.equal(invalidOcrResponse.status, 400);
+
+  const ocrResponse = await fetch(`${baseUrl}/api/enterprise/ai/ocr`, {
+    method: 'POST',
+    headers: { ...headers, 'content-type': 'application/json', 'x-csrf-token': session.csrfToken },
+    body: JSON.stringify({ organizationId, text: '품목명: 안전모\n수량: 3' })
+  });
+  const ocr = await ocrResponse.json();
+  if (ocrResponse.status === 200) {
+    assert.equal(ocr.extraction.status, 'COMPLETED');
+    assert.ok(ocr.extraction.fields && typeof ocr.extraction.fields === 'object');
+    assert.ok(ocr.extraction.confidence && typeof ocr.extraction.confidence === 'object');
+  } else {
+    assert.equal(ocrResponse.status, 501);
+    assert.equal(ocr.extraction.status, 'NOT_CONFIGURED');
+  }
 });
 
 test('department-scoped cost reads execute with scoped events and hide org budgets', { skip: !databaseUrl }, async () => {

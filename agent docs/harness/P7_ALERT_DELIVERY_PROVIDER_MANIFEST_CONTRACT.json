@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "environment": "production",
+  "activationState": "actual",
+  "approved": false,
+  "apiContract": "SQCM_I_ALERT_TEST_V1",
+  "providerRef": null,
+  "channelRef": null,
+  "recipientRef": null,
+  "ownerRef": null,
+  "deliveryRunId": null,
+  "endpoint": null,
+  "maxDeliverySeconds": 300
+}

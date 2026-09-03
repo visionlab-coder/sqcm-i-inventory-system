@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "environment": "production",
+  "activationState": "actual",
+  "approved": false,
+  "apiContract": "SQCM_I_ONCALL_DRILL_V1",
+  "providerRef": null,
+  "channelRef": null,
+  "drillId": null,
+  "endpoint": null,
+  "primaryMaxAckSeconds": 300,
+  "escalationMaxAckSeconds": 900,
+  "schedule": {
+    "scheduleRef": null,
+    "timezone": "Asia/Seoul",
+    "continuousCoverage": false,
+    "effectiveFrom": null,
+    "effectiveUntil": null,
+    "primaryOwnerRef": null,
+    "escalationOwnerRef": null,
+    "primaryAcceptedAt": null,
+    "escalationAcceptedAt": null
+  }
+}

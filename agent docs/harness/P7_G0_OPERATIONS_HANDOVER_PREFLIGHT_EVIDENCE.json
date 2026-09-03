@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-09-03T02:51:10.000Z",
+  "status": "PASS_P7_G0_OPERATIONS_HANDOVER_PREFLIGHT",
+  "environment": "production",
+  "targetUrl": "https://inventory.safe-link.co.kr",
+  "p6Cutover": {
+    "runId": "c0901830-e0f4-45ac-b0c7-6eddf6318480",
+    "releaseSha": "d91d9c322799d17a323144ee0df80eb8abac2e55",
+    "actualEvidenceSha256": "2cbae48fd8ed1c61ac43632c60ad9a699c7b52b982cd4a0922fe51dcfbe4c3c1",
+    "productionGo": true
+  },
+  "actualEvidence": {
+    "slo": {
+      "status": "IN_PROGRESS_1_OF_30_UTC_DAYS",
+      "sha256": "2620db8069c810e1b9c4bb6f3f3485a5db83728883629377db233abaf0e4635f"
+    },
+    "certificate": {
+      "status": "PASS",
+      "sha256": "f964760d5c743f19ee0361a1250281cfee2ba654217282bb87d726e6b29d53bf"
+    },
+    "maintenance": {
+      "status": "PASS",
+      "sha256": "c66cd714fac881e778f911ce763a17869fda632aa00728ff84c7c57e0b5beb90"
+    }
+  },
+  "pendingActualInputs": [
+    "SLO_29_MORE_DISTINCT_UTC_DAYS",
+    "ALERT_PROVIDER_CHANNEL_RECIPIENT_AND_DELIVERY_RECEIPTS",
+    "OFFSITE_BACKUP_FAILURE_DOMAIN_AND_RESTORE_DRILL",
+    "PRIMARY_AND_ESCALATION_ONCALL_ACK_RECEIPTS",
+    "GITHUB_OPERATIONS_TRIAGE_ATTESTATION",
+    "OPERATIONS_OWNER_FINAL_MFA_SIGNOFF"
+  ],
+  "contractErrorCount": 0,
+  "secretValuesReadOrRecorded": false,
+  "changesToProtectedServices": false,
+  "productionGo": true,
+  "nextReady": "P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

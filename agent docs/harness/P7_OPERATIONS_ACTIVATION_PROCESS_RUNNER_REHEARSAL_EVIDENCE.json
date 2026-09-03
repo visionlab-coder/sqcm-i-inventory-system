@@ -1,0 +1,52 @@
+{
+  "packet": "ACC-P7-39-OPERATIONS-ACTIVATION-PROCESS-RUNNER-SYNTHETIC-REHEARSAL",
+  "status": "PASS_SYNTHETIC_OPERATIONS_ACTIVATION_PROCESS_RUNNER_REHEARSAL",
+  "activationBundleSha256": "f4b615ff493f0768dc520a46e02bb62026e85997c69065ecc100a8b29a688c1a",
+  "activationStepCount": 19,
+  "childProcessCount": 19,
+  "activationReceiptCount": 19,
+  "sequenceComplete": true,
+  "finalSelectionStatus": "PASS_OPERATIONS_ACTIVATION_SEQUENCE_COMPLETE",
+  "physicalDocumentCount": 36,
+  "unexpectedEnvironmentPropagationCount": 0,
+  "negativeScenarioCount": 4,
+  "negativeScenarioPassCount": 4,
+  "alternateProfileScenarioCount": 2,
+  "alternateProfilePassCount": 2,
+  "secretValueOccurrenceCount": 0,
+  "temporaryArtifactsRetained": false,
+  "focusedTests": {
+    "newFailureFirstExpectedFailures": 3,
+    "combinedTotal": 31,
+    "combinedPassed": 31,
+    "combinedFailed": 0
+  },
+  "syntaxChecks": {
+    "passed": 309,
+    "failed": 0
+  },
+  "unitTests": {
+    "total": 490,
+    "passed": 489,
+    "failed": 0,
+    "skipped": 1
+  },
+  "qualityCi": {
+    "initialRunId": 33552444170,
+    "initialResult": "FAIL_CI_HOST_PORT_55432_ALREADY_IN_USE",
+    "remediation": "PER_RUN_DYNAMIC_LOOPBACK_PORTS",
+    "fixedHostPortsRemaining": 0,
+    "localContractResult": "PASS",
+    "testedHeadSha": "97cfe17748292f2d8d976a0e6514ab8061c0bd02",
+    "finalRunId": 33553113399,
+    "finalResult": "SUCCESS_UNIT_AND_THREE_TIER_INTEGRATION"
+  },
+  "syntheticOnly": true,
+  "actualActivationExecuted": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

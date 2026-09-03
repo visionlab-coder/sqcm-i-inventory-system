@@ -1,0 +1,15 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const mod = import('../../src/operations/production-change-window-input-readiness.mjs');
+
+function valid() {
+  const actors = ['ADMIN', 'MANAGER', 'USER'].map((role, index) => ({ role, email: `${role.toLowerCase()}${index}@example.test`, approved: true }));
+  const credentials = Object.fromEntries(actors.map((actor) => [actor.role, { email: actor.email, password: 'StrongPass!234', totpSecret: 'JBSWY3DPEHPK3PXP' }]));
+  return { projectRoot: 'D:/repo', physicalReferences: Object.fromEntries(['CLOUDFLARE_PRODUCTION_DNS_API_TOKEN_FILE','PRODUCTION_UAT_ACTOR_APPROVAL_FILE','PRODUCTION_UAT_ADMIN_CREDENTIAL_FILE','PRODUCTION_UAT_MANAGER_CREDENTIAL_FILE','PRODUCTION_UAT_USER_CREDENTIAL_FILE'].map((name) => [name, true])), approval: { schemaVersion: 1, environment: 'production', organizationCode: 'SEOWON', approvalId: 'P6UAT-20260911', approvedAt: '2026-09-01T10:00:00Z', actors }, credentials, outputTarget: { path: 'D:/runtime/evidence/actual.json', exists: false, parentPhysical: true }, runtimePhysical: true, cloudflaredPresent: true, originCertificatePresent: true, armedConfirmations: [] };
+}
+
+test('필수 물리 참조와 승인 계약이 모두 맞으면 미무장 준비 PASS다', async () => { const { evaluateChangeWindowInputReadiness } = await mod; const r = evaluateChangeWindowInputReadiness(valid()); assert.equal(r.status, 'PASS_CHANGE_WINDOW_INPUTS_READY_UNARMED'); assert.equal(r.readyReferenceCount, 5); assert.equal(r.safeToEnterChangeWindow, true); });
+test('누락 참조는 실패가 아닌 입력 대기로 정확히 분리한다', async () => { const { evaluateChangeWindowInputReadiness } = await mod; const i = valid(); i.physicalReferences.PRODUCTION_UAT_USER_CREDENTIAL_FILE = false; const r = evaluateChangeWindowInputReadiness(i); assert.equal(r.status, 'READY_WAIT_CHANGE_WINDOW_INPUT_REFERENCES'); assert.match(r.pending.join(','), /USER_CREDENTIAL/); });
+test('변경창 밖 사전 확인값 무장은 fail-closed 한다', async () => { const { evaluateChangeWindowInputReadiness } = await mod; const i = valid(); i.armedConfirmations = ['PRODUCTION_CUTOVER_CONFIRMATION']; const r = evaluateChangeWindowInputReadiness(i); assert.equal(r.status, 'BLOCKED_CHANGE_WINDOW_INPUT_CONTRACT'); assert.match(r.failures.join(','), /PREARMED/); });
+test('승인 이메일 불일치와 중복을 거부한다', async () => { const { evaluateChangeWindowInputReadiness } = await mod; const i = valid(); i.credentials.USER.email = i.credentials.ADMIN.email; const r = evaluateChangeWindowInputReadiness(i); assert.equal(r.status, 'BLOCKED_CHANGE_WINDOW_INPUT_CONTRACT'); assert.match(r.failures.join(','), /NOT_UNIQUE|NOT_APPROVED/); });
+test('실제 증거 출력은 저장소 밖의 비어 있는 물리 parent만 허용한다', async () => { const { evaluateChangeWindowInputReadiness } = await mod; const i = valid(); i.outputTarget = { path: 'D:/repo/evidence.json', exists: true, parentPhysical: false }; const r = evaluateChangeWindowInputReadiness(i); assert.equal(r.status, 'BLOCKED_CHANGE_WINDOW_INPUT_CONTRACT'); assert.match(r.failures.join(','), /MUST_BE_EXTERNAL|ALREADY_EXISTS|PARENT_NOT_PHYSICAL/); });

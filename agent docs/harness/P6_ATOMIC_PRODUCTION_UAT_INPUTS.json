@@ -1,0 +1,70 @@
+{
+  "packet": "ACC-P6-41-ATOMIC-PRODUCTION-UAT-INPUTS",
+  "status": "PASS_ATOMIC_PRODUCTION_UAT_INPUTS",
+  "failureFirst": { "expectedFailures": 7, "observedFailures": 7 },
+  "focusedTests": { "total": 58, "passed": 58, "failed": 0, "skipped": 0 },
+  "syntaxChecks": { "passed": 367, "failed": 0 },
+  "unitTests": { "total": 685, "passed": 678, "failed": 0, "skipped": 7 },
+  "inputContract": {
+    "maximumBytes": 65536,
+    "absoluteExternalJsonRequired": true,
+    "physicalRegularFileRequired": true,
+    "repositoryIdentityRechecked": true,
+    "repositoryRealpathRechecked": true,
+    "candidateIdentityRechecked": true,
+    "candidateRealpathRechecked": true,
+    "candidateSizeRechecked": true,
+    "sameSizeReplacementRejected": true,
+    "sizeMutationRejected": true,
+    "fatalUtf8Required": true,
+    "jsonObjectRequired": true,
+    "rawPathAndContentRedactedFromErrors": true
+  },
+  "backupRemediation": {
+    "initialFailure": "backup age exceeded 1440 minutes",
+    "policyRelaxed": false,
+    "freshBackupBytes": 318811,
+    "restoreVerified": true,
+    "requiredTables": 33,
+    "migrations": 25,
+    "sourceAndRestoredCountsMatched": true,
+    "temporaryRestoreDatabaseRemoved": true
+  },
+  "readOnlyVerification": {
+    "changeWindowInputReadiness": "READY_WAIT_CHANGE_WINDOW_INPUT_REFERENCES",
+    "uatActorProvision": "READY_WAIT_UAT_ACTOR_PROVISION_INPUTS",
+    "rolePreflight": "READY_WAIT_ROLE_USERS_MFA_AND_CREDENTIAL_REFERENCES",
+    "roleCoreSmoke": "READY_WAIT_ROLE_CREDENTIAL_REFERENCES",
+    "authenticatedIdempotency": "READY_WAIT_ADMIN_CREDENTIAL_AND_WRITE_CONFIRMATION",
+    "actualCredentialRead": "NOT_RUN",
+    "actualProductionUat": "NOT_RUN",
+    "productionGo": false
+  },
+  "implementationCommit": "910387a94b0902474538742ad1954011779cbadf",
+  "qualityCi": {
+    "runId": 33591475433,
+    "testedHeadSha": "910387a94b0902474538742ad1954011779cbadf",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "protectedServices": [
+    { "port": 1234, "pid": 6632, "preserved": true },
+    { "port": 11434, "pid": 8588, "preserved": true },
+    { "port": 18765, "pid": 22716, "preserved": true },
+    { "port": 18766, "pid": 65724, "preserved": true }
+  ],
+  "productionCompose": {
+    "services": ["frontend", "backend", "database"],
+    "healthyServiceCount": 3,
+    "frontendBinding": "127.0.0.1:3300",
+    "backendHostPortCount": 0,
+    "databaseHostPortCount": 0
+  },
+  "harnessVerify": { "exitCode": 0, "status": "PASS" },
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

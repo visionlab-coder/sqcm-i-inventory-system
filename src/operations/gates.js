@@ -81,8 +81,18 @@ function validateOperationsManifest(manifest) {
   if (!isSecretReference(backup.storageRef)) failures.push('backup.storageRef must be a Secret/Vault reference');
   if (!positiveInteger(backup.rpoMinutes)) failures.push('backup.rpoMinutes must be a positive integer');
   if (!positiveInteger(backup.rtoMinutes)) failures.push('backup.rtoMinutes must be a positive integer');
-  if (backup.pitrEnabled !== true) failures.push('backup.pitrEnabled must be true');
-  if (!isSecretReference(backup.walArchiveRef)) failures.push('backup.walArchiveRef must be a Secret/Vault reference');
+  const backupMode = backup.mode || (backup.pitrEnabled === true ? 'pitr' : null);
+  if (!['pitr', 'logical'].includes(backupMode)) failures.push('backup.mode must be pitr or logical');
+  if (backupMode === 'pitr') {
+    if (backup.pitrEnabled !== true) failures.push('PITR backup requires pitrEnabled=true');
+    if (!isSecretReference(backup.walArchiveRef)) failures.push('PITR backup requires walArchiveRef Secret/Vault reference');
+  }
+  if (backupMode === 'logical') {
+    if (backup.pitrEnabled !== false) failures.push('Logical backup requires pitrEnabled=false');
+    if (!positiveInteger(backup.retentionDays)) failures.push('Logical backup retentionDays must be a positive integer');
+    if (typeof backup.schedule !== 'string' || backup.schedule.trim().length < 5) failures.push('Logical backup schedule is required');
+    if (typeof backup.restoreEvidence !== 'string' || backup.restoreEvidence.trim().length < 3) failures.push('Logical backup restoreEvidence is required');
+  }
 
   for (const name of REQUIRED_SECRET_REFS) {
     if (!isSecretReference(manifest.secretRefs?.[name])) failures.push(`secretRefs.${name} must be a Secret/Vault reference`);
@@ -96,6 +106,8 @@ function validateOperationsManifest(manifest) {
       publicBaseUrl: manifest.publicBaseUrl || null,
       providers: ['oidc', 'storage', 'malwareScanner', 'eventPublisher', 'alerting', 'ai'],
       secretReferenceCount: Object.keys(manifest.secretRefs || {}).length,
+      activationState: manifest.activationState || null,
+      backupMode,
       template: manifest.template === true
     }
   };

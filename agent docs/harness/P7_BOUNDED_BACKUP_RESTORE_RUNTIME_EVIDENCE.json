@@ -1,0 +1,48 @@
+{
+  "packet": "ACC-P7-49-BOUNDED-BACKUP-RESTORE-RUNTIME",
+  "status": "PASS_BOUNDED_BACKUP_RESTORE_RUNTIME",
+  "failureFirst": { "expectedFailures": 5, "observedFailures": 5 },
+  "focusedTests": { "total": 11, "passed": 11, "failed": 0, "skipped": 0 },
+  "syntaxChecks": { "passed": 351, "failed": 0 },
+  "unitTests": { "total": 622, "passed": 616, "failed": 0, "skipped": 6 },
+  "runtimeContract": {
+    "containerDiscoveryTimeoutMs": 10000,
+    "metadataCommandTimeoutMs": 60000,
+    "snapshotTransactionTimeoutMs": 3600000,
+    "pgDumpTimeoutMs": 1800000,
+    "pgRestoreTimeoutMs": 3600000,
+    "stderrMaximumBytes": 65536,
+    "captureMaximumBytes": 4194304,
+    "shell": false,
+    "windowsHidden": true,
+    "streamingDumpAndRestore": true,
+    "rawProcessErrorsRedacted": true,
+    "timeoutAndOutputLimitKillChild": true
+  },
+  "readOnlyRun": {
+    "status": "READY_WAIT_P6_ACTUAL_CUTOVER",
+    "productionReadPerformed": false,
+    "offsiteWritePerformed": false,
+    "isolatedDatabaseMutationPerformed": false,
+    "exportCreated": false,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "implementationCommit": "fc26a14121436d3a4a4cc55343c49bf792d0a1bf",
+  "qualityCi": {
+    "runId": 33580854494,
+    "testedHeadSha": "fc26a14121436d3a4a4cc55343c49bf792d0a1bf",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "harnessVerify": { "exitCode": 0, "status": "PASS" },
+  "actualBackupRestoreExecutionPerformed": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

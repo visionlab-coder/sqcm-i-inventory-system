@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "packetId": "ACC-P7-27-PRODUCTION-OPERATIONS-ACTIVATION-APPROVAL-RELEASE-PROVENANCE-BINDING",
+  "status": "EVIDENCE_COMPLETE",
+  "authority": "local-autonomous",
+  "actualOperationsActivation": "NOT_RUN",
+  "productionGo": false,
+  "verification": {
+    "failureFirst": "2 EXPECTED FAIL before implementation",
+    "focusedTests": "16/16 PASS",
+    "syntaxChecks": "282/282 PASS",
+    "unitTests": "445 PASS, 1 Windows-only SKIP, 0 FAIL (446 total)",
+    "harnessVerify": "PASS",
+    "dryRunStatus": "READY_WAIT_P6_ACTUAL_CUTOVER",
+    "approvalDocumentReadCount": 0,
+    "receiptRootClaimCreated": false,
+    "leaseAcquired": false,
+    "childProcessCount": 0,
+    "receiptCreated": false,
+    "externalMutationPerformed": false
+  },
+  "contracts": [
+    "canonical approval digest is stable across JSON key order",
+    "approval content changes produce a different SHA-256",
+    "schema 2 root claim binds runId SHA-256 release SHA and approval SHA-256",
+    "schema 2 lease binds the same approval and release provenance",
+    "every schema 2 receipt binds the current approval and release provenance",
+    "same runId cannot reuse receipts after approval or release change",
+    "P6 and P7 activation gates remain unchanged"
+  ],
+  "nextReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF"
+}

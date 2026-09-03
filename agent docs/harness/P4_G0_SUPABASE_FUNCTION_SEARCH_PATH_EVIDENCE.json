@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "workId": "P4-G0-SUPABASE-FUNCTION-SEARCH-PATH-HARDENING",
+  "evidenceId": "P4-G0-SUPABASE-FUNCTION-SEARCH-PATH-20260829",
+  "status": "PASS_REMOTE_APPLY_SECURITY_WARN_ZERO",
+  "migration": "024_function_search_path_hardening.sql",
+  "functions": [
+    "public.default_organization_id()",
+    "public.set_audit_organization()",
+    "public.ensure_asset_financial_profile()"
+  ],
+  "configuration": "search_path=pg_catalog, public",
+  "verification": {
+    "focusedUnit": "PASS_7_OF_7",
+    "postgres17Migration": "PASS_24_OF_24",
+    "functionConfig": "PASS_3_OF_3",
+    "ownerBusinessRoundTrip": "PASS_1_OF_1",
+    "securityDefinerAdded": false,
+    "grantAdded": false,
+    "temporaryContainerRemoved": true
+  },
+  "remote": {
+    "projectId": "iuoljosldyymkburagwj",
+    "migrationHistory": "PASS_24_OF_24",
+    "functionConfig": "PASS_3_OF_3",
+    "dataApiRoleAccess": "PASS_ZERO",
+    "securityAdvisor": "INFO_52_WARN_0_ERROR_0"
+  },
+  "remoteWritesPerformed": true,
+  "nextReady": "P4-G0-SUPABASE-MIGRATION-HISTORY-ADAPTER",
+  "productionGo": false
+}

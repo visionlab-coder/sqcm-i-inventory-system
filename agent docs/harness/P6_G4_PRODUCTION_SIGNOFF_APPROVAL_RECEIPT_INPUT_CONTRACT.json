@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "template": true,
+  "evidenceType": "P6_CUTOVER_SIGNOFF_APPROVAL_RECEIPT_ACTUAL",
+  "environment": "production",
+  "activationState": "actual",
+  "targetUrl": "https://inventory.safe-link.co.kr",
+  "releaseTag": null,
+  "runId": null,
+  "area": null,
+  "decision": "NOT_RUN",
+  "signedByRef": null,
+  "signedAt": null,
+  "receiptId": null,
+  "authentication": {
+    "method": "MFA",
+    "providerRef": null,
+    "verified": false
+  },
+  "signoffRequestSetId": null,
+  "signoffRequestBundleSha256": null
+}

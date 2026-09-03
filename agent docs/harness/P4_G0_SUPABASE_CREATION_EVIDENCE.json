@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "workId": "P4-G0-DEDICATED-SUPABASE-PROJECT-ORG-COST-AND-CREATION-CONFIRMATION",
+  "evidenceId": "P4-G0-DEDICATED-SUPABASE-CREATION-20260829",
+  "checkedAt": "2026-08-29T15:29:43.4110320+09:00",
+  "status": "PASS_DEDICATED_SUPABASE_PROJECT_CREATED_AND_EMPTY",
+  "phaseProgress": "4 / 8",
+  "organization": {
+    "id": "ycuakonkjyhvyfljnfoc",
+    "name": "sqcm-i-inventory",
+    "plan": "free",
+    "trustBoundary": "DEDICATED_INVENTORY_ORGANIZATION"
+  },
+  "project": {
+    "id": "iuoljosldyymkburagwj",
+    "name": "visionlab-coder's Project",
+    "status": "ACTIVE_HEALTHY",
+    "region": "ap-southeast-1",
+    "regionLabel": "Singapore",
+    "postgresVersion": "17.6.1.166",
+    "postgresEngine": "17",
+    "createdAt": "2026-08-29T04:54:27.691122Z",
+    "publicTableCount": 0,
+    "migrationCount": 0,
+    "securityAdvisorCount": 0,
+    "performanceAdvisorCount": 0,
+    "baselineDecision": "PASS_FRESH_EMPTY_PROJECT"
+  },
+  "providerListingObservation": {
+    "listOrganizationsIncludedNewOrganization": false,
+    "listProjectsIncludedNewProject": false,
+    "directProjectAndOrganizationLookupSucceeded": true,
+    "interpretation": "Connector list scope was stale after creation; direct resource lookup is authoritative for this evidence."
+  },
+  "externalChangeAttribution": {
+    "performedByUser": [
+      "created organization sqcm-i-inventory",
+      "created project iuoljosldyymkburagwj"
+    ],
+    "performedByAgentInThisVerification": [],
+    "costObserved": "FREE_PLAN_ORGANIZATION",
+    "paymentDataHandled": false
+  },
+  "runtimeState": {
+    "originalInventoryServicesHealthy": 3,
+    "syntheticStagingServicesHealthy": 3,
+    "protectedListeners": [
+      {"port": 1234, "pid": 6632, "preserved": true},
+      {"port": 11434, "pid": 8588, "preserved": true},
+      {"port": 18765, "pid": 22716, "preserved": true},
+      {"port": 18766, "pid": 65400, "preserved": true},
+      {"port": 18767, "pid": 28532, "preserved": true}
+    ]
+  },
+  "completedChecklist": [
+    "dedicated-organization-free-plan-confirmed",
+    "dedicated-project-active-healthy-confirmed",
+    "postgres-17-confirmed",
+    "public-schema-empty-confirmed",
+    "migration-history-empty-confirmed",
+    "security-advisor-zero-confirmed",
+    "performance-advisor-zero-confirmed",
+    "safe-link-project-unchanged",
+    "secret-values-not-read-or-recorded",
+    "protected-runtime-preserved"
+  ],
+  "remainingGates": [
+    "FORWARD_ONLY_MIGRATION_REVIEW_AND_APPROVAL",
+    "DATABASE_AND_API_SECRET_REFERENCES",
+    "STORAGE_BUCKET_AND_RLS_POLICY",
+    "OIDC_CLIENT_SIGNING_AND_AUTHORIZATION_UI",
+    "EVENT_PUBLISHER",
+    "PITR_RPO_RTO_AND_COST",
+    "PUBLIC_DNS_AND_STAGING_DEPLOYMENT"
+  ],
+  "nextReady": "P4-G0-SUPABASE-MIGRATION-AND-PROVIDER-CONTRACT-PREFLIGHT",
+  "productionGo": false
+}

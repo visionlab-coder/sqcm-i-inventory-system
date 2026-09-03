@@ -1,0 +1,66 @@
+{
+  "packet": "ACC-P6-71-PRODUCTION-ROUTE-DISABLE-EXACT-DNS-IDENTITY",
+  "status": "PASS_PRODUCTION_ROUTE_DISABLE_EXACT_DNS_IDENTITY",
+  "scope": {
+    "exactZoneIdRequired": true,
+    "exactZoneNameRequired": true,
+    "activeZoneRequired": true,
+    "exactRecordIdRequired": true,
+    "exactRecordZoneIdRequired": true,
+    "exactHostnameRequired": true,
+    "exactCnameRequired": true,
+    "exactTunnelContentRequired": true,
+    "proxiedRequired": true,
+    "directProviderRecordIdDeletionAllowed": false
+  },
+  "failureFirst": {
+    "reproducedFailureCount": 6,
+    "missingZoneSelector": true,
+    "missingRecordSelector": true,
+    "directUnverifiedRecordIdDeletion": true
+  },
+  "focusedTests": {
+    "total": 16,
+    "passed": 16,
+    "failed": 0,
+    "skipped": 0
+  },
+  "repositoryChecks": {
+    "syntaxPassed": 405,
+    "unitTotal": 812,
+    "unitPassed": 804,
+    "unitFailed": 0,
+    "unitSkipped": 8
+  },
+  "implementationCommit": "9beb30f61820dd26e8c7906538e23183d8115be5",
+  "qualityCi": {
+    "runId": 33633647593,
+    "testedHeadSha": "9beb30f61820dd26e8c7906538e23183d8115be5",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "routeDisableDryRun": {
+    "status": "READY_WAIT_ROUTE_DISABLE_INPUTS",
+    "externalMutationPerformed": false,
+    "actualPostCutoverRollback": "NOT_RUN"
+  },
+  "protectedServices": [
+    { "port": 1234, "pid": 6632, "preserved": true },
+    { "port": 11434, "pid": 8588, "preserved": true },
+    { "port": 18765, "pid": 22716, "preserved": true },
+    { "port": 18766, "pid": 65724, "preserved": true }
+  ],
+  "harnessVerify": {
+    "status": "PASS",
+    "exitCode": 0
+  },
+  "actualDnsRecordDelete": "NOT_RUN",
+  "actualP6Cutover": "NOT_RUN",
+  "actualP7Activation": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

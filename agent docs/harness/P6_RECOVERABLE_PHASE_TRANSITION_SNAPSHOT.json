@@ -1,0 +1,48 @@
+{
+  "packet": "ACC-P6-59-RECOVERABLE-PHASE-TRANSITION-SNAPSHOT",
+  "status": "PASS_RECOVERABLE_PHASE_TRANSITION_SNAPSHOT",
+  "failureFirst": { "expectedFailures": 2, "observedFailures": 2 },
+  "focusedTests": { "total": 13, "passed": 13, "failed": 0, "skipped": 0 },
+  "controlSnapshotContract": {
+    "singleAtomicPhysicalPairSnapshot": true,
+    "rawRollbackBytesReturned": true,
+    "rollbackBytesCopied": true
+  },
+  "terminalCompletionContract": {
+    "gitTimeoutMilliseconds": 10000,
+    "gitMaximumOutputBytes": 1048576,
+    "gitShellEnabled": false,
+    "documentMaximumBytes": 1048576,
+    "physicalExactPathRequired": true,
+    "fatalUtf8Required": true,
+    "readAfterStabilityRequired": true,
+    "rollbackOriginalsFromValidatedSnapshotBytes": true
+  },
+  "dryRuns": {
+    "phasePromotion": "READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_FOR_PHASE_PROMOTION",
+    "phaseCompletion": "READY_WAIT_ACTUAL_HANDOVER_EVIDENCE_FOR_8_OF_8",
+    "changesMade": false
+  },
+  "cutoverPreflight": {
+    "status": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockerCount": 0,
+    "protectedServicesPreserved": true,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "syntaxChecks": { "passed": 394, "failed": 0 },
+  "unitTests": { "total": 767, "passed": 760, "failed": 0, "skipped": 7 },
+  "harnessVerify": "PASS",
+  "implementationCommit": "57b77c2",
+  "qualityCi": {
+    "runId": 33617836288,
+    "testedHeadSha": "57b77c2",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "secretValuesReadOrRecorded": false,
+  "externalMutationPerformed": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

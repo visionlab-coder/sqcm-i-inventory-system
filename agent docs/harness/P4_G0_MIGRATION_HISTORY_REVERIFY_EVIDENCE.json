@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "workId": "P4-G0-SUPABASE-MIGRATION-HISTORY-ADAPTER-REVERIFY",
+  "evidenceId": "P4-G0-MIGRATION-HISTORY-REVERIFY-20260831",
+  "status": "PASS_APPLICATION_23_SUPABASE_24_FULL_REVERIFY",
+  "application": {
+    "freshComposeServices": "PASS_HEALTHY_3_OF_3",
+    "accountPreflight": "PASS_3_OF_3_PASSWORD_MATCH_UNLOCKED",
+    "migrationHistory": "PASS_23_OF_23",
+    "migration023Applied": 0,
+    "migration024Applied": 1,
+    "javascriptSyntax": "PASS_110",
+    "unit": "PASS_133_OF_133",
+    "integration": "PASS_20_FAIL_0_SKIP_1",
+    "integrationSkip": "P3_REAL_DEFENDER_OUT_OF_SCOPE",
+    "deploySmoke": "PASS_5_OF_5",
+    "maintenance": "PASS",
+    "postTestAccounts": "PASS_3_OF_3_FAILED_COUNT_ZERO_UNLOCKED"
+  },
+  "supabase": {
+    "projectId": "iuoljosldyymkburagwj",
+    "status": "ACTIVE_HEALTHY",
+    "postgres": "17.6.1.166",
+    "migrationHistory": "PASS_24_OF_24",
+    "normalizedSqlContent": "PASS_24_OF_24",
+    "contentMismatch": 0,
+    "publicTables": 52,
+    "rlsEnabledTables": 52,
+    "apiRoleTableGrants": 0,
+    "apiRoleRoutineGrants": 0,
+    "securityAdvisor": "INFO_52_WARN_0_ERROR_0"
+  },
+  "cleanup": {
+    "composeProject": "sqcmi-p4-reverify-clean",
+    "containersRemoved": true,
+    "volumesRemoved": true,
+    "networkRemoved": true,
+    "temporarySecretFileRemoved": true,
+    "existingProjectsPreserved": true
+  },
+  "protectedListeners": [
+    "1234/PID6632",
+    "11434/PID8588",
+    "18765/PID22716"
+  ],
+  "changesMadeToSupabase": false,
+  "blockedReasons": [],
+  "nextReady": "P4-G1-STAGING-DEPLOYMENT-PREFLIGHT",
+  "productionGo": false
+}

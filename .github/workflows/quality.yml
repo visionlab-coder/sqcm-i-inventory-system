@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -38,17 +39,12 @@ jobs:
       - name: Start frontend, backend and PostgreSQL
         run: docker compose -f compose.yaml -f compose.test.yaml up -d --build --wait
       - name: Run required integration tests
-        env:
-          INTEGRATION_BASE_URL: http://localhost:3000
         run: npm run test:integration
       - name: Run nonfunctional quality gate
-        env:
-          NONFUNCTIONAL_BASE_URL: http://localhost:3000
         run: npm run test:nonfunctional
       - name: Verify database dependency recovery
         env:
           ALLOW_DATABASE_PAUSE: "true"
-          RECOVERY_BASE_URL: http://localhost:3000
           RECOVERY_COMPOSE_FILES: compose.yaml,compose.test.yaml
         run: npm run test:recovery
       - name: Capture service state and logs

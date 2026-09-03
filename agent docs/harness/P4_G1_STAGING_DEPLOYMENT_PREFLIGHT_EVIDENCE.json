@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "workId": "P4-G1-STAGING-DEPLOYMENT-PREFLIGHT",
+  "checkedAt": "2026-08-31T10:24:37+09:00",
+  "status": "HOLD_EXTERNAL_STAGING_INPUT_REQUIRED",
+  "phaseProgress": "4 / 8",
+  "sourceState": {
+    "branch": "codex/fix-sidebar-accessibility",
+    "head": "dfc37e3bfa60ea69a54900678897ee6b3a0eb078",
+    "dirtyWorktreePreserved": true
+  },
+  "checks": [
+    {"id": "promptContract", "status": "PASS", "evidence": "strict 8/8, warnings 0"},
+    {"id": "operationsTemplateContract", "status": "PASS_TEMPLATE_ONLY", "evidence": "provider 6, secret reference 9; template cannot authorize deployment"},
+    {"id": "actualOperationsManifest", "status": "MISSING", "evidence": "no non-template operations manifest found"},
+    {"id": "actualDeploymentEnvironment", "status": "MISSING", "evidence": "no .env.staging or .env.production; synthetic local env is not external staging authority"},
+    {"id": "actualCutoverEvidence", "status": "MISSING", "evidence": "only 12-gate cutover template exists"},
+    {"id": "supabaseProject", "status": "PASS", "evidence": "iuoljosldyymkburagwj ACTIVE_HEALTHY, PostgreSQL 17.6.1.166"},
+    {"id": "supabaseOrganizationPlan", "status": "HOLD", "evidence": "sqcm-i-inventory organization is free plan"},
+    {"id": "pitr", "status": "MISSING_COST_AND_POLICY_GATE", "evidence": "free plan has no PITR; Pro/Team/Enterprise plus paid add-on and Small compute are required"},
+    {"id": "stagingBackup", "status": "MISSING", "evidence": "no Supabase/staging logical backup, off-site copy, retention, RPO/RTO owner or restore drill"},
+    {"id": "localBackup", "status": "PASS_LOCAL_ONLY", "evidence": "2026-08-25 dump sha256 recorded and restore verified for local migration 22; not current staging acceptance"},
+    {"id": "backendImmutableImage", "status": "PASS", "evidence": "ghcr digest sha256:37ee6d90c0c8d4abbef0f3362a90fad1552f70e08c69b2fc8b7f4df476679f95 resolves"},
+    {"id": "frontendImmutableImage", "status": "PASS", "evidence": "ghcr digest sha256:1b8fb5e04a48971c239db09776bf0b5882f53624a5b66ba3f77d5f1fee36b6dd resolves"},
+    {"id": "deployPrecheck", "status": "EXPECTED_FAIL_CLOSED", "evidence": "example secrets and non-immutable placeholder release tag rejected"},
+    {"id": "providerSecretReferences", "status": "MISSING", "evidence": "OIDC, storage, malware, event, alert, AI and database Secret references are templates only"},
+    {"id": "harnessVerify", "status": "NOT_AVAILABLE_EXTERNAL_INPUT", "evidence": "contract check passed but no autonomous verifier is registered for the external-input READY"},
+    {"id": "protectedServices", "status": "PASS", "evidence": "1234/PID6632, 11434/PID8588, 18765/PID22716 preserved"}
+  ],
+  "preparedInputs": {
+    "dedicatedSupabaseProject": true,
+    "migrationBaseline": "application 23, Supabase 24",
+    "reservedHostname": "inventory-staging.safe-link.co.kr",
+    "dnsPublished": false,
+    "syntheticDockerServicesHealthy": 3,
+    "immutableImagesRegistryReachable": true
+  },
+  "requiredExternalInputs": [
+    "approved non-template staging operations manifest for inventory-staging.safe-link.co.kr",
+    "approved Secret Manager namespace and references for database, session, MFA, OIDC, storage, malware, event, alert and AI adapters",
+    "Supabase plan and backup decision: paid PITR or approved logical off-site backup policy with RPO/RTO, retention and restore owner",
+    "staging deployment environment reference using exact release SHA 79a12924106b378d2337898c76a4dd431634b78d",
+    "DNS/TLS publication and Cloudflare tunnel activation approval for the reserved staging hostname",
+    "backup, migration, deploy and rollback change window and responsible operator"
+  ],
+  "changesMade": [
+    "added P4-G1 preflight execution contract",
+    "added machine evidence and human checklist",
+    "advanced READY to a precise external-input gate"
+  ],
+  "externalChangesMade": false,
+  "blockedReasons": [
+    "ACTUAL_OPERATIONS_MANIFEST_MISSING",
+    "STAGING_SECRET_REFERENCES_MISSING",
+    "SUPABASE_BACKUP_PITR_POLICY_MISSING",
+    "ACTUAL_CUTOVER_EVIDENCE_MISSING",
+    "DNS_TLS_STAGING_ACTIVATION_NOT_APPROVED"
+  ],
+  "nextReady": "P4-G1-STAGING-RUNTIME-SECRETS-BACKUP-INPUT",
+  "nextAction": "Provide the exact external inputs as references only; do not record secret values in the repository."
+}

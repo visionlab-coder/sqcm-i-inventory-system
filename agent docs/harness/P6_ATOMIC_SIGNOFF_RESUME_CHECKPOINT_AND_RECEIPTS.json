@@ -1,0 +1,61 @@
+{
+  "packet": "ACC-P6-40-ATOMIC-SIGNOFF-RESUME-CHECKPOINT-AND-RECEIPTS",
+  "status": "PASS_ATOMIC_SIGNOFF_RESUME_CHECKPOINT_AND_RECEIPTS",
+  "failureFirst": { "expectedFailures": 5, "observedFailures": 5 },
+  "focusedTests": { "total": 24, "passed": 24, "failed": 0, "skipped": 0 },
+  "syntaxChecks": { "passed": 365, "failed": 0 },
+  "unitTests": { "total": 678, "passed": 671, "failed": 0, "skipped": 7 },
+  "inputContract": {
+    "checkpointMaximumBytes": 1048576,
+    "maximumReceiptDocuments": 64,
+    "maximumReceiptAggregateBytes": 16777216,
+    "repositoryIdentityRechecked": true,
+    "repositoryRealpathRechecked": true,
+    "receiptRootIdentityRechecked": true,
+    "receiptRootRealpathRechecked": true,
+    "candidateIdentityRechecked": true,
+    "candidateRealpathRechecked": true,
+    "candidateSizeRechecked": true,
+    "sameSizeReplacementRejected": true,
+    "sizeMutationRejected": true,
+    "fatalUtf8Required": true,
+    "jsonObjectRequired": true,
+    "rawPathAndContentRedactedFromErrors": true
+  },
+  "readOnlyVerification": {
+    "signoffResumeContractRehearsal": "PASS_SIGNOFF_PAUSE_RESUME_CONTRACT_REHEARSAL",
+    "signoffResumeRuntimeRehearsal": "PASS_SIGNOFF_RESUME_RUNTIME_REHEARSAL",
+    "cutoverExecutionDryRun": "PASS_CUTOVER_EXECUTION_ENTRYPOINT_DRY_RUN",
+    "actualGate12Resume": "NOT_RUN",
+    "changesMade": false,
+    "productionGo": false
+  },
+  "implementationCommit": "724cca21003f781f27173ed8d735f8d5e9dfc2a8",
+  "qualityCi": {
+    "runId": 33590197995,
+    "testedHeadSha": "724cca21003f781f27173ed8d735f8d5e9dfc2a8",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "protectedServices": [
+    { "port": 1234, "pid": 6632, "preserved": true },
+    { "port": 11434, "pid": 8588, "preserved": true },
+    { "port": 18765, "pid": 22716, "preserved": true },
+    { "port": 18766, "pid": 65724, "preserved": true }
+  ],
+  "productionCompose": {
+    "services": ["frontend", "backend", "database"],
+    "healthyServiceCount": 3,
+    "frontendBinding": "127.0.0.1:3300",
+    "backendHostPortCount": 0,
+    "databaseHostPortCount": 0
+  },
+  "harnessVerify": { "exitCode": 0, "status": "PASS" },
+  "actualSignoffResumePerformed": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

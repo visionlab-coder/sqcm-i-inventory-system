@@ -1,0 +1,50 @@
+{
+  "packet": "ACC-P6-60-REMOTE-COMMIT-CONTENT-ATTESTATION",
+  "status": "PASS_ACKNOWLEDGED_HISTORICAL_MANIFEST_MISMATCH",
+  "failureFirst": { "expectedFailures": 5, "observedFailures": 5 },
+  "focusedTests": { "total": 8, "passed": 8, "failed": 0, "skipped": 0 },
+  "remoteContentAttestation": {
+    "candidateCommit": "cfed57c62b9416b047f058ce33488cb8d059ec0b",
+    "actualContentDigest": "ed2e0f50c9c51210c258f05d87019f7745210081f053d5ccc1bac2aa7c3999f5",
+    "actualFileCount": 12,
+    "actualTotalBytes": 66547,
+    "historicalHashMatchCount": 7,
+    "historicalHashMismatchCount": 5,
+    "deploymentBasis": false
+  },
+  "controlSnapshotContract": {
+    "candidateRemoteAndAttestationSingleAtomicSnapshot": true,
+    "candidateControlSha256Bound": true,
+    "remoteEvidenceControlSha256Bound": true
+  },
+  "gitRuntimeContract": {
+    "timeoutMilliseconds": 10000,
+    "metadataMaximumBytes": 1048576,
+    "fileMaximumBytes": 8388608,
+    "aggregateMaximumBytes": 67108864,
+    "shellEnabled": false,
+    "normalizedUniqueRepositoryPathsRequired": true
+  },
+  "cutoverPreflight": {
+    "status": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockerCount": 0,
+    "protectedServicesPreserved": true,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "syntaxChecks": { "passed": 396, "failed": 0 },
+  "unitTests": { "total": 770, "passed": 763, "failed": 0, "skipped": 7 },
+  "harnessVerify": "PASS",
+  "implementationCommit": "3ac97a8",
+  "qualityCi": {
+    "runId": 33619409081,
+    "testedHeadSha": "3ac97a8",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "secretValuesReadOrRecorded": false,
+  "externalMutationPerformed": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

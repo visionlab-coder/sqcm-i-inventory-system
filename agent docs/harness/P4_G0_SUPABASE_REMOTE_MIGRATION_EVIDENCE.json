@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "workId": "P4-G0-SUPABASE-RLS-MIGRATION-APPLY",
+  "evidenceId": "P4-G0-SUPABASE-REMOTE-MIGRATION-20260829",
+  "checkedAt": "2026-08-29T15:48:30+09:00",
+  "status": "PASS_APPLY_HOLD_SECURITY_ADVISOR_WARN",
+  "approval": {
+    "source": "current-user-autonomous-next-progress-command",
+    "targetProject": "iuoljosldyymkburagwj",
+    "approvedScope": "migration 001 through 023 and verification",
+    "productionApproved": false
+  },
+  "target": {
+    "projectId": "iuoljosldyymkburagwj",
+    "organizationId": "ycuakonkjyhvyfljnfoc",
+    "region": "ap-southeast-1",
+    "status": "ACTIVE_HEALTHY",
+    "postgresVersion": "17.6.1.166"
+  },
+  "apply": {
+    "result": "PASS_23_OF_23",
+    "first": "sqcmi_001_init",
+    "last": "sqcmi_023_supabase_data_api_lockdown",
+    "failedMigrations": [],
+    "remoteWritesPerformed": true
+  },
+  "schema": {
+    "applicationPublicBaseTables": 52,
+    "rlsEnabledTables": 52,
+    "policies": 0,
+    "publicFunctions": 3,
+    "securityDefinerFunctions": 0,
+    "providerMigrationHistoryCount": 23,
+    "localOnlySchemaMigrationsTablePresent": false,
+    "note": "Local runner creates public.schema_migrations, while Supabase MCP records provider history in supabase_migrations. The 52 application tables are the expected remote count."
+  },
+  "dataApiPrivileges": [
+    {"role":"anon","schemaUsage":false,"selectableTables":0,"usableSequences":0,"executableFunctions":0},
+    {"role":"authenticated","schemaUsage":false,"selectableTables":0,"usableSequences":0,"executableFunctions":0},
+    {"role":"service_role","schemaUsage":false,"selectableTables":0,"usableSequences":0,"executableFunctions":0}
+  ],
+  "advisors": {
+    "security": {
+      "total": 55,
+      "info": 52,
+      "warn": 3,
+      "error": 0,
+      "intentionalInfo": "rls_enabled_no_policy on 52 tables because Data API is fully denied",
+      "blockingWarn": "function_search_path_mutable on 3 public functions"
+    },
+    "performance": {
+      "total": 129,
+      "info": 129,
+      "warn": 0,
+      "error": 0,
+      "note": "67 unindexed foreign key and 62 unused index informational findings on a newly created staging schema; no workload evidence yet."
+    }
+  },
+  "blockedReasons": [
+    "SUPABASE_FUNCTION_SEARCH_PATH_MUTABLE_3",
+    "BACKEND_VERIFY_REQUIRES_PUBLIC_SCHEMA_MIGRATIONS_ADAPTER"
+  ],
+  "nextReady": "P4-G0-SUPABASE-FUNCTION-SEARCH-PATH-HARDENING",
+  "productionGo": false
+}

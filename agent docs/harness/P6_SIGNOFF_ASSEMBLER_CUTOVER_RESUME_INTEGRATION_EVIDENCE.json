@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "packetId": "ACC-P6-94-SIGNOFF-ASSEMBLER-CUTOVER-RESUME-INTEGRATION",
+  "phase": "P6",
+  "status": "EVIDENCE_COMPLETE",
+  "checkedAt": "2026-09-02T19:00:25.000Z",
+  "implementationCommit": "cb3ce8e28c7b5e33729972fbd647993ceb096699",
+  "githubQualityRun": 33670549078,
+  "githubJobs": {
+    "unit": "success",
+    "threeTierIntegration": "success"
+  },
+  "verification": {
+    "failureFirst": 4,
+    "focusedPass": 21,
+    "syntaxPass": 420,
+    "unitPass": 880,
+    "unitSkip": 8,
+    "unitFail": 0,
+    "harnessVerify": "PASS_WITH_ATOMIC_SIGNOFF_ASSEMBLY_RESUME_DRY_RUN"
+  },
+  "controls": [
+    "approved change window and same cutover run required",
+    "resume and both assembly confirmations required before signoff write",
+    "three role results and three physical MFA approval receipts required",
+    "three external create-only signoff outputs feed same Gate 12 and finalizer call",
+    "partial signoff set and assembly or finalization failure require verified route disable",
+    "assembler does not create external approval MFA receipt identity or signature"
+  ],
+  "actualProductionCutover": "NOT_RUN",
+  "actualSignoffReceipts": "NOT_RUN",
+  "actualSignoffDocuments": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "nextReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF"
+}

@@ -1,0 +1,44 @@
+{
+  "packet": "ACC-P6-47-BOUNDED-CUTOVER-BACKUP-PREFLIGHT-CONTROL",
+  "status": "PASS_BOUNDED_CUTOVER_BACKUP_PREFLIGHT_CONTROL",
+  "failureFirst": { "expectedFailures": 1, "observedFailures": 1 },
+  "focusedTests": { "total": 20, "passed": 20, "failed": 0, "skipped": 0 },
+  "cutoverPreflight": {
+    "status": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockerCount": 0,
+    "productionServiceCount": 3,
+    "backupRestoreVerified": true,
+    "backupBytes": 318811,
+    "backupSha256Present": true,
+    "manifestBytes": 673,
+    "manifestSha256Present": true,
+    "protectedServicesPreserved": true,
+    "productionGo": false
+  },
+  "backupReadContract": {
+    "maximumManifestBytes": 65536,
+    "physicalRegularFileRequired": true,
+    "realPathContainmentRequired": true,
+    "fatalUtf8Required": true,
+    "jsonObjectRequired": true,
+    "streamingArtifactChecksumRequired": true,
+    "restoreVerifiedRequired": true,
+    "directUnboundedManifestReadCount": 0
+  },
+  "syntaxChecks": { "passed": 379, "failed": 0 },
+  "unitTests": { "total": 733, "passed": 726, "failed": 0, "skipped": 7 },
+  "harnessVerify": "PASS",
+  "implementationCommit": "55a812eeb8c96acea6c9355b4bcf534bb684a647",
+  "qualityCi": {
+    "runId": 33601613188,
+    "testedHeadSha": "55a812eeb8c96acea6c9355b4bcf534bb684a647",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

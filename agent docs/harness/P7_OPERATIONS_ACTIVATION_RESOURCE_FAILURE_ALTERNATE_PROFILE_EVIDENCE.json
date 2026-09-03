@@ -1,0 +1,62 @@
+{
+  "packet": "ACC-P7-41-OPERATIONS-ACTIVATION-RESOURCE-FAILURE-ALTERNATE-PROFILE",
+  "status": "PASS_OPERATIONS_ACTIVATION_RESOURCE_FAILURE_ALTERNATE_PROFILE",
+  "failureFirst": {
+    "expectedFailures": 3,
+    "observedFailures": 3
+  },
+  "alternateAfterSameFailureCount": 2,
+  "profiles": {
+    "standard": {
+      "timeoutMs": 1800000,
+      "maxBufferBytes": 1048576
+    },
+    "extendedTimeout": {
+      "timeoutMs": 14400000,
+      "maxBufferBytes": 1048576
+    },
+    "extendedOutputLimit": {
+      "timeoutMs": 1800000,
+      "maxBufferBytes": 4194304
+    }
+  },
+  "alternateProfileScenarioCount": 2,
+  "alternateProfilePassCount": 2,
+  "mixedFailureEscalationCount": 0,
+  "nonResourceFailureEscalationCount": 0,
+  "receiptProfileTamperRejected": true,
+  "physicalDocumentCount": 36,
+  "focusedTests": {
+    "total": 31,
+    "passed": 31,
+    "failed": 0
+  },
+  "syntaxChecks": {
+    "passed": 309,
+    "failed": 0
+  },
+  "unitTests": {
+    "total": 490,
+    "passed": 489,
+    "failed": 0,
+    "skipped": 1
+  },
+  "activationBundle": {
+    "resolvedPhysicalFileCount": 44,
+    "sha256": "f4b615ff493f0768dc520a46e02bb62026e85997c69065ecc100a8b29a688c1a"
+  },
+  "qualityCi": {
+    "runId": 33555754616,
+    "testedHeadSha": "3d07acd240d160676a22f63838b9e80ae9d1f411",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "conclusion": "SUCCESS"
+  },
+  "actualProductionChildExecuted": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

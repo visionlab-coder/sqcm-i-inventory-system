@@ -1,0 +1,77 @@
+{
+  "packet": "ACC-P7-63-BACKUP-RESTORE-PAIR-PUBLICATION-INTEGRITY",
+  "status": "PASS_BACKUP_RESTORE_PAIR_PUBLICATION_INTEGRITY",
+  "scope": {
+    "outputCount": 2,
+    "publicationPrimitive": "per-output-fsync-temporary-then-hard-link-no-replace",
+    "crossFileAtomicAllOrZeroClaimed": false,
+    "partialCommitStatus": "OUTPUT_PAIR_PARTIAL_COMMIT:1_OF_2",
+    "existingOutputReplacementAllowed": false,
+    "finalOutputDeletionOnConflictAllowed": false
+  },
+  "pairBinding": {
+    "pairPublicationIdRequired": true,
+    "sourceSha256MustMatch": true,
+    "ownerRefMustMatch": true,
+    "mixedPairAcceptedByHandoverFinalizer": false
+  },
+  "raceRegression": {
+    "status": "PASS",
+    "ownFirstOutputPreserved": true,
+    "competitorSecondOutputPreserved": true,
+    "temporaryArtifactsRetained": false
+  },
+  "focusedTests": {
+    "total": 21,
+    "passed": 20,
+    "failed": 0,
+    "skipped": 1
+  },
+  "repositoryChecks": {
+    "syntaxPassed": 399,
+    "unitTotal": 776,
+    "unitPassed": 768,
+    "unitFailed": 0,
+    "unitSkipped": 8
+  },
+  "operationsEvidencePipeline": {
+    "status": "PASS_SYNTHETIC_OPERATIONS_EVIDENCE_PIPELINE_REHEARSAL",
+    "compilerCount": 8,
+    "verifiedDocumentCount": 10,
+    "syntheticOnly": true,
+    "actualEvidenceCreated": false
+  },
+  "activationBundle": {
+    "rootEntrypointCount": 21,
+    "resolvedPhysicalFileCount": 52,
+    "totalBytes": 351691,
+    "sha256": "b9e504a40e00c4d130e7996004a9d400489d456ff978734050e57f18549293da"
+  },
+  "implementationCommit": "438aaae9373ee3c8e985a76369625a4a26b31769",
+  "qualityCi": {
+    "runId": 33622260422,
+    "testedHeadSha": "438aaae9373ee3c8e985a76369625a4a26b31769",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "productionPreflight": {
+    "status": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockerCount": 0,
+    "healthyServiceCount": 3,
+    "backendHostPortCount": 0,
+    "databaseHostPortCount": 0,
+    "protectedServicesPreserved": true
+  },
+  "harnessVerify": {
+    "status": "PASS",
+    "exitCode": 0
+  },
+  "actualP6Cutover": "NOT_RUN",
+  "actualP7Activation": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

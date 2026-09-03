@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "template": true,
+  "environment": "production",
+  "activationState": "actual",
+  "evidenceType": "PRODUCTION_BACKUP_RESTORE_DRILL_EXPORT",
+  "targetUrl": "https://inventory.safe-link.co.kr",
+  "ownerRef": null,
+  "backup": {
+    "backupId": null,
+    "createdAt": null,
+    "offsiteStoredAt": null,
+    "checksumVerified": false,
+    "artifactSha256": null,
+    "sourceDatabaseRef": null,
+    "offsiteStorageRef": null,
+    "retentionUntil": null
+  },
+  "restore": {
+    "drillId": null,
+    "backupId": null,
+    "startedAt": null,
+    "completedAt": null,
+    "isolatedTarget": false,
+    "rowCountsMatch": false,
+    "schemaMigrationsMatch": false,
+    "targetDatabaseRef": null,
+    "sourceCountsSha256": null,
+    "restoredCountsSha256": null
+  }
+}

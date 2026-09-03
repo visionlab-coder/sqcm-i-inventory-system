@@ -1,0 +1,65 @@
+{
+  "packet": "ACC-P7-47-BOUNDED-SLO-LEDGER-INPUT",
+  "status": "PASS_BOUNDED_SLO_LEDGER_INPUT",
+  "failureFirst": {
+    "expectedFailures": 3,
+    "observedFailures": 3
+  },
+  "focusedTests": {
+    "total": 18,
+    "passed": 16,
+    "failed": 0,
+    "skipped": 2
+  },
+  "syntaxChecks": {
+    "passed": 348,
+    "failed": 0
+  },
+  "unitTests": {
+    "total": 612,
+    "passed": 606,
+    "failed": 0,
+    "skipped": 6
+  },
+  "ledgerInputContract": {
+    "format": "JSONL",
+    "absoluteExternalFileRequired": true,
+    "repositoryInternalRejected": true,
+    "physicalRegularFileRequired": true,
+    "symlinkReparseAndParentRedirectRejected": true,
+    "maximumBytes": 65536,
+    "fatalUtf8DecodingRequired": true,
+    "actualBytesAndSha256Computed": true,
+    "preGateContentReadCount": 0,
+    "appendAndExportUseBoundedReader": true,
+    "rawErrorsAndInputValuesRedacted": true
+  },
+  "readOnlyRun": {
+    "status": "READY_WAIT_P6_ACTUAL_CUTOVER",
+    "sampleCount": 0,
+    "externalHttpReadPerformed": false,
+    "localEvidenceWritePerformed": false,
+    "productionGo": false
+  },
+  "implementationCommit": "577a159307f39b783d214ab70863ea40702fa9ec",
+  "qualityCi": {
+    "runId": 33579205342,
+    "testedHeadSha": "577a159307f39b783d214ab70863ea40702fa9ec",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "harnessVerify": {
+    "exitCode": 0,
+    "status": "PASS"
+  },
+  "actualLedgerReadPerformed": false,
+  "actualSloCollectionPerformed": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

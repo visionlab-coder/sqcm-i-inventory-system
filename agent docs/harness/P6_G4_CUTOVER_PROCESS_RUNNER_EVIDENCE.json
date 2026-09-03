@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-09-01T13:11:05.944Z",
+  "packet": "ACC-P6-11-CUTOVER-PROCESS-RUNNER-AND-RUNTIME-RECEIPTS",
+  "status": "PASS_CUTOVER_PROCESS_RUNNER_REHEARSAL",
+  "gateCount": 12,
+  "stepCount": 14,
+  "receiptCount": 26,
+  "focusedTests": { "passed": 2, "failed": 0, "platformSkipped": 1 },
+  "repositoryTests": { "passed": 335, "failed": 0, "platformSkipped": 1 },
+  "harnessVerify": "PASS",
+  "actualChildProcessesExecuted": false,
+  "actualRuntimeReceiptsCreated": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false
+}

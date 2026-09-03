@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "template": true,
+  "environment": "production",
+  "activationState": "actual",
+  "measurementType": "PRODUCTION_HTTPS_MONITORING_EXPORT",
+  "targetUrl": "https://inventory.safe-link.co.kr",
+  "measurementStart": null,
+  "measurementEnd": null,
+  "samples": [
+    {
+      "timestamp": null,
+      "available": null,
+      "latencyMs": null
+    }
+  ]
+}

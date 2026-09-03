@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "template": true,
+  "environment": "production",
+  "activationState": "actual",
+  "receiptType": "PRODUCTION_ALERT_RECEIPT_EXPORT",
+  "targetUrl": "https://inventory.safe-link.co.kr",
+  "providerRef": null,
+  "channelRef": null,
+  "recipientRef": null,
+  "ownerRef": null,
+  "signals": [
+    { "id": "availability", "received": null, "receiptId": null, "triggeredAt": null, "receivedAt": null },
+    { "id": "latency_p95", "received": null, "receiptId": null, "triggeredAt": null, "receivedAt": null },
+    { "id": "http_5xx", "received": null, "receiptId": null, "triggeredAt": null, "receivedAt": null },
+    { "id": "backup_failure", "received": null, "receiptId": null, "triggeredAt": null, "receivedAt": null },
+    { "id": "certificate_expiry", "received": null, "receiptId": null, "triggeredAt": null, "receivedAt": null }
+  ]
+}

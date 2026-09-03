@@ -1,0 +1,74 @@
+{
+  "packet": "ACC-P6-29-BOUNDED-PROVIDER-PREFLIGHT-RUNTIME",
+  "status": "PASS_BOUNDED_PROVIDER_PREFLIGHT_RUNTIME",
+  "failureFirst": {
+    "expectedFailures": 5,
+    "observedFailures": 5
+  },
+  "limits": {
+    "containerQueryTimeoutMs": 10000,
+    "providerProbeTimeoutMs": 150000,
+    "processMaxBufferBytes": 1048576
+  },
+  "focusedTests": {
+    "total": 8,
+    "passed": 8,
+    "failed": 0
+  },
+  "syntaxChecks": {
+    "passed": 327,
+    "failed": 0
+  },
+  "unitTests": {
+    "total": 532,
+    "passed": 531,
+    "failed": 0,
+    "skipped": 1
+  },
+  "readOnlyRun": {
+    "status": "PASS",
+    "providers": {
+      "fileStorage": { "status": "ok", "driver": "POSTGRES" },
+      "malware": { "status": "ok", "driver": "MICROSOFT_DEFENDER_BRIDGE" },
+      "aiHealth": { "status": "ok" },
+      "aiReadiness": { "status": "ready" },
+      "eventPublisher": { "status": "ok", "driver": "HTTP_LOOPBACK" }
+    },
+    "readOnlyProcessExecutions": 2,
+    "databaseWrites": 0,
+    "accountMutations": 0,
+    "providerMutations": 0,
+    "productionGo": false
+  },
+  "parserContract": {
+    "exactSingleContainerRequired": true,
+    "lastJsonObjectRequired": true,
+    "errorsRedacted": true
+  },
+  "qualityCi": {
+    "runId": 33565902058,
+    "testedHeadSha": "c06c868e2b6b3827c9615fa1dc95e44be95e4db4",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "repositoryHygiene": "PASS",
+  "harnessVerify": {
+    "initialExitCode": 1,
+    "initialNonZeroLabels": [
+      "production-ingress-publication",
+      "production-public-probe"
+    ],
+    "targetedReadOnlyRechecks": "PASS",
+    "fullRerunExitCode": 0,
+    "persistentFailureReproduced": false,
+    "status": "PASS"
+  },
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

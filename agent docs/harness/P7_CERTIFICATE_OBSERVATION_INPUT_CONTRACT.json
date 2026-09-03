@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "template": true,
+  "environment": "production",
+  "activationState": "actual",
+  "evidenceType": "PRODUCTION_TLS_CERTIFICATE_OBSERVATION",
+  "targetUrl": "https://inventory.safe-link.co.kr",
+  "hostname": "inventory.safe-link.co.kr",
+  "renewalOwnerRef": null,
+  "certificateProviderRef": null,
+  "observation": {
+    "observedAt": null,
+    "tlsValid": false,
+    "hostnameVerified": false,
+    "chainVerified": false,
+    "protocol": null,
+    "serialNumber": null,
+    "fingerprintSha256": null,
+    "validFrom": null,
+    "validTo": null,
+    "healthStatus": null,
+    "readinessStatus": null
+  }
+}

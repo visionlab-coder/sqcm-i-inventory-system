@@ -58,25 +58,28 @@ failures.push(...validateImmutableImageConfig({
   backendImage: value('BACKEND_IMAGE'),
   frontendImage: value('FRONTEND_IMAGE')
 }));
-if (target !== "local" && (value("FILE_STORAGE_DRIVER") || "local").toLowerCase() === "local") {
-  failures.push("External deployments require FILE_STORAGE_DRIVER=external.");
+if (target !== "local" && !["external", "postgres"].includes((value("FILE_STORAGE_DRIVER") || "local").toLowerCase())) {
+  failures.push("External deployments require FILE_STORAGE_DRIVER=external or postgres.");
 }
 if (target !== "local" && value("MALWARE_SCAN_DRIVER").toLowerCase() !== "external") {
   failures.push("External deployments require MALWARE_SCAN_DRIVER=external.");
 }
-if (target !== "local" && value("AUTH_PROVIDER").toLowerCase() !== "oidc") {
-  failures.push("External deployments require AUTH_PROVIDER=oidc.");
+if (target !== "local" && !["local", "oidc"].includes(value("AUTH_PROVIDER").toLowerCase())) {
+  failures.push("External deployments require AUTH_PROVIDER=local or oidc.");
+}
+if (target !== "local" && value("AUTH_PROVIDER").toLowerCase() === "local" && value("PRODUCTION_LOCAL_AUTH_MFA_REQUIRED").toLowerCase() !== "true") {
+  failures.push("Production local authentication requires PRODUCTION_LOCAL_AUTH_MFA_REQUIRED=true.");
 }
 if (target !== "local" && !value("OPERATIONAL_ADAPTER_MODULE")) {
   failures.push("External deployments require OPERATIONAL_ADAPTER_MODULE.");
 }
-if (target !== "local" && !/^https:\/\//i.test(value("OIDC_REDIRECT_URI"))) {
+if (target !== "local" && value("AUTH_PROVIDER").toLowerCase() === "oidc" && !/^https:\/\//i.test(value("OIDC_REDIRECT_URI"))) {
   failures.push("External deployments require an HTTPS OIDC_REDIRECT_URI.");
 }
 if (target !== "local" && !/^https:\/\//i.test(value("PUBLIC_BASE_URL"))) {
   failures.push("External deployments require an HTTPS PUBLIC_BASE_URL.");
 }
-if (target !== "local" && /^https:\/\//i.test(value("PUBLIC_BASE_URL")) && !value("OIDC_REDIRECT_URI").startsWith(`${value("PUBLIC_BASE_URL").replace(/\/$/, "")}/`)) {
+if (target !== "local" && value("AUTH_PROVIDER").toLowerCase() === "oidc" && /^https:\/\//i.test(value("PUBLIC_BASE_URL")) && !value("OIDC_REDIRECT_URI").startsWith(`${value("PUBLIC_BASE_URL").replace(/\/$/, "")}/`)) {
   failures.push("OIDC_REDIRECT_URI must belong to PUBLIC_BASE_URL.");
 }
 const trustedProxyCount = Number(value("TRUSTED_PROXY_COUNT") || "1");

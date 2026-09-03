@@ -1,0 +1,70 @@
+{
+  "packet": "ACC-P6-33-BOUNDED-PRODUCTION-NONFUNCTIONAL-RUNTIME",
+  "status": "PASS_BOUNDED_PRODUCTION_NONFUNCTIONAL_RUNTIME",
+  "failureFirst": {
+    "expectedFailures": 6,
+    "observedFailures": 6
+  },
+  "limits": {
+    "childTimeoutMs": 120000,
+    "childMaxBufferBytes": 1048576,
+    "httpTimeoutMs": 10000
+  },
+  "focusedTests": {
+    "total": 10,
+    "passed": 10,
+    "failed": 0
+  },
+  "syntaxChecks": {
+    "passed": 334,
+    "failed": 0
+  },
+  "unitTests": {
+    "total": 554,
+    "passed": 553,
+    "failed": 0,
+    "skipped": 1
+  },
+  "readOnlyRun": {
+    "status": "PASS_LOOPBACK_BASELINE_READY_FOR_PUBLIC_RECHECK",
+    "targetKind": "loopback",
+    "requests": 60,
+    "concurrency": 6,
+    "errors": 0,
+    "errorRate": 0,
+    "p95Ms": 13,
+    "securityHeadersPresent": true,
+    "anonymousStatus": 401,
+    "crossSiteStatus": 403,
+    "crossSiteCode": "CROSS_SITE_REQUEST",
+    "actualPublicNonfunctionalGate": "NOT_RUN",
+    "productionGo": false
+  },
+  "runtimeContract": {
+    "unrelatedSecretEnvironmentInherited": false,
+    "rawStderrReturned": false,
+    "exactTargetRequired": true,
+    "strictLoadAndSecurityParser": true,
+    "errorsRedacted": true
+  },
+  "qualityCi": {
+    "runId": 33569609846,
+    "testedHeadSha": "e6bb2c5d365e5669b35ef4f5c161db080d0ed934",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "harnessVerify": {
+    "exitCode": 0,
+    "productionNonfunctionalBaseline": "PASS",
+    "status": "PASS"
+  },
+  "repositoryHygiene": "PASS",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

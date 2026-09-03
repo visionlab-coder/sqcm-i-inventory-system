@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "packet": "ACC-P6-18-ATOMIC-SIGNOFF-FINALIZATION-ENTRYPOINT",
+  "status": "EVIDENCE_COMPLETE",
+  "checkedAt": "2026-09-01T14:32:48.914Z",
+  "contract": {
+    "actualResumeAutomaticallyFinalizes": true,
+    "signoffResumeConfirmationRequired": true,
+    "actualEvidenceAssemblyConfirmationRequired": true,
+    "externalOutputPathRequiredBeforeGate12": true,
+    "missingPreconditionsGate12ExecutionCount": 0,
+    "postGate12FailureRequiresExactRouteDisable": true
+  },
+  "verification": {
+    "initialFailureObserved": "1 expected failing test before implementation",
+    "focusedUnit": "11/11 PASS",
+    "syntax": "246/246 PASS",
+    "repositoryUnit": "367 PASS, 0 FAIL, 1 Windows symlink SKIP",
+    "dryRun": "PASS_SIGNOFF_RESUME_ENTRYPOINT_DRY_RUN",
+    "actualProductionExecution": "NOT_RUN"
+  },
+  "invariants": {
+    "productionGo": false,
+    "externalMutationPerformed": false,
+    "secretsRecorded": false
+  },
+  "nextReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF"
+}

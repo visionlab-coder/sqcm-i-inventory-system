@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "workId": "P4-G1-STAGING-OPERATIONS-MANIFEST-DESIGN",
+  "checkedAt": "2026-08-31T13:00:00+09:00",
+  "status": "PASS_CANDIDATE_FAIL_CLOSED_PROVIDER_ACTIVATION_PENDING",
+  "changes": [
+    "backup mode pitr|logical contract",
+    "logical retention schedule restore evidence requirements",
+    "candidate activation gate",
+    "non-secret staging candidate manifest"
+  ],
+  "candidate": {
+    "path": "config/operations.manifest.staging.candidate.json",
+    "activationState": "candidate",
+    "backupMode": "logical",
+    "structure": "PASS_WITH_ALLOW_CANDIDATE",
+    "defaultDeploymentPreflight": "EXPECTED_FAIL_CLOSED"
+  },
+  "remaining": [
+    "OIDC client registration",
+    "Storage bucket and policy",
+    "security and AI HTTPS routes",
+    "event publisher provider",
+    "actual Secret resource bindings",
+    "off-site backup storage",
+    "DNS/TLS activation"
+  ],
+  "externalChangesMade": false,
+  "nextReady": "P4-G1-STAGING-PROVIDER-ROUTES-AND-SECRET-REFERENCES"
+}

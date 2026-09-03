@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "template": true,
+  "environment": "production",
+  "activationState": "actual",
+  "evidenceType": "PRODUCTION_MAINTENANCE_EXECUTION_EXPORT",
+  "targetUrl": "https://inventory.safe-link.co.kr",
+  "releaseSha": null,
+  "execution": {
+    "executionId": null,
+    "scheduleRef": "maintenance://sqcm-i-production-daily",
+    "contractRef": "docs/maintenance.md",
+    "operatorRef": null,
+    "startedAt": null,
+    "completedAt": null,
+    "nextScheduledAt": null,
+    "blockingFindingCount": null,
+    "checks": [
+      { "id": "frontend_health", "status": null, "observedAt": null, "receiptId": null },
+      { "id": "api_health", "status": null, "observedAt": null, "receiptId": null },
+      { "id": "database_health", "status": null, "observedAt": null, "receiptId": null },
+      { "id": "http_5xx", "status": null, "observedAt": null, "receiptId": null },
+      { "id": "login_failure_spike", "status": null, "observedAt": null, "receiptId": null },
+      { "id": "backup_success", "status": null, "observedAt": null, "receiptId": null }
+    ]
+  }
+}

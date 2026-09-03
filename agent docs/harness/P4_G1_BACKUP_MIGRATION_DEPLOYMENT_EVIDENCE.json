@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "workId": "P4-G1-STAGING-BACKUP-MIGRATION-DEPLOYMENT",
+  "checkedAt": "2026-08-31T14:27:00+09:00",
+  "status": "PASS_LIVE_DEPLOYMENT_BACKUP_MIGRATION_LINK_OFFSITE_PENDING",
+  "phaseProgress": "4 / 8",
+  "deployment": {
+    "publicBaseUrl": "https://inventory-staging.safe-link.co.kr",
+    "composeProject": "seowon-inventory-staging",
+    "servicesHealthy": 3,
+    "databaseProvider": "Supabase",
+    "projectId": "iuoljosldyymkburagwj",
+    "migrationHistoryMode": "supabase"
+  },
+  "migration": {
+    "applicationVerifier": "PASS_24_OF_24",
+    "providerHistory": "PASS_24_OF_24",
+    "latest": "sqcmi_024_function_search_path_hardening",
+    "migrationAppliedThisLoop": false
+  },
+  "backup": {
+    "file": "artifacts/backups/sqcm-i-supabase-staging-20260831T034703Z.dump",
+    "manifest": "artifacts/backups/sqcm-i-supabase-staging-20260831T034703Z.dump.json",
+    "bytes": 471726,
+    "sha256Match": true,
+    "restoreStatus": "PASS_PUBLIC_SCHEMA_DATA",
+    "countsMatch": true,
+    "sourceAndRestored": {"tables": 52, "rows": 40, "functions": 3},
+    "temporaryContainerRemoved": true,
+    "retentionDays": 14,
+    "rpoHours": 24,
+    "rtoHours": 4,
+    "offsiteCopy": "PENDING_EXTERNAL_STORAGE"
+  },
+  "rollbackContract": {
+    "currentProject": "seowon-inventory-staging",
+    "rollbackProject": "seowon-inventory-staging-synthetic",
+    "verificationProject": "seowon-inventory-staging-candidate",
+    "preservedStoppedContainers": 6,
+    "containersDeleted": false,
+    "executionDeferredTo": "P4-G2-STAGING-HEALTH-SMOKE-ROLLBACK"
+  },
+  "protectedServices": [
+    {"port": 1234, "pid": 6632, "preserved": true},
+    {"port": 11434, "pid": 8588, "preserved": true},
+    {"port": 18765, "pid": 22716, "preserved": true}
+  ],
+  "externalChangesMade": false,
+  "blockedReasons": ["OFFSITE_BACKUP_STORAGE_NOT_PROVISIONED"],
+  "nextReady": "P4-G2-STAGING-HEALTH-SMOKE-ROLLBACK"
+}

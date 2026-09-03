@@ -1,0 +1,62 @@
+{
+  "packet": "ACC-P6-27-BOUNDED-UAT-ACTOR-PROVISIONING-RUNTIME",
+  "status": "PASS_BOUNDED_UAT_ACTOR_PROVISIONING_RUNTIME",
+  "failureFirst": {
+    "expectedFailures": 5,
+    "observedFailures": 5
+  },
+  "limits": {
+    "controlProcessTimeoutMs": 10000,
+    "workerProcessTimeoutMs": 60000,
+    "processMaxBufferBytes": 1048576
+  },
+  "focusedTests": {
+    "total": 12,
+    "passed": 12,
+    "failed": 0
+  },
+  "syntaxChecks": {
+    "passed": 323,
+    "failed": 0
+  },
+  "unitTests": {
+    "total": 522,
+    "passed": 521,
+    "failed": 0,
+    "skipped": 1
+  },
+  "dryRun": {
+    "status": "READY_WAIT_UAT_ACTOR_PROVISION_INPUTS",
+    "approvalReferencePresent": false,
+    "credentialReferencesPresent": {
+      "ADMIN": false,
+      "MANAGER": false,
+      "USER": false
+    },
+    "processExecutions": 0,
+    "accountMutations": 0,
+    "databaseMutations": 0,
+    "actualProductionActors": "NOT_RUN",
+    "productionGo": false
+  },
+  "cleanup": {
+    "successReportedOnlyAfterWorkerRemoval": true,
+    "cleanupErrorsRedacted": true
+  },
+  "qualityCi": {
+    "runId": 33563579239,
+    "testedHeadSha": "93babf8e3b6ab9f2393e2cdf74134220bcdaec96",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "repositoryHygiene": "PASS",
+  "harnessVerify": "PASS",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

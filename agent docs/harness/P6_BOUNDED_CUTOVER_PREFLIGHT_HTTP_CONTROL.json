@@ -1,0 +1,43 @@
+{
+  "packet": "ACC-P6-48-BOUNDED-CUTOVER-PREFLIGHT-HTTP-CONTROL",
+  "status": "PASS_BOUNDED_CUTOVER_PREFLIGHT_HTTP_CONTROL",
+  "failureFirst": { "expectedFailures": 1, "observedFailures": 1 },
+  "focusedTests": { "total": 14, "passed": 14, "failed": 0, "skipped": 0 },
+  "httpResponseContract": {
+    "routeCount": 3,
+    "maximumBytesPerResponse": 1048576,
+    "timeoutMilliseconds": 5000,
+    "fatalUtf8Required": true,
+    "jsonObjectRequired": true,
+    "directUnboundedArrayBufferCount": 0
+  },
+  "observedResponses": [
+    { "path": "/health", "status": 200, "bytes": 36, "jsonObject": true },
+    { "path": "/api/readiness", "status": 200, "bytes": 241, "jsonObject": true },
+    { "path": "/api/items", "status": 401, "bytes": 134, "jsonObject": true }
+  ],
+  "cutoverPreflight": {
+    "status": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockerCount": 0,
+    "productionServiceCount": 3,
+    "smokePassed": true,
+    "protectedServicesPreserved": true,
+    "productionGo": false
+  },
+  "syntaxChecks": { "passed": 380, "failed": 0 },
+  "unitTests": { "total": 734, "passed": 727, "failed": 0, "skipped": 7 },
+  "harnessVerify": "PASS",
+  "implementationCommit": "1c3aa406e4a9ade60adbd3bc7abbb761c02aae97",
+  "qualityCi": {
+    "runId": 33602773238,
+    "testedHeadSha": "1c3aa406e4a9ade60adbd3bc7abbb761c02aae97",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

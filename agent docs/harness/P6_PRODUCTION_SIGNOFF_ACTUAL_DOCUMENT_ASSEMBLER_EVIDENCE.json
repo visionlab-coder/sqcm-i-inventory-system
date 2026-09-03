@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "packetId": "ACC-P6-93-PRODUCTION-SIGNOFF-ACTUAL-DOCUMENT-ASSEMBLER",
+  "phase": "P6",
+  "status": "EVIDENCE_COMPLETE",
+  "checkedAt": "2026-09-02T18:36:38.460Z",
+  "implementationCommit": "f58a8d20f71eb475d3ce5fd498417acc27674fc5",
+  "githubQualityRun": 33668644886,
+  "githubJobs": {
+    "unit": "success",
+    "threeTierIntegration": "success"
+  },
+  "verification": {
+    "failureFirstMissingModule": true,
+    "focusedPass": 5,
+    "syntaxPass": 420,
+    "unitPass": 876,
+    "unitSkip": 8,
+    "unitFail": 0,
+    "dryRunStatus": "READY_WAIT_APPROVED_CHANGE_WINDOW",
+    "dryRunInputReadCount": 0,
+    "dryRunOutputCreatedCount": 0,
+    "harnessVerify": "PASS_WITH_SIGNOFF_ASSEMBLER_DRY_RUN_REGISTERED"
+  },
+  "controls": [
+    "approved change window and exact confirmation required before input read",
+    "three external physical MFA approval receipts required",
+    "request set bundle run release signer time provider and receipt identity cross-validated",
+    "approval receipt SHA-256 bound to each actual signoff",
+    "three distinct external create-only outputs preflighted before publication",
+    "assembler does not create approval MFA receipt or signature"
+  ],
+  "actualProductionCutover": "NOT_RUN",
+  "actualSignoffReceipts": "NOT_RUN",
+  "actualSignoffDocuments": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "nextReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF"
+}

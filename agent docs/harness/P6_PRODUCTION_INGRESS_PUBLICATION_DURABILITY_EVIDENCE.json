@@ -1,0 +1,87 @@
+{
+  "packet": "ACC-P6-66-PRODUCTION-INGRESS-PUBLICATION-DURABILITY",
+  "status": "PASS_PRODUCTION_INGRESS_PUBLICATION_DURABILITY",
+  "scope": {
+    "publisherCount": 2,
+    "outputs": [
+      "cloudflared-config",
+      "cloudflared-tunnel-credential"
+    ],
+    "publicationPrimitive": "fsync-then-hard-link-no-replace",
+    "credentialBodyRead": false,
+    "existingOutputReplacementAllowed": false,
+    "providerMutationRecordedBeforeCredentialPublication": true
+  },
+  "failureFirst": {
+    "reproducedFailureCount": 4,
+    "missingPublisherCount": 2,
+    "unprovenRaceScenarioCount": 2
+  },
+  "alternativeResolution": {
+    "initialFailureCount": 2,
+    "initialFailureCode": "EPERM_READ_ONLY_FSYNC_ON_WINDOWS",
+    "replacement": "read-write-flush-handle-without-content-read",
+    "acceptanceCriteriaPreserved": true
+  },
+  "raceRegression": {
+    "status": "PASS",
+    "configCompetitorBytesPreserved": true,
+    "configTemporaryArtifactRetained": false,
+    "credentialCompetitorBytesPreserved": true,
+    "generatedCredentialRetainedForRecoveryOnConflict": true
+  },
+  "focusedTests": {
+    "total": 31,
+    "passed": 31,
+    "failed": 0,
+    "skipped": 0
+  },
+  "repositoryChecks": {
+    "syntaxPassed": 400,
+    "unitTotal": 787,
+    "unitPassed": 779,
+    "unitFailed": 0,
+    "unitSkipped": 8
+  },
+  "implementationCommit": "3e347ae97e52d2c5cd61638ec58b36dfe665be95",
+  "qualityCi": {
+    "runId": 33626411866,
+    "testedHeadSha": "3e347ae97e52d2c5cd61638ec58b36dfe665be95",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "productionIngressDryRun": {
+    "status": "READY_WAIT_INGRESS_PUBLICATION_INPUTS",
+    "pending": [
+      "CLOUDFLARE_ROLLBACK_TOKEN_REFERENCE_MISSING"
+    ],
+    "externalMutationPerformed": false,
+    "actualProductionIngress": "NOT_RUN"
+  },
+  "productionPreflight": {
+    "status": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockerCount": 0,
+    "healthyServiceCount": 3,
+    "backendHostPortCount": 0,
+    "databaseHostPortCount": 0,
+    "protectedServicesPreserved": true
+  },
+  "activationBundle": {
+    "rootEntrypointCount": 21,
+    "resolvedPhysicalFileCount": 52,
+    "totalBytes": 352075,
+    "sha256": "0601edb0a824c3564a206b3b8d163ead872c0cda3da8ed368990444e5bc7a880"
+  },
+  "harnessVerify": {
+    "status": "PASS",
+    "exitCode": 0
+  },
+  "actualP6Cutover": "NOT_RUN",
+  "actualP7Activation": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

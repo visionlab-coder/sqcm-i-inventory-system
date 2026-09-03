@@ -9,8 +9,9 @@ if (!databaseUrl) {
 
 const pool = dbModule.createPool(databaseUrl);
 try {
-  const result = await dbModule.verifyMigrations(pool);
-  console.log(`migration 일치: ${result.expected}/${result.applied}`);
+  const mode = String(process.env.DB_MIGRATION_HISTORY_MODE || 'application').trim().toLowerCase();
+  const result = await dbModule.verifyMigrationHistory(pool, mode);
+  console.log(`migration 일치 (${result.history || 'application'}): ${result.expected}/${result.applied}`);
 } finally {
   await pool.end();
 }

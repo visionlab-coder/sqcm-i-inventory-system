@@ -1,20 +1,26 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import process from 'node:process';
 import gates from '../src/operations/gates.js';
+import {
+  consumeBoundedResponseBody,
+  readBoundedJsonObjectResponse
+} from '../src/operations/operations-preflight-http-runtime.mjs';
+import { readOperationsPreflightManifest } from '../src/operations/operations-preflight-manifest-runtime.mjs';
 
 const manifestPath = process.argv[2];
 const allowTemplate = process.argv.includes('--allow-template');
+const allowCandidate = process.argv.includes('--allow-candidate');
 const probe = process.argv.includes('--probe');
 if (!manifestPath) {
   console.error('Usage: npm run operations:preflight -- <manifest.json> [--allow-template]');
   process.exit(1);
 }
 
-const resolved = path.resolve(manifestPath);
-const manifest = JSON.parse(fs.readFileSync(resolved, 'utf8'));
+const loadedManifest = readOperationsPreflightManifest(manifestPath);
+const resolved = loadedManifest.path;
+const manifest = loadedManifest.value;
 const result = gates.validateOperationsManifest(manifest);
 if (manifest.template === true && !allowTemplate) result.failures.push('template manifest cannot authorize deployment');
+if (manifest.template !== true && manifest.activationState !== 'active' && !allowCandidate) result.failures.push('non-template manifest activationState must be active');
 result.ok = result.failures.length === 0;
 
 if (!result.ok) {
@@ -32,7 +38,14 @@ async function expectReachable(url, label, accepted = (status) => status >= 200 
 async function expectGet(url, label) {
   const response = await fetch(url, { method: 'GET', redirect: 'manual', headers: { accept: 'application/json' }, signal: AbortSignal.timeout(10000) });
   if (response.status !== 200) throw new Error(`${label} returned ${response.status}`);
-  await response.arrayBuffer();
+  await consumeBoundedResponseBody(response);
+  return response.status;
+}
+
+async function expectStatus(url, label, expectedStatus) {
+  const response = await fetch(url, { method: 'GET', redirect: 'manual', headers: { accept: 'application/json' }, signal: AbortSignal.timeout(10000) });
+  if (response.status !== expectedStatus) throw new Error(`${label} returned ${response.status}; expected ${expectedStatus}`);
+  await consumeBoundedResponseBody(response);
   return response.status;
 }
 
@@ -44,7 +57,7 @@ if (probe) {
   const issuer = manifest.providers.oidc.issuer.replace(/\/$/, '');
   const discoveryResponse = await fetch(`${issuer}/.well-known/openid-configuration`, { signal: AbortSignal.timeout(10000) });
   if (!discoveryResponse.ok) throw new Error(`OIDC discovery returned ${discoveryResponse.status}`);
-  const discovery = await discoveryResponse.json();
+  const discovery = await readBoundedJsonObjectResponse(discoveryResponse);
   if (discovery.issuer !== manifest.providers.oidc.issuer || !/^https:\/\//.test(discovery.authorization_endpoint || '') || !/^https:\/\//.test(discovery.token_endpoint || '')) {
     throw new Error('OIDC discovery contract mismatch');
   }
@@ -58,7 +71,7 @@ if (probe) {
     expectReachable(manifest.providers.eventPublisher.endpoint, 'event publisher'),
     expectReachable(manifest.providers.alerting.endpoint, 'alerting'),
     expectGet(ai.healthEndpoint, 'AI provider health'),
-    expectGet(ai.readyEndpoint, 'AI provider readiness')
+    expectStatus(ai.readyEndpoint, 'AI provider readiness authentication boundary', 401)
   ]);
   console.log(JSON.stringify({ liveProbe: { oidcDiscovery: discoveryResponse.status, health, readiness, storage, scanner, eventPublisher, alerting, aiHealth, aiReady } }, null, 2));
 }

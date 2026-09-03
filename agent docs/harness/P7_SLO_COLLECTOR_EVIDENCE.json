@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "packet": "ACC-P7-16-PRODUCTION-SLO-30-DAY-COLLECTOR",
+  "checkedAt": "2026-09-02T00:20:52+09:00",
+  "status": "READY_WAIT_P6_ACTUAL_CUTOVER",
+  "contracts": {
+    "targetUrl": "https://inventory.safe-link.co.kr",
+    "routes": ["/health", "/api/readiness"],
+    "minimumDistinctConsecutiveUtcDays": 30,
+    "maximumSamplesPerUtcDay": 1,
+    "ledgerFormat": "JSONL",
+    "ledgerLocation": "external-physical-path-reference",
+    "exportFormat": "PRODUCTION_HTTPS_MONITORING_EXPORT",
+    "atomicExportWrite": true,
+    "overwriteAllowed": false
+  },
+  "current": {
+    "sampleCount": 0,
+    "httpProbePerformed": false,
+    "localEvidenceWritePerformed": false,
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "focusedTests": { "pass": 5, "fail": 0 },
+  "secretValuesReadOrRecorded": false
+}

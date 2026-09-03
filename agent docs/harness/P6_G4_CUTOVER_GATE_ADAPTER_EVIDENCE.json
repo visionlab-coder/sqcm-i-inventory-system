@@ -1,0 +1,31 @@
+{
+  "packet": "ACC-P6-10-CUTOVER-GATE-HANDLER-ADAPTERS",
+  "evidenceType": "SYNTHETIC_LOCAL_GATE_ADAPTER_REHEARSAL",
+  "checkedAt": "2026-09-01T21:58:00+09:00",
+  "status": "EVIDENCE_COMPLETE",
+  "command": "npm.cmd run production:cutover-adapter-rehearsal",
+  "runnerStatus": "PASS_CUTOVER_GATE_ADAPTER_REHEARSAL",
+  "gateCount": 12,
+  "stepCount": 14,
+  "focusedTests": "6/6 PASS",
+  "repositorySyntax": "228/228 PASS",
+  "repositoryUnitTests": "333/333 PASS",
+  "harnessRegistered": true,
+  "harnessVerify": "41/41 PASS",
+  "dockerInvariant": "staging and Production each frontend/backend/database healthy; backend/database host port 0",
+  "checks": [
+    "exact 12 Gate order",
+    "exact public and execute arguments",
+    "Gate-specific accepted status allowlist",
+    "exit zero READY_WAIT status rejected",
+    "step evidence reference required",
+    "Gate evidence reference required",
+    "route-disable exact PASS and evidence required",
+    "adapter plan mutation rejected"
+  ],
+  "actualCommandsExecuted": false,
+  "actualCutoverExecuted": false,
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false
+}

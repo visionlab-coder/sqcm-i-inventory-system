@@ -1,0 +1,38 @@
+{
+  "packet": "ACC-P6-23-BOUNDED-ROUTE-DISABLE-PROVIDER-ADAPTERS",
+  "status": "PASS_BOUNDED_ROUTE_DISABLE_PROVIDER_ADAPTERS",
+  "failureFirst": { "expectedFailures": 4, "observedFailures": 4 },
+  "limits": {
+    "commandTimeoutMs": 10000,
+    "commandMaxBufferBytes": 1048576,
+    "providerHttpTimeoutMs": 10000,
+    "dnsObservationTimeoutMs": 5000
+  },
+  "focusedTests": { "total": 10, "passed": 10, "failed": 0 },
+  "syntaxChecks": { "passed": 315, "failed": 0 },
+  "unitTests": { "total": 501, "passed": 500, "failed": 0, "skipped": 1 },
+  "dryRun": {
+    "status": "READY_WAIT_ROUTE_DISABLE_INPUTS",
+    "tunnelObservationStatus": "PASS_ROUTE_DISABLE_TUNNEL_OBSERVATION",
+    "pending": ["PRODUCTION_TUNNEL_MISSING", "CLOUDFLARE_DNS_TOKEN_REFERENCE_MISSING"],
+    "externalMutationPerformed": false,
+    "actualPostCutoverRollback": "NOT_RUN",
+    "productionGo": false
+  },
+  "qualityCi": {
+    "runId": 33559293299,
+    "testedHeadSha": "c27e1652a9af9aa81fa924b70a3a71dc1149fba3",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS",
+    "status": "COMPLETED",
+    "conclusion": "SUCCESS"
+  },
+  "repositoryHygiene": "PASS",
+  "harnessVerify": "PASS",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

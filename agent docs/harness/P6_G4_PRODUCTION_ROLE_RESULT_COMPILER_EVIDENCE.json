@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-09-01T13:44:26.719Z",
+  "packet": "ACC-P6-14-AUTOMATIC-PRODUCTION-ROLE-RESULT-EVIDENCE",
+  "phase": "P6",
+  "status": "PASS_PRODUCTION_ROLE_RESULT_COMPILER_PREPARATION",
+  "implementation": {
+    "redactedRoleCoreSmokeSummary": true,
+    "sameRunAndReleaseShaRequired": true,
+    "coreSmokeGateReceiptShaRequired": true,
+    "actualProductionHttpsRequired": true,
+    "mfaRbacMatrixRequired": true,
+    "atomicThreeRoleWrite": true,
+    "repositoryOutputRejected": true,
+    "overwriteRejected": true
+  },
+  "verification": {
+    "focused": {
+      "passed": 5,
+      "failed": 0
+    },
+    "repository": {
+      "syntaxPassed": 240,
+      "unitPassed": 350,
+      "unitFailed": 0,
+      "platformSkipped": 1
+    },
+    "harnessVerify": "PASS",
+    "dryRunStatus": "READY_WAIT_PRODUCTION_ROLE_RESULT_INPUTS"
+  },
+  "actual": {
+    "roleResultsCreated": false,
+    "externalMutationPerformed": false,
+    "secretValuesReadOrRecorded": false,
+    "productionGo": false
+  },
+  "nextPacket": "ACC-P6-15-CUTOVER-SIGNOFF-PAUSE-AND-RESUME"
+}

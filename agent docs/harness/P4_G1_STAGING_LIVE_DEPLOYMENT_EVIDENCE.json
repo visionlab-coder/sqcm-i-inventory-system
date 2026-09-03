@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "workId": "P4-G1-STAGING-PROVIDER-ROUTES-AND-SECRET-REFERENCES",
+  "checkedAt": "2026-08-31T14:22:15+09:00",
+  "status": "PASS_NON_SEED_STAGING_LIVE_PROVIDERS_DNS_TLS_OIDC",
+  "phaseProgress": "4 / 8",
+  "sourceState": {
+    "branch": "codex/fix-sidebar-accessibility",
+    "head": "dfc37e3bfa60ea69a54900678897ee6b3a0eb078",
+    "dirtyWorktreePreserved": true,
+    "commitPushMergeRelease": false
+  },
+  "deployment": {
+    "composeProject": "seowon-inventory-staging",
+    "services": ["frontend", "backend", "database"],
+    "healthy": 3,
+    "frontendBinding": "127.0.0.1:3100",
+    "backendHostPorts": 0,
+    "databaseHostPorts": 0,
+    "dbRunSeeds": false,
+    "dbAutoMigrate": false,
+    "authProvider": "oidc",
+    "fileStorageDriver": "external"
+  },
+  "publicEndpoint": {
+    "hostname": "inventory-staging.safe-link.co.kr",
+    "tunnelId": "994b5a27-cba4-4958-aecf-ed43db8730ef",
+    "connectorPid": 31736,
+    "dnsA": ["104.21.53.216", "172.67.219.39"],
+    "tlsCertificateSubject": "CN=safe-link.co.kr",
+    "tlsIssuer": "Google Trust Services WE1",
+    "tlsVerifyResult": 0
+  },
+  "checks": [
+    {"id": "quality", "status": "PASS", "evidence": "syntax 118, unit 140/140, UI contract 20"},
+    {"id": "compose", "status": "PASS", "evidence": "frontend/backend/database exactly 3; all healthy"},
+    {"id": "nonSeed", "status": "PASS", "evidence": "DB_RUN_SEEDS=false and DB_AUTO_MIGRATE=false"},
+    {"id": "supabaseDb", "status": "PASS", "evidence": "ADMIN/MANAGER/USER one each; identity links 3"},
+    {"id": "readiness", "status": "PASS", "evidence": "Supabase S3, Defender bridge and OIDC PKCE status ok"},
+    {"id": "dnsTls", "status": "PASS", "evidence": "Cloudflare CNAME published; TLS certificate verified"},
+    {"id": "liveProviderProbe", "status": "PASS", "evidence": "OIDC discovery 200, health/readiness 200, AI health 200, protected routes 401"},
+    {"id": "liveOidc", "status": "PASS", "evidence": "start 302, authorize 302, callback 302, ADMIN session, logout 204"},
+    {"id": "browserOidc", "status": "PASS", "evidence": "fresh browser tab reached dashboard as ADMIN and returned to SSO login after logout"},
+    {"id": "rollbackAssets", "status": "PASS", "evidence": "synthetic and candidate three-container sets stopped but preserved"},
+    {"id": "logs", "status": "PASS", "evidence": "no backend 5xx/error/exception matches after final recreate"},
+    {"id": "protectedServices", "status": "PASS", "evidence": "1234/PID6632, 11434/PID8588, 18765/PID22716 preserved; existing cloudflared PID24804 preserved"}
+  ],
+  "securityFixes": [
+    "staging-only authenticated loopback HTTP for the internal event publisher; production remains HTTPS-only",
+    "single explicit Supabase consent redirect using skipBrowserRedirect",
+    "trusted Cloudflare HTTPS scheme propagated through staging Nginx",
+    "secure-cookie proxy trust enabled whenever COOKIE_SECURE=true"
+  ],
+  "secretsPrinted": false,
+  "externalChangesMade": [
+    "started dedicated staging Cloudflare tunnel connector",
+    "published inventory-staging.safe-link.co.kr CNAME to the approved tunnel",
+    "approved ADMIN OAuth grant for the staging confidential client"
+  ],
+  "rollback": {
+    "nonSeedProject": "seowon-inventory-staging",
+    "preservedSyntheticProject": "seowon-inventory-staging-synthetic",
+    "preservedCandidateProject": "seowon-inventory-staging-candidate",
+    "containersDeleted": false
+  },
+  "nextReady": "P4-G1-STAGING-BACKUP-MIGRATION-DEPLOYMENT"
+}

@@ -1,0 +1,54 @@
+{
+  "packet": "ACC-P6-42-ATOMIC-CLOUDFLARE-TOKEN-INPUT",
+  "status": "PASS_ATOMIC_CLOUDFLARE_TOKEN_INPUT",
+  "failureFirst": { "expectedFailures": 4, "observedFailures": 4 },
+  "focusedTests": { "total": 40, "passed": 38, "failed": 0, "skipped": 2 },
+  "syntaxChecks": { "passed": 368, "failed": 0 },
+  "unitTests": { "total": 689, "passed": 682, "failed": 0, "skipped": 7 },
+  "inputContract": {
+    "maximumBytes": 65536,
+    "absoluteExternalPhysicalSecretRequired": true,
+    "presenceInspectionReadsSecretContent": false,
+    "repositoryIdentityRechecked": true,
+    "repositoryRealpathRechecked": true,
+    "candidateIdentityRechecked": true,
+    "candidateRealpathRechecked": true,
+    "candidateSizeRechecked": true,
+    "fatalUtf8Required": true,
+    "sharedByIngressPublicationAndRouteDisable": true,
+    "rawPathAndContentRedactedFromErrors": true
+  },
+  "dryRunVerification": {
+    "ingressPublication": "READY_WAIT_INGRESS_PUBLICATION_INPUTS",
+    "routeDisable": "READY_WAIT_ROUTE_DISABLE_INPUTS",
+    "actualTokenContentRead": false,
+    "dnsTunnelOrRouteMutation": false
+  },
+  "implementationCommit": "b294f2ae17964d8b8e6d691cd0925e624a93eeb4",
+  "qualityCi": {
+    "runId": 33592297934,
+    "testedHeadSha": "b294f2ae17964d8b8e6d691cd0925e624a93eeb4",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "protectedServices": [
+    { "port": 1234, "pid": 6632, "preserved": true },
+    { "port": 11434, "pid": 8588, "preserved": true },
+    { "port": 18765, "pid": 22716, "preserved": true },
+    { "port": 18766, "pid": 65724, "preserved": true }
+  ],
+  "productionCompose": {
+    "services": ["frontend", "backend", "database"],
+    "healthyServiceCount": 3,
+    "frontendBinding": "127.0.0.1:3300",
+    "backendHostPortCount": 0,
+    "databaseHostPortCount": 0
+  },
+  "harnessVerify": { "exitCode": 0, "status": "PASS" },
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

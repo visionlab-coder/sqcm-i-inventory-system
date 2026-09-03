@@ -10,9 +10,9 @@ const samples=[];let cursor=0;
 async function worker(){while(cursor<total){cursor++;const started=performance.now();try{const response=await fetch(`${baseUrl}/api/health`,{signal:AbortSignal.timeout(10000)});samples.push({ok:response.status===200,durationMs:Number((performance.now()-started).toFixed(1)),status:response.status});}catch{samples.push({ok:false,durationMs:Number((performance.now()-started).toFixed(1)),status:0});}}}
 await Promise.all(Array.from({length:concurrency},worker));
 const load=policy.evaluateLoad(samples,{maxP95Ms:Number(process.env.MAX_P95_MS||1000),maxErrorRate:Number(process.env.MAX_ERROR_RATE||0)});
-const root=await fetch(`${baseUrl}/`);const headers={csp:root.headers.get('content-security-policy'),frame:root.headers.get('x-frame-options'),nosniff:root.headers.get('x-content-type-options'),permissions:root.headers.get('permissions-policy')};
-const anonymous=await fetch(`${baseUrl}/api/items`);
-const crossSite=await fetch(`${baseUrl}/api/auth/login`,{method:'POST',headers:{'content-type':'application/json','origin':'https://attacker.invalid','sec-fetch-site':'cross-site'},body:'{}'});
+const root=await fetch(`${baseUrl}/`,{signal:AbortSignal.timeout(10000)});const headers={csp:root.headers.get('content-security-policy'),frame:root.headers.get('x-frame-options'),nosniff:root.headers.get('x-content-type-options'),permissions:root.headers.get('permissions-policy')};
+const anonymous=await fetch(`${baseUrl}/api/items`,{signal:AbortSignal.timeout(10000)});
+const crossSite=await fetch(`${baseUrl}/api/auth/login`,{method:'POST',headers:{'content-type':'application/json','origin':'https://attacker.invalid','sec-fetch-site':'cross-site'},body:'{}',signal:AbortSignal.timeout(10000)});
 const crossSiteBody=await crossSite.json().catch(()=>({}));
 const security={ok:Boolean(headers.csp&&headers.frame==='DENY'&&headers.nosniff==='nosniff'&&headers.permissions)&&anonymous.status===401&&crossSite.status===403&&crossSiteBody.code==='CROSS_SITE_REQUEST',headers,anonymousStatus:anonymous.status,crossSiteStatus:crossSite.status,crossSiteCode:crossSiteBody.code||null};
 console.log(JSON.stringify({checkedAt:new Date().toISOString(),target:baseUrl,load,security},null,2));

@@ -1,7 +1,7 @@
 services:
   database:
     ports:
-      - "55432:5432"
+      - "127.0.0.1:${CI_POSTGRES_HOST_PORT:?CI PostgreSQL host port required}:5432"
   backend:
     ports:
-      - "58080:8080"
+      - "127.0.0.1:${CI_BACKEND_HOST_PORT:?CI backend host port required}:8080"

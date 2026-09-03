@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-09-02",
+  "status": "ACKNOWLEDGED_HISTORICAL_MANIFEST_MISMATCH",
+  "candidateCommit": "cfed57c62b9416b047f058ce33488cb8d059ec0b",
+  "candidateControlSha256": "959fef44d96568d96ce8062ff919a44ed5962f6dd7e15fb048d50436e29d3f0c",
+  "remoteEvidenceControlSha256": "dd27cff30ef40d6466abb50539819f9e7809dd37d4d463e088f3a7cb69adbfd5",
+  "deploymentBasis": false,
+  "actualContentDigest": "ed2e0f50c9c51210c258f05d87019f7745210081f053d5ccc1bac2aa7c3999f5",
+  "actualFiles": [
+    { "path": "agent docs/harness/MASTER_ROADMAP.json", "sha256": "356239e8ef697daceeff6f6ca5be458d4b49ef307d17b249dcfe939b8b2ba889", "bytes": 4019 },
+    { "path": "agent docs/harness/README.md", "sha256": "3811667393cc809d282a55bf52fb80419fa87330c8541a86abf4493772cc825c", "bytes": 1308 },
+    { "path": "agent docs/prompts/79_장기_Goal_Harness_메타프롬프트.md", "sha256": "203ca75dc4d4c730898e55a49d3ef661eaea0ef35ebf9942541e4aaed00b92a2", "bytes": 6806 },
+    { "path": "docs/current-state.md", "sha256": "014c46045625fa9e99105f1096f05326fb566007e61765fc7db90f50043fc5f4", "bytes": 9233 },
+    { "path": "docs/phase-reports/79_장기_Goal_Harness_설정.md", "sha256": "b7c3466d358c988d8519bc1f613f9491942dd4c164ea08980c59f92cd3f5473e", "bytes": 3505 },
+    { "path": "docs/roadmap.md", "sha256": "b523c93eb020c62f2d51a40a1f46be3637806654df1fbd6bafb7f29048a1aa77", "bytes": 6525 },
+    { "path": "frontend/experience.css", "sha256": "0c1cac13e66aa0f78c84de4eea5b82180015abdb437bc975a808fb5331820e17", "bytes": 12217 },
+    { "path": "frontend/index.html", "sha256": "aa847f8db6b2fa039379dc4a7c6ac73a319a5369320234b41d8dd84b203365b3", "bytes": 5172 },
+    { "path": "frontend/styles.css", "sha256": "ee0ddf7ef178b2931d2d2e3d058a5153cb5e48b8fdd5c4b9d14d2fd02fcb0f92", "bytes": 6242 },
+    { "path": "package.json", "sha256": "24d6c3bde2cd218c262d90ae6e5a208f162a8f415061de8cc5005efd4ab85c00", "bytes": 2326 },
+    { "path": "scripts/goal-harness.mjs", "sha256": "3477dad232ed090d57a6b1dd9934177d86a1a31f96ea6d6136eed4eb03a8e7ba", "bytes": 6764 },
+    { "path": "scripts/ui-contract-check.mjs", "sha256": "692473ca72962384a0f44399cc44b953a5dc5f9ff10b95b4b1846bdcf469e032", "bytes": 2430 }
+  ],
+  "historicalCandidateHashMismatches": [
+    { "path": "docs/current-state.md", "declaredSha256": "44e0c42b1aa029dd5cc747d8f2fc27083bd67e7e458049140a43a0ac93d3e1c1", "actualSha256": "014c46045625fa9e99105f1096f05326fb566007e61765fc7db90f50043fc5f4" },
+    { "path": "frontend/experience.css", "declaredSha256": "00241fcd1d430e1a00c3aefce3e7741a6105015748f84fd64e0dec309ad01ba8", "actualSha256": "0c1cac13e66aa0f78c84de4eea5b82180015abdb437bc975a808fb5331820e17" },
+    { "path": "frontend/index.html", "declaredSha256": "49597183cfd9c1778e0cf2e6f891134d36086d46a473f10a42594ac448a6b535", "actualSha256": "aa847f8db6b2fa039379dc4a7c6ac73a319a5369320234b41d8dd84b203365b3" },
+    { "path": "package.json", "declaredSha256": "230fe90a13a7347b3726ea2d5116fb11f5fc01e0ab3faf0d7f5abc1acd75ac07", "actualSha256": "24d6c3bde2cd218c262d90ae6e5a208f162a8f415061de8cc5005efd4ab85c00" },
+    { "path": "scripts/ui-contract-check.mjs", "declaredSha256": "ae8c132dc8b19d51e83747dae3bdbd7c48ad75a8a911c8f0e8bec6a5dd9bce0f", "actualSha256": "692473ca72962384a0f44399cc44b953a5dc5f9ff10b95b4b1846bdcf469e032" }
+  ]
+}

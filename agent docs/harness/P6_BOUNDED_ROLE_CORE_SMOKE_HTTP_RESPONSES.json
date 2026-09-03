@@ -1,0 +1,42 @@
+{
+  "packet": "ACC-P6-50-BOUNDED-ROLE-CORE-SMOKE-HTTP-RESPONSES",
+  "status": "PASS_BOUNDED_ROLE_CORE_SMOKE_HTTP_RESPONSES",
+  "failureFirst": { "expectedFailures": 1, "observedFailures": 1 },
+  "focusedTests": { "total": 20, "passed": 20, "failed": 0, "skipped": 0 },
+  "roleSmokeResponseContract": {
+    "roles": ["ADMIN", "MANAGER", "USER"],
+    "maximumBytesPerResponse": 1048576,
+    "timeoutMilliseconds": 10000,
+    "fatalUtf8Required": true,
+    "jsonObjectRequired": true,
+    "directResponseJsonCount": 0,
+    "oversizeRejectedBeforeBodyRead": true,
+    "invalidResponseFallback": "EMPTY_OBJECT_FAIL_CLOSED"
+  },
+  "dryRuns": {
+    "roleCoreSmoke": "READY_WAIT_ROLE_CREDENTIAL_REFERENCES",
+    "rolePreflight": "READY_WAIT_ROLE_USERS_MFA_AND_CREDENTIAL_REFERENCES",
+    "cutoverPreflight": "READY_WAIT_CHANGE_WINDOW",
+    "productionUserCount": 0,
+    "credentialReferenceCount": 0,
+    "localBlockerCount": 0,
+    "protectedServicesPreserved": true,
+    "actualRoleCoreSmoke": "NOT_RUN",
+    "productionGo": false
+  },
+  "syntaxChecks": { "passed": 382, "failed": 0 },
+  "unitTests": { "total": 739, "passed": 732, "failed": 0, "skipped": 7 },
+  "harnessVerify": "PASS",
+  "implementationCommit": "0a67f0881e846375141b9854f1b299372a8add79",
+  "qualityCi": {
+    "runId": 33605286537,
+    "testedHeadSha": "0a67f0881e846375141b9854f1b299372a8add79",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

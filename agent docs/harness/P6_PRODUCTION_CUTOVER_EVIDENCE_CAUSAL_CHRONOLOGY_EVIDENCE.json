@@ -1,0 +1,31 @@
+{
+  "packet": "ACC-P6-87-PRODUCTION-CUTOVER-EVIDENCE-CAUSAL-CHRONOLOGY",
+  "status": "PASS_PRODUCTION_CUTOVER_EVIDENCE_CAUSAL_CHRONOLOGY",
+  "scope": {
+    "receiptCount": 26,
+    "receiptTimestampOrder": "NON_DECREASING_BY_SEQUENCE",
+    "roleResultCheckedAtBoundToRoleSmokeReceipt": true,
+    "signoffNotBeforeGate": "rollback",
+    "signoffNotAfterStep": "uat_signoff:signoff-preflight",
+    "rollbackCutoffPreserved": true
+  },
+  "failureFirst": {
+    "reproducedFailureCount": 2,
+    "receiptTimestampRegressionAcceptedDetected": true,
+    "roleAndSignoffCausalMismatchAcceptedDetected": true
+  },
+  "focusedTests": { "total": 32, "passed": 31, "failed": 0, "skipped": 1 },
+  "repositoryChecks": { "syntaxPassed": 414, "unitTotal": 870, "unitPassed": 862, "unitFailed": 0, "unitSkipped": 8 },
+  "implementationCommit": "cd32670e22cd4caa6004b7798da08f322e2a003d",
+  "qualityCi": { "runId": 33659125646, "status": "SUCCESS" },
+  "actualReceiptValidation": "NOT_RUN",
+  "actualDnsTlsPublication": "NOT_RUN",
+  "actualP6Cutover": "NOT_RUN",
+  "actualP7Activation": "NOT_RUN",
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

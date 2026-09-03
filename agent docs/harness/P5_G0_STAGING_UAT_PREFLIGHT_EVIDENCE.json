@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "workId": "P5-G0-STAGING-UAT-PREFLIGHT",
+  "checkedAt": "2026-08-31T15:30:11+09:00",
+  "status": "PASS_READY_FOR_STAGING_UAT_EXECUTION",
+  "phaseProgress": "5 / 8",
+  "environment": {
+    "name": "staging",
+    "url": "https://inventory-staging.safe-link.co.kr",
+    "releaseSha": "dfc37e3bfa60ea69a54900678897ee6b3a0eb078",
+    "health": 200,
+    "readiness": 200,
+    "dockerServices": ["frontend", "backend", "database"],
+    "healthyServices": 3,
+    "production": false
+  },
+  "accounts": [
+    {"role":"ADMIN","matches":1,"status":"ACTIVE","confirmedAuthUsers":1,"oidcIdentities":1,"issuerMatch":true,"organization":true,"department":true,"scopeTypes":["ALL"]},
+    {"role":"MANAGER","matches":1,"status":"ACTIVE","confirmedAuthUsers":1,"oidcIdentities":1,"issuerMatch":true,"organization":true,"department":true,"scopeTypes":["ORGANIZATION"]},
+    {"role":"USER","matches":1,"status":"ACTIVE","confirmedAuthUsers":1,"oidcIdentities":1,"issuerMatch":true,"organization":true,"department":true,"scopeTypes":["DEPARTMENT"]}
+  ],
+  "accountVerification": {
+    "transaction": "READ_ONLY_ROLLBACK",
+    "certificateValidation": "SUPABASE_CA_AND_REJECT_UNAUTHORIZED_TRUE",
+    "emailValuesRecorded": false,
+    "passwordValuesRecorded": false,
+    "tokensCreated": false
+  },
+  "fixtureContract": {
+    "runIdPattern": "P5-UAT-YYYYMMDDTHHMMSSZ",
+    "syntheticOrDeidentifiedOnly": true,
+    "realBusinessDataAllowed": false,
+    "reservedCodePrefix": "P5-UAT-",
+    "existingCollisionCounts": {"organizations":0,"departments":0,"assets":0,"requests":0},
+    "cleanup": "exact runId allowlist only after evidence capture; never broad-delete",
+    "rollbackBaseline": "agent docs/harness/P4_G2_STAGING_ROLLBACK_EVIDENCE.json",
+    "backupBaseline": "agent docs/harness/P4_G3_OFFSITE_BACKUP_SIGNOFF_EVIDENCE.json"
+  },
+  "auditContract": {
+    "table": "public.audit_logs",
+    "traceColumns": ["request_id", "ip_address"],
+    "traceColumnCount": 2,
+    "traceIndexes": ["idx_audit_request_id", "idx_audit_actor_entity"],
+    "traceIndexCount": 2,
+    "requiredEvidence": ["actor_user_id", "action", "entity_type", "entity_id", "request_id", "created_at"],
+    "existingRows": 9,
+    "rowsWithRequestId": 6,
+    "rowsWithActor": 6
+  },
+  "defectContract": {
+    "critical": ["authentication bypass", "organization or department data exposure", "ledger corruption", "unrecoverable restore"],
+    "high": ["core approval failure", "checkout or return failure", "procurement failure", "audit failure"],
+    "requiredFields": ["id", "role", "reproduction", "expected", "actual", "owner", "fixVersion", "reverificationEvidence"],
+    "goRule": "open Critical = 0 and open High = 0",
+    "currentOpenCritical": 0,
+    "currentOpenHigh": 0,
+    "executionFailureRule": "any Critical/High result keeps Production NO-GO"
+  },
+  "uatPlan": {
+    "total": 19,
+    "ready": 19,
+    "passed": 0,
+    "failed": 0,
+    "notRun": 19,
+    "actorId": "PROJECT_OWNER_CURRENT_USER",
+    "signoff": {"business":"PENDING_P5_EXECUTION","security":"PENDING_P5_EXECUTION","operations":"PENDING_P5_EXECUTION"},
+    "items": [
+      {"id":"P5-UAT-01","role":"ADMIN","title":"staging URL·TLS와 시험 조직·부서","status":"READY_NOT_RUN"},
+      {"id":"P5-UAT-02","role":"SECURITY","title":"Secret 비노출","status":"READY_NOT_RUN"},
+      {"id":"P5-UAT-03","role":"OPERATIONS","title":"backup·rollback 기준","status":"READY_NOT_RUN"},
+      {"id":"P5-UAT-04","role":"ADMIN","title":"역할별 계정 분리","status":"READY_NOT_RUN"},
+      {"id":"P5-UAT-05","role":"USER","title":"SSO·세션 회전·로그아웃·만료 401","status":"READY_NOT_RUN"},
+      {"id":"P5-UAT-06","role":"USER","title":"MFA 정상·오류·복구코드 단회 사용","status":"READY_NOT_RUN"},
+      {"id":"P5-UAT-07","role":"USER","title":"허용 부서 조회와 타 부서 비노출","status":"READY_NOT_RUN"},
+      {"id":"P5-UAT-08","role":"USER","title":"자산 등록·검색·상세·증빙","status":"READY_NOT_RUN"},
+      {"id":"P5-UAT-09","role":"MANAGER","title":"다단계 승인과 자기 승인 차단","status":"READY_NOT_RUN"},
+      {"id":"P5-UAT-10","role":"MANAGER","title":"반납 제출·승인·원장","status":"READY_NOT_RUN"},
+      {"id":"P5-UAT-11","role":"MANAGER","title":"구매·발주·부분 입고·검수","status":"READY_NOT_RUN"},
+      {"id":"P5-UAT-12","role":"ADMIN","title":"재물조사·수리·분실·폐기·감사·CSV","status":"READY_NOT_RUN"},
+      {"id":"P5-UAT-13","role":"USER","title":"모바일 핵심 업무","status":"READY_NOT_RUN"},
+      {"id":"P5-UAT-14","role":"SECURITY","title":"403·401·400 안전한 오류","status":"READY_NOT_RUN"},
+      {"id":"P5-UAT-15","role":"SECURITY","title":"infected·unknown·timeout 저장 차단","status":"READY_NOT_RUN"},
+      {"id":"P5-UAT-16","role":"OPERATIONS","title":"의존성 장애 readiness 503·경보","status":"READY_NOT_RUN"},
+      {"id":"P5-UAT-17","role":"OPERATIONS","title":"health·smoke·5xx·migration","status":"READY_NOT_RUN"},
+      {"id":"P5-UAT-18","role":"OPERATIONS","title":"rollback 후 health·로그인·DB 호환성","status":"READY_NOT_RUN"},
+      {"id":"P5-UAT-19","role":"OPERATIONS","title":"격리 복구 건수 일치","status":"READY_NOT_RUN"}
+    ]
+  },
+  "protectedServices": [
+    {"port":1234,"pid":6632,"preserved":true},
+    {"port":11434,"pid":8588,"preserved":true},
+    {"port":18765,"pid":22716,"preserved":true},
+    {"port":18766,"pid":65724,"preserved":true},
+    {"port":18767,"pid":28532,"preserved":true}
+  ],
+  "changesMade": true,
+  "externalChangesMade": false,
+  "productionGo": false,
+  "blockedReasons": [],
+  "nextReady": "P5-G1-STAGING-UAT-EXECUTION"
+}

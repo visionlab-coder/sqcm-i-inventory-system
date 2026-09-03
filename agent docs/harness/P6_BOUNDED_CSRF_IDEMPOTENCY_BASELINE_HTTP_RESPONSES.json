@@ -1,0 +1,44 @@
+{
+  "packet": "ACC-P6-52-BOUNDED-CSRF-IDEMPOTENCY-BASELINE-HTTP-RESPONSES",
+  "status": "PASS_BOUNDED_CSRF_IDEMPOTENCY_BASELINE_HTTP_RESPONSES",
+  "failureFirst": { "expectedFailures": 1, "observedFailures": 1 },
+  "focusedTests": { "total": 31, "passed": 31, "failed": 0, "skipped": 0 },
+  "csrfBaselineResponseContract": {
+    "maximumBytesPerResponse": 1048576,
+    "timeoutMilliseconds": 10000,
+    "fatalUtf8Required": true,
+    "jsonObjectRequired": true,
+    "directResponseJsonCount": 0,
+    "oversizeRejectedBeforeBodyRead": true,
+    "invalidResponseFallback": "EMPTY_OBJECT_FAIL_CLOSED"
+  },
+  "dryRuns": {
+    "csrfIdempotencyBaseline": "PASS_NEGATIVE_AND_SCHEMA_BASELINE_READY_FOR_AUTHENTICATED_RECHECK",
+    "missingTokenStatus": 403,
+    "missingTokenCode": "CSRF_INVALID",
+    "sessionCountUnchanged": true,
+    "idempotencyColumnContract": "10/10",
+    "stuckIdempotencyCount": 0,
+    "invalidIdempotencyStatusCount": 0,
+    "cutoverPreflight": "READY_WAIT_CHANGE_WINDOW",
+    "localBlockerCount": 0,
+    "protectedServicesPreserved": true,
+    "actualAuthenticatedIdempotentWriteReplay": "NOT_RUN",
+    "productionGo": false
+  },
+  "syntaxChecks": { "passed": 384, "failed": 0 },
+  "unitTests": { "total": 743, "passed": 736, "failed": 0, "skipped": 7 },
+  "harnessVerify": "PASS",
+  "implementationCommit": "3c9d17748672a5da73aa725454ee4c0b5ded3ef7",
+  "qualityCi": {
+    "runId": 33607771278,
+    "testedHeadSha": "3c9d17748672a5da73aa725454ee4c0b5ded3ef7",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

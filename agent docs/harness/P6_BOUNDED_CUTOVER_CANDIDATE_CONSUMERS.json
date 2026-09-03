@@ -1,0 +1,55 @@
+{
+  "packet": "ACC-P6-44-BOUNDED-CUTOVER-CANDIDATE-CONSUMERS",
+  "status": "PASS_BOUNDED_CUTOVER_CANDIDATE_CONSUMERS",
+  "failureFirst": { "expectedFailures": 1, "observedFailures": 1 },
+  "focusedTests": { "total": 6, "passed": 6, "failed": 0, "skipped": 0 },
+  "entrypointDryRuns": {
+    "candidateCheck": "PASS_CANDIDATE_FAIL_CLOSED",
+    "cutoverExecute": "PASS_CUTOVER_EXECUTION_ENTRYPOINT_DRY_RUN",
+    "actualEvidence": "READY_WAIT_ACTUAL_CUTOVER_EVIDENCE_INPUTS",
+    "roleResult": "READY_WAIT_PRODUCTION_ROLE_RESULT_INPUTS",
+    "signoff": "READY_WAIT_PRODUCTION_UAT_AND_SIGNOFF_REFERENCES",
+    "externalMutationPerformed": false,
+    "productionGo": false
+  },
+  "syntaxChecks": { "passed": 375, "failed": 0 },
+  "unitTests": { "total": 724, "passed": 717, "failed": 0, "skipped": 7 },
+  "candidateReadContract": {
+    "consumers": [
+      "production-cutover-execute",
+      "production-cutover-actual-evidence",
+      "production-signoff-preflight",
+      "production-role-result-evidence",
+      "production-cutover-evidence-check"
+    ],
+    "maximumBytes": 1048576,
+    "physicalRegularFileRequired": true,
+    "realPathMatchRequired": true,
+    "readAfterStabilityRequired": true,
+    "fatalUtf8Required": true,
+    "jsonObjectRequired": true,
+    "directUnboundedCandidateReadCount": 0
+  },
+  "implementationCommit": "73094cb3ed9170d0fc9253d054777efa70824887",
+  "qualityCi": {
+    "runId": 33597939948,
+    "testedHeadSha": "73094cb3ed9170d0fc9253d054777efa70824887",
+    "unit": "SUCCESS",
+    "threeTierIntegration": "SUCCESS"
+  },
+  "protectedServicesPreserved": true,
+  "productionCompose": {
+    "services": ["frontend", "backend", "database"],
+    "healthyServiceCount": 3,
+    "frontendBinding": "127.0.0.1:3300",
+    "backendHostPortCount": 0,
+    "databaseHostPortCount": 0
+  },
+  "harnessVerify": { "exitCode": 0, "status": "PASS" },
+  "externalMutationPerformed": false,
+  "secretValuesReadOrRecorded": false,
+  "productionGo": false,
+  "phaseProgress": "6 / 8",
+  "officialReady": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
+  "accelerationReady": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}
