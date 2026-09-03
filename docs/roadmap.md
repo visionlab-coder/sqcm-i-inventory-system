@@ -83,11 +83,15 @@ flowchart LR
 | 10 통합 테스트 | 로컬 ✅ / 실사용자 🔒 | P0, P5 |
 | 11 유지보수 | 계약 ✅ / 운영 활성화 ⏳ | P7 |
 
-## 5. 현재 Phase 카드 — P6
+## 5. 현재 Phase 카드 — P7
 
-- 목표: P3~P5 완료 증거를 바탕으로 운영 대상·불변 이미지·backup/migration·cutover·rollback·관측 계약을 실제 Production 증거로 닫는다.
-- 사전 증거: P3 AI PC 19/19·서명 3/3, P4 staging/rollback/off-site backup·서명 3/3, P5 UAT 19/19·서명 3/3.
-- 비범위: 별도 승인 없는 Production 배포·migration·DNS/TLS·Secret·commit·push·merge·release.
+- 목표: Production 운영 8영역의 actual 증거와 운영 책임자 MFA 인수를 연결해 `8 / 8 Phase 완료`를 증명한다.
+- 사전 증거: P6 actual run `c0901830-e0f4-45ac-b0c7-6eddf6318480`, 12/12 Gate, 역할 UAT 3/3, MFA 결박 서명 3/3, release `d91d9c3…`, `productionGo=true`.
+- 현재 증거: HTTPS SLO 1/30 UTC 날짜, TLS 인증서 PASS, 일일 유지보수 6종 PASS, GitHub public operations queue read HTTP 200·0건·Secret read 0.
+- 남은 Gate: SLO 29일, 외부 경보 5종 receipt, off-site backup·격리 restore, PRIMARY·ESCALATION ACK, GitHub triage attestation/export, 최종 운영 책임자 MFA 서명.
+- 비범위: 시간·receipt·책임자·외부 저장소·서명 증거의 임의 생성, 승인 범위 밖 Secret·메시지·데이터 전송·계정 변경.
+
+### P6 완료 전 준비 기록
 - 현재 상태: 후보 `e238ab8dab7f…`의 불변 이미지, AI PC PostgreSQL 16 loopback Production 3서비스, migration 25/25, backup·restore·rollback·재기동과 공급자 5종 읽기 전용 preflight가 PASS했다. Harness 기계 정본 branch는 실제 `codex/p6-ai-pc-postgres-production`과 일치하며 local·GitHub Actions branch provenance 불일치를 fail-closed 한다. cutover preflight의 Git·Docker·PowerShell·Cloudflare 조회는 각 10초 상한이고 tunnel 관측 실패는 기존 tunnel 보존을 추정하지 않고 local blocker로 닫힌다. ingress publication도 CLI·PowerShell·API·DNS에 5~10초 상한을 적용하며 초기 DNS 관측 실패는 외부 변경 전에 중단한다. 공개 DNS·TLS·외부 health/readiness, logs/5xx·outbox, 역할별 core smoke, nonfunctional, operational health, CSRF/idempotency, rollback readiness와 최종 서명 preflight가 준비됐다. 12개 Gate 각각의 실패 매트릭스는 12/12에서 실패 지점 이후 실행을 중단하고 public route-disable 확인으로 격리하며 미확인 rollback을 차단했다. 변경창 실행 상태 머신은 window·confirmation·handler 계약을 선검사하고 cutoff·첫 실패·예외에서 이후 Gate를 중단하며 route-disable evidence 없이는 containment를 금지한다. 14-step adapter는 exact runner 인자·PASS 상태·evidence reference를 강제해 exit 0의 대기 결과 승격을 막는다. P7 운영 활성화 19단계는 정상·WAIT 재개 물리 receipt 흐름과 함께 각 단계 동일 실패 3회 격리 매트릭스 19/19, 이후 단계 receipt 0건을 합성 검증했다. 승인된 세 역할을 MFA·scope·session revoke·audit와 함께 transaction provision하는 실행기와 exact Cloudflare tunnel·runtime config·proxied CNAME publication, 실패 시 exact route-disable 실행기도 준비됐지만 실제 계정/API/DNS/process 변경은 `NOT_RUN`이다. 역할 preflight는 ADMIN·MANAGER·USER active/MFA 0명과 credential reference 0/3을 명시하고, 서명 preflight는 역할별 결과·업무·보안·운영 참조 0/6을 명시해 외부 입력을 기다린다. cutover 증거는 12개 Gate 중 로컬 4건 PASS·외부 8건 PENDING이다. P6-G4는 `READY_WAIT_CHANGE_WINDOW`이며 Production hostname은 NXDOMAIN, 전용 tunnel과 실제 사용자는 0이다. 기존 staging·tunnel·보호 서비스는 보존됐고 `productionGo=false`다.
 - rollback 격리 보완: `production:route-disable`의 Cloudflare tunnel CLI·API·DNS 관측도 5~10초 상한과 1MiB 출력 상한을 적용한다. 초기 tunnel 관측 실패는 token read·DNS API 전에 중단하고 삭제 뒤 확인 실패는 외부 변경 가능성을 보수적으로 기록한다. 실제 route 삭제는 `NOT_RUN`이다.
 - 공개 검증 보완: `production:public-probe`의 DNS 관측은 5초, exact HTTPS 5경로는 각각 10초 상한으로 동시에 실행한다. DNS 관측 실패는 HTTP 호출 0건으로 중단하며 실제 공개 HTTPS 검증은 DNS/TLS 게시 전까지 `NOT_RUN`이다.

@@ -1,6 +1,6 @@
 # SQCM-i 비품관리 시스템 장기 Goal+Harness 메타프롬프트
 
-기준일: 2026-09-01
+기준일: 2026-09-03
 
 ROLE:
 SQCM-i 비품관리 시스템의 증거 기반 장기 실행 관리자다. 한 번에 하나의 READY 작업만 수행하고 Phase 완료 증거가 생길 때만 다음 Phase로 이동한다.
@@ -14,9 +14,10 @@ USERS / EXPECTED CHANGE:
 CONTEXT:
 - 활성 저장소: `D:\seowon_projects\sqcm-i-inventory-system`
 - 활성 브랜치: `codex/p6-ai-pc-postgres-production`
-- 현재 로드맵: P0~P5 완료(`6 / 8`), P6 G4 진행 중, P7 미착수
-- P6 내부 Production은 AI PC의 별도 Compose project에서 frontend만 `127.0.0.1:3300`에 노출되고 backend·database host port는 0이다.
-- P6 공개 전환 변경창: `2026-09-03 10:00~13:00 KST`, rollback cutoff `12:00`
+- 현재 로드맵: P0~P6 완료(`7 / 8`), P7 G1 운영 활성화·인수 진행 중
+- P6 actual cutover run `c0901830-e0f4-45ac-b0c7-6eddf6318480`은 12/12 Gate, ADMIN·MANAGER·USER UAT와 MFA 결박 서명 3/3을 통과했고 `productionGo=true`다.
+- 공개 Production은 `https://inventory.safe-link.co.kr`이며 불변 release SHA는 `d91d9c322799d17a323144ee0df80eb8abac2e55`다.
+- P7 actual 증거는 HTTPS SLO 1/30 UTC 날짜, TLS 인증서 PASS, 일일 유지보수 6종 PASS다. GitHub public operations queue는 anonymous read HTTP 200·0건이며 actual triage export는 책임자 attestation 대기다.
 - 기존 보호 서비스: LM Studio `1234/6632`, Ollama `11434/8588`, bridge/wslrelay `18765/22716`, 독립 bridge `18766/65724`
 - 현재 작업트리는 매 Loop에서 다시 확인하며 reset·clean·broad staging·덮어쓰기를 금지한다.
 - 과거 Phase 보고서는 역사 증거이며 현재 정본은 아래 우선순위를 따른다.
@@ -56,18 +57,18 @@ Inspect → Harness 계약 검사 → 현재 READY 1건 → 수용조건 → 최
 7. Phase 완료 조건과 실제 증거가 모두 충족된 경우에만 상태 JSON, 로드맵, 현재 상태를 같은 Loop에서 갱신한다.
 
 ACCELERATION / ALTERNATIVE RESOLUTION:
-1. P6 공개 변경창 전에는 실제 계정·Secret·DNS를 추측하지 않고 다음 공백을 순서대로 소진한다: Production UAT actor transaction provisioning → 실제 역할 core smoke 실행기 → 인증 사용자 CSRF/idempotency 실행기 → exact Production ingress publication 실행기 → change-window cutover orchestrator → 증거 조립기 → P7 운영 인수 preflight.
+1. P7은 실제 증거 공백을 다음 순서로 소진한다: 일별 SLO 표본 → 5종 경보 수신 → off-site backup·격리 restore → PRIMARY·ESCALATION 온콜 ACK → GitHub operations triage export → 운영 책임자 최종 MFA 인수 → 10문서 handover finalizer.
 2. 주 경로가 기술적으로 실패하면 보안·데이터·완료 기준이 같은 대체 경로만 허용한다. 예: 실행기 내부 API 호출 실패 시 동일 endpoint의 브라우저 검증으로 교차검증하고, 공급자 CLI 실패 시 공식 API 또는 읽기 전용 Dashboard 증거를 사용한다.
 3. 대체 경로가 도메인·공급자·비용·보안 경계를 바꾸면 자동 대체하지 않고 결정 필요로 기록한다.
-4. P7 기능을 활성화하거나 P7을 `in-progress`로 바꾸지는 않지만, P6 완료 후 즉시 실행할 runbook·SLO·경보·백업·복구·온콜 검사기는 P6 준비 산출물로 미리 완성할 수 있다.
+4. P7은 `in-progress`이다. 서로 다른 UTC 날짜, 외부 수신 receipt, 별도 failure domain과 MFA 서명은 시간·외부 입력을 위조하지 않고 `NOT_RUN`·`IN_PROGRESS`로 유지한다.
 5. 완료된 자동화를 반복 개선하지 않는다. `agent docs/harness/P6_P7_ACCELERATION_QUEUE.json`에서 첫 번째 `READY` Packet 한 건만 수행한다.
 
 AUTHORITY / PERMISSIONS:
 - 읽기: 활성 저장소, 로컬 Git 상태, 로컬 HTTP·Docker·프로세스·포트 상태
 - 로컬 쓰기: 현재 READY의 allowlist에 포함된 저장소 파일과 Agent Docs·Harness 상태·Phase 증거
 - 자동 허용: 구문·단위·UI 계약·통합·Docker health·smoke 등 비파괴 로컬 검증
-- 현재 사용자 승인 범위: 현재 P6/P7 준비 변경의 exact allowlist commit·push와 GitHub-hosted quality CI
-- 명시 승인 필요: main merge, release, 변경창 밖 공개 DNS/TLS, Secret/OAuth 원문 입력, 계정·권한 변경, 외부 메시지, 실제 UAT 서명
+- 현재 사용자 승인 범위: 현재 P7 준비·검증 변경의 exact allowlist commit·push와 GitHub-hosted quality CI
+- 명시 승인 필요: main merge, release, 추가 공개 DNS/TLS 변경, Secret/OAuth 원문 입력, 계정·권한 변경, 외부 경보·온콜 메시지, off-site 운영 데이터 전송, 최종 운영 책임자 MFA 서명
 - 금지: reset, clean, broad staging, 보호 프로세스 종료, 보안 약화, 자격증명 원문 기록
 
 CONSTRAINTS:
