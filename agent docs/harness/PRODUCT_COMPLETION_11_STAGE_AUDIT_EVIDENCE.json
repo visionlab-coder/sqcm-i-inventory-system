@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "auditedAt": "2026-09-03T06:00:53.739Z",
+  "status": "HOLD_PATCH_RELEASE_PROMOTION_OPERATIONS_QUALIFICATION_IN_PROGRESS",
+  "productDelivery": {
+    "passedStages": 10,
+    "totalStages": 11,
+    "productionGo": true,
+    "blockedStage": 9,
+    "blockedReason": "QS_6_16_0_NOT_YET_IN_DEPLOYED_IMMUTABLE_IMAGE"
+  },
+  "phaseLifecycle": {
+    "completedPhases": 7,
+    "totalPhases": 8,
+    "currentPhase": "P7",
+    "readyWork": "P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+  },
+  "verification": {
+    "syntaxFiles": 425,
+    "unit": { "total": 915, "passed": 907, "failed": 0, "skipped": 8 },
+    "integration": { "total": 21, "passed": 20, "failed": 0, "skipped": 1 },
+    "uiContract": { "passed": 20, "failed": 0 },
+    "publicSmoke": { "passed": 5, "failed": 0, "target": "https://inventory.safe-link.co.kr" },
+    "applicationMigrations": { "passed": 25, "total": 25 },
+    "productionContainers": { "healthy": 3, "expected": ["frontend", "backend", "database"] },
+    "dependencyAudit": {
+      "sourceVulnerabilities": 0,
+      "sourceQsVersion": "6.16.0",
+      "deployedQsVersion": "6.15.3",
+      "deploymentStatus": "PATCH_NOT_YET_PROMOTED"
+    },
+    "harnessVerify": "PASS"
+  },
+  "release": {
+    "deployedRevision": "d91d9c322799d17a323144ee0df80eb8abac2e55",
+    "auditedHead": "99dd5e4225d22fc85a259846a8e686acc357dcf2",
+    "githubQualityRunId": 33717469636,
+    "githubQualityConclusion": "success"
+  },
+  "operationsQualification": {
+    "status": "IN_PROGRESS",
+    "sloDistinctUtcDays": 1,
+    "sloRequiredUtcDays": 30,
+    "remaining": [
+      "SLO_29_DISTINCT_UTC_DAYS",
+      "EXTERNAL_ALERT_RECEIPTS_5",
+      "OFFSITE_BACKUP_AND_ISOLATED_RESTORE",
+      "PRIMARY_AND_ESCALATION_ACK",
+      "GITHUB_OPERATIONS_TRIAGE_ATTESTATION",
+      "OPERATIONS_OWNER_MFA_SIGNOFF"
+    ]
+  },
+  "changesMade": [
+    "LOCK_QS_6_16_0",
+    "REGISTER_P7_G1_HARNESS_VERIFIER",
+    "ADD_P7_G1_VERIFIER_REGRESSION_TEST",
+    "REMOVE_ONE_ORPHAN_LOCAL_TEST_POLICY_AND_AUDIT_ROW",
+    "APPLY_LOCAL_APPLICATION_MIGRATION_026"
+  ],
+  "secretValuesRecorded": false,
+  "externalMutationPerformed": false,
+  "immediateReleaseGate": "PATCH-QS-6.16.0-RELEASE-AND-DEPLOY",
+  "nextReady": "P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

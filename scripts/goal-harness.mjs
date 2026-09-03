@@ -431,6 +431,8 @@ function verify() {
       ['operations-phase-completion', 'npm.cmd', ['run', 'operations:phase-completion']]
     ]
   };
+  commandSets['P7/P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF'] =
+    commandSets['P7/P7-G0-OPERATIONS-HANDOVER-PREFLIGHT'];
   const commands = commandSets[verifierKey];
   if (!commands) {
     console.error(`No autonomous verifier is registered for ${phase.id}/${phase.readyWork.id}.`);

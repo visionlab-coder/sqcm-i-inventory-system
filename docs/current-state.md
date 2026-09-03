@@ -358,6 +358,13 @@ P6-G3에서 후보 `e238ab8dab7f…`의 원격 일치, GitHub-hosted quality와 
 
 `ACC-P6-94`에서 `production:cutover-execute -- --resume-signoff --assemble-signoffs --execute`가 실제 signoff 3건 조립, 동일 run Gate 12, 최종 actual P6 evidence 기록을 한 흐름으로 수행하도록 연결했다. 변경창·resume 확인·역할 결과·MFA receipt·request bundle·두 조립 확인·외부 신규 출력이 모두 준비되기 전에는 signoff를 읽거나 쓰지 않으며, partial signoff set과 조립·최종화 실패는 exact route-disable 증거를 요구한다. failure-first 4건 뒤 focused 21/21, 구문 420/420, 단위 880 PASS·8 SKIP, Harness verify와 GitHub Quality `33670549078`의 unit·three-tier를 통과했다. 실제 승인·MFA receipt·서명·DNS/TLS·cutover는 `NOT_RUN`이고 전체 상태는 6/8·`productionGo=false`다.
 
+# 2026-09-03 제품완료 11단계 재검수
+
+- 기능·기존 Production 배포 기준선은 11단계 증거를 갖췄고 `productionGo=true`다. 현재 소스 기준 단위 907 PASS·0 FAIL·8 Windows 권한 SKIP, 통합 20 PASS·0 FAIL·1 실제 Defender SKIP, UI 계약 20/20, 공개 smoke 5/5, migration 25/25, 유지보수와 P7 Harness verifier가 PASS했다.
+- 점검 중 로컬 시험 DB의 미참조 잔존 승인정책과 감사행 각 1건을 exact 조건으로 제거하고 migration 026을 적용한 뒤 통합시험을 복구했다. 운영 DB·서비스·Secret은 변경하지 않았다.
+- 소스의 `qs`는 6.16.0으로 잠가 audit 0건이지만 실행 중인 불변 Production backend `sha-d91d9c3…`에는 6.15.3이 남아 있다. 따라서 최신 패치 기준 제품완료는 10/11이며 즉시 Gate는 `PATCH-QS-6.16.0-RELEASE-AND-DEPLOY`다.
+- P7 운영자격은 별개로 7/8 진행 중이며 다음 READY `P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF`와 실제 시간·외부 증거를 유지한다. 상세 증거는 `docs/phase-reports/150_제품완료_11단계_재검수.md`와 `agent docs/harness/PRODUCT_COMPLETION_11_STAGE_AUDIT_EVIDENCE.json`이다.
+
 # Phase 74 불변 이미지 릴리스 게이트 (2026-08-15)
 
 - GitHub Actions 외부 참조를 공식 commit SHA로 고정하고, main의 정확한 SHA로 frontend/backend 이미지를 GHCR에 발행하는 workflow를 추가했다.
