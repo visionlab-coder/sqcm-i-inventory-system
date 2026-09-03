@@ -12,7 +12,7 @@ function inputs() {
       ]
     },
     queue: { currentPhase: 'P6', readyPacket: 'ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF', rules: { productionGo: false } },
-    actualEvidence: { status: 'PASS', evidenceType: 'P6_CUTOVER_ACTUAL', environment: 'production', activationState: 'actual', productionGo: true, checkedAt: '2026-09-11T12:30:00.000Z', runId: '11111111-1111-4111-8111-111111111111', releaseSha: 'a'.repeat(40), targetUrl: 'https://inventory.safe-link.co.kr' },
+    actualEvidence: { status: 'PASS', evidenceType: 'P6_CUTOVER_ACTUAL', environment: 'production', activationState: 'actual', productionGo: true, checkedAt: '2026-09-03T02:30:00.000Z', runId: '11111111-1111-4111-8111-111111111111', releaseSha: 'a'.repeat(40), targetUrl: 'https://inventory.safe-link.co.kr' },
     actualEvidenceSha256: 'b'.repeat(64)
   };
 }
@@ -65,7 +65,7 @@ test('로드맵과 현재 상태의 모든 현재 판정 문구를 같은 사실
   const block = renderHarnessStatusBlock({ completedPhases: 7, totalPhases: 8, currentPhase: 'P7', productionGo: true, readyWork: 'P7-G0-OPERATIONS-HANDOVER-PREFLIGHT' });
   const marker = '<!-- HARNESS_STATUS_START -->\nold\n<!-- HARNESS_STATUS_END -->';
   const roadmap = `${marker}\nP6["P6 Production 전환<br/>🔄 G2 Git·CI·이미지 PASS"]\nP7["P7 운영·유지보수 활성화<br/>⏳ 대기"]\n    class P6 active;\n    class P7 pending;\n진척도: **6 / 8 Phase 완료**\n현재 위치: **P6 Production 전환**\n다음 Phase: **P7 운영·유지보수 활성화** — P6 전환 증거 완료 전에는 시작하지 않는다.\n| P6 Production 전환 | 최종 승인, cutover, 관측·복구 확인 | 🔄 진행 중 |x\n| P7 운영·유지보수 활성화 | 백업, 경보, 온콜, 정기 점검, 개선 큐 | ⏳ 미착수 |x`;
-  const current = `${marker}\n상태: **P5 staging UAT 19/19·서명 3/3 완료 / P6-G3 AI PC loopback Production 배포·복구 PASS / P6-G4 공개 전환 대기 / Production NO-GO**\n- 공개 DNS/TLS, 실제 Production 사용자 로그인·MFA, 최종 서명은 아직 없으므로 \`productionGo=false\`다. 다음 READY는 \`P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF\`다.\n현재 유일한 READY는 **P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF**다. 사전점검은 \`READY_WAIT_CHANGE_WINDOW\`이며 승인된 변경창 \`2026-09-11 20:00~23:00 KST\`에서 전용 Production tunnel·공개 DNS/TLS, 실제 사용자 로그인·MFA, 관측·최종 서명을 검증한다. 그 전까지 서비스는 \`127.0.0.1:3300\` 격리를 유지하며 Production은 \`NO-GO\`다.`;
+  const current = `${marker}\n상태: **P5 staging UAT 19/19·서명 3/3 완료 / P6-G3 AI PC loopback Production 배포·복구 PASS / P6-G4 공개 전환 대기 / Production NO-GO**\n- 공개 DNS/TLS, 실제 Production 사용자 로그인·MFA, 최종 서명은 아직 없으므로 \`productionGo=false\`다. 다음 READY는 \`P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF\`다.\n현재 유일한 READY는 **P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF**다. 사전점검은 \`READY_WAIT_CHANGE_WINDOW\`이며 승인된 변경창 \`2026-09-03 20:00~23:00 KST\`에서 전용 Production tunnel·공개 DNS/TLS, 실제 사용자 로그인·MFA, 관측·최종 서명을 검증한다. 그 전까지 서비스는 \`127.0.0.1:3300\` 격리를 유지하며 Production은 \`NO-GO\`다.`;
   const promotedRoadmap = promoteRoadmapDocument(roadmap, block);
   const promotedCurrent = promoteCurrentStateDocument(current, block);
   assert.doesNotMatch(promotedRoadmap, /6 \/ 8|P6 active|P7 pending/);

@@ -10,8 +10,8 @@ const releaseSha = 'a'.repeat(40);
 const coreGateSha = 'b'.repeat(64);
 const rollbackGateSha = 'c'.repeat(64);
 const resultSetPublicationId = 'd'.repeat(64);
-const roleCheckedAt = '2026-09-11T12:00:00.000Z';
-const preparedAt = '2026-09-11T12:01:00.000Z';
+const roleCheckedAt = '2026-09-03T02:00:00.000Z';
+const preparedAt = '2026-09-03T02:01:00.000Z';
 
 function roles(overrides = {}) {
   return Object.fromEntries(['ADMIN', 'MANAGER', 'USER'].map((role) => [role, {
@@ -71,7 +71,7 @@ test('혼합 역할 결과 세트와 인과시간 역전을 거부한다', async
     runId, releaseSha, coreGateSha, rollbackGateSha, roleResultDocuments: mixed, preparedAt
   }), /ROLE_RESULT_SET_INVALID/);
   assert.throws(() => buildProductionSignoffRequestBundle({
-    runId, releaseSha, coreGateSha, rollbackGateSha, roleResultDocuments: roles(), preparedAt: '2026-09-11T11:59:59.999Z'
+    runId, releaseSha, coreGateSha, rollbackGateSha, roleResultDocuments: roles(), preparedAt: '2026-09-03T01:59:59.999Z'
   }), /PREPARED_AT_INVALID/);
 });
 

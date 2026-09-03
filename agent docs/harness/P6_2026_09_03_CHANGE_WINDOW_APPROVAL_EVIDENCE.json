@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "P6-2026-09-03-CHANGE-WINDOW-APPROVAL",
+  "phase": "P6",
+  "checkedAt": "2026-09-03T00:24:53.838Z",
+  "status": "PASS_CHANGE_WINDOW_CONTRACT_READY",
+  "approval": {
+    "source": "current-user-explicit-approval",
+    "window": {
+      "start": "2026-09-03T01:00:00.000Z",
+      "rollbackCutoff": "2026-09-03T03:00:00.000Z",
+      "end": "2026-09-03T04:00:00.000Z",
+      "timezone": "Asia/Seoul",
+      "display": "2026-09-03 10:00~13:00 KST; rollback cutoff 12:00 KST"
+    },
+    "approvedActions": [
+      "Production UAT ADMIN MANAGER USER account provisioning",
+      "Production MFA verification",
+      "Cloudflare DNS TLS publication for inventory.safe-link.co.kr"
+    ]
+  },
+  "verification": {
+    "harnessCheck": "PASS",
+    "harnessVerify": "PASS",
+    "unit": {
+      "pass": 885,
+      "fail": 0,
+      "skip": 8
+    },
+    "focusedProductionCutover": {
+      "pass": 68,
+      "fail": 0,
+      "skip": 1
+    },
+    "localBlockers": 0,
+    "protectedServicesPreserved": true
+  },
+  "actualExecution": {
+    "cloudflareDnsTls": "NOT_RUN",
+    "productionUatAccounts": "NOT_RUN",
+    "productionMfa": "NOT_RUN",
+    "productionGo": false
+  },
+  "secretValuesReadOrRecorded": false
+}

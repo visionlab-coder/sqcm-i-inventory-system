@@ -1245,6 +1245,14 @@
       "evidence": "failure-first missing module 3/3 reproduced; focused 4/4 PASS and combined regression 10/10 PASS; syntax 423/423; repository unit 885 PASS 8 skips; Harness verify PASS and includes lifecycle rehearsal; implementation SHA 2325b9b67a52e4abb8d2840d8aee84238e9bffb6; GitHub quality 33691770517 unit and three-tier SUCCESS; actual P6 cutover, P7 activation, operations evidence and signoff NOT_RUN"
     },
     {
+      "id": "ACC-P6-95-2026-09-03-CHANGE-WINDOW-CONTRACT",
+      "phase": "P6",
+      "status": "EVIDENCE_COMPLETE",
+      "authority": "local-autonomous",
+      "acceptance": "사용자가 승인한 2026-09-03 10:00~13:00 KST 변경창과 12:00 rollback cutoff가 활성 실행기·테스트·Harness·로드맵에 동일하게 고정되고 외부 변경은 변경창 전 fail-closed해야 한다.",
+      "evidence": "UTC 01:00~04:00, cutoff 03:00으로 동기화; focused Production cutover 68 PASS 1 Windows skip; repository unit 885 PASS 8 skips; Harness verify PASS; local blockers 0; actual DNS/TLS, UAT account, MFA and Production GO NOT_RUN"
+    },
+    {
       "id": "ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF",
       "phase": "P7",
       "status": "READY",

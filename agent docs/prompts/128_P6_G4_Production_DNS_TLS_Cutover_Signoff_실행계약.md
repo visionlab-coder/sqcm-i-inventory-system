@@ -12,7 +12,7 @@ SCOPE:
 - P6-G4 증거·로드맵·Harness 동기화
 
 OUT OF SCOPE:
-- 2026-09-11 20:00 KST 이전 공개 전환
+- 2026-09-03 10:00 KST 이전 공개 전환
 - seed·합성 fixture를 Production에 생성하거나 staging 데이터를 복사하는 행위
 - 보호 서비스·37봇·staging 중단, backend/database 직접 공개
 - 별도 승인 없는 main merge·유료 서비스·결제·방화벽 약화
@@ -20,7 +20,7 @@ OUT OF SCOPE:
 WORKFLOW: Inspect → 시간 Gate·대상·rollback 책임 확인 → 변경 직전 backup → DNS/TLS·ingress 게시 → 외부 health/smoke → 역할별 로그인·MFA·권한 → 로그·경보 receipt → 22:00 rollback cutoff 판정 → 업무·보안·운영 서명 → 상태 동기화
 
 INPUTS / SOURCE OF TRUTH:
-1. 승인된 변경창 `2026-09-11 20:00~23:00 KST`, rollback cutoff `22:00 KST`
+1. 승인된 변경창 `2026-09-03 10:00~13:00 KST`, rollback cutoff `12:00 KST`
 2. `agent docs/harness/MASTER_ROADMAP.json`과 P6-G3 기계 증거
 3. DNS zone의 실제 레코드·TLS·ingress endpoint와 Production 시험 계정
 4. 후보 SHA·digest, 실제 Docker·HTTP·DB·로그·경보 상태
@@ -32,7 +32,7 @@ AUTHORITY / PERMISSIONS:
 - 금지: Secret 원문 기록, 대상 불명 상태의 DNS 게시, main merge, backend/database 호스트 공개
 
 CONSTRAINTS:
-- 공개 변경은 2026-09-11 20:00~23:00 KST에만 수행하고 22:00까지 필수 Gate 실패 시 트래픽을 차단한다.
+- 공개 변경은 2026-09-03 10:00~13:00 KST에만 수행하고 12:00까지 필수 Gate 실패 시 트래픽을 차단한다.
 - frontend/backend/database 정확히 3서비스와 backend/database host port 0을 유지한다.
 - Production 사용자·MFA는 실제 승인된 계정만 사용하고 Seed는 영구 금지한다.
 - staging·37봇·보호 포트 `1234`, `11434`, `18765`, `18766`을 보존한다.

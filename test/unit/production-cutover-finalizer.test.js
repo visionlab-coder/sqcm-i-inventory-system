@@ -15,7 +15,7 @@ function actualEvidence() {
     activationState: 'actual',
     releaseTag: 'sha-0123456789abcdef0123456789abcdef01234567',
     targetUrl: 'https://inventory.safe-link.co.kr',
-    gates: gateIds.map((id) => ({ id, status: 'PASS', evidence: `production ${id} receipt 2026-09-11` })),
+    gates: gateIds.map((id) => ({ id, status: 'PASS', evidence: `production ${id} receipt 2026-09-03` })),
     pilot: {
       openCriticalDefects: 0,
       openHighDefects: 0,
@@ -24,7 +24,7 @@ function actualEvidence() {
     approvals: Object.fromEntries(['business', 'security', 'operations'].map((role) => [role, {
       status: 'APPROVED',
       signedBy: `${role}-owner`,
-      signedAt: '2026-09-11T22:30:00+09:00',
+      signedAt: '2026-09-03T22:30:00+09:00',
       evidence: `production ${role} approval receipt`
     }])),
     productionGo: true

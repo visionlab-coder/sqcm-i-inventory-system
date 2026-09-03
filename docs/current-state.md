@@ -167,9 +167,10 @@ Production GO: **false**
 - `ACC-P6-88`을 완료했다. 세 실제 서명을 동일 역할 결과 publication set ID와 서명 직전 rollback Gate receipt SHA-256에 결박해 같은 run 안의 다른 검토 대상 혼합을 차단한다. failure-first 1건, focused 41 PASS·1 Windows SKIP, 구문 414/414, 저장소 단위 863 PASS·8 SKIP, GitHub quality `33660339797`이 PASS했다. 실제 서명·DNS/TLS·P6 cutover·P7 활성화는 `NOT_RUN`이다.
 - `ACC-P7-13`을 완료했다. `operations:evidence-pipeline-rehearsal`은 합성 전용 임시 공간에서 8개 운영 영역 compiler, 운영 서명 compiler, schema 2 manifest assembler와 finalizer를 한 흐름으로 연결해 10/10 문서 호환을 증명한다. 조립 뒤 backup/certificate 파일 변조는 SHA 불일치로 차단되고 성공·차단 경로 모두 임시 디렉터리를 남기지 않는다. focused 4/4, 저장소 구문 221개와 단위 316/316이 PASS했으며 합성 결과는 실제 증거·서명·Production GO로 승격되지 않는다.
 - 가속 큐의 다음 READY는 계속 `ACC-P7-02-OPERATIONS-ACTIVATION-AND-SIGNOFF`다. 이는 P6 G4 실제 완료 후에만 실행 가능한 외부 입력 Gate다.
+- `ACC-P6-95`에서 사용자 승인 변경창을 `2026-09-03 10:00~13:00 KST`, rollback cutoff `12:00 KST`로 활성 실행기·테스트·Harness·로드맵에 동기화했다. UTC 계약은 `01:00Z~04:00Z`, cutoff `03:00Z`이며 Harness verify와 전체 unit 885 PASS·8 SKIP·0 FAIL을 확인했다. 실제 DNS/TLS·UAT 3계정·MFA는 `NOT_RUN`이다.
 - `ACC-P7-64`에서 분리돼 있던 운영 활성화 19단계와 운영 인수 10문서 리허설을 동일 release SHA·exact Production URL로 결박했다. release 또는 target 경계 변조는 fail-closed하며 합성 산출물은 즉시 제거된다. 실제 P6 cutover·P7 활성화·운영 서명은 `NOT_RUN`이고 READY는 계속 `ACC-P7-02` 하나다.
 
-- P6-G4는 `READY_WAIT_CHANGE_WINDOW`다. 승인된 공개 전환 창은 `2026-09-11 20:00~23:00 KST`, rollback cutoff는 22:00다.
+- P6-G4는 `READY_WAIT_CHANGE_WINDOW`다. 승인된 공개 전환 창은 `2026-09-03 10:00~13:00 KST`, rollback cutoff는 12:00다.
 - 내부 Production 3서비스·smoke·migration 25/25·백업 복원은 정상이고 배포 후보와 원격 브랜치 SHA도 일치한다.
 - `inventory.safe-link.co.kr`은 A/CNAME 모두 NXDOMAIN이며 HTTPS host를 찾을 수 없다. Cloudflare에는 기존 `sqcm-i`와 `sqcm-i-inventory-staging` tunnel만 있고 Production 전용 tunnel은 없다.
 - Production 사용자 수는 0이다. 실제 ADMIN·MANAGER·USER 로그인·MFA·RBAC와 업무·보안·운영 서명은 `NOT_RUN`이다.
@@ -238,7 +239,7 @@ Production GO: **false**
 - `inventory.safe-link.co.kr`과 Seoul region을 권장 후보로 기록했다. DNS/TLS, Production runtime/runner, 정확한 변경 시간과 실행·rollback 책임자는 아직 미확정이다.
 - Production project·Secret·DNS/TLS·PR/CI·merge·release·migration·배포 변경은 0이다.
 - USD 0/month 비용 확인 후 `sqcm-i-inventory-production` Seoul 생성을 1회 요청했으나 Owner/Admin 활성 Free project 2개 한도로 거부됐다. project·비용 발생은 0이며 다른 project pause/delete와 plan 변경은 하지 않았다.
-- `inventory.safe-link.co.kr`, `sqcm-i-inventory-prod-01` 최소 사양, 2026-09-11 20:00~23:00 KST 변경창과 22:00 rollback cutoff, 현재 사용자 실행·rollback 책임은 승인됐다.
+- `inventory.safe-link.co.kr`, `sqcm-i-inventory-prod-01` 최소 사양, 2026-09-03 10:00~13:00 KST 변경창과 12:00 rollback cutoff, 현재 사용자 실행·rollback 책임은 승인됐다.
 - 이 경로는 후속 사용자 결정으로 폐기됐다. 현재 정본은 위 무료 PostgreSQL 오버레이다.
 
 전체 순서와 한 번에 한 Phase만 진행하는 규칙은 [`docs/roadmap.md`](./roadmap.md)에서 시각화한다. P2 릴리스 기준선·CI, P3 AI PC 연동, P4 Staging 인프라·배포와 P5 역할별 UAT는 증거 있는 완료이며, 현재 실행 Phase는 **P6 Production 전환**이다. 전용 Supabase 논리 백업은 public 복구가 원본 52 tables·40 rows·3 functions와 일치했고 회사 Google Drive의 소유자 전용 폴더에서 재다운로드 SHA-256까지 일치했다.
@@ -336,7 +337,7 @@ P5는 migration 025와 staging backend 재배포 후 **19 PASS·0 FAIL·0 PENDIN
 
 P6-G3에서 후보 `e238ab8dab7f…`의 원격 일치, GitHub-hosted quality와 release-images 성공, AI PC loopback Production 3서비스 배포, migration 25/25, backup·restore와 실제 중지형 rollback·재기동을 통과했다. main merge·공개 전환은 실행하지 않았다.
 
-현재 유일한 READY는 **P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF**다. 사전점검은 `READY_WAIT_CHANGE_WINDOW`이며 승인된 변경창 `2026-09-11 20:00~23:00 KST`에서 전용 Production tunnel·공개 DNS/TLS, 실제 사용자 로그인·MFA, 관측·최종 서명을 검증한다. 변경창 입력 봉투는 물리 참조 0/5·mutating 확인값 사전 무장 0개로 `READY_WAIT_CHANGE_WINDOW_INPUT_REFERENCES`다. 그 전까지 서비스는 `127.0.0.1:3300` 격리를 유지하며 Production은 `NO-GO`다. P6 actual 완료 뒤 exact HTTPS를 UTC 하루 1회 저장소 밖 원장에 축적하는 30일 SLO 수집기, exact TLS·health/readiness 관측기, P7 actual 인수 10문서 통과 뒤 Harness를 8/8 COMPLETE로 닫는 fail-closed 종단 전환기까지 로컬 준비됐다.
+현재 유일한 READY는 **P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF**다. 사전점검은 `READY_WAIT_CHANGE_WINDOW`이며 승인된 변경창 `2026-09-03 10:00~13:00 KST`에서 전용 Production tunnel·공개 DNS/TLS, 실제 사용자 로그인·MFA, 관측·최종 서명을 검증한다. 변경창 입력 봉투는 물리 참조 0/5·mutating 확인값 사전 무장 0개로 `READY_WAIT_CHANGE_WINDOW_INPUT_REFERENCES`다. 그 전까지 서비스는 `127.0.0.1:3300` 격리를 유지하며 Production은 `NO-GO`다. P6 actual 완료 뒤 exact HTTPS를 UTC 하루 1회 저장소 밖 원장에 축적하는 30일 SLO 수집기, exact TLS·health/readiness 관측기, P7 actual 인수 10문서 통과 뒤 Harness를 8/8 COMPLETE로 닫는 fail-closed 종단 전환기까지 로컬 준비됐다.
 
 `ACC-P6-89`에서 Gate 1~11 checkpoint와 동일 atomic receipt snapshot 및 세 역할 actual 결과 publication set을 검증해 업무·보안·운영 책임자가 검토할 unsigned 서명 요청 bundle 3건을 저장소 밖 create-only로 조립하는 진입점을 준비했다. 동일 run·release·core/rollback receipt SHA·역할 결과 set을 요청에 고정하며 실제 bundle·서명·identity·MFA·메시지·DNS/TLS·cutover는 `NOT_RUN`이다.
 

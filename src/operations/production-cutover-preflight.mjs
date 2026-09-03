@@ -1,7 +1,7 @@
 export const PRODUCTION_CHANGE_WINDOW = Object.freeze({
-  start: '2026-09-11T11:00:00.000Z',
-  rollbackCutoff: '2026-09-11T13:00:00.000Z',
-  end: '2026-09-11T14:00:00.000Z'
+  start: '2026-09-03T01:00:00.000Z',
+  rollbackCutoff: '2026-09-03T03:00:00.000Z',
+  end: '2026-09-03T04:00:00.000Z'
 });
 
 const REQUIRED_SERVICES = ['backend', 'database', 'frontend'];

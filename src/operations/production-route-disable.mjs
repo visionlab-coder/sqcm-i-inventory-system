@@ -1,4 +1,4 @@
-export const PRODUCTION_ROUTE_DISABLE_CONFIRMATION = 'ACK-2026-09-11-DISABLE-PRODUCTION-ROUTE';
+export const PRODUCTION_ROUTE_DISABLE_CONFIRMATION = 'ACK-2026-09-03-DISABLE-PRODUCTION-ROUTE';
 export const PRODUCTION_ROUTE_DISABLE_TARGET = Object.freeze({
   zone: 'safe-link.co.kr',
   hostname: 'inventory.safe-link.co.kr',

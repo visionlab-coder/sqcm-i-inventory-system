@@ -1,4 +1,4 @@
-export const PUBLIC_OPERATIONAL_HEALTH_CONFIRMATION = 'ACK-2026-09-11-PUBLIC-OPERATIONAL-HEALTH';
+export const PUBLIC_OPERATIONAL_HEALTH_CONFIRMATION = 'ACK-2026-09-03-PUBLIC-OPERATIONAL-HEALTH';
 
 export function selectProductionOperationalHealthTarget({
   publicMode = false,

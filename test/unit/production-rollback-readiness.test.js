@@ -18,7 +18,7 @@ const complete = () => ({
     postRecoverySmokePassed: true
   },
   backupRestoreVerified: true,
-  changeWindow: { start: '2026-09-11T11:00:00Z', rollbackCutoff: '2026-09-11T13:00:00Z', end: '2026-09-11T14:00:00Z' },
+  changeWindow: { start: '2026-09-03T01:00:00Z', rollbackCutoff: '2026-09-03T03:00:00Z', end: '2026-09-03T04:00:00Z' },
   routeRemoval: { tunnel: 'sqcm-i-inventory-production', hostname: 'inventory.safe-link.co.kr', preserveExistingTunnels: true }
 });
 

@@ -35,7 +35,7 @@ import {
   writeProductionActualSignoffDocuments
 } from './production-signoff-actual-evidence.mjs';
 
-export const PRODUCTION_CUTOVER_CONFIRMATION = 'ACK-2026-09-11-P6-G4';
+export const PRODUCTION_CUTOVER_CONFIRMATION = 'ACK-2026-09-03-P6-G4';
 
 function waitingResult(status, now, failures = []) {
   return {

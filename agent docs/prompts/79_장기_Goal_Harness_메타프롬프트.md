@@ -16,7 +16,7 @@ CONTEXT:
 - 활성 브랜치: `codex/p6-ai-pc-postgres-production`
 - 현재 로드맵: P0~P5 완료(`6 / 8`), P6 G4 진행 중, P7 미착수
 - P6 내부 Production은 AI PC의 별도 Compose project에서 frontend만 `127.0.0.1:3300`에 노출되고 backend·database host port는 0이다.
-- P6 공개 전환 변경창: `2026-09-11 20:00~23:00 KST`, rollback cutoff `22:00`
+- P6 공개 전환 변경창: `2026-09-03 10:00~13:00 KST`, rollback cutoff `12:00`
 - 기존 보호 서비스: LM Studio `1234/6632`, Ollama `11434/8588`, bridge/wslrelay `18765/22716`, 독립 bridge `18766/65724`
 - 현재 작업트리는 매 Loop에서 다시 확인하며 reset·clean·broad staging·덮어쓰기를 금지한다.
 - 과거 Phase 보고서는 역사 증거이며 현재 정본은 아래 우선순위를 따른다.

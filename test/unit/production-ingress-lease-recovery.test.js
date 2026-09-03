@@ -20,7 +20,7 @@ async function staleLease(t, processId = 9510) {
     runtimeDirectory: root,
     processId,
     leaseId: '77777777-7777-4777-8777-777777777777',
-    checkedAt: '2026-09-11T11:00:00.000Z'
+    checkedAt: '2026-09-03T01:00:00.000Z'
   });
   return { root, lease };
 }
@@ -31,13 +31,13 @@ test('active owner 또는 최소 stale age 미달 lease는 복구하지 않는�
   const { root, lease } = await staleLease(t);
   const active = recoverProductionIngressPublicationLease({
     runtimeDirectory: root,
-    checkedAt: '2026-09-11T11:10:00.000Z',
+    checkedAt: '2026-09-03T01:10:00.000Z',
     processExists: () => true
   });
   assert.equal(active.status, 'READY_WAIT_INGRESS_PUBLICATION_LEASE_OWNER_ACTIVE');
   const recent = recoverProductionIngressPublicationLease({
     runtimeDirectory: root,
-    checkedAt: '2026-09-11T11:01:00.000Z',
+    checkedAt: '2026-09-03T01:01:00.000Z',
     processExists: () => false
   });
   assert.equal(recent.status, 'READY_WAIT_INGRESS_PUBLICATION_LEASE_NOT_STALE');
@@ -49,7 +49,7 @@ test('stale inactive lease dry-run은 삭제 없이 복구 준비만 보고한�
   const { root, lease } = await staleLease(t);
   const result = recoverProductionIngressPublicationLease({
     runtimeDirectory: root,
-    checkedAt: '2026-09-11T11:10:00.000Z',
+    checkedAt: '2026-09-03T01:10:00.000Z',
     processExists: () => false
   });
   assert.equal(result.status, 'PASS_INGRESS_PUBLICATION_LEASE_RECOVERY_DRY_RUN_READY');
@@ -65,7 +65,7 @@ test('execute는 변경창과 exact confirmation 없이는 stale lease를 삭제
     execute: true,
     insideWindow: false,
     confirmation,
-    checkedAt: '2026-09-11T11:10:00.000Z',
+    checkedAt: '2026-09-03T01:10:00.000Z',
     processExists: () => false
   });
   assert.equal(outside.status, 'FAIL_INGRESS_PUBLICATION_LEASE_RECOVERY_OUTSIDE_CHANGE_WINDOW');
@@ -74,7 +74,7 @@ test('execute는 변경창과 exact confirmation 없이는 stale lease를 삭제
     execute: true,
     insideWindow: true,
     confirmation: 'wrong',
-    checkedAt: '2026-09-11T11:10:00.000Z',
+    checkedAt: '2026-09-03T01:10:00.000Z',
     processExists: () => false
   });
   assert.equal(unconfirmed.status, 'READY_WAIT_INGRESS_PUBLICATION_LEASE_RECOVERY_CONFIRMATION');
@@ -89,7 +89,7 @@ test('변경창의 exact confirmation은 stale inactive owner의 안정된 lease
     execute: true,
     insideWindow: true,
     confirmation,
-    checkedAt: '2026-09-11T11:10:00.000Z',
+    checkedAt: '2026-09-03T01:10:00.000Z',
     processExists: () => false
   });
   assert.equal(result.status, 'PASS_INGRESS_PUBLICATION_LEASE_RECOVERED');
@@ -117,7 +117,7 @@ test('검사 뒤 교체된 lease는 삭제하지 않고 unstable로 차단한다
       execute: true,
       insideWindow: true,
       confirmation,
-      checkedAt: '2026-09-11T11:10:00.000Z',
+      checkedAt: '2026-09-03T01:10:00.000Z',
       processExists: () => false,
       io
     }),

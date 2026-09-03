@@ -10,7 +10,7 @@ const adapterPromise = import('../../src/operations/production-cutover-gate-adap
 const runId = '22222222-2222-4222-8222-222222222222';
 const releaseSha = 'a'.repeat(40);
 const releaseTag = `sha-${releaseSha}`;
-const checkedAt = '2026-09-11T12:00:00.000Z';
+const checkedAt = '2026-09-03T02:00:00.000Z';
 const sha = (value) => crypto.createHash('sha256').update(value).digest('hex');
 const cutoverBundleSha256 = 'c'.repeat(64);
 const receiptFileName = ({ sequence, kind, gate, step, time = checkedAt }) => `${time.replace(/[:.]/g, '-')}-${String(sequence).padStart(4, '0')}-${kind}-${gate}-${step}.json`;
@@ -156,7 +156,7 @@ test('rollback cutoff 이후 step 또는 Gate receipt는 actual P6 증거로 승
   const { assembleActualCutoverEvidence } = await modulePromise;
   for (const kind of ['step', 'gate']) {
     const input = await completeInput();
-    input.receiptDocuments.find((document) => document.value.kind === kind).value.checkedAt = '2026-09-11T13:00:00.001Z';
+    input.receiptDocuments.find((document) => document.value.kind === kind).value.checkedAt = '2026-09-03T03:00:00.001Z';
     const result = assembleActualCutoverEvidence(input);
     assert.ok(result.failures.includes('CUTOVER_RECEIPT_DOCUMENT_INVALID'), kind);
     assert.equal(result.productionGo, false, kind);
@@ -166,7 +166,7 @@ test('rollback cutoff 이후 step 또는 Gate receipt는 actual P6 증거로 승
 test('rollback cutoff 이후 역할 결과와 서명은 actual P6 증거로 승격하지 않는다', async () => {
   const { assembleActualCutoverEvidence } = await modulePromise;
   const input = await completeInput();
-  const afterCutoff = '2026-09-11T13:00:00.001Z';
+  const afterCutoff = '2026-09-03T03:00:00.001Z';
   const coreGateSha = input.roleResultDocuments.ADMIN.value.coreSmokeGateReceiptSha256;
   const roleStepSha = input.roleResultDocuments.ADMIN.value.roleSmokeStepReceiptSha256;
   const resultSetPublicationId = sha(JSON.stringify({ runId, releaseSha, coreGateSha, roleStepSha, checkedAt: afterCutoff }));
@@ -202,7 +202,7 @@ test('receipt 파일명은 payload 시각·순번·kind·Gate·step과 정확히
   const { assembleActualCutoverEvidence } = await modulePromise;
   for (const mutate of [
     (document) => { document.fileName = document.fileName.replace('-0001-', '-0026-'); },
-    (document) => { document.fileName = document.fileName.replace('2026-09-11T12-00-00-000Z', '2026-09-11T12-00-01-000Z'); },
+    (document) => { document.fileName = document.fileName.replace('2026-09-03T02-00-00-000Z', '2026-09-03T02-00-01-000Z'); },
     (document) => { document.fileName = document.fileName.replace('-step-', '-gate-'); }
   ]) {
     const input = await completeInput();
@@ -217,7 +217,7 @@ test('receipt sequence가 증가하는 동안 checkedAt은 역행할 수 없다'
   const { assembleActualCutoverEvidence } = await modulePromise;
   const input = await completeInput();
   const document = input.receiptDocuments[1];
-  document.value.checkedAt = '2026-09-11T11:59:59.999Z';
+  document.value.checkedAt = '2026-09-03T01:59:59.999Z';
   document.fileName = receiptFileName({ ...document.value, time: document.value.checkedAt });
   const result = assembleActualCutoverEvidence(input);
   assert.ok(result.failures.includes('CUTOVER_RECEIPT_TIME_SEQUENCE_INVALID'));
@@ -227,7 +227,7 @@ test('receipt sequence가 증가하는 동안 checkedAt은 역행할 수 없다'
 test('역할 결과 시각은 role smoke receipt와 같고 서명은 pre-signoff 이후·signoff receipt 이전이어야 한다', async () => {
   const { assembleActualCutoverEvidence } = await modulePromise;
   const roleMismatch = await completeInput();
-  const roleCheckedAt = '2026-09-11T11:59:00.000Z';
+  const roleCheckedAt = '2026-09-03T01:59:00.000Z';
   const { coreSmokeGateReceiptSha256: coreGateSha, roleSmokeStepReceiptSha256: roleStepSha } = roleMismatch.roleResultDocuments.ADMIN.value;
   const publicationId = sha(JSON.stringify({ runId, releaseSha, coreGateSha, roleStepSha, checkedAt: roleCheckedAt }));
   for (const document of Object.values(roleMismatch.roleResultDocuments)) {
@@ -238,7 +238,7 @@ test('역할 결과 시각은 role smoke receipt와 같고 서명은 pre-signoff
   assert.ok(roleResult.failures.includes('ROLE_RESULT_RECEIPT_TIME_MISMATCH'));
   assert.equal(roleResult.productionGo, false);
 
-  for (const signedAt of ['2026-09-11T11:59:00.000Z', '2026-09-11T12:01:00.000Z']) {
+  for (const signedAt of ['2026-09-03T01:59:00.000Z', '2026-09-03T02:01:00.000Z']) {
     const signoffMismatch = await completeInput();
     signoffMismatch.signoffDocuments.OPERATIONS.value.signedAt = signedAt;
     const signoffResult = assembleActualCutoverEvidence(signoffMismatch);
@@ -265,7 +265,7 @@ test('서명은 동일한 unsigned request set과 preparedAt provenance에 결�
   const { assembleActualCutoverEvidence } = await modulePromise;
   for (const [field, value] of [
     ['signoffRequestSetId', 'f'.repeat(64)],
-    ['signoffRequestPreparedAt', '2026-09-11T12:00:00.001Z']
+    ['signoffRequestPreparedAt', '2026-09-03T02:00:00.001Z']
   ]) {
     const input = await completeInput();
     input.signoffDocuments.OPERATIONS.value[field] = value;
@@ -275,7 +275,7 @@ test('서명은 동일한 unsigned request set과 preparedAt provenance에 결�
   }
 
   const afterSignoff = await completeInput();
-  const preparedAt = '2026-09-11T12:00:00.001Z';
+  const preparedAt = '2026-09-03T02:00:00.001Z';
   const first = afterSignoff.signoffDocuments.BUSINESS.value;
   const requestSetId = sha(JSON.stringify({
     runId, releaseSha,

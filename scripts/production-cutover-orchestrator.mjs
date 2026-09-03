@@ -11,7 +11,7 @@ const start = new Date(PRODUCTION_CHANGE_WINDOW.start);
 const cutoff = new Date(PRODUCTION_CHANGE_WINDOW.rollbackCutoff);
 const end = new Date(PRODUCTION_CHANGE_WINDOW.end);
 const insideWindow = now >= start && now <= end;
-const externalActionConfirmed = process.env.PRODUCTION_CUTOVER_CONFIRMATION === 'ACK-2026-09-11-P6-G4';
+const externalActionConfirmed = process.env.PRODUCTION_CUTOVER_CONFIRMATION === 'ACK-2026-09-03-P6-G4';
 const result = evaluateCutoverOrchestrator({
   sequence:CUTOVER_GATE_SEQUENCE,
   windowStart:start.getTime(),rollbackCutoff:cutoff.getTime(),windowEnd:end.getTime(),

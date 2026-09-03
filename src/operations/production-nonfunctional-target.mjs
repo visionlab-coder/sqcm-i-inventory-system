@@ -1,4 +1,4 @@
-export const PUBLIC_NONFUNCTIONAL_CONFIRMATION = 'ACK-2026-09-11-PUBLIC-NONFUNCTIONAL';
+export const PUBLIC_NONFUNCTIONAL_CONFIRMATION = 'ACK-2026-09-03-PUBLIC-NONFUNCTIONAL';
 
 export function selectProductionNonfunctionalTarget({
   publicMode = false,

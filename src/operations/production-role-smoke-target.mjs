@@ -1,4 +1,4 @@
-export const PUBLIC_ROLE_SMOKE_CONFIRMATION = 'ACK-2026-09-11-PUBLIC-ROLE-SMOKE';
+export const PUBLIC_ROLE_SMOKE_CONFIRMATION = 'ACK-2026-09-03-PUBLIC-ROLE-SMOKE';
 
 export function selectProductionRoleSmokeTarget({
   publicMode = false,

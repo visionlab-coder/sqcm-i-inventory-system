@@ -4,7 +4,7 @@ import path from 'node:path';
 import { executeProductionCutover, resumeProductionCutoverSignoff, SIGNOFF_RESUME_CONFIRMATION } from './production-cutover-executor.mjs';
 import { createRuntimeReceiptWriter } from './production-cutover-process-runner.mjs';
 
-const CHECKED_AT = '2026-09-11T12:00:00.000Z';
+const CHECKED_AT = '2026-09-03T02:00:00.000Z';
 const RELEASE_SHA = 'a'.repeat(40);
 
 function syntheticRunner({ writeReceipt, calls }) {

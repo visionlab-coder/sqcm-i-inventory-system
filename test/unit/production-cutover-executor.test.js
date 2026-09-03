@@ -6,7 +6,7 @@ const path = require('node:path');
 const modulePromise = import('../../src/operations/production-cutover-executor.mjs');
 
 const beforeWindow = () => Date.parse('2026-09-01T00:00:00.000Z');
-const insideWindow = () => Date.parse('2026-09-11T12:00:00.000Z');
+const insideWindow = () => Date.parse('2026-09-03T02:00:00.000Z');
 
 test('dry-run과 변경창 밖 execute는 receipt root나 process dependency를 만들지 않는다', async () => {
   const { executeProductionCutover } = await modulePromise;
@@ -88,7 +88,7 @@ test('변경창·확인·root가 맞으면 12 Gate 14 step을 합성 실행하�
   assert.equal(result.executedGates.length, 12);
   assert.equal(stepCount, 14);
   assert.equal(receiptCount, 26);
-  assert.equal(runnerOptions.rollbackDeadlineMs, Date.parse('2026-09-11T13:00:00.000Z'));
+  assert.equal(runnerOptions.rollbackDeadlineMs, Date.parse('2026-09-03T03:00:00.000Z'));
   assert.equal(runnerOptions.now, insideWindow);
   assert.equal(result.productionGo, false);
 });
@@ -126,7 +126,7 @@ test('동일 run 역할·서명 6건 뒤 Gate 12만 재개한다', async () => {
   const { resumeProductionCutoverSignoff, SIGNOFF_RESUME_CONFIRMATION } = await modulePromise;
   const checkpoint = {
     schemaVersion: 1, evidenceType: 'P6_CUTOVER_SIGNOFF_PAUSE_CHECKPOINT', runId: '11111111-1111-4111-8111-111111111111', releaseSha: 'a'.repeat(40),
-    checkedAt: '2026-09-11T12:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
+    checkedAt: '2026-09-03T02:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
     completedGates: ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'].map((gate, index) => ({ gate, evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: 'b'.repeat(64) }))
   };
   let stepCount = 0; let runnerOptions = null;
@@ -149,7 +149,7 @@ test('동일 run 역할·서명 6건 뒤 Gate 12만 재개한다', async () => {
   assert.equal(result.status, 'READY_FOR_CUTOVER_EVIDENCE_FINALIZATION');
   assert.deepEqual(result.executedGates, ['uat_signoff']);
   assert.equal(stepCount, 1);
-  assert.equal(runnerOptions.rollbackDeadlineMs, Date.parse('2026-09-11T13:00:00.000Z'));
+  assert.equal(runnerOptions.rollbackDeadlineMs, Date.parse('2026-09-03T03:00:00.000Z'));
   assert.equal(runnerOptions.now, insideWindow);
   assert.equal(result.productionGo, false);
 });
@@ -158,13 +158,13 @@ test('cutoff 이후 재개는 Gate 12 대신 exact route-disable을 호출한다
   const { resumeProductionCutoverSignoff, SIGNOFF_RESUME_CONFIRMATION } = await modulePromise;
   const checkpoint = {
     schemaVersion: 1, evidenceType: 'P6_CUTOVER_SIGNOFF_PAUSE_CHECKPOINT', runId: '11111111-1111-4111-8111-111111111111', releaseSha: 'a'.repeat(40),
-    checkedAt: '2026-09-11T12:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
+    checkedAt: '2026-09-03T02:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
     completedGates: ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'].map((gate, index) => ({ gate, evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: 'b'.repeat(64) }))
   };
   const calls = [];
   const result = await resumeProductionCutoverSignoff({
     execute: true, confirmation: SIGNOFF_RESUME_CONFIRMATION, runId: checkpoint.runId, releaseSha: checkpoint.releaseSha,
-    checkpointPath: 'checkpoint', now: () => Date.parse('2026-09-11T13:01:00.000Z'),
+    checkpointPath: 'checkpoint', now: () => Date.parse('2026-09-03T03:01:00.000Z'),
     ensureReceiptRoot: () => 'synthetic-root', loadCheckpoint: () => checkpoint,
     validateReceipts: () => ({ status: 'PASS_SIGNOFF_RESUME_RECEIPTS', failures: [], receiptCount: 24 }),
     createWriter: () => syntheticWriter(checkpoint.runId),
@@ -182,7 +182,7 @@ test('Gate 12 뒤 actual evidence 조립·저장이 모두 PASS해야 Production
   const { resumeProductionCutoverSignoff, SIGNOFF_RESUME_CONFIRMATION } = await modulePromise;
   const checkpoint = {
     schemaVersion: 1, evidenceType: 'P6_CUTOVER_SIGNOFF_PAUSE_CHECKPOINT', runId: '11111111-1111-4111-8111-111111111111', releaseSha: 'a'.repeat(40),
-    checkedAt: '2026-09-11T12:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
+    checkedAt: '2026-09-03T02:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
     completedGates: ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'].map((gate, index) => ({ gate, evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: 'b'.repeat(64) }))
   };
   const references = { ADMIN: 'admin.json', MANAGER: 'manager.json', USER: 'user.json', BUSINESS: 'business.json', SECURITY: 'security.json', OPERATIONS: 'operations.json' };
@@ -208,7 +208,7 @@ test('Gate 12 뒤 actual evidence 조립 실패는 exact route-disable로 contai
   const { resumeProductionCutoverSignoff, SIGNOFF_RESUME_CONFIRMATION } = await modulePromise;
   const checkpoint = {
     schemaVersion: 1, evidenceType: 'P6_CUTOVER_SIGNOFF_PAUSE_CHECKPOINT', runId: '11111111-1111-4111-8111-111111111111', releaseSha: 'a'.repeat(40),
-    checkedAt: '2026-09-11T12:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
+    checkedAt: '2026-09-03T02:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
     completedGates: ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'].map((gate, index) => ({ gate, evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: 'b'.repeat(64) }))
   };
   const references = { ADMIN: 'admin.json', MANAGER: 'manager.json', USER: 'user.json', BUSINESS: 'business.json', SECURITY: 'security.json', OPERATIONS: 'operations.json' };
@@ -277,7 +277,7 @@ test('actual finalization 확인 또는 출력 경로가 없으면 Gate 12를 �
   const { resumeProductionCutoverSignoff, SIGNOFF_RESUME_CONFIRMATION } = await modulePromise;
   const checkpoint = {
     schemaVersion: 1, evidenceType: 'P6_CUTOVER_SIGNOFF_PAUSE_CHECKPOINT', runId: '11111111-1111-4111-8111-111111111111', releaseSha: 'a'.repeat(40),
-    checkedAt: '2026-09-11T12:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
+    checkedAt: '2026-09-03T02:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
     completedGates: ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'].map((gate, index) => ({ gate, evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: 'b'.repeat(64) }))
   };
   const references = { ADMIN: 'admin.json', MANAGER: 'manager.json', USER: 'user.json', BUSINESS: 'business.json', SECURITY: 'security.json', OPERATIONS: 'operations.json' };
@@ -305,7 +305,7 @@ test('actual signoff가 없으면 승인 receipt로 3건을 조립한 뒤 같은
   } = await modulePromise;
   const checkpoint = {
     schemaVersion: 1, evidenceType: 'P6_CUTOVER_SIGNOFF_PAUSE_CHECKPOINT', runId: '11111111-1111-4111-8111-111111111111', releaseSha: 'a'.repeat(40),
-    checkedAt: '2026-09-11T12:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
+    checkedAt: '2026-09-03T02:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
     completedGates: ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'].map((gate, index) => ({ gate, evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: 'b'.repeat(64) }))
   };
   const roles = { ADMIN: 'admin.json', MANAGER: 'manager.json', USER: 'user.json' };
@@ -348,7 +348,7 @@ test('actual signoff 조립 exact 확인이 없으면 입력을 읽거나 Gate 1
   const { resumeProductionCutoverSignoff, SIGNOFF_RESUME_CONFIRMATION } = await modulePromise;
   const checkpoint = {
     schemaVersion: 1, evidenceType: 'P6_CUTOVER_SIGNOFF_PAUSE_CHECKPOINT', runId: '11111111-1111-4111-8111-111111111111', releaseSha: 'a'.repeat(40),
-    checkedAt: '2026-09-11T12:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
+    checkedAt: '2026-09-03T02:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
     completedGates: ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'].map((gate, index) => ({ gate, evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: 'b'.repeat(64) }))
   };
   let loadCount = 0; let persistCount = 0; let stepCount = 0;
@@ -376,7 +376,7 @@ test('actual signoff 조립 실패는 공개 route-disable로 containment한다'
   } = await modulePromise;
   const checkpoint = {
     schemaVersion: 1, evidenceType: 'P6_CUTOVER_SIGNOFF_PAUSE_CHECKPOINT', runId: '11111111-1111-4111-8111-111111111111', releaseSha: 'a'.repeat(40),
-    checkedAt: '2026-09-11T12:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
+    checkedAt: '2026-09-03T02:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
     completedGates: ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'].map((gate, index) => ({ gate, evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: 'b'.repeat(64) }))
   };
   const calls = [];
@@ -405,7 +405,7 @@ test('atomic 재개에서 final evidence 확인이 없으면 actual signoff도 �
   } = await modulePromise;
   const checkpoint = {
     schemaVersion: 1, evidenceType: 'P6_CUTOVER_SIGNOFF_PAUSE_CHECKPOINT', runId: '11111111-1111-4111-8111-111111111111', releaseSha: 'a'.repeat(40),
-    checkedAt: '2026-09-11T12:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
+    checkedAt: '2026-09-03T02:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
     completedGates: ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'].map((gate, index) => ({ gate, evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: 'b'.repeat(64) }))
   };
   let loadCount = 0; let persistCount = 0;
@@ -435,7 +435,7 @@ test('partial actual signoff reference set은 재조립하지 않고 route-disab
   } = await modulePromise;
   const checkpoint = {
     schemaVersion: 1, evidenceType: 'P6_CUTOVER_SIGNOFF_PAUSE_CHECKPOINT', runId: '11111111-1111-4111-8111-111111111111', releaseSha: 'a'.repeat(40),
-    checkedAt: '2026-09-11T12:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
+    checkedAt: '2026-09-03T02:00:00.000Z', pausedBeforeGate: 'uat_signoff', productionGo: false,
     completedGates: ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'].map((gate, index) => ({ gate, evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: 'b'.repeat(64) }))
   };
   const calls = [];

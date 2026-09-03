@@ -40,7 +40,7 @@ test('변경창 전 정상 내부 Production은 READY_WAIT_CHANGE_WINDOW다', as
 
 test('변경창 안에서는 미게시 외부 항목을 실행 가능한 READY로 분리한다', async () => {
   const { evaluateProductionCutoverPreflight } = await preflightModule;
-  const result = evaluateProductionCutoverPreflight(readyObservation({ now: '2026-09-11T11:30:00.000Z' }));
+  const result = evaluateProductionCutoverPreflight(readyObservation({ now: '2026-09-03T01:30:00.000Z' }));
   assert.equal(result.status, 'READY_FOR_CHANGE_WINDOW_EXECUTION');
   assert.equal(result.insideWindow, true);
   assert.ok(result.externalPending.includes('PRODUCTION_TUNNEL_MISSING'));
@@ -49,7 +49,7 @@ test('변경창 안에서는 미게시 외부 항목을 실행 가능한 READY�
 test('모든 실제 외부 증거가 있으면 최종 서명 READY다', async () => {
   const { evaluateProductionCutoverPreflight } = await preflightModule;
   const result = evaluateProductionCutoverPreflight(readyObservation({
-    now: '2026-09-11T12:00:00.000Z',
+    now: '2026-09-03T02:00:00.000Z',
     productionUsers: 3,
     productionTunnelExists: true,
     dnsPublished: true,

@@ -52,7 +52,7 @@ export function promoteCurrentStateDocument(document, block) {
     '- 공개 DNS/TLS, 실제 Production 사용자 로그인·MFA, 최종 서명은 아직 없으므로 `productionGo=false`다. 다음 READY는 `P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF`다.',
     '- P6 actual cutover 증거가 검증되어 `productionGo=true`다. 다음 READY는 `P7-G0-OPERATIONS-HANDOVER-PREFLIGHT`다.');
   next = replaceOnce(next,
-    '현재 유일한 READY는 **P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF**다. 사전점검은 `READY_WAIT_CHANGE_WINDOW`이며 승인된 변경창 `2026-09-11 20:00~23:00 KST`에서 전용 Production tunnel·공개 DNS/TLS, 실제 사용자 로그인·MFA, 관측·최종 서명을 검증한다. 그 전까지 서비스는 `127.0.0.1:3300` 격리를 유지하며 Production은 `NO-GO`다.',
+    '현재 유일한 READY는 **P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF**다. 사전점검은 `READY_WAIT_CHANGE_WINDOW`이며 승인된 변경창 `2026-09-03 20:00~23:00 KST`에서 전용 Production tunnel·공개 DNS/TLS, 실제 사용자 로그인·MFA, 관측·최종 서명을 검증한다. 그 전까지 서비스는 `127.0.0.1:3300` 격리를 유지하며 Production은 `NO-GO`다.',
     '현재 유일한 READY는 **P7-G0-OPERATIONS-HANDOVER-PREFLIGHT**다. P6 actual cutover 증거의 SHA와 운영 8영역·운영 책임자 인수 입력을 검증한다.');
   return next;
 }

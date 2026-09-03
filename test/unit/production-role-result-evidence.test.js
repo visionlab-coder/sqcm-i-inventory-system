@@ -7,7 +7,7 @@ const modulePromise = import('../../src/operations/production-role-result-eviden
 
 const runId = '44444444-4444-4444-8444-444444444444';
 const sha = 'b'.repeat(64);
-const checkedAt = '2026-09-11T12:00:00.000Z';
+const checkedAt = '2026-09-03T02:00:00.000Z';
 const pass = {
   ADMIN: { passwordStatus:202,mfaRequired:true,invalidMfaStatus:401,mfaStatus:200,actualRole:'ADMIN',dashboard:200,cost:200,admin:200,logoutStatus:204 },
   MANAGER: { passwordStatus:202,mfaRequired:true,invalidMfaStatus:401,mfaStatus:200,actualRole:'MANAGER',dashboard:200,cost:200,admin:403,logoutStatus:204 },

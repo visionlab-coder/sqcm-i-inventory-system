@@ -8,7 +8,7 @@ const adapterPromise = import('../../src/operations/production-cutover-gate-adap
 
 const runId = '11111111-1111-4111-8111-111111111111';
 const releaseSha = 'a'.repeat(40);
-const checkedAt = '2026-09-11T12:00:00.000Z';
+const checkedAt = '2026-09-03T02:00:00.000Z';
 const gateNames = ['artifact','backup_restore','migration_review','provider_preflight','health_readiness','core_smoke','csrf_idempotency','logs_5xx','nonfunctional','operational_health','rollback'];
 const results = () => gateNames.map((gate, index) => ({ gate, result: 'PASS', evidenceRef: `${index + 1}-${gate}.json`, evidenceSha256: String(index + 1).padStart(64, '0') }));
 const bundleManifest = (sha = 'b'.repeat(64)) => ({ sha256: sha, stepBundles: Object.fromEntries(Array.from({ length: 16 }, (_, index) => [`gate:step-${index}`, String(index + 1).padStart(64, '0')])) });
@@ -48,7 +48,7 @@ test('교차 run·SHA와 cutoff 이후 재개는 route disable 필수로 차단�
   for (const input of [
     { runId: '22222222-2222-4222-8222-222222222222', releaseSha, checkedAt },
     { runId, releaseSha: 'b'.repeat(40), checkedAt },
-    { runId, releaseSha, checkedAt: '2026-09-11T13:01:00.000Z' }
+    { runId, releaseSha, checkedAt: '2026-09-03T03:01:00.000Z' }
   ]) {
     const result = evaluateSignoffResume({ checkpoint, ...input });
     assert.equal(result.status, 'FAIL_SIGNOFF_RESUME_CONTRACT');

@@ -262,7 +262,7 @@ test('receipt는 bundle SHA만 남기고 stdout stderr Secret을 기록하지 �
   const { createProcessStepRunner, createRuntimeReceiptWriter } = await modulePromise;
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-cutover-receipt-'));
   try {
-    const clock = () => new Date('2026-09-11T11:00:00.000Z');
+    const clock = () => new Date('2026-09-03T01:00:00.000Z');
     const writeReceipt = createRuntimeReceiptWriter({ root, clock, runId: '11111111-1111-4111-8111-111111111111', cutoverBundleSha256: 'a'.repeat(64) });
     const run = createProcessStepRunner({ writeReceipt, spawnStep: async () => ({ exitCode: 0, stdout: '{"status":"PASS"}', stderr: 'SECRET_VALUE' }) });
     const outcome = await run({ gate: 'artifact', id: 'cutover-preflight', script: 'scripts/production-cutover-preflight.mjs', args: [], acceptedStatuses: ['READY_FOR_CHANGE_WINDOW_EXECUTION', 'READY_FOR_CUTOVER_SIGNOFF'], environment: [] });
@@ -291,7 +291,7 @@ test('receipt 게시 경쟁 시 선점 bytes를 보존하고 임시파일을 제
   };
   const writer = createRuntimeReceiptWriter({
     root, io, processId: 1600,
-    clock: () => new Date('2026-09-11T11:00:00.000Z'),
+    clock: () => new Date('2026-09-03T01:00:00.000Z'),
     runId: '11111111-1111-4111-8111-111111111111'
   });
   await assert.rejects(
@@ -308,7 +308,7 @@ test('동일 run 재개 writer는 검증된 sequence 다음 번호부터 기록�
   const { createRuntimeReceiptWriter } = await modulePromise;
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sqcmi-cutover-resume-sequence-'));
   try {
-    const writer = createRuntimeReceiptWriter({ root, clock: () => new Date('2026-09-11T12:00:00.000Z'), runId: '11111111-1111-4111-8111-111111111111', startSequence: 24 });
+    const writer = createRuntimeReceiptWriter({ root, clock: () => new Date('2026-09-03T02:00:00.000Z'), runId: '11111111-1111-4111-8111-111111111111', startSequence: 24 });
     const file = await writer({ kind: 'step', gate: 'uat_signoff', step: 'signoff-preflight', status: 'READY_FOR_UAT_SIGNOFF_VALIDATION' });
     assert.match(path.basename(file), /-0025-step-uat_signoff-signoff-preflight\.json$/);
     assert.throws(() => createRuntimeReceiptWriter({ root, startSequence: -1 }), /START_SEQUENCE_INVALID/);

@@ -10,7 +10,7 @@ const areas = ['BUSINESS', 'SECURITY', 'OPERATIONS'];
 const runId = '77777777-7777-4777-8777-777777777777';
 const releaseSha = 'a'.repeat(40);
 const bundleSha = 'b'.repeat(64);
-const preparedAt = '2026-09-11T12:01:00.000Z';
+const preparedAt = '2026-09-03T02:01:00.000Z';
 
 function fixture() {
   const coreGateSha = 'd'.repeat(64);
@@ -52,7 +52,7 @@ function fixture() {
   const approvalReceiptDocuments = Object.fromEntries(areas.map((area, index) => [area, {
     sha256: String(index + 1).repeat(64), value: {
       ...approvalReceiptPayloads[area], template: false, decision: 'APPROVED',
-      signedByRef: 'identity://sqcm-i-owner', signedAt: `2026-09-11T12:0${index + 2}:00.000Z`,
+      signedByRef: 'identity://sqcm-i-owner', signedAt: `2026-09-03T02:0${index + 2}:00.000Z`,
       receiptId: `mfa-receipt-${area.toLowerCase()}`,
       authentication: { method: 'MFA', providerRef: 'identity://approved-mfa-provider', verified: true },
       signoffRequestBundleSha256: bundleSha

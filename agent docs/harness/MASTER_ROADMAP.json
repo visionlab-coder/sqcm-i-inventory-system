@@ -242,7 +242,7 @@
       "status": "in-progress",
       "readyWork": {
         "id": "P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF",
-        "description": "승인된 2026-09-11 20:00~23:00 KST 변경창에서만 inventory.safe-link.co.kr DNS/TLS를 loopback 검증 완료 후보에 연결하고 실제 사용자 로그인·MFA, 관측 및 업무·보안·운영 최종 서명을 검증한다.",
+        "description": "승인된 2026-09-03 10:00~13:00 KST 변경창에서만 inventory.safe-link.co.kr DNS/TLS를 loopback 검증 완료 후보에 연결하고 실제 사용자 로그인·MFA, 관측 및 업무·보안·운영 최종 서명을 검증한다.",
         "authority": "external-input",
         "nextGate": "P7-G0-OPERATIONS-HANDOVER-PREFLIGHT"
       },

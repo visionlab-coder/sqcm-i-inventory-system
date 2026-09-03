@@ -265,7 +265,7 @@ export function validateSignoffResumeReceipts({ root, checkpoint, io = fs, repos
 export function runSignoffPauseResumeRehearsal() {
   const runId = '11111111-1111-4111-8111-111111111111';
   const releaseSha = 'a'.repeat(40);
-  const checkedAt = '2026-09-11T12:00:00.000Z';
+  const checkedAt = '2026-09-03T02:00:00.000Z';
   const gateResults = PRE_SIGNOFF_GATES.map((gate, index) => ({ gate, result: 'PASS', evidenceRef: `${String(index + 1).padStart(4, '0')}-${gate}.json`, evidenceSha256: String(index + 1).padStart(64, '0') }));
   const pause = createSignoffPauseCheckpoint({ runId, releaseSha, gateResults, checkedAt });
   const waiting = evaluateSignoffResume({ checkpoint: pause.checkpoint, runId, releaseSha, checkedAt, roleResultReferences: {}, signoffReferences: {}, signoffApprovalReceiptReferences: {} });
@@ -276,7 +276,7 @@ export function runSignoffPauseResumeRehearsal() {
     signoffApprovalReceiptReferences: { BUSINESS: true, SECURITY: true, OPERATIONS: true }
   });
   const crossRun = evaluateSignoffResume({ checkpoint: pause.checkpoint, runId: '22222222-2222-4222-8222-222222222222', releaseSha, checkedAt });
-  const afterCutoff = evaluateSignoffResume({ checkpoint: pause.checkpoint, runId, releaseSha, checkedAt: '2026-09-11T13:01:00.000Z' });
+  const afterCutoff = evaluateSignoffResume({ checkpoint: pause.checkpoint, runId, releaseSha, checkedAt: '2026-09-03T03:01:00.000Z' });
   const pass = pause.status === 'READY_WAIT_ACTUAL_ROLE_RESULTS_AND_SIGNOFF'
     && waiting.status === 'READY_WAIT_ACTUAL_ROLE_RESULTS_AND_SIGNOFF'
     && ready.status === 'READY_FOR_SAME_RUN_UAT_SIGNOFF_RESUME'
