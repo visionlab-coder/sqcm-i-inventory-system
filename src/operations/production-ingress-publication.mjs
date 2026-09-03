@@ -40,7 +40,7 @@ export function selectProductionIngressTunnel({ tunnels, expectedName } = {}) {
   }
   for (const connection of selected.connections) {
     if (!connection || !isProductionIngressTunnelId(connection.id)
-      || !/^[A-Z0-9]{2,16}$/.test(connection.colo_name ?? '')
+      || !/^[A-Z0-9]{2,16}$/i.test(connection.colo_name ?? '')
       || isIP(connection.origin_ip ?? '') === 0
       || !exactIsoInstant(connection.opened_at)
       || typeof connection.is_pending_reconnect !== 'boolean') {

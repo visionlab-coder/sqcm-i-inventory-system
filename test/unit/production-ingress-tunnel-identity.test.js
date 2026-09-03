@@ -39,6 +39,16 @@ test('exact Production tunnel 하나와 active connection만 선택한다', asyn
   assert.equal(selectProductionIngressTunnel({ tunnels: [], expectedName: tunnelName }), null);
 });
 
+test('cloudflared 실제 JSON의 lowercase colo_name도 exact connection으로 인정한다', async () => {
+  const { selectProductionIngressTunnel, productionIngressTunnelConnected } = await publicationModule;
+  const selected = selectProductionIngressTunnel({
+    tunnels: [exactTunnel({ connections: [exactConnection({ colo_name: 'icn05' })] })],
+    expectedName: tunnelName
+  });
+  assert.equal(selected.connections[0].colo_name, 'icn05');
+  assert.equal(productionIngressTunnelConnected(selected), true);
+});
+
 test('malformed tunnel list와 exact name 중복은 mutation 전에 차단한다', async () => {
   const { selectProductionIngressTunnel } = await publicationModule;
   assert.throws(() => selectProductionIngressTunnel({ tunnels: {}, expectedName: tunnelName }), /INGRESS_TUNNEL_RESPONSE_INVALID/);
