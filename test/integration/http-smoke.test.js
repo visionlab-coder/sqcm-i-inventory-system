@@ -457,6 +457,36 @@ test('비밀번호 재설정 토큰은 단회 사용되고 기존 세션을 폐�
   }
 });
 
+test('초기 비밀번호 계정은 업무 API가 차단되고 강한 새 비밀번호 변경 후에만 사용할 수 있다', { skip: !baseUrl || !databaseUrl }, async () => {
+  const pool=createPool(databaseUrl); const marker=Date.now().toString().slice(-9); const email=`first-login-${marker}@seowonenc.co.kr`;
+  const initialPassword='TemporaryOnly123!'; const newPassword='EmployeeOwned456!'; let userId; let initialSession; let changedSession; let finalSession;
+  try {
+    const organization=await pool.query("SELECT id FROM organizations WHERE code='SEOWON'");
+    const department=await pool.query("SELECT id FROM departments WHERE organization_id=$1 AND code='HQ'",[organization.rows[0].id]);
+    const hash=await bcrypt.hash(initialPassword,12);
+    const inserted=await pool.query("INSERT INTO users(email,display_name,password_hash,role,status,organization_id,department_id,password_reset_required) VALUES($1,'최초 로그인 테스트',$2,'USER','ACTIVE',$3,$4,true) RETURNING id",[email,hash,organization.rows[0].id,department.rows[0]?.id||null]); userId=inserted.rows[0].id;
+    initialSession=await login(email,initialPassword); assert.equal(initialSession.user.passwordResetRequired,true);
+
+    const blocked=await api('/api/dashboard',initialSession); assert.equal(blocked.status,403); assert.equal((await blocked.json()).code,'PASSWORD_CHANGE_REQUIRED');
+    const weak=await api('/api/auth/password/change-required',initialSession,{method:'POST',body:{currentPassword:initialPassword,newPassword:'weak'}}); assert.equal(weak.status,400);
+    const reused=await api('/api/auth/password/change-required',initialSession,{method:'POST',body:{currentPassword:initialPassword,newPassword:initialPassword}}); assert.equal(reused.status,400); assert.equal((await reused.json()).code,'PASSWORD_REUSE_NOT_ALLOWED');
+
+    const changed=await api('/api/auth/password/change-required',initialSession,{method:'POST',body:{currentPassword:initialPassword,newPassword}}); assert.equal(changed.status,200);
+    const changedBody=await changed.json(); changedSession={cookie:cookieFrom(changed),sessionId:sessionIdFromCookie(cookieFrom(changed)),csrfToken:changedBody.csrfToken,user:changedBody.user};
+    assert.equal(changedSession.user.passwordResetRequired,false);
+    assert.equal((await api('/api/dashboard',changedSession)).status,200);
+
+    const csrfResponse=await fetch(`${baseUrl}/api/auth/csrf`); const anonymousCookie=cookieFrom(csrfResponse); const csrfToken=(await csrfResponse.json()).csrfToken;
+    const oldLogin=await fetch(`${baseUrl}/api/auth/login`,{method:'POST',headers:{cookie:anonymousCookie,'content-type':'application/json'},body:JSON.stringify({_csrf:csrfToken,email,password:initialPassword})}); assert.equal(oldLogin.status,401);
+    finalSession=await login(email,newPassword); assert.equal(finalSession.user.passwordResetRequired,false);
+    const audit=await pool.query("SELECT count(*)::int count FROM audit_logs WHERE actor_user_id=$1 AND action='INITIAL_PASSWORD_CHANGED'",[userId]); assert.equal(audit.rows[0].count,1);
+  } finally {
+    await removeTestSessions(pool,[initialSession,changedSession,finalSession]);
+    if(userId){await pool.query('DELETE FROM password_reset_tokens WHERE user_id=$1',[userId]);await pool.query('DELETE FROM audit_logs WHERE actor_user_id=$1',[userId]);await pool.query('DELETE FROM users WHERE id=$1',[userId]);}
+    await pool.end();
+  }
+});
+
 test('자산 증빙파일은 검증·권한·감사·보존 수명주기를 지킨다', { skip: !baseUrl || !databaseUrl }, async () => {
   const pool=createPool(databaseUrl); const marker=Date.now().toString().slice(-9); let manager; let employee; let assetId; let fileId;
   const png=Buffer.from([137,80,78,71,13,10,26,10,0]);

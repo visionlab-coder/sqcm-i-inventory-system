@@ -42,7 +42,9 @@ test('streaming stdin/stdout은 메모리 buffering 없이 전달하고 종료 �
     args: ['-e', 'process.stdin.pipe(process.stdout)'],
     stdin: Readable.from([Buffer.from('bounded-stream')]),
     stdout: new Writable({ write(chunk, _encoding, callback) { chunks.push(Buffer.from(chunk)); callback(); } }),
-    timeoutMs: 2000,
+    // 전체 테스트가 병렬로 child process를 많이 실행하는 Windows 환경에서도
+    // 정상 streaming 계약이 scheduler 지연을 timeout으로 오판하지 않게 한다.
+    timeoutMs: 10000,
     failureStatus: 'STREAM_FAILED',
     timeoutStatus: 'STREAM_TIMEOUT'
   });

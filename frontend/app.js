@@ -42,7 +42,7 @@ async function request(path, options = {}) {
     if (options.body) { headers['Content-Type'] = 'application/json'; body = JSON.stringify(options.body); }
     if (mutating) { headers['x-csrf-token'] = state.csrfToken || ''; headers['idempotency-key'] = options.idempotencyKey || newIdempotencyKey(); }
     const response = await fetch(path, { ...options, method, headers, body, credentials: 'same-origin' });
-    if (response.status === 401 && !['/api/auth/login','/api/auth/mfa/verify'].includes(path)) showLogin();
+    if (response.status === 401 && !['/api/auth/login','/api/auth/mfa/verify','/api/auth/password/change-required'].includes(path)) showLogin();
     return responseData(response);
   })();
   if (signature) inFlightWrites.set(signature, operation);
@@ -72,11 +72,23 @@ function showLogin() {
   $('#app-shell').classList.add('hidden');
   $('#login-page').classList.remove('hidden');
   $('#mfa-login-form').classList.add('hidden');
+  $('#required-password-change-form').classList.add('hidden');
+  $('#invitation-form').classList.add('hidden');
   $('#login-form').classList.remove('hidden');
   if (new URLSearchParams(location.search).get('mfa') === 'required') {
     $('#login-form').classList.add('hidden');
     $('#mfa-login-form').classList.remove('hidden');
   }
+}
+
+function showRequiredPasswordChange() {
+  $('#app-shell').classList.add('hidden');
+  $('#login-page').classList.remove('hidden');
+  $('#login-form').classList.add('hidden');
+  $('#mfa-login-form').classList.add('hidden');
+  $('#invitation-form').classList.add('hidden');
+  $('#required-password-change-email').textContent = state.user?.email || '';
+  $('#required-password-change-form').classList.remove('hidden');
 }
 
 function closeMobileNav() {
@@ -102,6 +114,7 @@ function showInvitation(token) {
 }
 
 function showApp() {
+  if (state.user?.passwordResetRequired) return showRequiredPasswordChange();
   $('#login-page').classList.add('hidden');
   $('#app-shell').classList.remove('hidden');
   $('#user-name').textContent = state.user.displayName;
@@ -433,6 +446,33 @@ $('#mfa-login-form').addEventListener('submit', async event => {
   catch(error){errorBox.textContent=error.message;errorBox.classList.remove('hidden');}
 });
 $('#mfa-login-back').addEventListener('click',async()=>{const csrf=await request('/api/auth/csrf');state.csrfToken=csrf.csrfToken;$('#mfa-login-form').classList.add('hidden');$('#login-form').classList.remove('hidden');});
+
+$('#required-password-change-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const values = Object.fromEntries(new FormData(event.target));
+  const errorBox = $('#required-password-change-error');
+  errorBox.classList.add('hidden');
+  if (values.newPassword !== values.passwordConfirm) {
+    errorBox.textContent = '새 비밀번호 확인이 일치하지 않습니다.';
+    return errorBox.classList.remove('hidden');
+  }
+  try {
+    const data = await request('/api/auth/password/change-required', { method:'POST', body:{ currentPassword:values.currentPassword, newPassword:values.newPassword } });
+    state.user = data.user;
+    state.csrfToken = data.csrfToken;
+    event.target.reset();
+    showApp();
+    showMessage('초기 비밀번호를 변경했습니다.');
+  } catch (error) {
+    errorBox.textContent = error.message;
+    errorBox.classList.remove('hidden');
+  }
+});
+
+$('#required-password-change-logout').addEventListener('click', async () => {
+  try { await request('/api/auth/logout', { method:'POST', body:{} }); }
+  finally { const csrf = await request('/api/auth/csrf'); state.csrfToken = csrf.csrfToken; showLogin(); }
+});
 
 $('#invitation-form').addEventListener('submit', async event => {
   event.preventDefault();
