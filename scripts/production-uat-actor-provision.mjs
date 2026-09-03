@@ -9,7 +9,7 @@ import { inspectProductionUatJsonReference, readProductionUatJsonDocument } from
 const projectDir=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const APPROVAL_ENV='PRODUCTION_UAT_ACTOR_APPROVAL_FILE';
 const REFERENCE_ENV=Object.freeze({ADMIN:'PRODUCTION_UAT_ADMIN_CREDENTIAL_FILE',MANAGER:'PRODUCTION_UAT_MANAGER_CREDENTIAL_FILE',USER:'PRODUCTION_UAT_USER_CREDENTIAL_FILE'});
-const WORKER_LOCAL=path.join(projectDir,'scripts','production-uat-actor-provision-worker.cjs');const WORKER_CONTAINER='/tmp/sqcm-i-production-uat-actor-provision-worker.cjs';
+const WORKER_LOCAL=path.join(projectDir,'scripts','production-uat-actor-provision-worker.cjs');const WORKER_CONTAINER=`/tmp/sqcm-i-production-uat-actor-provision-worker-${process.pid}.cjs`;
 const exactFile=(value)=>inspectProductionUatJsonReference(value,{repositoryRoot:projectDir}).present;
 const run=(args,options={})=>runProductionUatActorProcess(args,options);
 const container=()=>{const r=run(['ps','--filter','label=com.docker.compose.project=seowon-inventory-production','--filter','label=com.docker.compose.service=backend','--format','{{.ID}}']);const ids=r.stdout.trim().split(/\r?\n/).filter(Boolean);if(r.status!==0||ids.length!==1||!/^[a-f0-9]{12,64}$/.test(ids[0]))throw new Error('UAT_ACTOR_BACKEND_CONTAINER_INVALID');return ids[0];};
@@ -35,7 +35,7 @@ if(gate.status!=='READY_UAT_ACTOR_PROVISION_EXECUTION'){
     finalOutput={checkedAt:new Date().toISOString(),roles:workerResult.roles,createdCount:workerResult.createdCount,updatedCount:workerResult.updatedCount,activeCount:workerResult.activeCount,mfaEnabledCount:workerResult.mfaEnabledCount,scopeCount:workerResult.scopeCount,auditCount:workerResult.auditCount,sessionCountAfter:workerResult.sessionCountAfter,externalMutationPerformed:true,secretValuesReadOrRecorded:false,...classification};if(classification.failures.length)process.exitCode=1;
   }catch(error){failure=/^(UAT_ACTOR_[A-Z0-9_]+)$/.test(error?.message||'')?error.message:'UAT_ACTOR_PROVISION_EXECUTION_FAILED';
   }finally{
-    if(workerCopied&&backend){const cleanup=await cleanupProductionUatActorWorker({removeWorker:async()=>{const removed=run(['exec',backend,'rm','-f',WORKER_CONTAINER]);if(removed.status!==0)throw new Error('UAT_ACTOR_TEMP_WORKER_REMOVE_FAILED');}});workerCleanupSucceeded=cleanup.succeeded;if(!cleanup.succeeded)failure='UAT_ACTOR_TEMP_WORKER_CLEANUP_FAILED';}
+    if(workerCopied&&backend){const cleanup=await cleanupProductionUatActorWorker({removeWorker:async()=>{const removed=run(['exec','--user','0',backend,'rm','-f',WORKER_CONTAINER]);if(removed.status!==0)throw new Error('UAT_ACTOR_TEMP_WORKER_REMOVE_FAILED');}});workerCleanupSucceeded=cleanup.succeeded;if(!cleanup.succeeded)failure='UAT_ACTOR_TEMP_WORKER_CLEANUP_FAILED';}
   }
   if(failure){console.error(JSON.stringify({checkedAt:new Date().toISOString(),status:'FAIL_UAT_ACTOR_PROVISION_EXECUTION',failure,externalMutationPerformed:workerCopied||workerExecutionStarted,temporaryWorkerCleanupSucceeded:workerCleanupSucceeded,actualProductionActors:'FAIL',secretValuesReadOrRecorded:false,productionGo:false},null,2));process.exitCode=1;
   }else{console.log(JSON.stringify({...finalOutput,temporaryWorkerCleanupSucceeded:workerCleanupSucceeded},null,2));}

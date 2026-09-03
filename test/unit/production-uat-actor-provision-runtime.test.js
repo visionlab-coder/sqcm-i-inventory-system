@@ -1,5 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const modulePromise = import('../../src/operations/production-uat-actor-provision-runtime.mjs');
 
@@ -60,4 +62,10 @@ test('임시 worker cleanup 실패는 시도 사실만 반환하고 오류 원�
   });
   assert.deepEqual(result, { attempted: true, succeeded: false });
   assert.equal(JSON.stringify(result).includes('cleanup-provider-secret'), false);
+});
+
+test('UAT actor 진입점은 실행별 worker 경로와 exact root cleanup을 사용한다', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../../scripts/production-uat-actor-provision.mjs'), 'utf8');
+  assert.match(source, /production-uat-actor-provision-worker-\$\{process\.pid\}\.cjs/);
+  assert.match(source, /\['exec','--user','0',backend,'rm','-f',WORKER_CONTAINER\]/);
 });
