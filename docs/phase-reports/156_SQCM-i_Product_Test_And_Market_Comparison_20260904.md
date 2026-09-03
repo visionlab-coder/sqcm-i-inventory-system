@@ -1,7 +1,7 @@
 # SQCM-i 제품 검증 및 시장 비교 보고서
 
-기준일: 2026-09-04 KST  
-대상: 서원토건 비품관리 시스템(SQCM-i Inventory)  
+기준일: 2026-09-04 KST
+대상: 서원토건 비품관리 시스템(SQCM-i Inventory)
 비교 범위: 국내 4종, 글로벌 5종의 공식 공개자료와 현재 SQCM-i 코드·실행 증거
 
 ## Executive Summary
