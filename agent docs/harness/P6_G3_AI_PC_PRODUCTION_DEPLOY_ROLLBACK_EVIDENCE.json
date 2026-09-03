@@ -1,18 +1,18 @@
 {
   "gate": "P6-G3-AI-PC-PRODUCTION-SECRETS-MIGRATION-DEPLOY-AND-ROLLBACK",
-  "date": "2026-09-01",
+  "date": "2026-09-03",
   "status": "PASS",
   "scope": "AI PC loopback-only Production deployment and first-deploy rollback drill",
   "source": {
     "branch": "codex/p6-ai-pc-postgres-production",
-    "candidateSha": "e238ab8dab7f4729298ceb7ecc0f874a4a08829a",
+    "candidateSha": "d91d9c322799d17a323144ee0df80eb8abac2e55",
     "remoteShaMatched": true,
-    "qualityRunId": 33469721441,
-    "releaseImagesRunId": 33469730466
+    "qualityRunId": 33704287495,
+    "releaseImagesRunId": 33704498980
   },
   "immutableImages": {
-    "backendIndexDigest": "sha256:955753aee0cd0d22d885db93a12850cc24aeaacffcbac159dba6846802b343fb",
-    "frontendIndexDigest": "sha256:63834026cf17b52377e414709dd7b93411fe2da6c79b15cb1f25c23a8fa43a33",
+    "backendIndexDigest": "sha256:28ef5a72f7d8a50c524a0ae0b7fca719a2ca0e02634efbdeace008fb0c3f7e64",
+    "frontendIndexDigest": "sha256:41531f3eaf222d7b6de07404bc375b301edb958cf4aac2c65d61d91308d50415",
     "platforms": ["linux/amd64", "linux/arm64"],
     "provenanceAttestationsCreated": true
   },
@@ -76,7 +76,8 @@
   "resolvedFailures": [
     "runtime image lacked scripts/db-migrate.mjs; the included migration engine applied 25/25 before application start",
     "Docker secret volume mode blocked the non-root backend; the exact secret file was changed to read-only 0444 without exposing its value",
-    "createApp dropped eventPublisher during validation; regression test and candidate SHA e238ab8 fixed the wiring"
+    "createApp dropped eventPublisher during validation; regression test and candidate SHA e238ab8 fixed the wiring",
+    "Cloudflare Tunnel HTTP origin suppressed secure session cookies; candidate SHA d91d9c3 preserves HTTPS forwarding and restores CSRF cookie delivery"
   ],
   "notPerformed": [
     "Production seed or user creation",

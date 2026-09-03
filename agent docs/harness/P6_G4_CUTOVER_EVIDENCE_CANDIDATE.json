@@ -8,8 +8,8 @@
     "p5Signoff": "agent docs/harness/P5_G2_STAGING_UAT_SIGNOFF_EVIDENCE.json",
     "providerPreflight": "agent docs/harness/P6_G4_PROVIDER_PREFLIGHT_EVIDENCE.json"
   },
-  "generatedAt": "2026-09-01T21:31:07+09:00",
-  "releaseTag": "sha-e238ab8dab7f4729298ceb7ecc0f874a4a08829a",
+  "generatedAt": "2026-09-03T10:42:59+09:00",
+  "releaseTag": "sha-d91d9c322799d17a323144ee0df80eb8abac2e55",
   "targetUrl": "https://inventory.safe-link.co.kr",
   "localGatePassCount": 4,
   "pendingGateCount": 8,

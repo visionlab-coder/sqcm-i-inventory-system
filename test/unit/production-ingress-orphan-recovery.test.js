@@ -54,7 +54,7 @@ test('실제 복구는 변경창과 exact confirmation을 모두 요구한다', 
 test('관측 실패와 완전 게시 상태를 삭제 권한으로 승격하지 않는다', async () => {
   const { evaluateProductionIngressOrphanRecoveryExecution } = await publicationModule;
   assert.equal(evaluateProductionIngressOrphanRecoveryExecution({ ...eligibleState, tunnelObservationSucceeded: false }).status, 'FAIL_INGRESS_ORPHAN_RECOVERY_OBSERVATION');
-  const complete = evaluateProductionIngressOrphanRecoveryExecution({
+  const completeInput = {
     ...emptyState,
     tunnelPresent: true,
     tunnelConnected: true,
@@ -62,8 +62,12 @@ test('관측 실패와 완전 게시 상태를 삭제 권한으로 승격하지 
     configPresent: true,
     processRunning: true,
     dnsPublished: true
-  });
+  };
+  const complete = evaluateProductionIngressOrphanRecoveryExecution(completeInput);
   assert.equal(complete.status, 'PASS_INGRESS_PUBLICATION_COMPLETE_NOT_ORPHANED');
+  const routeDisabled = { ...completeInput, dnsPublished: false };
+  assert.equal(evaluateProductionIngressOrphanRecoveryExecution(routeDisabled).status, 'PASS_INGRESS_ROUTE_DISABLED_NOT_ORPHANED');
+  assert.equal(evaluateProductionIngressOrphanRecoveryExecution(routeDisabled).recoveryRequired, false);
 });
 
 test('삭제 대상이 전혀 없으면 unrelated process metadata 부재를 복구 실패로 승격하지 않는다', async () => {

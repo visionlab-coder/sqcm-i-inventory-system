@@ -89,7 +89,7 @@ export function extractLastJsonObject(text) {
   return last;
 }
 
-export function normalizeStepOutcome({ exitCode, stdout, step, failureStatus = null } = {}) {
+export function normalizeStepOutcome({ exitCode, stdout, stderr, step, failureStatus = null } = {}) {
   const code = Number.isInteger(exitCode) ? exitCode : -1;
   if (failureStatus !== null) {
     return {
@@ -100,7 +100,7 @@ export function normalizeStepOutcome({ exitCode, stdout, step, failureStatus = n
     };
   }
   if (step?.id === 'migration-verify' && code === 0) return { exitCode: 0, status: 'PASS_EXIT_ZERO' };
-  const parsed = extractLastJsonObject(stdout);
+  const parsed = extractLastJsonObject(stdout) || extractLastJsonObject(stderr);
   return { exitCode: code, status: typeof parsed?.status === 'string' ? parsed.status : 'FAIL_STATUS_NOT_RECORDED' };
 }
 

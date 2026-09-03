@@ -36,7 +36,7 @@ async function get(path, cookie = '') {
   });
 }
 async function post(path, session, body, key, includeCsrf = true) {
-  const headers = { cookie:session.cookie, 'content-type':'application/json', 'idempotency-key':key };
+  const headers = { cookie:session.cookie, origin:target, 'content-type':'application/json', 'idempotency-key':key };
   if (includeCsrf) headers['x-csrf-token'] = session.token;
   return requestAuthenticatedIdempotencyHttp({
     url:`${target}${path}`,
@@ -57,8 +57,8 @@ function sql(container, statement) {
 }
 
 function cleanupSql(container, marker, key) {
-  const assetTag = `P6-IDEM-${marker}`;
-  sql(container, `begin; delete from api_idempotency_keys where idempotency_key in ('${key}','p6-csrf-${marker}'); delete from asset_status_histories where asset_id in (select id from assets where asset_tag='${assetTag}'); delete from outbox_events where aggregate_type='ASSET' and aggregate_id in (select id::text from assets where asset_tag='${assetTag}'); delete from audit_logs where entity_type='ASSET' and entity_id in (select id::text from assets where asset_tag='${assetTag}'); delete from assets where asset_tag='${assetTag}'; commit;`);
+  const assetTag = `P6-IDEM-${marker}`.toUpperCase();
+  sql(container, `begin; delete from api_idempotency_keys where idempotency_key in ('${key}','p6-csrf-${marker}'); delete from asset_financial_profiles where asset_id in (select id from assets where asset_tag='${assetTag}'); delete from asset_status_histories where asset_id in (select id from assets where asset_tag='${assetTag}'); delete from outbox_events where aggregate_type='ASSET' and aggregate_id in (select id::text from assets where asset_tag='${assetTag}'); delete from audit_logs where entity_type='ASSET' and entity_id in (select id::text from assets where asset_tag='${assetTag}'); delete from assets where asset_tag='${assetTag}'; commit;`);
 }
 
 const now = new Date();
@@ -102,9 +102,15 @@ async function executeAuthenticatedIdempotency() {
     const anonymous = { cookie:cookieFrom(csrfResponse),token:(await data(csrfResponse)).csrfToken };
     const passwordResponse = await post('/api/auth/login', anonymous, { email:credential.email,password:credential.password }, `login-${crypto.randomUUID()}`);
     const passwordData = await data(passwordResponse);
-    if (passwordResponse.status !== 202 || passwordData.mfaRequired !== true) throw new Error('AUTHENTICATED_IDEMPOTENCY_MFA_CHALLENGE_MISSING');
+    if (passwordResponse.status !== 202) throw new Error(`AUTHENTICATED_IDEMPOTENCY_PASSWORD_STATUS_${passwordResponse.status}`);
+    if (passwordData.mfaRequired !== true) throw new Error('AUTHENTICATED_IDEMPOTENCY_MFA_CHALLENGE_MISSING');
     const challenge = { cookie:cookieFrom(passwordResponse),token:passwordData.csrfToken };
-    const mfaResponse = await post('/api/auth/mfa/verify', challenge, { code:totp(credential.totpSecret) }, `mfa-${crypto.randomUUID()}`);
+    let mfaResponse = await post('/api/auth/mfa/verify', challenge, { code:totp(credential.totpSecret) }, `mfa-${crypto.randomUUID()}`);
+    if (mfaResponse.status === 401) {
+      const waitMs = ((30 - (Math.floor(Date.now() / 1000) % 30)) + 1) * 1000;
+      await new Promise((resolve) => setTimeout(resolve, waitMs));
+      mfaResponse = await post('/api/auth/mfa/verify', challenge, { code:totp(credential.totpSecret) }, `mfa-retry-${crypto.randomUUID()}`);
+    }
     const mfaData = await data(mfaResponse);
     session = { cookie:cookieFrom(mfaResponse),token:mfaData.csrfToken };
     if (mfaResponse.status !== 200 || mfaData.user?.role !== 'ADMIN') throw new Error('AUTHENTICATED_IDEMPOTENCY_ADMIN_MFA_FAILED');
@@ -112,7 +118,7 @@ async function executeAuthenticatedIdempotency() {
     const reference = await data(referenceResponse);
     if (referenceResponse.status !== 200) throw new Error('AUTHENTICATED_IDEMPOTENCY_REFERENCE_UNAVAILABLE');
 
-    marker = crypto.randomUUID().replaceAll('-', '').slice(0, 16);
+    marker = crypto.randomUUID().replaceAll('-', '').slice(0, 16).toUpperCase();
     key = `p6-idem-${marker}`;
     const body = {
       organizationId:mfaData.user.organizationId,

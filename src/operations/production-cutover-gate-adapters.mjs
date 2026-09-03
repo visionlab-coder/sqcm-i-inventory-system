@@ -14,7 +14,7 @@ export const CUTOVER_GATE_ADAPTER_PLAN = Object.freeze({
     { id: 'provider-preflight', script: 'scripts/production-provider-preflight.mjs', args: [], environment: [], acceptedStatuses: ['PASS'] }
   ],
   health_readiness: [
-    { id: 'ingress-publication', script: 'scripts/production-ingress-publication.mjs', args: ['--execute'], environment: ['CLOUDFLARE_PRODUCTION_DNS_API_TOKEN_FILE', 'PRODUCTION_INGRESS_CONFIRMATION', 'PRODUCTION_ROUTE_DISABLE_CONFIRMATION'], acceptedStatuses: ['PASS_INGRESS_PUBLISHED_READY_FOR_TLS_PROBE'] },
+    { id: 'ingress-publication', script: 'scripts/production-ingress-publication.mjs', args: ['--execute'], environment: ['CLOUDFLARE_PRODUCTION_DNS_API_TOKEN_FILE', 'PRODUCTION_INGRESS_CONFIRMATION', 'PRODUCTION_ROUTE_DISABLE_CONFIRMATION'], acceptedStatuses: ['PASS_INGRESS_PROVIDER_PUBLISHED_READY_FOR_PUBLIC_PROBE', 'PASS_INGRESS_PUBLISHED_READY_FOR_TLS_PROBE'] },
     { id: 'public-probe', script: 'scripts/production-public-probe.mjs', args: [], environment: [], acceptedStatuses: ['PASS_PUBLIC_HEALTH_READINESS'] }
   ],
   core_smoke: [
@@ -58,6 +58,7 @@ export const CUTOVER_INGRESS_ORPHAN_RECOVERY_ADAPTER = Object.freeze({
     'PASS_NO_INGRESS_PARTIAL_STATE',
     'PASS_NO_INGRESS_RECOVERY_TARGET_PROCESS_UNOBSERVED',
     'PASS_INGRESS_PUBLICATION_COMPLETE_NOT_ORPHANED',
+    'PASS_INGRESS_ROUTE_DISABLED_NOT_ORPHANED',
     'PASS_INGRESS_ORPHAN_RECOVERED'
   ]
 });

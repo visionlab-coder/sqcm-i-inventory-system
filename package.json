@@ -31,6 +31,7 @@
     "production:role-result-evidence": "node scripts/production-role-result-evidence.mjs",
     "production:signoff-request-bundle": "node scripts/production-signoff-request-bundle.mjs",
     "production:signoff-actual-evidence": "node scripts/production-signoff-actual-evidence.mjs",
+    "production:signoff-mfa-receipt-capture": "node scripts/production-signoff-mfa-receipt-capture.mjs",
     "production:cutover-signoff-resume-rehearsal": "node scripts/production-cutover-signoff-resume-rehearsal.mjs",
     "production:cutover-signoff-resume-runtime-rehearsal": "node scripts/production-cutover-signoff-resume-runtime-rehearsal.mjs",
     "production:ingress-publication": "node scripts/production-ingress-publication.mjs",

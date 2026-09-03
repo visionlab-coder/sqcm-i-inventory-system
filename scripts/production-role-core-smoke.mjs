@@ -76,7 +76,12 @@ async function loginRole(role, credential) {
     const passwordData = await json(passwordResponse);
     const challenge = { cookie:cookieFrom(passwordResponse),token:passwordData.csrfToken };
     const invalidResponse = await post('/api/auth/mfa/verify', challenge, { code:'000000' });
-    const mfaResponse = await post('/api/auth/mfa/verify', challenge, { code:totp(credential.totpSecret) });
+    let mfaResponse = await post('/api/auth/mfa/verify', challenge, { code:totp(credential.totpSecret) });
+    if (mfaResponse.status === 401) {
+      const waitMs = ((30 - (Math.floor(Date.now() / 1000) % 30)) + 1) * 1000;
+      await new Promise((resolve) => setTimeout(resolve, waitMs));
+      mfaResponse = await post('/api/auth/mfa/verify', challenge, { code:totp(credential.totpSecret) });
+    }
     const mfaData = await json(mfaResponse);
     activeSession = { cookie:cookieFrom(mfaResponse),token:mfaData.csrfToken };
     const organizationId = mfaData.user?.organizationId;

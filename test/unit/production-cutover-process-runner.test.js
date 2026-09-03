@@ -83,6 +83,7 @@ test('마지막 JSON 상태를 추출하고 migration exit 0을 명시 PASS로 �
   assert.deepEqual(extractLastJsonObject('noise {"status":"OLD"}\n{"status":"PASS","nested":{"x":1}} tail'), { status: 'PASS', nested: { x: 1 } });
   assert.deepEqual(normalizeStepOutcome({ exitCode: 0, stdout: 'plain', step: { id: 'migration-verify' } }), { exitCode: 0, status: 'PASS_EXIT_ZERO' });
   assert.equal(normalizeStepOutcome({ exitCode: 0, stdout: 'plain', step: { id: 'x' } }).status, 'FAIL_STATUS_NOT_RECORDED');
+  assert.equal(normalizeStepOutcome({ exitCode: 1, stdout: '', stderr: '{"status":"FAIL_SAFE_CHILD_STATUS"}', step: { id: 'x' } }).status, 'FAIL_SAFE_CHILD_STATUS');
 });
 
 test('cutover child는 stdout 상한 초과를 bounded 실패로 종료한다', async (t) => {

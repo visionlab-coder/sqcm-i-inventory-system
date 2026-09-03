@@ -44,11 +44,13 @@ test('container와 operational counter 결과를 엄격 파싱한다', async () 
 });
 
 test('backend logs는 JSON object 행만 허용하고 5xx를 계산한다', async () => {
-  const { countOperationalHealthRecent5xx } = await modulePromise;
-  assert.equal(countOperationalHealthRecent5xx({
+  const { countOperationalHealthRecent5xx, countOperationalHealthReadinessTransient503 } = await modulePromise;
+  const logs = {
     stdout: '{"event":"http_request","status":500}\n{"event":"http_request","status":200}\n',
-    stderr: '{"event":"http_request","status":503}\n'
-  }), 2);
+    stderr: '{"event":"http_request","method":"GET","path":"/api/readiness","status":503}\n'
+  };
+  assert.equal(countOperationalHealthRecent5xx(logs), 1);
+  assert.equal(countOperationalHealthReadinessTransient503(logs), 1);
   for (const invalid of ['not-json', '[]', 'null']) {
     assert.throws(
       () => countOperationalHealthRecent5xx({ stdout: invalid, stderr: '' }),

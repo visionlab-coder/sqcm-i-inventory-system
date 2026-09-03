@@ -145,7 +145,7 @@ export function classifyProductionIngressPublicationResult(input) {
   if (input.tunnelConnected !== true) failures.push('PRODUCTION_TUNNEL_NOT_CONNECTED');
   if (input.dnsRecordExact !== true) failures.push('PRODUCTION_DNS_RECORD_NOT_EXACT');
   if (failures.length) return { status: 'FAIL_INGRESS_PUBLICATION_RESULT', failures, actualProductionIngress: 'FAIL', productionGo: false };
-  if (input.publicDnsPublished !== true) return { status: 'READY_WAIT_PRODUCTION_DNS_PROPAGATION', failures: [], actualProductionIngress: 'NOT_RUN', productionGo: false };
+  if (input.publicDnsPublished !== true) return { status: 'PASS_INGRESS_PROVIDER_PUBLISHED_READY_FOR_PUBLIC_PROBE', failures: [], actualProductionIngress: 'NOT_RUN', productionGo: false };
   return { status: 'PASS_INGRESS_PUBLISHED_READY_FOR_TLS_PROBE', failures: [], actualProductionIngress: 'PASS', productionGo: false };
 }
 
@@ -239,6 +239,15 @@ export function evaluateProductionIngressOrphanRecoveryExecution(input = {}) {
     && input.processRunning === true
     && input.dnsPublished === true;
   if (complete) return { status: 'PASS_INGRESS_PUBLICATION_COMPLETE_NOT_ORPHANED', recoveryRequired: false, externalMutationPerformed: false, productionGo: false };
+
+  const routeDisabledReady = input.tunnelPresent === true
+    && input.tunnelConnected === true
+    && input.temporaryCredentialPresent === false
+    && input.finalCredentialPresent === true
+    && input.configPresent === true
+    && input.processRunning === true
+    && input.dnsPublished === false;
+  if (routeDisabledReady) return { status: 'PASS_INGRESS_ROUTE_DISABLED_NOT_ORPHANED', recoveryRequired: false, externalMutationPerformed: false, productionGo: false };
 
   const exactOrphan = input.tunnelPresent === true
     && input.tunnelConnected === false

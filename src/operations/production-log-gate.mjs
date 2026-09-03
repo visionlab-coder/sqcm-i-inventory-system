@@ -1,6 +1,7 @@
 export function evaluateProductionLogGate(observation) {
   const failures = [];
   if (observation.http5xxCount > 0) failures.push(`HTTP_5XX_COUNT_${observation.http5xxCount}`);
+  if (observation.currentReadinessStatus !== 200) failures.push('CURRENT_READINESS_NOT_200');
   if (observation.fatalEventCount > 0) failures.push(`FATAL_EVENT_COUNT_${observation.fatalEventCount}`);
   if (observation.errorLevelCount > 0) failures.push(`ERROR_LEVEL_COUNT_${observation.errorLevelCount}`);
   if (observation.outboxRetryCount > 0) failures.push(`OUTBOX_RETRY_COUNT_${observation.outboxRetryCount}`);

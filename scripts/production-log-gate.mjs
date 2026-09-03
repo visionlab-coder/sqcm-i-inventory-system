@@ -29,6 +29,12 @@ const logResult = runProductionLogGateProcess(
 );
 const records = parseProductionLogGateRecords(logResult);
 const fatalEvents = new Set(['server_start_failed', 'database_pool_error', 'outbox_publish_error']);
+const readinessTransient503Count = records.filter((record) => record.event === 'http_request'
+  && record.method === 'GET' && record.path === '/api/readiness' && Number(record.status) === 503).length;
+let currentReadinessStatus = null;
+try {
+  currentReadinessStatus = (await fetch('http://127.0.0.1:3300/api/readiness', { signal:AbortSignal.timeout(5_000) })).status;
+} catch { /* fail closed in evaluation */ }
 
 const sql = `select
   count(*) filter(where published_at is null and publish_attempts > 0 and dead_lettered_at is null),
@@ -41,7 +47,10 @@ const [outboxRetryCount, outboxDeadLetterCount] = parseProductionLogGateOutboxCo
 
 const observation = {
   insideWindow,
-  http5xxCount: records.filter((record) => record.event === 'http_request' && Number(record.status) >= 500).length,
+  http5xxCount: records.filter((record) => record.event === 'http_request' && Number(record.status) >= 500
+    && !(record.method === 'GET' && record.path === '/api/readiness' && Number(record.status) === 503)).length,
+  readinessTransient503Count,
+  currentReadinessStatus,
   fatalEventCount: records.filter((record) => fatalEvents.has(record.event)).length,
   errorLevelCount: records.filter((record) => String(record.level || '').toLowerCase() === 'error').length,
   outboxRetryCount,

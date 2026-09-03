@@ -102,10 +102,85 @@ test('DNS 관측 실패는 공개 HTTPS 요청을 열지 않는다', async () =>
     observeDns: async () => ({
       succeeded: false, published: false, status: 'PUBLIC_PROBE_DNS_OBSERVATION_TIMEOUT'
     }),
+    dnsAttempts: 1,
     fetchImpl: async () => { fetchCount += 1; throw new Error('must not run'); }
   });
 
   assert.equal(fetchCount, 0);
   assert.equal(result.status, 'FAIL_PUBLIC_PROBE_DNS_OBSERVATION');
   assert.deepEqual(result.responses, {});
+});
+
+test('DNS 게시 직후 HTTPS 전파 지연은 bounded retry 뒤 PASS한다', async () => {
+  const { runProductionPublicProbeObservation } = await runtimeModule;
+  let requestCount = 0;
+  let waitCount = 0;
+  const result = await runProductionPublicProbeObservation({
+    hostname: 'inventory.safe-link.co.kr',
+    expectedResponses: { '/health': 200 },
+    observeDns: async () => ({ succeeded:true,published:true,status:'PASS_PUBLIC_PROBE_DNS_OBSERVATION_FALLBACK' }),
+    fetchImpl: async (url) => {
+      requestCount += 1;
+      if (requestCount === 1) throw new Error('propagation pending');
+      return { status:200,url };
+    },
+    endpointAttempts: 3,
+    retryDelayMs: 1,
+    wait: async () => { waitCount += 1; }
+  });
+  assert.equal(result.status, 'PASS_PUBLIC_ENDPOINT_OBSERVATION');
+  assert.equal(result.endpointAttempts, 2);
+  assert.equal(waitCount, 1);
+});
+
+test('provider 게시 직후 NXDOMAIN cache는 bounded DNS retry 뒤 HTTPS로 진행한다', async () => {
+  const { runProductionPublicProbeObservation } = await runtimeModule;
+  let dnsCount = 0;
+  let waitCount = 0;
+  const result = await runProductionPublicProbeObservation({
+    hostname:'inventory.safe-link.co.kr',
+    expectedResponses:{ '/health':200 },
+    observeDns:async()=>({ succeeded:true,published:++dnsCount >= 3,status:'PASS_PUBLIC_PROBE_DNS_OBSERVATION_FALLBACK' }),
+    fetchImpl:async(url)=>({ status:200,url }),
+    dnsAttempts:3,
+    retryDelayMs:1,
+    wait:async()=>{ waitCount += 1; }
+  });
+  assert.equal(result.status,'PASS_PUBLIC_ENDPOINT_OBSERVATION');
+  assert.equal(result.dnsAttempts,3);
+  assert.equal(waitCount,2);
+});
+
+test('일시적 DNS 관측 timeout도 bounded retry 뒤 게시 상태로 복구한다', async () => {
+  const { runProductionPublicProbeObservation } = await runtimeModule;
+  let dnsCount = 0;
+  const result = await runProductionPublicProbeObservation({
+    hostname:'inventory.safe-link.co.kr',
+    expectedResponses:{ '/health':200 },
+    observeDns:async()=>++dnsCount === 1
+      ? { succeeded:false,published:false,status:'PUBLIC_PROBE_DNS_OBSERVATION_TIMEOUT' }
+      : { succeeded:true,published:true,status:'PASS_PUBLIC_PROBE_DNS_OBSERVATION_FALLBACK' },
+    fetchImpl:async(url)=>({ status:200,url }),
+    dnsAttempts:2,
+    retryDelayMs:1,
+    wait:async()=>{}
+  });
+  assert.equal(result.status,'PASS_PUBLIC_ENDPOINT_OBSERVATION');
+  assert.equal(result.dnsAttempts,2);
+});
+
+test('Cloudflare 전파 중 530 응답은 성공으로 멈추지 않고 기대 상태까지 재검증한다', async () => {
+  const { runProductionPublicProbeObservation } = await runtimeModule;
+  let requestCount = 0;
+  const result = await runProductionPublicProbeObservation({
+    hostname:'inventory.safe-link.co.kr',
+    expectedResponses:{ '/health':200 },
+    observeDns:async()=>({ succeeded:true,published:true,status:'PASS_PUBLIC_PROBE_DNS_OBSERVATION_FALLBACK' }),
+    fetchImpl:async(url)=>({ status:++requestCount === 1 ? 530 : 200,url }),
+    endpointAttempts:2,
+    retryDelayMs:1,
+    wait:async()=>{}
+  });
+  assert.equal(result.responses['/health'].status,200);
+  assert.equal(result.endpointAttempts,2);
 });

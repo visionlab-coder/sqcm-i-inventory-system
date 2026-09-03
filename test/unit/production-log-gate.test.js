@@ -6,6 +6,8 @@ const logGateModule = import('../../src/operations/production-log-gate.mjs');
 const clean = (insideWindow = false) => ({
   insideWindow,
   http5xxCount: 0,
+  readinessTransient503Count: 0,
+  currentReadinessStatus: 200,
   fatalEventCount: 0,
   errorLevelCount: 0,
   outboxRetryCount: 0,
@@ -34,4 +36,11 @@ test('5xx·치명 오류·outbox 실패 중 하나라도 있으면 fail closed �
   });
   assert.equal(result.status, 'FAIL_LOGS_5XX');
   assert.equal(result.failures.length, 4);
+});
+
+test('기동 중 readiness 503은 현재 readiness 200 복구가 확인될 때만 별도 transient로 보존한다', async () => {
+  const { evaluateProductionLogGate } = await logGateModule;
+  assert.equal(evaluateProductionLogGate({ ...clean(true),readinessTransient503Count:1 }).status,'PASS_LOGS_5XX');
+  const failed = evaluateProductionLogGate({ ...clean(true),readinessTransient503Count:1,currentReadinessStatus:503 });
+  assert.ok(failed.failures.includes('CURRENT_READINESS_NOT_200'));
 });

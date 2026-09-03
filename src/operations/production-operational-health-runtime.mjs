@@ -59,7 +59,20 @@ export function countOperationalHealthRecent5xx({ stdout = '', stderr = '' } = {
     let record;
     try { record = JSON.parse(line); } catch { throw boundedError('OPERATIONAL_HEALTH_LOG_RESULT_INVALID'); }
     if (!record || Array.isArray(record) || typeof record !== 'object') throw boundedError('OPERATIONAL_HEALTH_LOG_RESULT_INVALID');
-    if (record.event === 'http_request' && Number(record.status) >= 500) count += 1;
+    if (record.event === 'http_request' && Number(record.status) >= 500
+      && !(record.method === 'GET' && record.path === '/api/readiness' && Number(record.status) === 503)) count += 1;
+  }
+  return count;
+}
+
+export function countOperationalHealthReadinessTransient503({ stdout = '', stderr = '' } = {}) {
+  let count = 0;
+  for (const line of `${stdout}\n${stderr}`.split(/\r?\n/).filter(Boolean)) {
+    let record;
+    try { record = JSON.parse(line); } catch { throw boundedError('OPERATIONAL_HEALTH_LOG_RESULT_INVALID'); }
+    if (!record || Array.isArray(record) || typeof record !== 'object') throw boundedError('OPERATIONAL_HEALTH_LOG_RESULT_INVALID');
+    if (record.event === 'http_request' && record.method === 'GET'
+      && record.path === '/api/readiness' && Number(record.status) === 503) count += 1;
   }
   return count;
 }

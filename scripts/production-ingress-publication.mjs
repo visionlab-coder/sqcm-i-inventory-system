@@ -206,7 +206,7 @@ if (gate.status !== 'READY_INGRESS_PUBLICATION_EXECUTION') {
     }
     const dnsRecordExact = selectedRecord !== null;
     let finalDnsObservation = await publicDnsPublished();
-    for (let attempt = 0; attempt < 12 && (!finalDnsObservation.succeeded || !finalDnsObservation.published); attempt += 1) {
+    for (let attempt = 0; attempt < 2 && (!finalDnsObservation.succeeded || !finalDnsObservation.published); attempt += 1) {
       await delay(2000);
       finalDnsObservation = await publicDnsPublished();
     }

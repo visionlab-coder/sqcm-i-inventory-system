@@ -42,3 +42,9 @@ test('실제 로그인 쓰기 요청은 선택된 target의 same-origin 헤더�
   const source = fs.readFileSync(path.join(__dirname, '../../scripts/production-role-core-smoke.mjs'), 'utf8');
   assert.match(source, /origin:target/);
 });
+
+test('직전 실행의 TOTP 재사용 401은 다음 30초 구간의 새 코드로 한 번만 재검증한다', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../../scripts/production-role-core-smoke.mjs'), 'utf8');
+  assert.match(source, /mfaResponse\.status === 401/);
+  assert.match(source, /30 - \(Math\.floor\(Date\.now\(\) \/ 1000\) % 30\)/);
+});

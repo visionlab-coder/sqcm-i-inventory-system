@@ -4,6 +4,7 @@ import { PRODUCTION_CHANGE_WINDOW } from '../src/operations/production-cutover-p
 import { selectProductionOperationalHealthTarget } from '../src/operations/production-operational-health-target.mjs';
 import {
   OPERATIONAL_HEALTH_PROCESS_MAX_BUFFER,
+  countOperationalHealthReadinessTransient503,
   countOperationalHealthRecent5xx,
   parseOperationalHealthContainerId,
   parseOperationalHealthCounters,
@@ -66,11 +67,12 @@ const logResult = runOperationalHealthProcess(
   { maxBuffer: OPERATIONAL_HEALTH_PROCESS_MAX_BUFFER }
 );
 const recent5xx = countOperationalHealthRecent5xx(logResult);
+const readinessTransient503Count = countOperationalHealthReadinessTransient503(logResult);
 
 const backup = await latestProductionBackup();
 const snapshot = {
   checkedAt: now.toISOString(), frontendStatus, backendStatus, readinessStatus,
-  pendingOutboxOld, expiredSessions, stuckIdempotency, recent5xx,
+  pendingOutboxOld, expiredSessions, stuckIdempotency, recent5xx, readinessTransient503Count,
   backupVerified: backup.backupVerified,
   backupAgeMinutes: Math.floor((now.getTime() - Date.parse(backup.createdAt)) / 60_000),
   restoreVerified: backup.restoreVerified,

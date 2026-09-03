@@ -78,9 +78,19 @@ export async function runProductionPublicProbeObservation({
   expectedResponses,
   insideWindow = true,
   observeDns = observeProductionPublicDns,
-  fetchImpl = fetch
+  fetchImpl = fetch,
+  dnsAttempts = 150,
+  endpointAttempts = 150,
+  retryDelayMs = 2_000,
+  wait = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 } = {}) {
-  const dns = await observeDns({ hostname });
+  let dns;
+  let dnsAttempt = 0;
+  for (dnsAttempt = 1; dnsAttempt <= dnsAttempts; dnsAttempt += 1) {
+    dns = await observeDns({ hostname });
+    if ((dns?.succeeded && dns.published) || !insideWindow || dnsAttempt === dnsAttempts) break;
+    await wait(retryDelayMs);
+  }
   if (!dns?.succeeded) {
     return {
       status: 'FAIL_PUBLIC_PROBE_DNS_OBSERVATION',
@@ -94,15 +104,28 @@ export async function runProductionPublicProbeObservation({
       status: 'PASS_PUBLIC_PROBE_OBSERVATION_READY',
       dnsObservationStatus: dns.status,
       endpointObservationStatus: 'NOT_RUN',
+      dnsAttempts: dnsAttempt,
       dnsPublished: dns.published,
       responses: {}
     };
   }
-  const endpoints = await probeProductionPublicEndpoints({ hostname, expectedResponses, fetchImpl });
+  let endpoints;
+  let attempt = 0;
+  for (attempt = 1; attempt <= endpointAttempts; attempt += 1) {
+    endpoints = await probeProductionPublicEndpoints({ hostname, expectedResponses, fetchImpl });
+    const expectedResponsesReady = endpoints.succeeded && Object.entries(expectedResponses).every(([path, expectedStatus]) => {
+      const response = endpoints.responses[path];
+      return response?.status === expectedStatus && response.tlsVerified === true && response.finalHostname === hostname;
+    });
+    if (expectedResponsesReady || attempt === endpointAttempts) break;
+    await wait(retryDelayMs);
+  }
   return {
     status: endpoints.status,
     dnsObservationStatus: dns.status,
+    dnsAttempts: dnsAttempt,
     endpointObservationStatus: endpoints.status,
+    endpointAttempts: attempt,
     dnsPublished: true,
     responses: endpoints.responses
   };
