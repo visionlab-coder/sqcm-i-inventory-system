@@ -58,13 +58,14 @@ test('ingress config 경쟁은 선점 bytes를 보존하고 내부 임시파일�
   assert.equal(fs.existsSync(path.join(root, '.cloudflared.yml.9302.tmp')), false);
 });
 
-test('tunnel credential은 원문 read 없이 fsync 후 hard-link no-replace로 게시한다', async (t) => {
+test('read-only tunnel credential은 원문 read 없이 fsync 후 hard-link no-replace로 게시한다', async (t) => {
   const { publishProductionTunnelCredential } = await runtimeModule;
   assert.equal(typeof publishProductionTunnelCredential, 'function');
   const root = fixture(t);
   const temporary = path.join(root, 'sqcm-i-inventory-production.json.tmp');
   const final = path.join(root, '11111111-1111-4111-8111-111111111111.json');
   fs.writeFileSync(temporary, '{"secret":"must-not-be-read"}\n', { flag: 'wx', mode: 0o600 });
+  fs.chmodSync(temporary, 0o400);
   let reads = 0;
   const io = { ...fs, readFileSync() { reads += 1; throw new Error('SECRET_BODY_READ'); } };
   publishProductionTunnelCredential({

@@ -123,6 +123,10 @@ export function publishProductionTunnelCredential({
   let handle;
   let published = false;
   try {
+    // cloudflared intentionally creates the credential as read-only on Windows.
+    // Clear only that attribute on the exact, already-validated temporary file
+    // before durability and create-only publication checks.
+    io.chmodSync(temporary, 0o600);
     handle = io.openSync(temporary, 'r+');
     io.fsyncSync(handle);
     io.closeSync(handle);
@@ -431,7 +435,7 @@ export function observeProductionIngressProcess({
     || typeof runCommand !== 'function') throw new Error('INGRESS_PROCESS_OBSERVATION_INPUT_INVALID');
   const result = runCommand('powershell.exe', [
     '-NoProfile', '-NonInteractive', '-Command',
-    'Get-CimInstance Win32_Process -Filter "Name=\'cloudflared.exe\'" | Select-Object ProcessId,ExecutablePath,CommandLine | ConvertTo-Json -Compress'
+    '$services=@{}; Get-CimInstance Win32_Service | Where-Object {$_.ProcessId -gt 0 -and $_.PathName} | ForEach-Object {$services[[int]$_.ProcessId]=$_.PathName}; Get-CimInstance Win32_Process -Filter "Name=\'cloudflared.exe\'" | ForEach-Object {$pidValue=[int]$_.ProcessId; $exe=$_.ExecutablePath; $cmd=$_.CommandLine; if((!$exe -or !$cmd) -and $services.ContainsKey($pidValue)) {$cmd=$services[$pidValue]; if($cmd -match \'^\\s*"([^\"]+)"\') {$exe=$Matches[1]} elseif($cmd -match \'^\\s*(\\S+)\') {$exe=$Matches[1]}}; [PSCustomObject]@{ProcessId=$pidValue;ExecutablePath=$exe;CommandLine=$cmd}} | ConvertTo-Json -Compress'
   ]);
   if (!result?.ok) {
     throw new Error(result?.failure === 'COMMAND_TIMEOUT'
