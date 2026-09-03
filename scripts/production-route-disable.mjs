@@ -19,6 +19,7 @@ import {
 const CLOUDFLARED = 'C:\\Program Files (x86)\\cloudflared\\cloudflared.exe';
 const TOKEN_ENV = 'CLOUDFLARE_PRODUCTION_DNS_API_TOKEN_FILE';
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 async function cloudflare(token, path, options = {}) {
   return requestRouteDisableCloudflareJson({
@@ -87,7 +88,11 @@ async function main() {
   }
   const recordsAfter = await cloudflare(token, recordsPath);
   if (!Array.isArray(recordsAfter)) throw new Error('ROUTE_DISABLE_DNS_RESPONSE_INVALID');
-  const dnsObservation = await observeProductionRouteDisableDns({ hostname:PRODUCTION_ROUTE_DISABLE_TARGET.hostname });
+  let dnsObservation = await observeProductionRouteDisableDns({ hostname:PRODUCTION_ROUTE_DISABLE_TARGET.hostname });
+  for (let attempt = 0; attempt < 12 && (!dnsObservation.succeeded || dnsObservation.published); attempt += 1) {
+    await delay(2000);
+    dnsObservation = await observeProductionRouteDisableDns({ hostname:PRODUCTION_ROUTE_DISABLE_TARGET.hostname });
+  }
   if (!dnsObservation.succeeded) throw new Error(dnsObservation.status);
   const classification = classifyProductionRouteDisableResult({ recordDeleted, recordCountAfter:recordsAfter.length, dnsPublishedAfter:dnsObservation.published });
   console.log(JSON.stringify({ checkedAt:new Date().toISOString(),target:PRODUCTION_ROUTE_DISABLE_TARGET,

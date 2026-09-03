@@ -205,7 +205,11 @@ if (gate.status !== 'READY_INGRESS_PUBLICATION_EXECUTION') {
       if (!selectedRecord) throw new Error('INGRESS_DNS_RECORD_CREATION_NOT_OBSERVED');
     }
     const dnsRecordExact = selectedRecord !== null;
-    const finalDnsObservation = await publicDnsPublished();
+    let finalDnsObservation = await publicDnsPublished();
+    for (let attempt = 0; attempt < 12 && (!finalDnsObservation.succeeded || !finalDnsObservation.published); attempt += 1) {
+      await delay(2000);
+      finalDnsObservation = await publicDnsPublished();
+    }
     const classification = classifyProductionIngressPublicationResult({ configValid: true, tunnelConnected, dnsRecordExact, publicDnsPublished: finalDnsObservation.succeeded && finalDnsObservation.published });
     leaseReleased = releaseProductionIngressPublicationLease(lease);
     console.log(JSON.stringify({ checkedAt: new Date().toISOString(), target: PRODUCTION_INGRESS_TARGET, tunnelId, tunnelCreated, configCreated, processStarted, existingProcessId, startedProcessId, dnsRecordCreated, leaseAcquired: true, leaseReleased, dnsObservationStatus: finalDnsObservation.status, externalMutationPerformed: tunnelCreated || configCreated || processStarted || dnsRecordCreated, preserveExistingTunnels: true, preserveLoopbackServices: true, secretValuesReadOrRecorded: false, ...classification }, null, 2));
