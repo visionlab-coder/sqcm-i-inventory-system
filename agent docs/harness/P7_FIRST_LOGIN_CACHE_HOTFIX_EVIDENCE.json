@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "P7-FIRST-LOGIN-CACHE-HOTFIX-20260903",
+  "checkedAt": "2026-09-03T08:22:10.000Z",
+  "status": "PASS",
+  "environment": "production",
+  "publicBaseUrl": "https://inventory.safe-link.co.kr",
+  "symptom": "RESET_REQUIRED_SESSION_RENDERED_APP_SHELL_AND_DASHBOARD_ERROR",
+  "cause": "BROWSER_REUSED_LEGACY_APP_JS_CACHE_KEY",
+  "changes": {
+    "assetReference": "/app.js?v=20260903-first-login",
+    "appJsCacheControl": "no-cache, no-store, must-revalidate",
+    "productionHotfixApplied": true,
+    "frontendContainerRecreated": false,
+    "nginxGracefulReload": true
+  },
+  "verification": {
+    "homeStatus": 200,
+    "newAssetReference": true,
+    "assetStatus": 200,
+    "assetNoStore": true,
+    "passwordChangeHandlerPresent": true,
+    "freshBrowserLoginScreenVisible": true
+  },
+  "relatedCorrection": {
+    "masterDisplayNamesRepaired": 2,
+    "auditEventsRecorded": 2,
+    "passwordOrMfaChanged": false
+  }
+}
