@@ -49,7 +49,19 @@ function apiError(req, res, status, code, message, fieldErrors = []) {
 }
 
 function requiresMfaEnrollment(config, user) {
-  return config.localAuthMfaRequired === true && user?.mfa_enabled !== true;
+  if (user?.password_reset_required === true) return false;
+  return config.localAuthMfaRequired === true
+    && ['ADMIN', 'MANAGER'].includes(user?.role)
+    && user?.mfa_enabled !== true;
+}
+
+function validateStrongPassword(password) {
+  const value = String(password || '');
+  return value.length >= 12
+    && /[A-Z]/.test(value)
+    && /[a-z]/.test(value)
+    && /\d/.test(value)
+    && /[^A-Za-z0-9]/.test(value);
 }
 
 function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiProvider, eventPublisher }) {
@@ -130,11 +142,19 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiPr
   // JSON API: frontend 컨테이너가 같은 출처의 /api 경로로 호출한다.
   // 인증 쿠키는 HttpOnly로 유지하고 모든 변경 요청은 세션 CSRF 토큰을 검사한다.
   // ------------------------------------------------------------------
-  const apiAuth = (req, res, next) => req.user
+  const apiSessionAuth = (req, res, next) => req.user
     ? next()
     : apiError(req, res, 401, 'AUTH_REQUIRED', '로그인이 필요합니다.');
+  const apiAuth = (req, res, next) => {
+    if (!req.user) return apiError(req, res, 401, 'AUTH_REQUIRED', '로그인이 필요합니다.');
+    if (req.user.passwordResetRequired) {
+      return apiError(req, res, 403, 'PASSWORD_CHANGE_REQUIRED', '업무를 시작하기 전에 초기 비밀번호를 변경하세요.');
+    }
+    next();
+  };
   const apiRole = (...roles) => (req, res, next) => {
     if (!req.user) return apiError(req, res, 401, 'AUTH_REQUIRED', '로그인이 필요합니다.');
+    if (req.user.passwordResetRequired) return apiError(req, res, 403, 'PASSWORD_CHANGE_REQUIRED', '업무를 시작하기 전에 초기 비밀번호를 변경하세요.');
     if (!roles.includes(req.user.role)) return apiError(req, res, 403, 'FORBIDDEN', '권한이 없습니다.');
     next();
   };
@@ -162,7 +182,7 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiPr
     if(config.authProvider !== 'oidc') return apiError(req,res,404,'OIDC_DISABLED','SSO 로그인이 활성화되지 않았습니다.');
     res.json({ supabaseUrl:config.supabaseUrl, publishableKey:config.supabasePublishableKey });
   });
-  app.get('/api/auth/me', apiAuth, (req, res) => res.json({ user: req.user, csrfToken: csrfToken(req) }));
+  app.get('/api/auth/me', apiSessionAuth, (req, res) => res.json({ user: req.user, csrfToken: csrfToken(req) }));
 
   app.get('/api/auth/oidc/start', async (req,res) => {
     if(config.authProvider !== 'oidc') return apiError(req,res,404,'OIDC_DISABLED','SSO 로그인이 활성화되지 않았습니다.');
@@ -250,6 +270,52 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiPr
     res.json({ user: sanitizeUser(await loadScopedUser(pool, user.id)), csrfToken: req.session.csrfToken });
   });
 
+  app.post('/api/auth/password/change-required', apiSessionAuth, async (req, res) => {
+    if (!req.user.passwordResetRequired) return apiError(req, res, 409, 'PASSWORD_CHANGE_NOT_REQUIRED', '초기 비밀번호 변경 대상 계정이 아닙니다.');
+    const currentPassword = String(req.body.currentPassword || '');
+    const newPassword = String(req.body.newPassword || '');
+    if (!validateStrongPassword(newPassword)) {
+      return apiError(req, res, 400, 'VALIDATION_ERROR', '새 비밀번호는 12자 이상이며 대문자·소문자·숫자·특수문자를 포함해야 합니다.', [{ field: 'newPassword' }]);
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const found = await client.query("SELECT password_hash,password_reset_required FROM users WHERE id=$1 AND status='ACTIVE' FOR UPDATE", [req.user.id]);
+      if (!found.rowCount || found.rows[0].password_reset_required !== true) {
+        await client.query('ROLLBACK');
+        return apiError(req, res, 409, 'PASSWORD_CHANGE_NOT_REQUIRED', '초기 비밀번호 변경 대상 계정이 아닙니다.');
+      }
+      const currentValid = await bcrypt.compare(currentPassword, found.rows[0].password_hash || DUMMY_HASH);
+      if (!currentValid) {
+        await client.query('ROLLBACK');
+        await writeAudit(pool, req.user.id, 'INITIAL_PASSWORD_CHANGE_FAILED', 'AUTH', req.user.id, { reason: 'invalid_current_password' }, auditTrace(req));
+        return apiError(req, res, 401, 'INVALID_CREDENTIALS', '현재 비밀번호를 확인하세요.');
+      }
+      if (await bcrypt.compare(newPassword, found.rows[0].password_hash)) {
+        await client.query('ROLLBACK');
+        return apiError(req, res, 400, 'PASSWORD_REUSE_NOT_ALLOWED', '초기 비밀번호와 다른 새 비밀번호를 사용하세요.', [{ field: 'newPassword' }]);
+      }
+      const passwordHash = await bcrypt.hash(newPassword, 12);
+      await client.query('UPDATE users SET password_hash=$1,password_reset_required=false,failed_login_count=0,locked_until=NULL,updated_at=now() WHERE id=$2', [passwordHash, req.user.id]);
+      await client.query("DELETE FROM user_sessions WHERE (sess->>'userId')::bigint=$1", [req.user.id]);
+      await client.query(`INSERT INTO audit_logs(actor_user_id,action,entity_type,entity_id,metadata,request_id,ip_address)
+        VALUES($1,'INITIAL_PASSWORD_CHANGED','AUTH',$2,'{}'::jsonb,$3,$4)`, [req.user.id, String(req.user.id), req.id, req.ip]);
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+
+    await new Promise((resolve, reject) => req.session.regenerate(error => error ? reject(error) : resolve()));
+    req.session.userId = req.user.id;
+    req.session.reauthenticatedAt = Date.now();
+    req.session.csrfToken = crypto.randomBytes(32).toString('hex');
+    res.json({ user: sanitizeUser(await loadScopedUser(pool, req.user.id)), csrfToken: req.session.csrfToken });
+  });
+
   app.post('/api/auth/mfa/setup', apiAuth, requireRecentReauth, async (req, res) => {
     res.json(await startMfaSetup(pool, req.user, config.mfaEncryptionKey, auditTrace(req)));
   });
@@ -264,7 +330,7 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiPr
     delete req.session.mfaVerifiedAt; res.status(204).end();
   });
 
-  app.post('/api/auth/logout', apiAuth, async (req, res, next) => {
+  app.post('/api/auth/logout', apiSessionAuth, async (req, res, next) => {
     const userId = req.user.id;
     try {
       await writeAudit(pool, userId, 'LOGOUT', 'AUTH', userId, {}, auditTrace(req));
@@ -304,7 +370,7 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiPr
   app.post('/api/auth/password-reset/confirm', async (req, res) => {
     const tokenHash = crypto.createHash('sha256').update(String(req.body.token || '')).digest('hex');
     const password = String(req.body.newPassword || '');
-    if (password.length < 12 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+    if (!validateStrongPassword(password)) {
       return apiError(req, res, 400, 'VALIDATION_ERROR', '비밀번호는 12자 이상이며 대문자·소문자·숫자·특수문자를 포함해야 합니다.', [{ field: 'newPassword' }]);
     }
     const client = await pool.connect();
@@ -578,4 +644,4 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiPr
   return app;
 }
 
-module.exports = { createApp, safeReturnPath, apiError, requiresMfaEnrollment };
+module.exports = { createApp, safeReturnPath, apiError, requiresMfaEnrollment, validateStrongPassword };

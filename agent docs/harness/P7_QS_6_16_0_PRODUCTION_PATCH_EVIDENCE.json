@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "target": "https://inventory.safe-link.co.kr",
+  "releaseSha": "93aa5b8fde5a6ac29758afb91acbef278bdfae49",
+  "pullRequest": 23,
+  "ci": {
+    "qualityRunId": 33724774152,
+    "releaseImagesRunId": 33724774164,
+    "conclusion": "success"
+  },
+  "images": {
+    "backendDigest": "sha256:90a111e8e4bb8ab707fd675421c95da0241c65cfaf0bc86d6b1d33b64ef4cdc7",
+    "frontendDigest": "sha256:0de5e470d41104847bcfce8983389b514454cb8ae2ed67ebec81014427b83abf",
+    "revisionLabelsMatchRelease": true
+  },
+  "databaseSafety": {
+    "backupSha256": "67c0d0a6baaad65c8fd46f7f22f615190472e29b68dfae72ba2f1cda2c08923a",
+    "requiredTablesPassed": 33,
+    "requiredTablesTotal": 33,
+    "migrationsPassed": 25,
+    "migrationsTotal": 25,
+    "rowCountsMatch": true,
+    "isolatedRestorePassed": true
+  },
+  "production": {
+    "services": ["frontend", "backend", "database"],
+    "healthyServices": 3,
+    "backendHostPorts": 0,
+    "databaseHostPorts": 0,
+    "deployedQsVersion": "6.16.0",
+    "publicSmokePassed": 5,
+    "publicSmokeFailed": 0,
+    "browserTitle": "서원토건 비품관리",
+    "browserConsoleErrors": 0
+  },
+  "protectedServicesPreserved": true,
+  "rollbackRelease": "d91d9c322799d17a323144ee0df80eb8abac2e55",
+  "secretValuesRecorded": false,
+  "productStagesPassed": 11,
+  "productStagesTotal": 11,
+  "phaseLifecycleCompleted": 7,
+  "phaseLifecycleTotal": 8,
+  "nextReady": "P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF"
+}

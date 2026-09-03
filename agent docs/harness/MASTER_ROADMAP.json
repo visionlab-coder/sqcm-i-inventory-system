@@ -3,7 +3,7 @@
   "project": "SQCM-i inventory system",
   "updatedAt": "2026-09-03",
   "repository": "D:\\seowon_projects\\sqcm-i-inventory-system",
-  "branch": "codex/p6-ai-pc-postgres-production",
+  "branch": "codex/p7-qs-6-16-0-production-evidence",
   "goal": "P2부터 P7까지 증거 기반으로 한 Phase씩 완료하고 37봇과 보호 서비스를 보존한다.",
   "currentPhase": "P7",
   "completedPhases": 7,

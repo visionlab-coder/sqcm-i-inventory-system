@@ -26,6 +26,8 @@ const checks = [
   ['shared UI component bundle loads before the app', /ui-components\.js[\s\S]*app\.js/],
   ['admin tabs expose selection state', /data-admin-section[\s\S]*aria-selected/],
   ['workflow tabs expose selection state', /data-workflow-section[\s\S]*aria-selected/]
+  ,['first login requires an isolated password-change form', /id="required-password-change-form"[\s\S]*autocomplete="current-password"[\s\S]*autocomplete="new-password"/]
+  ,['password-reset-required user is routed before the app shell', /function showApp\(\)[\s\S]*passwordResetRequired[\s\S]*showRequiredPasswordChange/]
 ];
 for (const [name, pattern] of checks) {
   const source = `${index}\n${app}\n${components}\n${baseCss}\n${css}`;

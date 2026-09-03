@@ -10,12 +10,20 @@ Production GO: **true**
 기준일: 2026-09-03
 
 릴리스 기준 브랜치: `main`
-현재 작업 브랜치: `codex/p6-ai-pc-postgres-production` (배포 후보 `e238ab8dab7f4729298ceb7ecc0f874a4a08829a`)
-최신 릴리스 기준 main: `79a12924106b378d2337898c76a4dd431634b78d`
+현재 작업 브랜치: `codex/p7-qs-6-16-0-production-evidence`
+최신 릴리스 기준 main: `93aa5b8fde5a6ac29758afb91acbef278bdfae49`
 
 상태: **P6 actual Production cutover 증거 완료 / P7-G0 PASS / P7-G1 운영 활성화·인수 진행 / Production GO**
 
 이 문서는 현재 상태의 단일 정본이다. 과거 Phase 보고서의 당시 수치와 설계 결정은 역사 증거로 보존하되 현재 판정에는 이 문서와 실제 코드·테스트 결과를 우선한다.
+
+## 2026-09-03 qs 6.16.0 Production 패치 완료
+
+- PR #23을 squash merge해 원격 main `93aa5b8fde5a6ac29758afb91acbef278bdfae49`를 만들었고 GitHub-hosted quality `33724774152`와 release-images `33724774164`가 모두 성공했다.
+- frontend/backend 불변 이미지를 같은 release SHA로 Production에 반영했다. backend의 실제 설치 버전은 `qs 6.16.0`이다.
+- 배포 전 PostgreSQL dump와 격리 restore 검증은 33/33 필수 테이블, 25/25 migration, 전체 row-count 일치로 PASS했다.
+- 배포 후 Docker `frontend/backend/database` 3서비스 healthy, 공개 HTTPS smoke 5/5, 운영 health baseline, 최근 5xx 0, 보호 포트/PID 보존을 확인했다.
+- 제품완료 조건은 최신 패치 포함 **11/11**이다. P7의 30일 SLO·외부 경보·off-site 복원·온콜·최종 MFA 인수는 제품 기능과 분리된 장기 운영 자격 증거로 계속 수집한다.
 
 ## 2026-09-03 P6 완료 및 P7-G0 운영 인수 사전점검
 

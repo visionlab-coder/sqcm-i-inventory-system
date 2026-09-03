@@ -15,6 +15,8 @@ Production GO: **true**
 
 로드맵 역할: 전체 진행 순서와 현재 실행 Phase를 한 화면에 고정한다. 과거 `docs/phase-reports/`의 Phase 번호는 역사 증거이며, 새로운 실행 순서를 결정하지 않는다.
 
+제품 인도 체크포인트: **최신 `qs 6.16.0` 포함 Production 제품 11/11 완료**. 원격 main·배포 release는 `93aa5b8fde5a6ac29758afb91acbef278bdfae49`이며 P7은 기능 개발이 아닌 운영 자격 증거 축적 단계다.
+
 ## 1. 운영 규칙
 
 1. 한 번에 `진행 중` Phase는 정확히 1개만 둔다.
