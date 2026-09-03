@@ -28,6 +28,7 @@ const checks = [
   ['workflow tabs expose selection state', /data-workflow-section[\s\S]*aria-selected/]
   ,['first login requires an isolated password-change form', /id="required-password-change-form"[\s\S]*autocomplete="current-password"[\s\S]*autocomplete="new-password"/]
   ,['password-reset-required user is routed before the app shell', /function showApp\(\)[\s\S]*passwordResetRequired[\s\S]*showRequiredPasswordChange/]
+  ,['password-change-required API responses route to the isolated form', /data\.code === 'PASSWORD_CHANGE_REQUIRED'[\s\S]*showRequiredPasswordChange\(\)/]
 ];
 for (const [name, pattern] of checks) {
   const source = `${index}\n${app}\n${components}\n${baseCss}\n${css}`;

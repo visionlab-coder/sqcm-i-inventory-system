@@ -21,6 +21,16 @@ async function responseData(response) {
   if (response.status === 204) return null;
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
+    if (response.status === 403 && data.code === 'PASSWORD_CHANGE_REQUIRED') {
+      if (!state.user?.passwordResetRequired) await refreshSecurityContext();
+      if (state.user) {
+        state.user.passwordResetRequired = true;
+        showRequiredPasswordChange();
+      }
+      const error = new Error(data.message || '업무를 시작하기 전에 초기 비밀번호를 변경하세요.');
+      error.code = data.code;
+      throw error;
+    }
     if (response.status === 403 && data.code === 'CSRF_INVALID') {
       const authenticated = await refreshSecurityContext();
       if (!authenticated && state.user) showLogin();
