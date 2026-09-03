@@ -41,6 +41,14 @@ export function parseSloLedger(raw) {
   return samples.sort((left, right) => Date.parse(left.timestamp) - Date.parse(right.timestamp));
 }
 
+export function hasSloSampleForUtcDay(samples, timestamp = new Date().toISOString()) {
+  if (!Array.isArray(samples) || typeof timestamp !== 'string' || Number.isNaN(Date.parse(timestamp))) {
+    throw new Error('SLO_COLLECTION_TIMESTAMP_INVALID');
+  }
+  const day = new Date(Date.parse(timestamp)).toISOString().slice(0, 10);
+  return samples.some((sample) => validateSloSample(sample) && sample.timestamp.slice(0, 10) === day);
+}
+
 export function readSloLedgerFile(ledgerPath, {
   repositoryRoot = process.cwd(),
   io = fs,

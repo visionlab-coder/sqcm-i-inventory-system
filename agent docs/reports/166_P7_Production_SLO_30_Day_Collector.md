@@ -25,4 +25,4 @@ P7 SLO compiler에 필요한 실제 30일 원본을 생성하는 수집기를 �
 
 ## 다음 READY
 
-공식 READY는 `P6-G4-PRODUCTION-DNS-TLS-CUTOVER-AND-SIGNOFF`다. P6가 actual 완료되면 이 수집기를 하루 단위로 실행해 P7의 30일 SLO 증거를 축적한다.
+현재 READY는 `P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF`다. P6 actual 완료 후 실제 원장에 1/30 표본을 기록했다. 같은 UTC 날짜의 Heartbeat는 원장을 먼저 검증해 `PASS_SLO_SAMPLE_ALREADY_RECORDED_FOR_UTC_DAY`를 반환하고, 이 경우 `externalHttpReadPerformed=false`와 write 0건을 유지한다.

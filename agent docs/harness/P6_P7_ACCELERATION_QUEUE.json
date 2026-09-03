@@ -386,7 +386,7 @@
       "status": "EVIDENCE_COMPLETE",
       "authority": "local-autonomous",
       "acceptance": "P6 actual 완료·P7 활성화·Production GO 뒤 exact Production HTTPS health/readiness를 UTC 하루 1회 저장소 밖 물리 JSONL 원장에 기록하고 연속 30일이 되면 compiler 호환 export를 원자적으로 한 번 생성한다.",
-      "evidence": "operations:slo-collector => READY_WAIT_P6_ACTUAL_CUTOVER; probe/write zero; focused 5/5 PASS; one UTC sample/day, physical external target, lock cleanup, 30 consecutive days and overwrite rejection enforced"
+      "evidence": "2026-09-03 actual ledger 1/30; same UTC day rerun => PASS_SLO_SAMPLE_ALREADY_RECORDED_FOR_UTC_DAY with externalHttpReadPerformed=false and write=false; failure-first duplicate preflight test, focused 6/6 PASS; one UTC sample/day, physical external target, lock cleanup, 30 consecutive days and overwrite rejection enforced"
     },
     {
       "id": "ACC-P7-17-PRODUCTION-TLS-CERTIFICATE-OBSERVER",
