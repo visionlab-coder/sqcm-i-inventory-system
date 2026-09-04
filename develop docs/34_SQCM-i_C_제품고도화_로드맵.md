@@ -28,7 +28,7 @@
 | C2 | QR 자산 신분증·라벨 | 현장에서 카메라 또는 수동 코드로 즉시 자산 확인 | 자체 QR, 인쇄 라벨, 위조·다른 조직 차단, 모바일 상세 연결 | 완료 · `833ddfb` push |
 | C3 | 오프라인 재물조사 | 통신 불량 현장에서도 조사 후 안전하게 동기화 | PWA cache, offline queue, 충돌 검토, 중복 전송 방지 | 완료 · `c851994` push |
 | C4 | 직원 셀프서비스 | 사용자 스스로 보유자산·반납·분실·수리 요청 | 모바일 390px, 알림 상태, 관리자 workflow 연계 | 완료 · `62fd863` push |
-| C5 | 회사 시스템 연동 | HR 이동·퇴사와 ERP/전자결재를 중복 입력 없이 연결 | 승인된 API/Webhook, 서명 검증, outbox, 재처리·감사 | 진행 중 · G0 계약 PASS |
+| C5 | 회사 시스템 연동 | HR 이동·퇴사와 ERP/전자결재를 중복 입력 없이 연결 | 승인된 API/Webhook, 서명 검증, outbox, 재처리·감사 | 진행 중 · G0~G2 PASS |
 | C6 | 건설 자산 확장 | 차량·중장비·공구에 적합한 선택형 IoT | 자산군·ROI·공급자 PoC 승인 후 adapter 방식 연결 | 승인된 보류 |
 
 ## C1 요구사항과 상태 매트릭스
@@ -55,11 +55,11 @@ C4 구현과 검증은 PASS했다. 전체 941 PASS·8 SKIP, UI 40/40, PostgreSQL
 |---:|---|---|---|
 | G0 | 공급자 독립 HR·ERP 계약 | raw-body HMAC, 300초 window, replay guard, HR 최소 스키마, ERP payload hash·금지필드 시험 | 증거 있는 완료 |
 | G1 | HR inbox·감사 원장 | event ID UNIQUE, 수신·거부·재처리 상태, payload 최소보관, audit를 transaction으로 검증 | 증거 있는 완료 |
-| G2 | 직원 이동·퇴사 적용 | 외부 코드를 내부 조직·부서에 명시 매핑하고 미매핑·퇴사 보유자산을 예외 큐로 보냄 | READY |
-| G3 | ERP·전자결재 delivery | 기존 outbox를 승인 endpoint에 서명 전송하고 receipt·retry·dead-letter·관리자 재처리를 검증 | 미착수 |
+| G2 | 직원 이동·퇴사 적용 | 외부 코드를 내부 조직·부서에 명시 매핑하고 미매핑·퇴사 보유자산을 예외 큐로 보냄 | 증거 있는 완료 |
+| G3 | ERP·전자결재 delivery | 기존 outbox를 승인 endpoint에 서명 전송하고 receipt·retry·dead-letter·관리자 재처리를 검증 | READY |
 | G4 | 공급자 UAT·배포 | 승인 공급자·endpoint·Secret reference로 정상·변조·중복·timeout·rollback 실제 증거 확보 | 외부 입력 대기 |
 
-현재 제품 READY는 `PE-C5-G2-EMPLOYEE-LIFECYCLE-MAPPING-AND-EXCEPTION-QUEUE`다. G1은 조직·공급자·event ID UNIQUE, 최소 JSONB와 SHA-256 충돌 검사, transactional audit, SKIP LOCKED·stale lock 회수, retry·dead-letter를 구현했다. 로컬 application migration 28/28과 합성 PostgreSQL 흐름은 PASS했고 잔존 행은 0이다. C5 전체 완료는 아니며 실제 연동 전에 HR·ERP 공급자, endpoint, 필드 매핑, Secret reference, 시험 담당자 승인이 필요하다.
+현재 제품 READY는 `PE-C5-G3-ERP-EAPPROVAL-DELIVERY`다. G2는 외부 조직·부서·직원 명시 매핑과 안전한 생애주기 적용, 미매핑·이메일 identity 변경·퇴사 보유자산 예외 큐를 구현했다. 전체 단위 954 PASS·8 SKIP, 로컬 application migration 29/29와 합성 이동 APPLIED·퇴사 REJECTED·cleanup 0이 PASS했다. C5 전체 완료는 아니며 실제 연동 전에 HR·ERP 공급자, endpoint, 필드 매핑, Secret reference, 시험 담당자 승인이 필요하다.
 
 C1 완료 뒤 여는 다음 제품 Epic은 아래와 같다.
 

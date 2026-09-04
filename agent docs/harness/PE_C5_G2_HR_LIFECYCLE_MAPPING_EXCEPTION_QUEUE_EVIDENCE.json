@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "workId": "PE-C5-G2-EMPLOYEE-LIFECYCLE-MAPPING-AND-EXCEPTION-QUEUE",
+  "checkedAt": "2026-09-04T16:03:00+09:00",
+  "status": "PASS",
+  "epicStatus": "IN_PROGRESS",
+  "productTrack": "SQCM-i C",
+  "phaseProgressUnchanged": "7 / 8",
+  "productionGoUnchanged": true,
+  "verification": {
+    "failureFirst": { "status": "PASS", "observed": "MODULE_NOT_FOUND before service implementation" },
+    "focusedUnit": { "passed": 9, "skipped": 0, "failed": 0, "status": "PASS" },
+    "promptContract": { "passed": 8, "total": 8, "status": "PASS" },
+    "syntax": { "passed": 458, "failed": 0, "status": "PASS" },
+    "repositoryUnit": { "passed": 954, "skipped": 8, "failed": 0, "status": "PASS" },
+    "applicationMigration": { "passed": 29, "total": 29, "target": "loopback-local-only", "status": "PASS" },
+    "postgresIntegration": { "syntheticEvents": 2, "transferApplied": true, "terminationFailClosed": true, "openExceptions": 1, "status": "PASS" },
+    "syntheticCleanup": { "inbox": 0, "employeeLinks": 0, "departmentMappings": 0, "organizationMappings": 0, "status": "PASS" },
+    "localDeployment": { "services": ["frontend", "backend", "database"], "healthy": 3, "status": "PASS" },
+    "protectedListeners": { "present": [1234, 11434, 18766], "preExistingMissing": [18765], "changesMade": false, "status": "PASS_WITH_PREEXISTING_GAP" },
+    "harnessContract": { "errors": 0, "currentPhase": "P7", "status": "PASS" },
+    "gitCheckpoint": {
+      "sha": "6651ae0d540dc60a4b718104b49f9d7578921226",
+      "remote": "origin/codex/p7-qs-6-16-0-production-evidence",
+      "localRemoteShaMatched": true,
+      "status": "PASS"
+    }
+  },
+  "implementedControls": [
+    "EXPLICIT_ORGANIZATION_DEPARTMENT_EMPLOYEE_MAPPING",
+    "PROVIDER_AND_ORGANIZATION_ISOLATION",
+    "NO_EMAIL_BASED_AUTO_LINK",
+    "ATOMIC_LIFECYCLE_AUDIT_AND_INBOX_COMPLETION",
+    "TERMINATION_WITH_ACTIVE_ASSETS_FAIL_CLOSED",
+    "SAFE_EXCEPTION_DETAILS_ONLY"
+  ],
+  "changesMade": true,
+  "localDatabaseChangesMade": true,
+  "productionChangesMade": false,
+  "stagingChangesMade": false,
+  "externalCallsMade": false,
+  "checkpointType": "WIP_RECOVERY_CHECKPOINT",
+  "blockedReasons": [
+    "ACTUAL_HR_MAPPING_VALUES_NOT_APPROVED",
+    "ACTUAL_PROVIDER_ENDPOINT_AND_SECRET_NOT_CONFIGURED"
+  ],
+  "nextReady": "PE-C5-G3-ERP-EAPPROVAL-DELIVERY"
+}
