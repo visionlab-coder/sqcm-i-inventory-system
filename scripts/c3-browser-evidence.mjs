@@ -1,0 +1,50 @@
+import { spawn } from 'node:child_process';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import { createRequire } from 'node:module';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+
+const require = createRequire(import.meta.url);
+const bcrypt = require('bcryptjs');
+const { Pool } = require('pg');
+const required = name => { const value=process.env[name];if(!value)throw new Error(`${name} is required`);return value; };
+const baseUrl=required('C3_BROWSER_BASE_URL').replace(/\/$/,'');
+const databaseUrl=required('C3_BROWSER_DATABASE_URL');
+const outputDir=path.resolve(process.env.C3_BROWSER_OUTPUT_DIR||'artifacts/c3-browser');
+const chromeCandidates=[process.env.CHROME_PATH,'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe','C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'].filter(Boolean);
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+
+async function firstExisting(paths){for(const candidate of paths){try{await readFile(candidate);return candidate;}catch{}}throw new Error('Chrome executable was not found');}
+async function waitForJson(url){for(let attempt=0;attempt<80;attempt+=1){try{const response=await fetch(url);if(response.ok)return response.json();}catch{}await sleep(100);}throw new Error('Chrome DevTools endpoint did not become ready');}
+function connectCdp(url){const socket=new WebSocket(url);const pending=new Map();let nextId=1;socket.onmessage=event=>{const message=JSON.parse(event.data);if(!message.id||!pending.has(message.id))return;const callback=pending.get(message.id);pending.delete(message.id);message.error?callback.reject(new Error(message.error.message)):callback.resolve(message.result);};return{opened:new Promise((resolve,reject)=>{socket.onopen=resolve;socket.onerror=()=>reject(new Error('Chrome DevTools websocket failed'));}),send(method,params={}){const id=nextId++;return new Promise((resolve,reject)=>{pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});},close(){socket.close();}};}
+async function evaluate(cdp,expression){const result=await cdp.send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});if(result.exceptionDetails)throw new Error(`Browser evaluation failed: ${result.exceptionDetails.text||'unknown'}`);return result.result.value;}
+async function waitFor(cdp,expression,label){for(let attempt=0;attempt<120;attempt+=1){if(await evaluate(cdp,expression))return;await sleep(100);}throw new Error(`Timed out waiting for ${label}`);}
+async function capture(cdp,name,width,height,mobile){await cdp.send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile});await sleep(250);const metrics=await evaluate(cdp,`(() => ({heading:document.querySelector('#view-root h1')?.textContent?.trim(),status:document.querySelector('.offline-status strong')?.textContent?.trim(),queue:document.querySelector('.offline-status span')?.textContent?.trim(),viewport:{width:innerWidth,height:innerHeight},scrollWidth:document.documentElement.scrollWidth,hasHorizontalOverflow:document.documentElement.scrollWidth>innerWidth,confirmDisabled:document.querySelector('#stock-confirm')?.disabled===true,syncDisabled:document.querySelector('#stock-sync')?.disabled===true}))()`);if(metrics.status!=='오프라인 저장본 사용 중'||!metrics.queue?.includes('대기 1건')||!metrics.confirmDisabled||metrics.hasHorizontalOverflow)throw new Error(`${name}: offline UX contract failed (${JSON.stringify(metrics)})`);const shot=await cdp.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});const file=path.join(outputDir,`${name}-${width}x${height}.png`);await writeFile(file,Buffer.from(shot.data,'base64'));const bytes=await readFile(file);return{...metrics,file,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};}
+
+const pool=new Pool({connectionString:databaseUrl});const marker=randomUUID();const email=`c3-browser-${marker}@example.invalid`;let password=`Aa1!${randomBytes(18).toString('base64url')}`;let userId;let assetId;let stocktakeId;let child;let cdp;const chrome=await firstExisting(chromeCandidates);const profile=await mkdtemp(path.join(os.tmpdir(),'sqcm-c3-browser-'));const port=54819;
+try{
+  const scope=await pool.query("SELECT organization_id,department_id FROM users WHERE role='MANAGER' AND status='ACTIVE' AND organization_id IS NOT NULL ORDER BY id LIMIT 1");if(!scope.rowCount)throw new Error('No manager scope was available for synthetic browser validation');
+  const created=await pool.query("INSERT INTO users(email,display_name,password_hash,role,status,organization_id,department_id,password_reset_required,mfa_enabled,is_system_admin) VALUES($1,'C3 브라우저 검증',$2,'MANAGER','ACTIVE',$3,$4,false,false,false) RETURNING id",[email,await bcrypt.hash(password,12),scope.rows[0].organization_id,scope.rows[0].department_id]);userId=Number(created.rows[0].id);
+  const asset=await pool.query("INSERT INTO assets(organization_id,asset_tag,name,status_code,department_id,created_by) VALUES($1,$2,$3,'AVAILABLE',$4,$5) RETURNING id",[scope.rows[0].organization_id,`C3-${marker}`,`C3 오프라인 실사 ${marker}`,scope.rows[0].department_id,userId]);assetId=Number(asset.rows[0].id);
+  const stocktake=await pool.query("INSERT INTO stocktakes(organization_id,name,status,planned_at,created_by) VALUES($1,$2,'IN_PROGRESS',now(),$3) RETURNING id",[scope.rows[0].organization_id,`C3 현장 실사 ${marker}`,userId]);stocktakeId=Number(stocktake.rows[0].id);await pool.query('INSERT INTO stocktake_items(stocktake_id,asset_id) VALUES($1,$2)',[stocktakeId,assetId]);
+  await mkdir(outputDir,{recursive:true});child=spawn(chrome,['--headless=new','--disable-gpu','--no-first-run','--no-default-browser-check',`--remote-debugging-port=${port}`,`--user-data-dir=${profile}`,baseUrl],{stdio:'ignore',windowsHide:true});
+  const pages=await waitForJson(`http://127.0.0.1:${port}/json/list`);const page=pages.find(item=>item.type==='page');if(!page?.webSocketDebuggerUrl)throw new Error('Chrome page target was not found');cdp=connectCdp(page.webSocketDebuggerUrl);await cdp.opened;await cdp.send('Page.enable');await cdp.send('Runtime.enable');await cdp.send('Network.enable');
+  await waitFor(cdp,`document.querySelector('#login-form') && typeof state !== 'undefined' && Boolean(state.csrfToken)`,'login form');
+  await evaluate(cdp,`(() => { const set=(selector,value)=>{const input=document.querySelector(selector);Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,value);input.dispatchEvent(new Event('input',{bubbles:true}));};set('input[type="email"]',${JSON.stringify(email)});set('input[type="password"]',${JSON.stringify(password)});document.querySelector('#login-form button[type="submit"]').click();return true;})()`);
+  await waitFor(cdp,`location.hash.includes('dashboard')`,'authenticated dashboard');await evaluate(cdp,`renderStocktakeDetail(${stocktakeId})`);await waitFor(cdp,`document.querySelector('.stock-save[data-asset="${assetId}"]')`,'stocktake detail');
+  await cdp.send('Network.emulateNetworkConditions',{offline:true,latency:0,downloadThroughput:0,uploadThroughput:0});
+  await evaluate(cdp,`(() => { const select=document.querySelector('.stock-result[data-asset="${assetId}"]');select.value='DAMAGED';select.dispatchEvent(new Event('change',{bubbles:true}));document.querySelector('.stock-save[data-asset="${assetId}"]').click();return true;})()`);
+  await waitFor(cdp,`document.querySelector('.offline-status strong')?.textContent?.includes('오프라인') && document.querySelector('.offline-status span')?.textContent?.includes('대기 1건')`,'offline queued result');
+  const desktop=await capture(cdp,'desktop',1440,900,false);const mobile=await capture(cdp,'mobile',390,844,true);
+  await cdp.send('Network.emulateNetworkConditions',{offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1});await evaluate(cdp,`renderStocktakeDetail(${stocktakeId})`);await waitFor(cdp,`document.querySelector('#stock-sync')?.disabled===false`,'online synchronization action');await evaluate(cdp,`document.querySelector('#stock-sync').click()`);await waitFor(cdp,`document.querySelector('.offline-status span')?.textContent?.includes('대기 0건')`,'queue synchronization');
+  const dbState=await pool.query(`SELECT si.result,si.version,(SELECT count(*)::int FROM stocktake_offline_operations WHERE stocktake_id=$1) receipt_count,(SELECT count(*)::int FROM audit_logs WHERE entity_type='STOCKTAKE' AND entity_id=$1::text AND action='STOCKTAKE_OFFLINE_ITEM_SYNCED') audit_count FROM stocktake_items si WHERE si.stocktake_id=$1 AND si.asset_id=$2`,[stocktakeId,assetId]);
+  const actual=dbState.rows[0];if(actual.result!=='DAMAGED'||actual.version!==1||actual.receipt_count!==1||actual.audit_count!==1)throw new Error(`Synced DB evidence mismatch: ${JSON.stringify(actual)}`);
+  const result={schemaVersion:1,checkedAt:new Date().toISOString(),status:'PASS',baseUrl,syntheticAccount:true,offlineQueue:{queued:1,synchronized:1,conflicts:0},database:actual,captures:{desktop,mobile}};const resultPath=path.join(outputDir,'result.json');await writeFile(resultPath,`${JSON.stringify(result,null,2)}\n`,'utf8');console.log(JSON.stringify({status:'PASS',resultPath,offlineQueue:result.offlineQueue,database:actual,captures:result.captures},null,2));
+}finally{
+  cdp?.close();if(child&&!child.killed)child.kill();await sleep(200);await rm(profile,{recursive:true,force:true});
+  if(stocktakeId){await pool.query("DELETE FROM audit_logs WHERE entity_type='STOCKTAKE' AND entity_id=$1",[String(stocktakeId)]);await pool.query('DELETE FROM stocktakes WHERE id=$1',[stocktakeId]);}
+  if(assetId)await pool.query('DELETE FROM assets WHERE id=$1',[assetId]);
+  if(userId){await pool.query('DELETE FROM audit_logs WHERE actor_user_id=$1',[userId]);await pool.query("DELETE FROM user_sessions WHERE sess->>'userId'=$1",[String(userId)]);await pool.query('DELETE FROM users WHERE id=$1',[userId]);}
+  await pool.end();password='';
+}

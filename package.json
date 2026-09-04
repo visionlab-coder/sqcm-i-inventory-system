@@ -14,6 +14,7 @@
     "test:integration:asset-qr": "node scripts/run-asset-qr-integration.mjs",
     "test:browser:c1": "node scripts/c1-browser-evidence.mjs",
     "test:browser:c2": "node scripts/c2-browser-evidence.mjs",
+    "test:browser:c3": "node scripts/c3-browser-evidence.mjs",
     "check:syntax": "node scripts/syntax-check.mjs",
     "check": "npm run check:syntax && npm run test:unit",
     "check:full": "npm run check && npm run test:integration",

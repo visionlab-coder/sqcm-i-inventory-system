@@ -10,6 +10,8 @@ const css = fs.readFileSync('frontend/experience.css', 'utf8');
 const consentHtml = fs.readFileSync('frontend/oauth-consent.html', 'utf8');
 const consentJs = fs.readFileSync('frontend/oauth-consent-entry.js', 'utf8');
 const stagingNginx = fs.readFileSync('frontend/nginx.staging.conf', 'utf8');
+const offlineStocktake = fs.readFileSync('frontend/offline-stocktake.js', 'utf8');
+const serviceWorker = fs.readFileSync('frontend/sw.js', 'utf8');
 const checks = [
   ['mobile toggle has an accessible name', /id="mobile-nav-toggle"[^>]+aria-controls="primary-sidebar"[^>]+aria-expanded="false"/],
   ['screen-reader-only menu text is visually clipped', /\.sr-only\s*\{[^}]*position:absolute!important[^}]*clip:rect\(0,0,0,0\)!important/],
@@ -38,6 +40,8 @@ const checks = [
   ,['QR lookup is authenticated and opens canonical asset detail', /api\/enterprise\/assets\/qr\/[\s\S]*renderAssetDetail/]
   ,['QR labels provide single and A4 print modes', /qr-print-single[\s\S]*qr-print-a4[\s\S]*data-print-mode/]
   ,['QR mobile form stacks without horizontal overflow', /@media\(max-width:520px\)[^{]*\{[^}]*\.qr-manual-form>div[^}]*grid-template-columns:1fr/]
+  ,['offline stocktake exposes connection and queue status', /offline-status[\s\S]*대기 결과 동기화/]
+  ,['offline stocktake blocks confirmation while queued', /stock-confirm[\s\S]*offline\|\|queued\.length/]
 ];
 for (const [name, pattern] of checks) {
   const source = `${index}\n${app}\n${components}\n${baseCss}\n${css}`;
@@ -56,4 +60,6 @@ assert.match(consentJs, /persistSession:false[\s\S]*autoRefreshToken:false/, 'co
 assert.match(consentJs, /getAuthorizationDetails[\s\S]*approveAuthorization[\s\S]*denyAuthorization/, 'consent implements the Supabase OAuth decision flow');
 assert.match(consentJs, /skipBrowserRedirect\s*:\s*true/, 'consent owns one explicit OAuth redirect path');
 assert.match(stagingNginx, /proxy_set_header\s+X-Forwarded-Proto\s+https;/, 'staging tunnel preserves the public HTTPS scheme for secure cookies');
-console.log(`UI contract checks passed: ${checks.length + 7}`);
+assert.match(offlineStocktake, /createObjectStore\(SNAPSHOTS[\s\S]*createObjectStore\(OPERATIONS/, 'offline data separates snapshots and queued writes');
+assert.match(serviceWorker, /url\.pathname\.startsWith\('\/api\/'\)/, 'service worker never caches authenticated API responses');
+console.log(`UI contract checks passed: ${checks.length + 9}`);

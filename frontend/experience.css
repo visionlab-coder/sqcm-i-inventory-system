@@ -128,6 +128,12 @@ body::before { content:""; position:fixed; inset:0; pointer-events:none; opacity
 .report-amount { margin-top:18px; background:linear-gradient(120deg,#fff 55%,#edf3ff); }
 .report-amount h2 { font-size:clamp(2rem,5vw,4.5rem); margin:.2em 0; color:var(--site-blue); }
 .stock-save { margin-left:6px; }
+.offline-status { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1rem; padding:1rem 1.2rem; border-left:7px solid var(--green); background:#eaf7ef; }
+.offline-status.is-offline { border-left-color:#d46b00; background:#fff6e8; }
+.offline-status div { display:grid; gap:.2rem; }.offline-status span { color:#63707b; font-size:.82rem; }
+.offline-status button:disabled,.stocktake-actions button:disabled { opacity:.5; cursor:not-allowed; }
+.stocktake-actions { display:flex; align-items:center; gap:1rem; padding:1rem 1.2rem; }.stocktake-actions small { color:#63707b; }
+.stock-conflicts ul { margin:.5rem 0 0; padding-left:1.2rem; overflow-wrap:anywhere; }
 .reference-console { margin:24px 0; }
 .reference-console>.panel-head { align-items:flex-end; gap:20px; }
 .reference-console>.panel-head label { min-width:240px; }
@@ -196,3 +202,4 @@ body::before { content:""; position:fixed; inset:0; pointer-events:none; opacity
 @media(max-width:720px){.app-shell{display:block}.sidebar::after{display:none}.metric-strip{grid-template-columns:1fr}.metric-strip article{border-right:0;border-bottom:1px solid #cbd0ce}.main-content{padding:3.75rem 1rem 1rem}.login-visual{display:flex;padding:4rem 2rem}.login-visual h1{font-size:3rem}}
 @media(max-width:520px){.login-panel{padding:1rem}.login-panel::before{top:.85rem;left:1rem}.password-change-form{padding:1.35rem;margin-top:1.5rem}.password-requirements ul{grid-template-columns:1fr}.auth-form-header h2{font-size:1.75rem}}
 @media(max-width:520px){.qr-manual-form>div,.qr-label-card{grid-template-columns:1fr}.qr-manual-form button{width:100%}.qr-label-card img{margin:auto}.qr-label-actions{display:grid}.qr-label-actions button{width:100%}}
+@media(max-width:520px){.offline-status,.stocktake-actions{align-items:stretch;flex-direction:column}.offline-status button,.stocktake-actions button{width:100%}}

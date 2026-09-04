@@ -28,6 +28,7 @@ Production GO: **true**
 - C1은 `증거 있는 완료`다. Production 배포, DB migration, 운영 계정·Secret 변경은 수행하지 않았고 기존 P7 7/8과 Production GO도 변경하지 않는다.
 - 다음 제품 READY: `PE-C3-OFFLINE-INVENTORY-PWA`. C2 migration 26/26, 전체 931 PASS·8 SKIP, UI 계약 34/34, PostgreSQL HTTP 8/8, local 3서비스와 합성 MANAGER 브라우저 1440×900·390×844가 PASS했다. 기존 계정 비밀번호를 바꾸지 않았고 일회성 계정·세션·감사를 exact cleanup했다. 완료 commit `833ddfbfc4d9fd4f4ee540ab963013e0ee6c71d9`을 원격 동일 branch에 push해 SHA 일치를 확인했다.
 - C3 사전 migration 검사에서 C2 `027_asset_qr_identity.sql`의 적용 당시 EOF 빈 줄 checksum과 원격 파일이 달라진 사실을 발견했다. 적용 이력 값을 바꾸지 않고 checksum 후보가 CRLF/LF와 SQL 의미에 영향이 없는 EOF 빈 줄만 허용하도록 보완했으며 실제 SQL 변경 차단은 유지했다.
+- C3 `PE-C3-OFFLINE-INVENTORY-PWA`의 기능·검증을 완료했다. PWA 정적 shell은 `/api/`를 캐시하지 않고, IndexedDB 조사 snapshot·operation queue, 서버 version 충돌, UUID·payload hash receipt, 확정 전 대기 차단을 구현했다. migration 27/27, 전체 938 PASS·8 SKIP, UI 38/38, PostgreSQL 통합 24 PASS·1 실제 Defender SKIP, 1440×900·390×844 오프라인→재연결 동기화가 PASS했다. Production·staging과 P7 7/8은 변경하지 않았으며 C3 Git 완료 체크포인트를 생성한 뒤 C4를 연다.
 
 ## 2026-09-03 qs 6.16.0 Production 패치 완료
 

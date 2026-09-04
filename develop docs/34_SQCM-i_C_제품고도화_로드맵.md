@@ -26,8 +26,8 @@
 |---:|---|---|---|---|
 | C1 | Excel 원장 안전 이관 | 기존 Excel을 오류·부분등록 없이 통합 원장으로 전환 | 템플릿→미리보기→행별 오류→원자적 확정→감사, 회귀시험 PASS | 완료 · `14fdcb8` push |
 | C2 | QR 자산 신분증·라벨 | 현장에서 카메라 또는 수동 코드로 즉시 자산 확인 | 자체 QR, 인쇄 라벨, 위조·다른 조직 차단, 모바일 상세 연결 | 완료 · `833ddfb` push |
-| C3 | 오프라인 재물조사 | 통신 불량 현장에서도 조사 후 안전하게 동기화 | PWA cache, offline queue, 충돌 검토, 중복 전송 방지 | READY |
-| C4 | 직원 셀프서비스 | 사용자 스스로 보유자산·반납·분실·수리 요청 | 모바일 390px, 알림 상태, 관리자 workflow 연계 | 미착수 |
+| C3 | 오프라인 재물조사 | 통신 불량 현장에서도 조사 후 안전하게 동기화 | PWA cache, offline queue, 충돌 검토, 중복 전송 방지 | 완료 · checkpoint 생성 중 |
+| C4 | 직원 셀프서비스 | 사용자 스스로 보유자산·반납·분실·수리 요청 | 모바일 390px, 알림 상태, 관리자 workflow 연계 | READY |
 | C5 | 회사 시스템 연동 | HR 이동·퇴사와 ERP/전자결재를 중복 입력 없이 연결 | 승인된 API/Webhook, 서명 검증, outbox, 재처리·감사 | 미착수 |
 | C6 | 건설 자산 확장 | 차량·중장비·공구에 적합한 선택형 IoT | 자산군·ROI·공급자 PoC 승인 후 adapter 방식 연결 | 승인된 보류 |
 
@@ -47,7 +47,7 @@
 
 ## 다음 READY 계약
 
-C2의 migration 26/26, 단위 931 PASS·8 SKIP, UI 계약 34/34, PostgreSQL HTTP 8/8, 로컬 3서비스와 합성 MANAGER 브라우저 1440×900·390×844가 PASS했다. 현재 READY는 `PE-C3-OFFLINE-INVENTORY-PWA`다.
+C3의 migration 27/27, 전체 938 PASS·8 SKIP, UI 계약 38/38, PostgreSQL 통합 24 PASS·1 실제 Defender SKIP, 로컬 3서비스와 오프라인→재연결 브라우저 1440×900·390×844가 PASS했다. 완료 Git 체크포인트 뒤 다음 READY는 `PE-C4-EMPLOYEE-SELF-SERVICE`다.
 
 C1 완료 뒤 여는 다음 제품 Epic은 아래와 같다.
 
