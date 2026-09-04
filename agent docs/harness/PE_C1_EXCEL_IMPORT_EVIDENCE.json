@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "workId": "PE-C1-EXCEL-SAFE-BULK-IMPORT",
-  "checkedAt": "2026-09-04T11:43:00+09:00",
-  "status": "IN_PROGRESS_RECOVERY_CHECKPOINT_BLOCKED",
+  "checkedAt": "2026-09-04T12:48:00+09:00",
+  "status": "READY_FOR_COMPLETION_CHECKPOINT",
   "productTrack": "SQCM-i C",
   "productMeaning": "Construction Asset Control & Cost",
   "phaseProgressUnchanged": "7 / 8",
@@ -10,14 +10,47 @@
   "verification": {
     "promptContract": { "passed": 8, "total": 8, "status": "PASS" },
     "focusedUnit": { "passed": 12, "failed": 0, "status": "PASS" },
-    "syntaxFiles": { "passed": 435, "failed": 0, "status": "PASS" },
+    "syntaxFiles": { "passed": 436, "failed": 0, "status": "PASS" },
     "unit": { "passed": 927, "skipped": 8, "failed": 0, "status": "PASS" },
-    "uiContract": { "passed": 28, "failed": 0, "status": "PASS" },
+    "uiContract": { "passed": 30, "failed": 0, "status": "PASS" },
     "harness": { "status": "PASS", "errors": 0, "currentPhase": "P7" },
-    "postgresHttpIntegration": { "status": "NOT_RUN_REBOOT_CHECKPOINT" },
-    "dockerHealthSmoke": { "status": "PARTIAL_BUILD_INTERRUPTED_BEFORE_RUNTIME" },
-    "desktopBrowser1440": { "status": "NOT_RUN_DEPENDENCY_BLOCKED" },
-    "mobileBrowser390x844": { "status": "NOT_RUN_DEPENDENCY_BLOCKED" }
+    "postgresHttpIntegration": {
+      "status": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "database": "isolated PostgreSQL 16",
+      "assertions": [
+        "template download",
+        "invalid preview writes zero assets",
+        "valid preview",
+        "atomic commit",
+        "idempotent replay",
+        "changed payload rejected",
+        "asset history audit and bulk audit",
+        "test data cleanup"
+      ]
+    },
+    "dockerHealthSmoke": {
+      "status": "PASS_ISOLATED_THREE_CONTAINER_COMPOSITE",
+      "services": ["frontend", "backend", "database"],
+      "frontendHttp": 200,
+      "backendHealthHttp": 200,
+      "backend": "healthy",
+      "database": "healthy"
+    },
+    "desktopBrowser1440x900": {
+      "status": "PASS",
+      "horizontalOverflow": false,
+      "evidencePath": "D:\\seowon_runtime\\sqcm-i-inventory-c1\\evidence\\browser-final-v3\\desktop-1440x900.png",
+      "sha256": "0238bd081964706d0ef50e6c0f252dcfdfdb8c603630c95d5cdc7a2a6680b3ff"
+    },
+    "mobileBrowser390x844": {
+      "status": "PASS",
+      "horizontalOverflow": false,
+      "mobileHeaderVisible": true,
+      "evidencePath": "D:\\seowon_runtime\\sqcm-i-inventory-c1\\evidence\\browser-final-v3\\mobile-390x844.png",
+      "sha256": "8c70384dd306288220460a74a12f29204cde662ec0e2060d5c71c712c07ec0e0"
+    }
   },
   "implementedControls": [
     "UTF8_BOM_KOREAN_TEMPLATE",
@@ -28,19 +61,16 @@
     "CSRF_AND_IDEMPOTENCY",
     "AUDIT_HISTORY_OUTBOX",
     "SPREADSHEET_FORMULA_INPUT_BLOCK_AND_EXPORT_NEUTRALIZATION",
-    "RESPONSIVE_ACCESSIBLE_IMPORT_UI"
+    "RESPONSIVE_ACCESSIBLE_IMPORT_UI",
+    "AUTOMATED_1440_AND_390_BROWSER_EVIDENCE"
   ],
   "changesMade": true,
   "externalChangesMade": false,
   "databaseMigrationMade": false,
   "productionDeploymentMade": false,
-  "blockedReasons": [
-    "CONTROLLED_REBOOT_CHECKPOINT_REQUESTED",
-    "ISOLATED_COMPOSE_BUILD_INTERRUPTED_BEFORE_RUNTIME_VERIFICATION",
-    "REAL_BROWSER_EVIDENCE_DEPENDS_ON_RUNTIME"
-  ],
+  "blockedReasons": [],
   "completionCommitCreated": false,
   "completionPushMade": false,
-  "checkpointType": "WIP_RECOVERY_CHECKPOINT",
-  "nextReady": "PE-C1-REAL-POSTGRES-INTEGRATION-AND-BROWSER-EVIDENCE"
+  "checkpointType": "PENDING_COMPLETION_CHECKPOINT",
+  "nextReady": "PE-C1-COMPLETION-CHECKPOINT-THEN-PE-C2-QR-ASSET-IDENTITY-AND-LABEL"
 }

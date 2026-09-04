@@ -24,8 +24,8 @@
 
 | 순서 | Epic | 사용자 가치 | 완료 게이트 | 상태 |
 |---:|---|---|---|---|
-| C1 | Excel 원장 안전 이관 | 기존 Excel을 오류·부분등록 없이 통합 원장으로 전환 | 템플릿→미리보기→행별 오류→원자적 확정→감사, 회귀시험 PASS | 진행 중 · 로컬 DB 통합검증 대기 |
-| C2 | QR 자산 신분증·라벨 | 현장에서 카메라 또는 수동 코드로 즉시 자산 확인 | 자체 QR, 인쇄 라벨, 위조·다른 조직 차단, 모바일 상세 연결 | C1 완료 후 READY |
+| C1 | Excel 원장 안전 이관 | 기존 Excel을 오류·부분등록 없이 통합 원장으로 전환 | 템플릿→미리보기→행별 오류→원자적 확정→감사, 회귀시험 PASS | 검증 PASS · 완료 Git 체크포인트 대기 |
+| C2 | QR 자산 신분증·라벨 | 현장에서 카메라 또는 수동 코드로 즉시 자산 확인 | 자체 QR, 인쇄 라벨, 위조·다른 조직 차단, 모바일 상세 연결 | 다음 READY 대기 |
 | C3 | 오프라인 재물조사 | 통신 불량 현장에서도 조사 후 안전하게 동기화 | PWA cache, offline queue, 충돌 검토, 중복 전송 방지 | 미착수 |
 | C4 | 직원 셀프서비스 | 사용자 스스로 보유자산·반납·분실·수리 요청 | 모바일 390px, 알림 상태, 관리자 workflow 연계 | 미착수 |
 | C5 | 회사 시스템 연동 | HR 이동·퇴사와 ERP/전자결재를 중복 입력 없이 연결 | 승인된 API/Webhook, 서명 검증, outbox, 재처리·감사 | 미착수 |
@@ -47,7 +47,7 @@
 
 ## 다음 READY 계약
 
-C1의 현재 READY는 `PE-C1-REAL-POSTGRES-INTEGRATION-AND-BROWSER-EVIDENCE`다. Docker CLI와 로컬 PostgreSQL이 응답하는 환경에서 실제 HTTP 미리보기·확정·재전송·rollback과 1440px/390px 브라우저를 검증해야 한다. 이 증거 전에는 C1 또는 C2를 완료/시작으로 승격하지 않는다.
+C1의 실제 PostgreSQL HTTP 통합과 1440×900·390×844 브라우저 검증은 PASS했다. 현재 READY는 `PE-C1-COMPLETION-CHECKPOINT`이며 exact allowlist commit·push와 local/remote SHA 일치가 확인된 뒤 C1을 완료하고 C2를 연다.
 
 C1 완료 뒤 여는 다음 제품 Epic은 아래와 같다.
 

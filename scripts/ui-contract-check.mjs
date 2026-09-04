@@ -12,6 +12,7 @@ const consentJs = fs.readFileSync('frontend/oauth-consent-entry.js', 'utf8');
 const stagingNginx = fs.readFileSync('frontend/nginx.staging.conf', 'utf8');
 const checks = [
   ['mobile toggle has an accessible name', /id="mobile-nav-toggle"[^>]+aria-controls="primary-sidebar"[^>]+aria-expanded="false"/],
+  ['screen-reader-only menu text is visually clipped', /\.sr-only\s*\{[^}]*position:absolute!important[^}]*clip:rect\(0,0,0,0\)!important/],
   ['mobile drawer has a backdrop', /id="nav-backdrop"/],
   ['mobile backdrop stays outside the interactive sidebar', /<\/aside>\s*<div class="nav-backdrop" id="nav-backdrop"/],
   ['navigation resets scroll and preserves view state', /history\.replaceState[\s\S]*window\.scrollTo/],
@@ -32,6 +33,7 @@ const checks = [
   ,['Excel migration exposes template, file input, and preview action', /assets\/import\/template\.csv[\s\S]*name="assetCsv"[\s\S]*등록 전 미리보기/]
   ,['bulk import keeps preview before explicit confirmation', /assets\/import\/preview[\s\S]*window\.confirm[\s\S]*assets\/import\/commit/]
   ,['bulk import result is announced to assistive technology', /id="asset-import-result"[^>]+aria-live="polite"/]
+  ,['mobile header reserves space above the page heading', /@media\(max-width:720px\)[\s\S]*?\.content-wrap\{padding-top:52px\}[\s\S]*?\.topbar\{position:fixed;z-index:25[\s\S]*?\.main-content\{padding:3\.75rem 1rem 1rem\}/]
 ];
 for (const [name, pattern] of checks) {
   const source = `${index}\n${app}\n${components}\n${baseCss}\n${css}`;

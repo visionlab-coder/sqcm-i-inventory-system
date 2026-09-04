@@ -21,12 +21,12 @@ Production GO: **true**
 
 현재 Production 기준선과 P7 운영 증거는 보존하면서, Excel 업무를 건설 자산 통제 제품으로 전환하는 별도 제품 Epic을 순차 진행한다.
 
-`C1 Excel 이관 🔄 → C2 QR·라벨 ⏳ → C3 오프라인 재물조사 ⏳ → C4 직원 셀프서비스 ⏳ → C5 HR·ERP 연동 ⏳ → C6 선택형 IoT 🔒`
+`C1 Excel 이관 ✅(체크포인트 대기) → C2 QR·라벨 READY → C3 오프라인 재물조사 ⏳ → C4 직원 셀프서비스 ⏳ → C5 HR·ERP 연동 ⏳ → C6 선택형 IoT 🔒`
 
-- 현재 제품 READY: `PE-C1-REAL-POSTGRES-INTEGRATION-AND-BROWSER-EVIDENCE`
-- C1 구현 증거: 메타프롬프트 8/8, UI 계약 28/28, 구문 435개, 단위 927 PASS·8 SKIP·0 FAIL.
-- C1 미완료 증거: Docker Engine 복구와 격리 build 진행은 확인했지만 재부팅 안전 저장 요청으로 실제 PostgreSQL HTTP 통합·1440px/390px 브라우저 검증은 `NOT_RUN_REBOOT_CHECKPOINT`.
-- 판정: C1은 `진행 중 / 복구 지점 차단`. C2는 C1 실제 통합 증거와 복구 가능한 Git 체크포인트 뒤에만 연다.
+- 현재 제품 READY: `PE-C1-COMPLETION-CHECKPOINT`
+- C1 구현 증거: 메타프롬프트 8/8, UI 계약 30/30, 구문 436개, 단위 927 PASS·8 SKIP·0 FAIL.
+- C1 실제 증거: 격리 PostgreSQL HTTP 통합 1 PASS·0 FAIL, frontend/backend/database 3컨테이너 health·smoke PASS, Chrome 1440×900·390×844 렌더·무가로넘침 PASS.
+- 판정: C1 기능·보안·데이터·화면 검증은 PASS. exact allowlist 완료 commit·push와 SHA 일치 후 C1을 닫고 C2를 시작한다.
 - 상세 정본: [`develop docs/34_SQCM-i_C_제품고도화_로드맵.md`](../develop%20docs/34_SQCM-i_C_%EC%A0%9C%ED%92%88%EA%B3%A0%EB%8F%84%ED%99%94_%EB%A1%9C%EB%93%9C%EB%A7%B5.md)
 
 ## 1. 운영 규칙
