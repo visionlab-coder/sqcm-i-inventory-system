@@ -29,8 +29,11 @@
   "productionChangesMade": false,
   "stagingChangesMade": false,
   "completionCommitCreated": true,
-  "completionPushMade": false,
+  "completionPushMade": true,
+  "completionCommitSha": "833ddfbfc4d9fd4f4ee540ab963013e0ee6c71d9",
+  "completionRemote": "origin/codex/p7-qs-6-16-0-production-evidence",
+  "localRemoteShaMatched": true,
   "blockedReasons": [],
-  "checkpointType": "PHASE_COMPLETION_CHECKPOINT_PENDING_PUSH",
+  "checkpointType": "PHASE_COMPLETION_CHECKPOINT",
   "nextReady": "PE-C3-OFFLINE-INVENTORY-PWA"
 }

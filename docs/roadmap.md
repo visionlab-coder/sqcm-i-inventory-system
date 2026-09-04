@@ -26,7 +26,7 @@ Production GO: **true**
 - 현재 제품 READY: `PE-C3-OFFLINE-INVENTORY-PWA`
 - C1 구현 증거: 메타프롬프트 8/8, UI 계약 30/30, 구문 436개, 단위 927 PASS·8 SKIP·0 FAIL.
 - C1 실제 증거: 격리 PostgreSQL HTTP 통합 1 PASS·0 FAIL, frontend/backend/database 3컨테이너 health·smoke PASS, Chrome 1440×900·390×844 렌더·무가로넘침 PASS.
-- 판정: C2 migration 26/26, 전체 931 PASS·8 SKIP, UI 계약 34/34, PostgreSQL HTTP 8/8, local 3서비스와 합성 MANAGER 브라우저 1440×900·390×844가 PASS했다. 두 화면 가로 넘침은 0이며 합성 계정·세션·감사를 정리했다. 완료 push 뒤 C3를 연다.
+- 판정: C2 migration 26/26, 전체 931 PASS·8 SKIP, UI 계약 34/34, PostgreSQL HTTP 8/8, local 3서비스와 합성 MANAGER 브라우저 1440×900·390×844가 PASS했다. 두 화면 가로 넘침은 0이며 합성 계정·세션·감사를 정리했다. 완료 commit `833ddfbfc4d9fd4f4ee540ab963013e0ee6c71d9` push와 SHA 일치로 C2를 닫고 C3를 열었다.
 - 상세 정본: [`develop docs/34_SQCM-i_C_제품고도화_로드맵.md`](../develop%20docs/34_SQCM-i_C_%EC%A0%9C%ED%92%88%EA%B3%A0%EB%8F%84%ED%99%94_%EB%A1%9C%EB%93%9C%EB%A7%B5.md)
 
 ## 1. 운영 규칙

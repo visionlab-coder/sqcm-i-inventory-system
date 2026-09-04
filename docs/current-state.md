@@ -26,7 +26,7 @@ Production GO: **true**
 - 재사용 가능한 Chrome DevTools 실행기로 1440×900과 390×844를 실제 렌더링했다. 두 화면 모두 가로 넘침이 없고 import title·file label·template link·`aria-live=polite`를 확인했다. 모바일에서 발견한 헤더/메뉴 겹침과 `.sr-only` 누락도 수정 후 재검증했다.
 - C1 완료 commit `14fdcb813d9504618a9e6eaf12c0d8b82b205a4c`을 `origin/codex/p7-qs-6-16-0-production-evidence`에 push했고 local/remote SHA 일치를 확인했다.
 - C1은 `증거 있는 완료`다. Production 배포, DB migration, 운영 계정·Secret 변경은 수행하지 않았고 기존 P7 7/8과 Production GO도 변경하지 않는다.
-- 다음 제품 READY: `PE-C3-OFFLINE-INVENTORY-PWA`. C2 migration 26/26, 전체 931 PASS·8 SKIP, UI 계약 34/34, PostgreSQL HTTP 8/8, local 3서비스와 합성 MANAGER 브라우저 1440×900·390×844가 PASS했다. 기존 계정 비밀번호를 바꾸지 않았고 일회성 계정·세션·감사를 exact cleanup했다.
+- 다음 제품 READY: `PE-C3-OFFLINE-INVENTORY-PWA`. C2 migration 26/26, 전체 931 PASS·8 SKIP, UI 계약 34/34, PostgreSQL HTTP 8/8, local 3서비스와 합성 MANAGER 브라우저 1440×900·390×844가 PASS했다. 기존 계정 비밀번호를 바꾸지 않았고 일회성 계정·세션·감사를 exact cleanup했다. 완료 commit `833ddfbfc4d9fd4f4ee540ab963013e0ee6c71d9`을 원격 동일 branch에 push해 SHA 일치를 확인했다.
 
 ## 2026-09-03 qs 6.16.0 Production 패치 완료
 

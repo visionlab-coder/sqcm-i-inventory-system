@@ -2,7 +2,7 @@
 
 기준일: 2026-09-04 KST
 
-상태: **증거 있는 완료 — 완료 체크포인트 push 진행 중**
+상태: **증거 있는 완료**
 
 다음 READY: `PE-C3-OFFLINE-INVENTORY-PWA`
 
@@ -53,7 +53,7 @@
 ## 7. 인도·복구
 
 - [x] C2 상태·미완료·다음 READY를 사람용/기계용 문서에 기록
-- [x] C2 완료 exact allowlist commit 생성 대상 확정
-- [ ] 완료 commit의 push와 local/remote SHA 일치
+- [x] C2 완료 exact allowlist commit·push `833ddfbfc4d9fd4f4ee540ab963013e0ee6c71d9`
+- [x] 완료 commit의 local/remote SHA 일치
 
-QR 메뉴, 수동 조회, 자산 상세 연결, 개별/A4 라벨을 1440×900과 390×844에서 검증했다. push와 SHA 일치가 확인되면 C2를 닫고 C3를 연다.
+QR 메뉴, 수동 조회, 자산 상세 연결, 개별/A4 라벨을 1440×900과 390×844에서 검증했다. 완료 commit push와 SHA 일치를 확인했으므로 C2를 닫고 C3를 연다.
