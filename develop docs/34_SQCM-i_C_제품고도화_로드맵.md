@@ -27,8 +27,8 @@
 | C1 | Excel 원장 안전 이관 | 기존 Excel을 오류·부분등록 없이 통합 원장으로 전환 | 템플릿→미리보기→행별 오류→원자적 확정→감사, 회귀시험 PASS | 완료 · `14fdcb8` push |
 | C2 | QR 자산 신분증·라벨 | 현장에서 카메라 또는 수동 코드로 즉시 자산 확인 | 자체 QR, 인쇄 라벨, 위조·다른 조직 차단, 모바일 상세 연결 | 완료 · `833ddfb` push |
 | C3 | 오프라인 재물조사 | 통신 불량 현장에서도 조사 후 안전하게 동기화 | PWA cache, offline queue, 충돌 검토, 중복 전송 방지 | 완료 · `c851994` push |
-| C4 | 직원 셀프서비스 | 사용자 스스로 보유자산·반납·분실·수리 요청 | 모바일 390px, 알림 상태, 관리자 workflow 연계 | 검증 PASS · Git 체크포인트 대기 |
-| C5 | 회사 시스템 연동 | HR 이동·퇴사와 ERP/전자결재를 중복 입력 없이 연결 | 승인된 API/Webhook, 서명 검증, outbox, 재처리·감사 | 다음 READY 대기 |
+| C4 | 직원 셀프서비스 | 사용자 스스로 보유자산·반납·분실·수리 요청 | 모바일 390px, 알림 상태, 관리자 workflow 연계 | 완료 · `62fd863` push |
+| C5 | 회사 시스템 연동 | HR 이동·퇴사와 ERP/전자결재를 중복 입력 없이 연결 | 승인된 API/Webhook, 서명 검증, outbox, 재처리·감사 | READY |
 | C6 | 건설 자산 확장 | 차량·중장비·공구에 적합한 선택형 IoT | 자산군·ROI·공급자 PoC 승인 후 adapter 방식 연결 | 승인된 보류 |
 
 ## C1 요구사항과 상태 매트릭스
@@ -47,7 +47,7 @@
 
 ## 다음 READY 계약
 
-C4 구현과 검증은 PASS했다. 전체 941 PASS·8 SKIP, UI 40/40, PostgreSQL 통합 24 PASS·1 실제 Defender SKIP, migration 27/27과 로컬 3서비스가 통과했다. 합성 USER 브라우저에서 내 자산 1·타인 표시 0·타인 요청 HTTP 403, 분실 요청 `SUBMITTED`·감사 2건, 1440×900·390×844 가로 넘침 0을 확인했다. exact allowlist 완료 commit·push 뒤 C4를 닫고 `PE-C5-HR-ERP-INTEGRATION-CONTRACT`를 연다.
+C4 구현과 검증은 PASS했다. 전체 941 PASS·8 SKIP, UI 40/40, PostgreSQL 통합 24 PASS·1 실제 Defender SKIP, migration 27/27과 로컬 3서비스가 통과했다. 합성 USER 브라우저에서 내 자산 1·타인 표시 0·타인 요청 HTTP 403, 분실 요청 `SUBMITTED`·감사 2건, 1440×900·390×844 가로 넘침 0을 확인했다. exact allowlist 완료 commit `62fd863949bbba93ca6751406b71e8e8b2614c7a`을 push하고 SHA 일치를 확인해 C4를 닫았다. 현재 READY는 `PE-C5-HR-ERP-INTEGRATION-CONTRACT`다.
 
 C1 완료 뒤 여는 다음 제품 Epic은 아래와 같다.
 

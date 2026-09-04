@@ -2,7 +2,7 @@
 
 기준일: 2026-09-04 KST
 
-상태: **검증 PASS / Git 완료 체크포인트 생성 전**
+상태: **증거 있는 완료**
 
 다음 READY: `PE-C5-HR-ERP-INTEGRATION-CONTRACT`
 
@@ -54,6 +54,6 @@
 
 - [x] 8항목 실행 계약, 사람용 체크리스트, 기계 증거를 같은 결과로 작성했다.
 - [x] P7 7/8과 Production GO true는 변경하지 않았다.
-- [ ] C4 exact allowlist 완료 commit·push와 local/remote SHA 일치
+- [x] C4 exact allowlist 완료 commit·push `62fd863949bbba93ca6751406b71e8e8b2614c7a`와 local/remote SHA 일치
 
-마지막 Git 항목을 확인한 뒤에만 C4를 `증거 있는 완료`로 닫는다.
+C4를 `증거 있는 완료`로 닫고 C5 계약 작업을 연다.
