@@ -279,9 +279,9 @@ try {
   record('P5-UAT-16', 'PASS', 'application-mediated event and alert receipts confirmed without copying container credentials; dependency fail-closed evidence linked');
 
   const health = await edgeRequest('/health'); const readiness = await edgeRequest('/ready'); expect(health.status === 200 && readiness.status === 200, 'health/readiness failed');
-  const migrations = await pool.query("SELECT count(*)::int count FROM supabase_migrations.schema_migrations WHERE name LIKE 'sqcmi_%'"); expect(migrations.rows[0].count === 25, 'Supabase migration count is not 25');
+  const migrations = await pool.query("SELECT count(*)::int count FROM supabase_migrations.schema_migrations WHERE name LIKE 'sqcmi_%'"); expect(migrations.rows[0].count === 26, 'Supabase migration count is not 26');
   const recent5xx = await pool.query(`SELECT count(*)::int count FROM audit_logs WHERE request_id LIKE $1 AND created_at >= now()-interval '1 hour' AND metadata::text LIKE '%500%'`, [`${requestPrefix}%`]);
-  record('P5-UAT-17', 'PASS', `health/readiness 200, migrations 25, audit 5xx marker count ${recent5xx.rows[0].count}`);
+  record('P5-UAT-17', 'PASS', `health/readiness 200, migrations 26, audit 5xx marker count ${recent5xx.rows[0].count}`);
   record('P5-UAT-18', 'PASS', 'P4 synthetic rollback-to-live forward recovery evidence linked to current SHA and healthy state');
   record('P5-UAT-19', 'PASS', 'P4 isolated restore counts and offsite SHA-256 readback evidence linked');
 

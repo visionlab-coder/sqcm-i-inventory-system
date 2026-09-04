@@ -34,6 +34,10 @@ const checks = [
   ,['bulk import keeps preview before explicit confirmation', /assets\/import\/preview[\s\S]*window\.confirm[\s\S]*assets\/import\/commit/]
   ,['bulk import result is announced to assistive technology', /id="asset-import-result"[^>]+aria-live="polite"/]
   ,['mobile header reserves space above the page heading', /@media\(max-width:720px\)[\s\S]*?\.content-wrap\{padding-top:52px\}[\s\S]*?\.topbar\{position:fixed;z-index:25[\s\S]*?\.main-content\{padding:3\.75rem 1rem 1rem\}/]
+  ,['QR scan provides camera and manual fallback', /data-view="qr-scan"[\s\S]*renderQrScanner[\s\S]*BarcodeDetector[\s\S]*qr-manual-form/]
+  ,['QR lookup is authenticated and opens canonical asset detail', /api\/enterprise\/assets\/qr\/[\s\S]*renderAssetDetail/]
+  ,['QR labels provide single and A4 print modes', /qr-print-single[\s\S]*qr-print-a4[\s\S]*data-print-mode/]
+  ,['QR mobile form stacks without horizontal overflow', /@media\(max-width:520px\)[^{]*\{[^}]*\.qr-manual-form>div[^}]*grid-template-columns:1fr/]
 ];
 for (const [name, pattern] of checks) {
   const source = `${index}\n${app}\n${components}\n${baseCss}\n${css}`;

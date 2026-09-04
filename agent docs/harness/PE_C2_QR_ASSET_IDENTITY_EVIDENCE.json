@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "workId": "PE-C2-QR-ASSET-IDENTITY-AND-LABEL",
+  "checkedAt": "2026-09-04T13:25:28+09:00",
+  "status": "HOLD_BROWSER_REVALIDATION",
+  "productTrack": "SQCM-i C",
+  "phaseProgressUnchanged": "7 / 8",
+  "productionGoUnchanged": true,
+  "verification": {
+    "promptContract": { "passed": 8, "total": 8, "status": "PASS" },
+    "fullCheck": { "passed": 931, "skipped": 8, "failed": 0, "status": "PASS" },
+    "uiContract": { "passed": 34, "failed": 0, "status": "PASS" },
+    "applicationMigration": { "passed": 26, "total": 26, "status": "PASS" },
+    "postgresHttpIntegration": { "passed": 8, "failed": 0, "status": "PASS", "transport": "supertest-in-process", "cleanup": "asset,audit,outbox,idempotency,session" },
+    "localDeployment": { "services": ["frontend", "backend", "database"], "backend": "healthy", "database": "healthy", "frontendBundleContainsQrScanner": true, "status": "PASS" },
+    "browserDesktop1440x900": { "status": "NOT_RUN", "reason": "THREE_SAME_AUTOMATION_FAILURES_STOPPED_AFTER_ROOT_CAUSE_FIX" },
+    "browserMobile390x844": { "status": "NOT_RUN", "reason": "AUTHENTICATED_UI_REVALIDATION_REQUIRED" }
+  },
+  "implementedControls": [
+    "OPAQUE_UUID_QR_PAYLOAD",
+    "AUTHENTICATED_ORGANIZATION_AND_DEPARTMENT_SCOPE",
+    "NO_STORE_SCAN_RESPONSE",
+    "INDIVIDUAL_AND_A4_LABEL_PRINT",
+    "CAMERA_EXPLICIT_START_AND_MANUAL_FALLBACK",
+    "RESPONSIVE_ACCESSIBLE_SCAN_RESULT",
+    "AUDIT_LOGGED_QR_SCAN"
+  ],
+  "changesMade": true,
+  "productionChangesMade": false,
+  "stagingChangesMade": false,
+  "completionCommitCreated": false,
+  "completionPushMade": false,
+  "blockedReasons": ["AUTHENTICATED_BROWSER_EVIDENCE_NOT_RUN"],
+  "checkpointType": "WIP_RECOVERY_CHECKPOINT",
+  "nextReady": "PE-C2-QR-ASSET-IDENTITY-AND-LABEL-BROWSER-REVALIDATION"
+}

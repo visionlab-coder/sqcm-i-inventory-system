@@ -173,7 +173,7 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiPr
     next();
   };
 
-  app.use('/api/enterprise', createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProduction: config.env === 'production', fileStore, malwareScanner, fileMaxBytes: config.fileMaxBytes, aiProvider }));
+  app.use('/api/enterprise', createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProduction: config.env === 'production', publicBaseUrl: config.publicBaseUrl, fileStore, malwareScanner, fileMaxBytes: config.fileMaxBytes, aiProvider }));
 
   app.get('/api/auth/csrf', (req, res) => res.json({ csrfToken: csrfToken(req) }));
   app.get('/api/auth/config', (_req,res)=>res.json({ authProvider:config.authProvider }));

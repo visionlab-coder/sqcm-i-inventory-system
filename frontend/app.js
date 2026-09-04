@@ -1,4 +1,4 @@
-const state = { user: null, csrfToken: null, view: 'dashboard', reference: null, assetPage: 0, adminSection: 'org', workflowSection: 'request' };
+const state = { user: null, csrfToken: null, view: 'dashboard', reference: null, assetPage: 0, adminSection: 'org', workflowSection: 'request', pendingQrCode: '', qrStream: null };
 const $ = selector => document.querySelector(selector);
 const escapeHtml = globalThis.AssetUI?.escapeHtml || (value => String(value ?? ''));
 const date = globalThis.AssetUI?.date || (value => value ? new Date(value).toLocaleDateString('ko-KR') : '-');
@@ -148,7 +148,9 @@ function showApp() {
   if (nav && !nav.querySelector('[data-view="cost-control"]') && isManager()) {
     const costButton = document.createElement('button'); costButton.type = 'button'; costButton.dataset.view = 'cost-control'; costButton.textContent = 'Cost Command Center'; costButton.addEventListener('click', () => navigate('cost-control')); nav.insertBefore(costButton, nav.querySelector('[data-view="reports"]') || null);
   }
-  navigate('dashboard');
+  const scanMatch = location.hash.match(/^#scan=([^&]+)$/);
+  if (scanMatch) state.pendingQrCode = decodeURIComponent(scanMatch[1]);
+  navigate(state.pendingQrCode ? 'qr-scan' : 'dashboard');
 }
 
 async function boot() {
@@ -169,6 +171,10 @@ async function boot() {
 }
 
 async function navigate(view) {
+  if (view !== 'qr-scan' && state.qrStream) {
+    state.qrStream.getTracks().forEach(track => track.stop());
+    state.qrStream = null;
+  }
   state.view = view;
   const nextUrl = new URL(location.href);
   nextUrl.hash = `view=${encodeURIComponent(view)}`;
@@ -181,6 +187,7 @@ async function navigate(view) {
   try {
     if (view === 'dashboard') await renderDashboard();
     if (view === 'assets') await renderAssets();
+    if (view === 'qr-scan') await renderQrScanner(state.pendingQrCode);
     if (view === 'asset-register') await renderAssetRegister();
     if (view === 'assignments') await renderAssignments();
     if (view === 'requests') await renderRequests();
@@ -278,10 +285,15 @@ async function renderAssetDetail(id) {
   const files = data.files.map(row => `<li class="evidence-row"><div><strong>${escapeHtml(row.original_name)}</strong><small>${escapeHtml(row.file_type)} · ${Math.ceil(Number(row.size_bytes || 0)/1024)} KiB · ${date(row.created_at)}</small></div><div><a class="small button-link" href="/api/enterprise/assets/${id}/files/${row.id}/download">다운로드</a>${isManager()?`<button class="small evidence-deactivate" data-file-id="${row.id}">비활성화</button>`:''}</div></li>`).join('');
   $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">ASSET / ${escapeHtml(asset.asset_tag)}</p><h1>${escapeHtml(asset.name)}</h1><p class="muted">일련번호 ${escapeHtml(asset.serial_no || '-')} · 취득일 ${date(asset.acquired_at)}</p></div><button id="assets-back" class="secondary">목록</button></div>
   <section class="asset-detail-shell"><aside class="asset-blueprint"><span class="mono">${escapeHtml(asset.asset_tag)}</span><strong>${escapeHtml(asset.status_code)}</strong><small>CURRENT STATE</small></aside><div class="asset-facts"><dl><dt>취득가</dt><dd>${Number(asset.acquisition_cost || 0).toLocaleString()}원</dd><dt>부서 ID</dt><dd>${asset.department_id || '-'}</dd><dt>위치 ID</dt><dd>${asset.location_id || '-'}</dd><dt>등록일</dt><dd>${date(asset.created_at)}</dd></dl></div></section>
+  <section class="panel qr-label-panel" aria-labelledby="qr-label-title"><div><p class="eyebrow">QR ASSET IDENTITY</p><h2 id="qr-label-title">현장용 QR 자산 라벨</h2><p class="muted">QR에는 개인정보나 자산 정보가 들어가지 않습니다. 로그인 후 권한 범위 안에서만 자산을 조회합니다.</p><div class="qr-label-actions"><button class="secondary" id="qr-print-single" type="button">개별 라벨 인쇄</button><button class="primary" id="qr-print-a4" type="button">A4 12매 인쇄</button></div></div><article class="qr-label-card"><img src="/api/enterprise/assets/${id}/qr.svg" width="180" height="180" alt="${escapeHtml(asset.asset_tag)} 자산 QR 코드"><div><strong>${escapeHtml(asset.asset_tag)}</strong><span>${escapeHtml(asset.name)}</span><small>SQCM-i ASSET CONTROL</small></div></article></section>
+  <section class="qr-print-sheet" aria-hidden="true">${Array.from({length:12},()=>`<article class="qr-label-copy"><img src="/api/enterprise/assets/${id}/qr.svg" width="150" height="150" alt=""><div><strong>${escapeHtml(asset.asset_tag)}</strong><span>${escapeHtml(asset.name)}</span><small>SQCM-i ASSET CONTROL</small></div></article>`).join('')}</section>
   ${isManager() ? `<section class="panel form-panel"><div><p class="eyebrow">STATE COMMAND</p><h2>상태 전환</h2><p class="muted">활성 상태와 승인된 사유만 사용할 수 있습니다.</p></div><form id="asset-status" class="grid-form"><label>다음 상태<select name="toStatus" required><option value="">선택</option>${statusOptions}</select></label><label>변경 사유<select name="reasonCode" required><option value="">선택</option>${reasonOptions}</select></label><label>추가 설명<input name="reasonDetail" maxlength="500" aria-describedby="reason-help"><small id="reason-help">사유 정책에 따라 필수일 수 있습니다.</small></label><button class="primary">상태 변경</button></form></section>` : ''}
   <section class="panel evidence-panel"><div class="panel-head"><div><p class="eyebrow">EVIDENCE VAULT</p><h2>자산 증빙파일</h2></div><span>${data.files.length} FILES</span></div>${files?`<ul class="evidence-list">${files}</ul>`:'<div class="empty-cell">등록된 증빙파일이 없습니다.</div>'}${isManager()?`<form id="evidence-upload" class="grid-form evidence-form"><label>증빙 유형<select name="fileType" required><option>PHOTO</option><option>RECEIPT</option><option>INSPECTION</option><option>DISPOSAL</option></select></label><label>파일 선택<input name="evidence" type="file" accept="image/jpeg,image/png,application/pdf" required aria-describedby="evidence-help"><small id="evidence-help">JPEG, PNG, PDF · 최대 5 MiB</small></label><button class="primary">증빙 업로드</button></form>`:''}</section>
   <section class="two-column"><article class="panel"><div class="panel-head"><h2>상태 이력</h2></div><div class="table-wrap"><table><thead><tr><th>일자</th><th>이전</th><th>이후</th><th>사유</th></tr></thead><tbody>${history || '<tr><td colspan="4">이력이 없습니다.</td></tr>'}</tbody></table></div></article><article class="panel"><div class="panel-head"><h2>배정 이력</h2></div><div class="table-wrap"><table><thead><tr><th>사용자</th><th>시작</th><th>종료</th><th>상태</th></tr></thead><tbody>${assignments || '<tr><td colspan="4">이력이 없습니다.</td></tr>'}</tbody></table></div></article></section>`;
   $('#assets-back').addEventListener('click', () => renderAssets());
+  const printLabels = mode => { document.body.dataset.printMode = mode; const clear = () => { delete document.body.dataset.printMode; window.removeEventListener('afterprint', clear); }; window.addEventListener('afterprint', clear); window.print(); };
+  $('#qr-print-single').addEventListener('click', () => printLabels('single'));
+  $('#qr-print-a4').addEventListener('click', () => printLabels('a4'));
   const reasonSelect=$('#asset-status select[name="reasonCode"]'); const detailInput=$('#asset-status input[name="reasonDetail"]');
   reasonSelect?.addEventListener('change',()=>{const policy=ref.reasons.find(row=>row.code===reasonSelect.value);detailInput.required=Boolean(policy?.requires_detail);detailInput.placeholder=detailInput.required?'2자 이상 필수':'선택 입력';});
   $('#asset-status')?.addEventListener('submit', async event => { event.preventDefault(); try { await request(`/api/enterprise/assets/${id}/status`, { method:'POST', body:Object.fromEntries(new FormData(event.target)) }); showMessage('자산 상태를 변경했습니다.'); renderAssetDetail(id); } catch (error) { showMessage(error.message, 'error'); } });
@@ -323,6 +335,43 @@ async function renderAssetRegister() {
     } catch (error) { previewState = null; resultBox.innerHTML = `<div class="alert error" role="alert">${escapeHtml(error.message)}</div>`; }
     finally { button.disabled = false; }
   });
+}
+
+function qrPublicId(value) {
+  const text = String(value || '').trim();
+  const match = text.match(/(?:#scan=|sqcmi:asset:)?([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/i);
+  return match ? match[1].toLowerCase() : '';
+}
+
+async function renderQrScanner(initialCode = '') {
+  $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">FIELD QR / AUTHORIZED LOOKUP</p><h1>QR로 자산 찾기</h1><p class="muted">카메라로 라벨을 스캔하거나 QR 식별자를 직접 입력하세요. 조회 결과는 로그인한 사용자의 조직·부서 권한으로 제한됩니다.</p></div></div>
+  <section class="qr-scan-layout"><article class="panel qr-scan-card"><form id="qr-manual-form" class="qr-manual-form"><label for="qr-code-input">QR 주소 또는 식별자</label><div><input id="qr-code-input" name="code" autocomplete="off" inputmode="text" placeholder="QR 주소나 식별자를 입력" value="${escapeHtml(initialCode)}" required><button class="primary" type="submit">자산 조회</button></div><small>카메라를 사용할 수 없는 PC에서도 직접 입력할 수 있습니다.</small></form><div class="qr-camera"><video id="qr-video" playsinline muted hidden aria-label="QR 스캔 카메라"></video><button class="secondary" id="qr-camera-start" type="button">카메라 스캔 시작</button><p id="qr-camera-status" class="muted" role="status">사용자가 시작 버튼을 누르기 전에는 카메라를 사용하지 않습니다.</p></div></article><article class="panel qr-result" id="qr-result" aria-live="polite"><div class="empty-cell">QR을 스캔하면 자산 요약이 표시됩니다.</div></article></section>`;
+  const result = $('#qr-result');
+  const lookup = async raw => {
+    const publicId = qrPublicId(raw);
+    if (!publicId) { result.innerHTML = '<div class="alert error" role="alert">올바른 SQCM-i QR 주소 또는 식별자를 입력하세요.</div>'; return; }
+    result.innerHTML = '<p class="loading">권한과 자산 정보를 확인하고 있습니다…</p>';
+    try {
+      const data = await request(`/api/enterprise/assets/qr/${encodeURIComponent(publicId)}`); const asset = data.asset;
+      state.pendingQrCode = '';
+      result.innerHTML = `<p class="eyebrow">AUTHORIZED ASSET</p><h2>${escapeHtml(asset.name)}</h2><dl><dt>자산번호</dt><dd class="mono">${escapeHtml(asset.asset_tag)}</dd><dt>상태</dt><dd>${statusBadge(asset.status_code)}</dd><dt>일련번호</dt><dd>${escapeHtml(asset.serial_no || '-')}</dd></dl><button class="primary" id="qr-open-detail" type="button">자산 상세 열기</button>`;
+      $('#qr-open-detail').addEventListener('click', () => renderAssetDetail(asset.id));
+      if (state.qrStream) { state.qrStream.getTracks().forEach(track => track.stop()); state.qrStream = null; }
+    } catch (error) { result.innerHTML = `<div class="alert error" role="alert">${escapeHtml(error.message)}</div>`; }
+  };
+  $('#qr-manual-form').addEventListener('submit', event => { event.preventDefault(); lookup(new FormData(event.target).get('code')); });
+  $('#qr-camera-start').addEventListener('click', async () => {
+    const status = $('#qr-camera-status'); const video = $('#qr-video');
+    if (!('BarcodeDetector' in globalThis) || !navigator.mediaDevices?.getUserMedia) { status.textContent = '이 브라우저에서는 카메라 QR 인식을 지원하지 않습니다. 위 입력란을 사용하세요.'; return; }
+    try {
+      state.qrStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:'environment' } }, audio:false });
+      video.srcObject = state.qrStream; video.hidden = false; await video.play(); status.textContent = 'QR 라벨을 화면 중앙에 맞추세요.';
+      const detector = new BarcodeDetector({ formats:['qr_code'] });
+      const detect = async () => { if (!state.qrStream) return; const codes = await detector.detect(video).catch(() => []); if (codes[0]?.rawValue) return lookup(codes[0].rawValue); requestAnimationFrame(detect); };
+      requestAnimationFrame(detect);
+    } catch (_error) { status.textContent = '카메라를 열 수 없습니다. 권한을 확인하거나 직접 입력하세요.'; }
+  });
+  if (initialCode) await lookup(initialCode);
 }
 
 async function renderAssignments() {

@@ -13,6 +13,8 @@ const { getCostCommandCenter, getCostRoiSummary, recordSavingsEvent } = require(
 const { recommendActions, searchAssets, detectAnomalies, extractDocument, normalizeFeedback, normalizeEvaluation } = require('./services/ai-service');
 const { analyzeAssetImport, commitAssetImport, safeSpreadsheetCsvCell, assetImportTemplate } = require('./services/asset-import-service');
 const { createIdempotencyMiddleware } = require('./idempotency');
+const QRCode = require('qrcode');
+const { findAssetByQr, findAssetForQrLabel, qrScanUrl } = require('./services/asset-qr-service');
 
 const page = req => ({ size: Math.min(100, Math.max(1, Number(req.query.size) || 25)), offset: Math.max(0, Number(req.query.page) || 0) * Math.min(100, Math.max(1, Number(req.query.size) || 25)) });
 const trace = req => ({ ...auditTrace(req), idempotencyKey: String(req.get('idempotency-key') || '').slice(0, 100) || null });
@@ -24,7 +26,7 @@ async function audit(pool, req, action, type, id, metadata = {}) {
     VALUES($1,$2,$3,$4,$5::jsonb,$6,$7)`, [req.user.id, action, type, String(id), JSON.stringify(metadata), current.requestId, current.ip]);
 }
 
-function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProduction = false, fileStore, malwareScanner, fileMaxBytes = 5 * 1024 * 1024, aiProvider }) {
+function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProduction = false, publicBaseUrl = '', fileStore, malwareScanner, fileMaxBytes = 5 * 1024 * 1024, aiProvider }) {
   const router = express.Router();
   const idempotency = createIdempotencyMiddleware({ pool, required: isProduction });
   router.use(apiAuth);
@@ -108,6 +110,20 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
   router.post('/assets/:assetId/files/:fileId/deactivate', async(req,res) => {
     await deactivateAssetFile({ pool,user:req.user,assetId:req.params.assetId,fileId:req.params.fileId,trace:auditTrace(req) });
     res.status(204).end();
+  });
+  router.get('/assets/qr/:publicId', async (req, res) => {
+    const asset = await findAssetByQr(pool, req.user, req.params.publicId);
+    await audit(pool, req, 'ASSET_QR_SCANNED', 'ASSET', asset.id, { qrPublicId: asset.qr_public_id });
+    res.set('cache-control', 'no-store').json({ asset });
+  });
+  router.get('/assets/:id/qr.svg', async (req, res) => {
+    const asset = await findAssetForQrLabel(pool, req.user, req.params.id);
+    const baseUrl = publicBaseUrl || `${req.protocol}://${req.get('host')}`;
+    const svg = await QRCode.toString(qrScanUrl(baseUrl, asset.qr_public_id), {
+      type: 'svg', errorCorrectionLevel: 'M', margin: 2, width: 256,
+      color: { dark: '#062b55', light: '#ffffff' }
+    });
+    res.set({ 'content-type': 'image/svg+xml; charset=utf-8', 'cache-control': 'private, max-age=300', 'x-content-type-options': 'nosniff' }).send(svg);
   });
   router.get('/assets/:id', async (req, res) => {
     requirePermission(req.user, 'asset.read'); const id = positiveInteger(req.params.id, '자산번호');

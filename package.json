@@ -11,7 +11,9 @@
     "test:unit": "node --test test/unit/**/*.test.js",
     "test:integration": "node scripts/require-integration-env.mjs && node --test test/integration/**/*.test.js",
     "test:integration:asset-import": "node scripts/run-asset-import-integration.mjs",
+    "test:integration:asset-qr": "node scripts/run-asset-qr-integration.mjs",
     "test:browser:c1": "node scripts/c1-browser-evidence.mjs",
+    "test:browser:c2": "node scripts/c2-browser-evidence.mjs",
     "check:syntax": "node scripts/syntax-check.mjs",
     "check": "npm run check:syntax && npm run test:unit",
     "check:full": "npm run check && npm run test:integration",
@@ -125,7 +127,8 @@
     "express-session": "^1.18.2",
     "helmet": "^8.1.0",
     "jose": "6.2.10",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "qrcode": "1.5.4"
   },
   "devDependencies": {
     "esbuild": "0.28.2",

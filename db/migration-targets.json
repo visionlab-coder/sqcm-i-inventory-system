@@ -26,6 +26,7 @@
     { "file": "023_supabase_data_api_lockdown.sql", "targets": ["supabase"] },
     { "file": "024_function_search_path_hardening.sql", "targets": ["application", "supabase"] },
     { "file": "025_allow_supabase_s3_storage_driver.sql", "targets": ["application", "supabase"] },
-    { "file": "026_postgres_file_blobs.sql", "targets": ["application"] }
+    { "file": "026_postgres_file_blobs.sql", "targets": ["application"] },
+    { "file": "027_asset_qr_identity.sql", "targets": ["application", "supabase"] }
   ]
 }

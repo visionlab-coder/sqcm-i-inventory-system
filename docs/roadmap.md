@@ -21,12 +21,12 @@ Production GO: **true**
 
 현재 Production 기준선과 P7 운영 증거는 보존하면서, Excel 업무를 건설 자산 통제 제품으로 전환하는 별도 제품 Epic을 순차 진행한다.
 
-`C1 Excel 이관 ✅ → C2 QR·라벨 READY → C3 오프라인 재물조사 ⏳ → C4 직원 셀프서비스 ⏳ → C5 HR·ERP 연동 ⏳ → C6 선택형 IoT 🔒`
+`C1 Excel 이관 ✅ → C2 QR·라벨 🔄 → C3 오프라인 재물조사 ⏳ → C4 직원 셀프서비스 ⏳ → C5 HR·ERP 연동 ⏳ → C6 선택형 IoT 🔒`
 
-- 현재 제품 READY: `PE-C2-QR-ASSET-IDENTITY-AND-LABEL`
+- 현재 제품 READY: `PE-C2-QR-ASSET-IDENTITY-AND-LABEL-BROWSER-REVALIDATION`
 - C1 구현 증거: 메타프롬프트 8/8, UI 계약 30/30, 구문 436개, 단위 927 PASS·8 SKIP·0 FAIL.
 - C1 실제 증거: 격리 PostgreSQL HTTP 통합 1 PASS·0 FAIL, frontend/backend/database 3컨테이너 health·smoke PASS, Chrome 1440×900·390×844 렌더·무가로넘침 PASS.
-- 판정: C1 기능·보안·데이터·화면 검증 PASS, 완료 commit `14fdcb813d9504618a9e6eaf12c0d8b82b205a4c` push와 SHA 일치로 C1을 닫았다. C2가 다음 READY다.
+- 판정: C2 migration 26/26, 전체 931 PASS·8 SKIP, UI 계약 34/34, PostgreSQL HTTP 8/8과 local 3서비스 배포는 PASS했다. 브라우저 동일 자동화 실패 3회 뒤 경쟁 조건을 수정했으나 실제 로그인 데스크톱·모바일 재검증 전이므로 C2는 진행 중이다.
 - 상세 정본: [`develop docs/34_SQCM-i_C_제품고도화_로드맵.md`](../develop%20docs/34_SQCM-i_C_%EC%A0%9C%ED%92%88%EA%B3%A0%EB%8F%84%ED%99%94_%EB%A1%9C%EB%93%9C%EB%A7%B5.md)
 
 ## 1. 운영 규칙

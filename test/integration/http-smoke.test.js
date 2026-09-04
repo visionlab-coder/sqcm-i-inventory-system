@@ -519,6 +519,42 @@ test('Excel CSV 대량등록은 미리보기 뒤 전부 또는 전무로 등록�
   }
 });
 
+test('QR 자산 조회는 공개 식별자만 사용하고 인증·조직 범위를 보존한다', { skip: !baseUrl || !databaseUrl }, async () => {
+  const pool = createPool(databaseUrl); const marker = Date.now().toString().slice(-9); let manager; let assetId;
+  try {
+    manager = await login('manager@seowon.local', integrationConfig.seedManagerPassword);
+    const reference = await (await api('/api/enterprise/reference', manager)).json();
+    const created = await api('/api/enterprise/assets', manager, { method:'POST', body:{
+      organizationId:manager.user.organizationId, assetTag:`QR-${marker}`, name:'QR 통합 시험 자산',
+      departmentId:reference.departments[0]?.id || null, locationId:reference.locations[0]?.id || null, statusCode:'AVAILABLE'
+    } });
+    assert.equal(created.status, 201); const asset = (await created.json()).asset; assetId = asset.id;
+    assert.match(asset.qr_public_id, /^[0-9a-f-]{36}$/i);
+
+    const anonymous = await fetch(`${baseUrl}/api/enterprise/assets/qr/${asset.qr_public_id}`);
+    assert.equal(anonymous.status, 401);
+    const scanned = await api(`/api/enterprise/assets/qr/${asset.qr_public_id}`, manager);
+    assert.equal(scanned.status, 200); assert.equal((await scanned.json()).asset.id, assetId);
+    assert.equal(scanned.headers.get('cache-control'), 'no-store');
+    const invalid = await api('/api/enterprise/assets/qr/not-a-uuid', manager);
+    assert.equal(invalid.status, 400);
+
+    const svg = await api(`/api/enterprise/assets/${assetId}/qr.svg`, manager);
+    assert.equal(svg.status, 200); assert.match(svg.headers.get('content-type'), /image\/svg\+xml/);
+    const svgBody = await svg.text(); assert.match(svgBody, /^<svg/); assert.doesNotMatch(svgBody, new RegExp(asset.asset_tag));
+    assert.equal((await pool.query("SELECT count(*)::int count FROM audit_logs WHERE action='ASSET_QR_SCANNED' AND entity_id=$1", [String(assetId)])).rows[0].count, 1);
+  } finally {
+    await removeTestSessions(pool, [manager]);
+    if (assetId) {
+      await pool.query("DELETE FROM outbox_events WHERE aggregate_type='ASSET' AND aggregate_id=$1", [String(assetId)]);
+      await pool.query("DELETE FROM audit_logs WHERE entity_type='ASSET' AND entity_id=$1", [String(assetId)]);
+      await pool.query('DELETE FROM asset_status_histories WHERE asset_id=$1', [assetId]);
+      await pool.query('DELETE FROM assets WHERE id=$1', [assetId]);
+    }
+    await pool.end();
+  }
+});
+
 test('초기 비밀번호 계정은 업무 API가 차단되고 강한 새 비밀번호 변경 후에만 사용할 수 있다', { skip: !baseUrl || !databaseUrl }, async () => {
   const pool=createPool(databaseUrl); const marker=Date.now().toString().slice(-9); const email=`first-login-${marker}@seowonenc.co.kr`;
   const initialPassword='TemporaryOnly123!'; const newPassword='EmployeeOwned456!'; let userId; let initialSession; let changedSession; let finalSession;
