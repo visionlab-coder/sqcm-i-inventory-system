@@ -25,3 +25,10 @@ test('migration checksum still detects semantic SQL changes', () => {
     assert.equal(migrationChecksumCandidates(changed).has(candidate), false);
   }
 });
+
+test('migration checksum candidates tolerate platform line endings and trailing blank lines only', () => {
+  const base = 'CREATE TABLE sample (id BIGINT);\n';
+  const withBlankLine = `${base}\n`;
+  assert.equal(migrationChecksumCandidates(base).has(migrationChecksum(withBlankLine)), true);
+  assert.equal(migrationChecksumCandidates(base).has(migrationChecksum('CREATE TABLE sample (id TEXT);\n')), false);
+});

@@ -14,10 +14,9 @@ function migrationChecksum(sql) {
 
 function migrationChecksumCandidates(sql) {
   const normalized = normalizeMigrationSql(sql);
-  return new Set([
-    hashSql(normalized),
-    hashSql(normalized.replace(/\n/g, '\r\n'))
-  ]);
+  const body = normalized.replace(/[\t \r\n]+$/, '');
+  const newlineVariants = [body, `${body}\n`, `${body}\n\n`, normalized];
+  return new Set(newlineVariants.flatMap(value => [hashSql(value), hashSql(value.replace(/\n/g, '\r\n'))]));
 }
 
 module.exports = { migrationChecksum, migrationChecksumCandidates, normalizeMigrationSql };
