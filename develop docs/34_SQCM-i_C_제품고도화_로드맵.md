@@ -54,12 +54,12 @@ C4 구현과 검증은 PASS했다. 전체 941 PASS·8 SKIP, UI 40/40, PostgreSQL
 | 순서 | 작업 | 완료 조건 | 상태 |
 |---:|---|---|---|
 | G0 | 공급자 독립 HR·ERP 계약 | raw-body HMAC, 300초 window, replay guard, HR 최소 스키마, ERP payload hash·금지필드 시험 | 증거 있는 완료 |
-| G1 | HR inbox·감사 원장 | event ID UNIQUE, 수신·거부·재처리 상태, payload 최소보관, audit를 transaction으로 검증 | READY |
-| G2 | 직원 이동·퇴사 적용 | 외부 코드를 내부 조직·부서에 명시 매핑하고 미매핑·퇴사 보유자산을 예외 큐로 보냄 | 미착수 |
+| G1 | HR inbox·감사 원장 | event ID UNIQUE, 수신·거부·재처리 상태, payload 최소보관, audit를 transaction으로 검증 | 증거 있는 완료 |
+| G2 | 직원 이동·퇴사 적용 | 외부 코드를 내부 조직·부서에 명시 매핑하고 미매핑·퇴사 보유자산을 예외 큐로 보냄 | READY |
 | G3 | ERP·전자결재 delivery | 기존 outbox를 승인 endpoint에 서명 전송하고 receipt·retry·dead-letter·관리자 재처리를 검증 | 미착수 |
 | G4 | 공급자 UAT·배포 | 승인 공급자·endpoint·Secret reference로 정상·변조·중복·timeout·rollback 실제 증거 확보 | 외부 입력 대기 |
 
-현재 제품 READY는 `PE-C5-G1-HR-INBOX-AND-AUDIT-LEDGER`다. G0는 실제 공급자나 DB를 변경하지 않은 계약 완료이며 C5 전체 완료가 아니다. 실제 연동 전에 HR·ERP 공급자, endpoint, 필드 매핑, Secret reference, 시험 담당자 승인이 필요하다.
+현재 제품 READY는 `PE-C5-G2-EMPLOYEE-LIFECYCLE-MAPPING-AND-EXCEPTION-QUEUE`다. G1은 조직·공급자·event ID UNIQUE, 최소 JSONB와 SHA-256 충돌 검사, transactional audit, SKIP LOCKED·stale lock 회수, retry·dead-letter를 구현했다. 로컬 application migration 28/28과 합성 PostgreSQL 흐름은 PASS했고 잔존 행은 0이다. C5 전체 완료는 아니며 실제 연동 전에 HR·ERP 공급자, endpoint, 필드 매핑, Secret reference, 시험 담당자 승인이 필요하다.
 
 C1 완료 뒤 여는 다음 제품 Epic은 아래와 같다.
 

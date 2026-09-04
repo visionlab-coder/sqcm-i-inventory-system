@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "workId": "PE-C5-G1-HR-INBOX-AND-AUDIT-LEDGER",
+  "checkedAt": "2026-09-04T15:52:54+09:00",
+  "status": "PASS",
+  "epicStatus": "IN_PROGRESS",
+  "productTrack": "SQCM-i C",
+  "phaseProgressUnchanged": "7 / 8",
+  "productionGoUnchanged": true,
+  "verification": {
+    "failureFirst": { "status": "PASS", "observed": "MODULE_NOT_FOUND before service implementation" },
+    "focusedUnit": { "passed": 10, "skipped": 0, "failed": 0, "status": "PASS" },
+    "promptContract": { "passed": 8, "total": 8, "status": "PASS" },
+    "syntax": { "passed": 455, "failed": 0, "status": "PASS" },
+    "repositoryUnit": { "passed": 950, "skipped": 8, "failed": 0, "status": "PASS" },
+    "applicationMigration": { "passed": 28, "total": 28, "target": "loopback-local-only", "status": "PASS" },
+    "postgresIntegration": { "syntheticEvents": 2, "finalStates": ["APPLIED", "REJECTED"], "auditActions": 6, "failed": 0, "status": "PASS" },
+    "syntheticCleanup": { "inboxRows": 0, "auditRows": 0, "status": "PASS" },
+    "localDeployment": { "services": ["frontend", "backend", "database"], "healthy": 3, "status": "PASS" },
+    "harnessContract": { "errors": 0, "currentPhase": "P7", "status": "PASS" },
+    "gitCheckpoint": {
+      "sha": "38b50abf7de3aff842c003274ae1a560567a06ce",
+      "remote": "origin/codex/p7-qs-6-16-0-production-evidence",
+      "localRemoteShaMatched": true,
+      "status": "PASS"
+    }
+  },
+  "implementedControls": [
+    "ORGANIZATION_PROVIDER_EVENT_ID_UNIQUE",
+    "NORMALIZED_PAYLOAD_ONLY",
+    "CANONICAL_PAYLOAD_SHA256_CONFLICT_DETECTION",
+    "TRANSACTIONAL_AUDIT",
+    "FOR_UPDATE_SKIP_LOCKED",
+    "FIVE_MINUTE_STALE_LOCK_RECOVERY",
+    "EXPONENTIAL_RETRY_WITH_ONE_HOUR_CAP",
+    "TENTH_FAILURE_DEAD_LETTER",
+    "ERROR_CODE_ONLY_STORAGE"
+  ],
+  "changesMade": true,
+  "localDatabaseChangesMade": true,
+  "productionChangesMade": false,
+  "stagingChangesMade": false,
+  "externalCallsMade": false,
+  "checkpointType": "WIP_RECOVERY_CHECKPOINT",
+  "blockedReasons": [
+    "ACTUAL_HR_FIELD_MAPPING_NOT_APPROVED",
+    "ACTUAL_EMPLOYEE_LIFECYCLE_POLICY_NOT_APPROVED"
+  ],
+  "nextReady": "PE-C5-G2-EMPLOYEE-LIFECYCLE-MAPPING-AND-EXCEPTION-QUEUE"
+}
