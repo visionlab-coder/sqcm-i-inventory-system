@@ -2,9 +2,9 @@
 
 기준일: 2026-09-04 KST
 
-상태: **검증 PASS / 완료 Git 체크포인트 대기**
+상태: **증거 있는 완료**
 
-현재 READY: `PE-C1-COMPLETION-CHECKPOINT`
+다음 READY: `PE-C2-QR-ASSET-IDENTITY-AND-LABEL`
 
 ## 1. 사용자 가치
 
@@ -62,11 +62,11 @@
 ## 7. 인도·복구
 
 - [x] 변경 범위와 다음 READY를 로드맵·현재 상태에 같은 사실로 기록
-- [ ] C1 완료 체크포인트 commit·push
+- [x] C1 완료 체크포인트 commit·push: `14fdcb813d9504618a9e6eaf12c0d8b82b205a4c`
 - [x] 미완료 변경의 `WIP recovery checkpoint` `0dde2b5e8be5b33bd1608d00389455c2d3ff37b9` push
 - [x] WIP checkpoint local/remote SHA 일치
 
-모든 C1 기능·보안·데이터·화면 증거는 PASS했다. exact allowlist 완료 commit·push와 local/remote SHA 일치가 확인되면 C1을 닫고 `PE-C2-QR-ASSET-IDENTITY-AND-LABEL`을 연다.
+모든 C1 기능·보안·데이터·화면 증거가 PASS했고 exact allowlist 완료 commit을 원격 동일 branch에 push했다. local/remote SHA 일치를 확인했으므로 C1을 닫고 `PE-C2-QR-ASSET-IDENTITY-AND-LABEL`을 연다.
 
 ## 변경 파일 범위
 

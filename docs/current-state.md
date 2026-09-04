@@ -17,15 +17,16 @@ Production GO: **true**
 
 이 문서는 현재 상태의 단일 정본이다. 과거 Phase 보고서의 당시 수치와 설계 결정은 역사 증거로 보존하되 현재 판정에는 이 문서와 실제 코드·테스트 결과를 우선한다.
 
-## 2026-09-04 SQCM-i C 제품 고도화 — C1 검증 PASS
+## 2026-09-04 SQCM-i C 제품 고도화 — C1 완료 / C2 READY
 
 - 서원토건의 Excel 비품 원장을 안전하게 옮기기 위한 한국어 CSV 템플릿, 최대 500행 미리보기, 행별 오류, checksum 재검증, 전부 또는 전무 트랜잭션, RBAC·CSRF·idempotency·감사·outbox를 구현했다.
 - 자산 등록 화면에 3단계 Excel 이관 UX를 추가했고 900px 이하 단일 열, label과 live 결과 영역을 계약검사로 확인했다. CSV 입력과 내보내기는 스프레드시트 수식 시작 문자를 차단 또는 중화한다.
 - 메타프롬프트 계약 8/8, UI 계약 30/30, 저장소 구문 436개, 단위 927 PASS·8 SKIP·0 FAIL을 통과했다.
 - 재부팅 뒤 격리 PostgreSQL 16과 source backend에서 C1 실제 HTTP 통합 1 PASS·0 FAIL을 확인했다. 템플릿·오류 0-write·preview·원자적 확정·replay·변조 거부·이력·감사·cleanup이 포함된다.
 - 재사용 가능한 Chrome DevTools 실행기로 1440×900과 390×844를 실제 렌더링했다. 두 화면 모두 가로 넘침이 없고 import title·file label·template link·`aria-live=polite`를 확인했다. 모바일에서 발견한 헤더/메뉴 겹침과 `.sr-only` 누락도 수정 후 재검증했다.
-- C1은 `검증 PASS / 완료 Git 체크포인트 대기`다. Production 배포, DB migration, 운영 계정·Secret 변경은 수행하지 않았고 기존 P7 7/8과 Production GO도 변경하지 않는다.
-- 다음 READY: `PE-C1-COMPLETION-CHECKPOINT`. exact allowlist commit·push 뒤 C2 QR 자산 신분증·라벨을 연다.
+- C1 완료 commit `14fdcb813d9504618a9e6eaf12c0d8b82b205a4c`을 `origin/codex/p7-qs-6-16-0-production-evidence`에 push했고 local/remote SHA 일치를 확인했다.
+- C1은 `증거 있는 완료`다. Production 배포, DB migration, 운영 계정·Secret 변경은 수행하지 않았고 기존 P7 7/8과 Production GO도 변경하지 않는다.
+- 다음 READY: `PE-C2-QR-ASSET-IDENTITY-AND-LABEL`.
 
 ## 2026-09-03 qs 6.16.0 Production 패치 완료
 
