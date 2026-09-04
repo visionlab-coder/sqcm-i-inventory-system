@@ -42,6 +42,8 @@ const checks = [
   ,['QR mobile form stacks without horizontal overflow', /@media\(max-width:520px\)[^{]*\{[^}]*\.qr-manual-form>div[^}]*grid-template-columns:1fr/]
   ,['offline stocktake exposes connection and queue status', /offline-status[\s\S]*대기 결과 동기화/]
   ,['offline stocktake blocks confirmation while queued', /stock-confirm[\s\S]*offline\|\|queued\.length/]
+  ,['employee self service exposes owned assets and request actions', /data-view="self-service"[\s\S]*renderEmployeeSelfService[\s\S]*api\/enterprise\/self-service[\s\S]*반납[\s\S]*수리[\s\S]*분실 신고/]
+  ,['employee self service keeps mobile actions usable', /@media\(max-width:420px\)\{[^}]*\.self-metrics[^}]*grid-template-columns:1fr\}[^}]*\.self-asset-actions/]
 ];
 for (const [name, pattern] of checks) {
   const source = `${index}\n${app}\n${components}\n${baseCss}\n${css}`;

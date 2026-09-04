@@ -16,6 +16,7 @@ const { createIdempotencyMiddleware } = require('./idempotency');
 const QRCode = require('qrcode');
 const { findAssetByQr, findAssetForQrLabel, qrScanUrl } = require('./services/asset-qr-service');
 const { normalizeOfflineBatch } = require('./services/stocktake-offline-service');
+const { getEmployeeSelfService, createEmployeeAssetRequest } = require('./services/employee-self-service');
 
 const page = req => ({ size: Math.min(100, Math.max(1, Number(req.query.size) || 25)), offset: Math.max(0, Number(req.query.page) || 0) * Math.min(100, Math.max(1, Number(req.query.size) || 25)) });
 const trace = req => ({ ...auditTrace(req), idempotencyKey: String(req.get('idempotency-key') || '').slice(0, 100) || null });
@@ -73,6 +74,15 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
     const organizationId = orgId(req, req.query.organizationId);
     const scope = await resolveScope(pool, req.user);
     res.json(await getAssetDashboard(pool, organizationId, req.user, scope));
+  });
+
+  router.get('/self-service', async (req, res) => {
+    res.set('cache-control', 'no-store').json(await getEmployeeSelfService(pool, req.user));
+  });
+
+  router.post('/self-service/requests', async (req, res) => {
+    const request = await createEmployeeAssetRequest(pool, req.user, req.body, trace(req));
+    res.status(201).json({ request });
   });
 
   const rawAssetCsv = express.text({ type: ['text/csv', 'application/csv'], limit: '512kb' });

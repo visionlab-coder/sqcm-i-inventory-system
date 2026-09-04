@@ -186,6 +186,7 @@ async function navigate(view) {
   $('#view-root').innerHTML = '<div class="loading">데이터를 불러오는 중입니다…</div>';
   try {
     if (view === 'dashboard') await renderDashboard();
+    if (view === 'self-service') await renderEmployeeSelfService();
     if (view === 'assets') await renderAssets();
     if (view === 'qr-scan') await renderQrScanner(state.pendingQrCode);
     if (view === 'asset-register') await renderAssetRegister();
@@ -254,6 +255,42 @@ async function renderCostControl() {
 // enterprise asset/assignment surfaces. No legacy ledger API is called by UI.
 async function renderItems(query = '') { return renderAssets(query, 0); }
 async function renderLoans() { return navigate('assignments'); }
+
+async function renderEmployeeSelfService() {
+  const data = await request('/api/enterprise/self-service');
+  const assetCards = data.assets.map(asset => `<article class="self-asset-card">
+    <div><span class="mono">${escapeHtml(asset.asset_tag)}</span><h3>${escapeHtml(asset.name)}</h3><p>${escapeHtml(asset.location_name || '위치 미지정')} · ${date(asset.started_at)}부터 사용</p></div>
+    <div class="self-asset-state">${statusBadge(asset.status_code)}</div>
+    <div class="self-asset-actions" aria-label="${escapeHtml(asset.asset_tag)} 요청"><button class="secondary self-request-open" data-asset-id="${asset.id}" data-asset-label="${escapeHtml(asset.asset_tag)} · ${escapeHtml(asset.name)}" data-request-type="RETURN">반납</button><button class="secondary self-request-open" data-asset-id="${asset.id}" data-asset-label="${escapeHtml(asset.asset_tag)} · ${escapeHtml(asset.name)}" data-request-type="REPAIR">수리</button><button class="danger-button self-request-open" data-asset-id="${asset.id}" data-asset-label="${escapeHtml(asset.asset_tag)} · ${escapeHtml(asset.name)}" data-request-type="LOST">분실 신고</button></div>
+  </article>`).join('');
+  const requestRows = data.requests.map(row => `<tr><td>#${row.id}</td><td>${escapeHtml(row.request_type)}</td><td>${escapeHtml(row.asset_tag || '-')}</td><td>${statusBadge(row.status)}</td><td>${date(row.updated_at)}</td></tr>`).join('');
+  const repairRows = data.repairs.map(row => `<tr><td>#${row.id}</td><td>${escapeHtml(row.asset_tag)}</td><td>${escapeHtml(row.symptom)}</td><td>${statusBadge(row.status)}</td><td>${date(row.updated_at)}</td></tr>`).join('');
+  const notificationRows = data.notifications.map(row => `<li class="self-notification ${row.read_at ? '' : 'unread'}"><div><strong>${escapeHtml(row.title)}</strong><p>${escapeHtml(row.body)}</p></div><span>${row.read_at ? '확인' : '새 알림'} · ${date(row.created_at)}</span></li>`).join('');
+  $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">EMPLOYEE SELF SERVICE</p><h1>내 비품 한눈에 보기</h1><p class="muted">내게 배정된 자산과 요청 진행 상태만 안전하게 확인합니다.</p></div><button class="secondary" data-go="qr-scan">QR로 찾기</button></div>
+    <section class="self-metrics" aria-label="내 비품 요약"><article><span>내 자산</span><strong>${data.summary.assignedAssets}</strong></article><article><span>진행 요청</span><strong>${data.summary.activeRequests}</strong></article><article><span>수리 진행</span><strong>${data.summary.openRepairs}</strong></article><article><span>새 알림</span><strong>${data.summary.unreadNotifications}</strong></article></section>
+    <section class="panel self-assets"><div class="panel-head"><div><p class="eyebrow">MY ASSETS</p><h2>현재 사용 중인 비품</h2></div></div><div class="self-asset-grid">${assetCards || '<div class="empty-cell"><strong>현재 배정된 비품이 없습니다.</strong><p>배정이 필요하면 요청함에서 신청하세요.</p></div>'}</div></section>
+    <section class="two-column self-ledgers"><article class="panel"><div class="panel-head"><h2>내 요청</h2><button class="small" data-go="requests">요청함 열기</button></div><div class="table-wrap"><table><thead><tr><th>번호</th><th>유형</th><th>자산</th><th>상태</th><th>변경일</th></tr></thead><tbody>${requestRows || '<tr><td colspan="5">요청 이력이 없습니다.</td></tr>'}</tbody></table></div></article><article class="panel"><div class="panel-head"><h2>내 수리 접수</h2></div><div class="table-wrap"><table><thead><tr><th>번호</th><th>자산</th><th>증상</th><th>상태</th><th>변경일</th></tr></thead><tbody>${repairRows || '<tr><td colspan="5">수리 이력이 없습니다.</td></tr>'}</tbody></table></div></article></section>
+    <section class="panel self-alerts"><div class="panel-head"><h2>내 알림</h2><span>${data.summary.unreadNotifications}건 미확인</span></div><ul>${notificationRows || '<li class="empty-cell">새 알림이 없습니다.</li>'}</ul></section>
+    <dialog id="self-request-dialog" class="self-request-dialog"><form id="self-request-form" method="dialog"><div class="panel-head"><div><p class="eyebrow">QUICK REQUEST</p><h2>내 비품 요청</h2><p id="self-request-asset" class="muted"></p></div><button type="button" class="dialog-close" aria-label="요청 창 닫기">×</button></div><input type="hidden" name="assetId"><input type="hidden" name="requestType"><label>요청 사유<textarea name="reason" required minlength="2" maxlength="1000"></textarea></label><fieldset class="return-fields" id="self-return-fields"><legend>반납 확인</legend><label>반납 상태<select name="conditionCode"><option>GOOD</option><option>DAMAGED</option><option>MISSING_PARTS</option></select></label><label>부속품<input name="accessories" maxlength="500" placeholder="충전기, 케이스"></label><label>반납 메모<input name="returnNote" maxlength="500"></label><label>반납 사진<input type="file" name="returnPhoto" accept="image/jpeg,image/png"></label></fieldset><div class="auth-form-actions"><button type="button" class="secondary dialog-cancel">취소</button><button type="submit" class="primary">요청 제출</button></div></form></dialog>`;
+  const dialog = $('#self-request-dialog'); const form = $('#self-request-form'); const returnFields = $('#self-return-fields');
+  document.querySelectorAll('.self-request-open').forEach(button => button.addEventListener('click', () => {
+    form.reset(); form.elements.assetId.value = button.dataset.assetId; form.elements.requestType.value = button.dataset.requestType;
+    $('#self-request-asset').textContent = `${button.dataset.assetLabel} · ${button.textContent.trim()}`;
+    returnFields.hidden = button.dataset.requestType !== 'RETURN'; form.elements.returnPhoto.required = button.dataset.requestType === 'RETURN'; dialog.showModal();
+  }));
+  const closeDialog = () => dialog.close(); $('.dialog-close').addEventListener('click', closeDialog); $('.dialog-cancel').addEventListener('click', closeDialog);
+  form.addEventListener('submit', async event => {
+    event.preventDefault(); const submit = event.submitter; const values = Object.fromEntries(new FormData(form)); const returnPhoto = form.elements.returnPhoto.files[0];
+    const body = { assetId: values.assetId, requestType: values.requestType, reason: values.reason, payload: values.requestType === 'RETURN' ? { conditionCode: values.conditionCode, accessories: values.accessories, note: values.returnNote } : {} };
+    submit.disabled = true;
+    try {
+      const created = await request('/api/enterprise/self-service/requests', { method:'POST', body });
+      if (values.requestType === 'RETURN') await uploadBinary(`/api/enterprise/requests/${created.request.id}/return-photo`, returnPhoto);
+      await request(`/api/enterprise/requests/${created.request.id}/action`, { method:'POST', body:{ action:'SUBMIT' } });
+      closeDialog(); showMessage('담당자에게 요청을 제출했습니다.'); await renderEmployeeSelfService();
+    } catch (error) { showMessage(error.message, 'error'); submit.disabled = false; }
+  });
+}
 
 async function reference() {
   if (!state.reference) state.reference = await request('/api/enterprise/reference');

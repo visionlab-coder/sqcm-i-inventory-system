@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "workId": "PE-C4-EMPLOYEE-SELF-SERVICE",
+  "checkedAt": "2026-09-04T14:36:13+09:00",
+  "status": "PASS",
+  "productTrack": "SQCM-i C",
+  "phaseProgressUnchanged": "7 / 8",
+  "productionGoUnchanged": true,
+  "verification": {
+    "promptContract": { "passed": 8, "total": 8, "status": "PASS" },
+    "fullCheck": { "passed": 941, "skipped": 8, "failed": 0, "status": "PASS" },
+    "uiContract": { "passed": 40, "failed": 0, "status": "PASS" },
+    "applicationMigration": { "passed": 27, "total": 27, "status": "PASS" },
+    "integration": { "passed": 24, "skipped": 1, "failed": 0, "status": "PASS" },
+    "localDeployment": { "services": ["frontend", "backend", "database"], "healthy": 3, "status": "PASS" },
+    "browserIsolation": { "ownAssets": 1, "foreignAssetsVisible": 0, "foreignRequestHttpStatus": 403, "status": "PASS" },
+    "browserWorkflow": { "requestType": "LOST", "requestStatus": "SUBMITTED", "auditEvents": 2, "status": "PASS" },
+    "browserDesktop1440x900": { "status": "PASS", "horizontalOverflow": false, "assetCards": 1, "actions": 3, "sha256": "82becaff18753657174bad542af0b6b82568f2a4b330794962f3567a83b96835", "evidencePath": "D:\\seowon_runtime\\sqcm-i-inventory-c4\\evidence\\browser-final\\desktop-1440x900.png" },
+    "browserMobile390x844": { "status": "PASS", "horizontalOverflow": false, "assetCards": 1, "actions": 3, "sha256": "0721cf2756b3169f2345e2fa8f4a3921693e786fb36cfcca105b31beb2d37696", "evidencePath": "D:\\seowon_runtime\\sqcm-i-inventory-c4\\evidence\\browser-final\\mobile-390x844.png" },
+    "syntheticCleanup": { "users": 0, "assets": 0, "requests": 0, "status": "PASS" }
+  },
+  "implementedControls": [
+    "ACTIVE_ASSIGNMENT_SELF_SCOPE",
+    "OWN_REQUEST_REPAIR_NOTIFICATION_SCOPE",
+    "FOREIGN_ASSET_REQUEST_HTTP_403",
+    "RETURN_REPAIR_LOST_QUICK_REQUEST",
+    "RETURN_PHOTO_BEFORE_SUBMISSION",
+    "CSRF_IDEMPOTENCY_AND_AUDIT",
+    "APPROVAL_WORKFLOW_SUBMISSION",
+    "DESKTOP_AND_MOBILE_SELF_SERVICE"
+  ],
+  "changesMade": true,
+  "productionChangesMade": false,
+  "stagingChangesMade": false,
+  "completionCommitCreated": false,
+  "completionPushMade": false,
+  "completionCommitSha": null,
+  "completionRemote": "origin/codex/p7-qs-6-16-0-production-evidence",
+  "localRemoteShaMatched": false,
+  "blockedReasons": [],
+  "checkpointType": "PHASE_COMPLETION_CHECKPOINT_PENDING",
+  "nextReady": "PE-C5-HR-ERP-INTEGRATION-CONTRACT"
+}
