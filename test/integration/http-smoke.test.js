@@ -50,6 +50,18 @@ async function api(path, session, { method = 'GET', body, includeCsrf = true, he
   return fetch(`${baseUrl}${path}`, { method, headers, body: payload, redirect: 'manual' });
 }
 
+async function csvApi(path, session, csv, { key = `csv-${crypto.randomUUID()}`, checksum = '' } = {}) {
+  const headers = {
+    cookie: session.cookie,
+    accept: 'application/json',
+    'content-type': 'text/csv; charset=utf-8',
+    'x-csrf-token': session.csrfToken,
+    'idempotency-key': key
+  };
+  if (checksum) headers['x-import-checksum'] = checksum;
+  return fetch(`${baseUrl}${path}`, { method: 'POST', headers, body: csv, redirect: 'manual' });
+}
+
 test('동일 Idempotency-Key 재전송은 자산을 한 번만 생성하고 다른 payload는 거부한다', { skip: !baseUrl || !databaseUrl }, async () => {
   const pool=createPool(databaseUrl);const marker=Date.now().toString().slice(-9);const tag=`IDEM-${marker}`;const key=`idem-${crypto.randomUUID()}`;let admin;let assetId;
   try{
@@ -454,6 +466,56 @@ test('비밀번호 재설정 토큰은 단회 사용되고 기존 세션을 폐�
     loggedIn=await login(email,'AfterReset123!@'); assert.equal(loggedIn.user.id,userId);
   } finally {
     await removeTestSessions(pool,[loggedIn]); if(userId){await pool.query('DELETE FROM password_reset_tokens WHERE user_id=$1',[userId]);await pool.query("DELETE FROM audit_logs WHERE actor_user_id=$1",[userId]);await pool.query('DELETE FROM users WHERE id=$1',[userId]);} await pool.end();
+  }
+});
+
+test('Excel CSV 대량등록은 미리보기 뒤 전부 또는 전무로 등록하고 감사·멱등성을 보존한다', { skip: !baseUrl || !databaseUrl }, async () => {
+  const pool = createPool(databaseUrl); const marker = Date.now().toString().slice(-9); let manager; let assetId; let checksum;
+  const keys = [`preview-${crypto.randomUUID()}`, `invalid-${crypto.randomUUID()}`, `commit-${crypto.randomUUID()}`, `changed-${crypto.randomUUID()}`];
+  try {
+    manager = await login('manager@seowon.local', integrationConfig.seedManagerPassword);
+    const template = await api('/api/enterprise/assets/import/template.csv', manager);
+    assert.equal(template.status, 200); assert.match(template.headers.get('content-type'), /text\/csv/);
+    assert.match(await template.text(), /"자산번호","자산명"/);
+
+    const reference = await (await api('/api/enterprise/reference', manager)).json();
+    const department = reference.departments[0]?.code || '';
+    const location = reference.locations[0]?.code || '';
+    const category = reference.categories[0]?.code || '';
+    const tag = `XL-${marker}`;
+    const invalidCsv = `자산번호,자산명,상태,부서코드,위치코드,분류코드\n${tag},=위험수식,IN_USE,UNKNOWN,${location},${category}`;
+    const invalidResponse = await csvApi('/api/enterprise/assets/import/preview', manager, invalidCsv, { key: keys[1] });
+    assert.equal(invalidResponse.status, 200); assert.equal((await invalidResponse.json()).preview.summary.invalid, 1);
+    assert.equal((await pool.query('SELECT count(*)::int count FROM assets WHERE asset_tag=$1', [tag])).rows[0].count, 0);
+
+    const csv = `자산번호,자산명,제조번호,상태,부서코드,위치코드,분류코드,취득일,취득금액\n${tag},엑셀 전환 자산,SN-${marker},AVAILABLE,${department},${location},${category},2026-09-04,1250000`;
+    const previewResponse = await csvApi('/api/enterprise/assets/import/preview', manager, csv, { key: keys[0] });
+    assert.equal(previewResponse.status, 200);
+    const preview = (await previewResponse.json()).preview; checksum = preview.checksum;
+    assert.deepEqual(preview.summary, { total: 1, valid: 1, invalid: 0 });
+
+    const committed = await csvApi('/api/enterprise/assets/import/commit', manager, csv, { key: keys[2], checksum });
+    assert.equal(committed.status, 201); const committedBody = await committed.json();
+    assert.equal(committedBody.result.imported, 1); assetId = committedBody.result.assets[0].id;
+    const replay = await csvApi('/api/enterprise/assets/import/commit', manager, csv, { key: keys[2], checksum });
+    assert.equal(replay.status, 201); assert.equal(replay.headers.get('idempotent-replay'), 'true');
+    const changed = await csvApi('/api/enterprise/assets/import/commit', manager, `${csv}\nXL-OTHER,변경 자산`, { key: keys[3], checksum });
+    assert.equal(changed.status, 400); assert.equal((await changed.json()).code, 'ASSET_IMPORT_CSV_INVALID');
+
+    assert.equal((await pool.query('SELECT count(*)::int count FROM assets WHERE asset_tag=$1', [tag])).rows[0].count, 1);
+    assert.equal((await pool.query("SELECT count(*)::int count FROM asset_status_histories WHERE asset_id=$1 AND reason='엑셀 대량등록'", [assetId])).rows[0].count, 1);
+    assert.equal((await pool.query("SELECT count(*)::int count FROM audit_logs WHERE action='ASSET_IMPORTED' AND entity_id=$1", [String(assetId)])).rows[0].count, 1);
+    assert.equal((await pool.query("SELECT count(*)::int count FROM audit_logs WHERE action='ASSET_BULK_IMPORTED' AND entity_id=$1", [checksum])).rows[0].count, 1);
+  } finally {
+    await removeTestSessions(pool, [manager]);
+    await pool.query('DELETE FROM api_idempotency_keys WHERE idempotency_key=ANY($1::text[])', [keys]);
+    if (assetId) {
+      await pool.query("DELETE FROM outbox_events WHERE aggregate_type='ASSET' AND aggregate_id=$1", [String(assetId)]);
+      await pool.query("DELETE FROM audit_logs WHERE (entity_type='ASSET' AND entity_id=$1) OR (entity_type='ASSET_IMPORT' AND entity_id=$2)", [String(assetId), checksum]);
+      await pool.query('DELETE FROM asset_status_histories WHERE asset_id=$1', [assetId]);
+      await pool.query('DELETE FROM assets WHERE id=$1', [assetId]);
+    }
+    await pool.end();
   }
 });
 

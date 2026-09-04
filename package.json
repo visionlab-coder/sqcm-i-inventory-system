@@ -10,6 +10,7 @@
     "test": "npm run test:unit",
     "test:unit": "node --test test/unit/**/*.test.js",
     "test:integration": "node scripts/require-integration-env.mjs && node --test test/integration/**/*.test.js",
+    "test:integration:asset-import": "node scripts/run-asset-import-integration.mjs",
     "check:syntax": "node scripts/syntax-check.mjs",
     "check": "npm run check:syntax && npm run test:unit",
     "check:full": "npm run check && npm run test:integration",

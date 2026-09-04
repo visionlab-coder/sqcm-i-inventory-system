@@ -70,6 +70,17 @@ async function uploadBinary(path, file, extraHeaders = {}) {
   try { return await operation; } finally { inFlightWrites.delete(signature); }
 }
 
+async function uploadCsv(path, csv, extraHeaders = {}) {
+  return responseData(await fetch(path, {
+    method: 'POST', credentials: 'same-origin', headers: {
+      'content-type': 'text/csv; charset=utf-8',
+      'x-csrf-token': state.csrfToken || '',
+      'idempotency-key': newIdempotencyKey(),
+      ...extraHeaders
+    }, body: csv
+  }));
+}
+
 function showMessage(message, type = 'success') {
   const element = $('#global-message');
   element.textContent = message;
@@ -280,8 +291,38 @@ async function renderAssetDetail(id) {
 
 async function renderAssetRegister() {
   if (!isManager()) throw new Error('자산 등록 권한이 없습니다.'); const ref = await reference();
-  $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">FIVE STEP ONBOARDING</p><h1>신규 자산 등록</h1><p class="muted">식별·분류·배치·취득·검토 순서로 누락 없이 등록합니다.</p></div></div><section class="panel step-panel"><div class="step-line"><span>01 식별</span><span>02 분류</span><span>03 배치</span><span>04 취득</span><span>05 검토</span></div><form id="asset-create" class="grid-form enterprise-form"><label>자산번호<input name="assetTag" required pattern="[A-Z0-9-]{3,50}" placeholder="IT-2026-004"></label><label>자산명<input name="name" required minlength="2"></label><label>일련번호<input name="serialNo"></label><label>분류<select name="categoryId"><option value="">선택</option>${options(ref.categories, row => `${row.code} · ${row.name}`)}</select></label><label>모델<select name="modelId"><option value="">선택</option>${options(ref.models, row => `${row.brand || ''} ${row.model_name}`)}</select></label><label>부서<select name="departmentId"><option value="">선택</option>${options(ref.departments, row => row.name)}</select></label><label>위치<select name="locationId"><option value="">선택</option>${options(ref.locations, row => row.name)}</select></label><label>취득일<input type="date" name="acquiredAt"></label><label>취득가<input type="number" name="acquisitionCost" min="0"></label><label>초기 상태<select name="statusCode"><option>AVAILABLE</option><option>DRAFT</option><option>RECEIVED</option></select></label><button class="primary full">자산 등록 완료</button></form></section>`;
+  $('#view-root').innerHTML = `<div class="page-heading"><div><p class="eyebrow">ASSET ONBOARDING</p><h1>자산 등록 센터</h1><p class="muted">기존 Excel 원장을 먼저 안전하게 검증하거나, 개별 자산을 한 건씩 등록합니다.</p></div></div>
+  <section class="panel import-panel" aria-labelledby="asset-import-title">
+    <div class="import-intro"><p class="eyebrow">EXCEL MIGRATION / SAFE PREVIEW</p><h2 id="asset-import-title">Excel 원장 대량등록</h2><p>등록 전에 모든 행을 검사합니다. 오류가 한 건이라도 있으면 데이터는 전혀 저장되지 않습니다.</p><ol><li>템플릿을 내려받아 Excel에서 작성</li><li>CSV UTF-8 형식으로 저장</li><li>미리보기에서 오류 확인 후 확정</li></ol></div>
+    <form id="asset-import" class="import-form">
+      <div class="import-actions"><a class="secondary button-link" href="/api/enterprise/assets/import/template.csv">등록 템플릿 받기</a><label class="file-field"><span>작성한 CSV 선택</span><input type="file" name="assetCsv" accept=".csv,text/csv" required aria-describedby="asset-import-help"></label><button class="primary" type="submit">등록 전 미리보기</button></div>
+      <p id="asset-import-help" class="muted">최대 500개·512KiB. 상태는 DRAFT 또는 AVAILABLE만 허용됩니다.</p>
+      <div id="asset-import-result" class="import-result" aria-live="polite"><p class="empty-cell">파일을 선택하면 행별 검증 결과가 표시됩니다.</p></div>
+    </form>
+  </section>
+  <section class="panel step-panel"><div class="panel-head"><div><p class="eyebrow">SINGLE ASSET / FIVE STEPS</p><h2>개별 자산 등록</h2></div></div><div class="step-line"><span>01 식별</span><span>02 분류</span><span>03 배치</span><span>04 취득</span><span>05 검토</span></div><form id="asset-create" class="grid-form enterprise-form"><label>자산번호<input name="assetTag" required pattern="[A-Z0-9-]{3,50}" placeholder="IT-2026-004"></label><label>자산명<input name="name" required minlength="2"></label><label>일련번호<input name="serialNo"></label><label>분류<select name="categoryId"><option value="">선택</option>${options(ref.categories, row => `${row.code} · ${row.name}`)}</select></label><label>모델<select name="modelId"><option value="">선택</option>${options(ref.models, row => `${row.brand || ''} ${row.model_name}`)}</select></label><label>부서<select name="departmentId"><option value="">선택</option>${options(ref.departments, row => row.name)}</select></label><label>위치<select name="locationId"><option value="">선택</option>${options(ref.locations, row => row.name)}</select></label><label>취득일<input type="date" name="acquiredAt"></label><label>취득가<input type="number" name="acquisitionCost" min="0"></label><label>초기 상태<select name="statusCode"><option>AVAILABLE</option><option>DRAFT</option><option>RECEIVED</option></select></label><button class="primary full">자산 등록 완료</button></form></section>`;
   $('#asset-create').addEventListener('submit', async event => { event.preventDefault(); const body = Object.fromEntries(new FormData(event.target)); body.organizationId = state.user.organizationId; try { await request('/api/enterprise/assets', { method:'POST', body }); showMessage('신규 자산을 등록했습니다.'); navigate('assets'); } catch(error) { showMessage(error.message, 'error'); } });
+  const importForm = $('#asset-import'); const resultBox = $('#asset-import-result'); let previewState = null;
+  importForm.elements.assetCsv.addEventListener('change', () => { previewState = null; resultBox.innerHTML = '<p class="empty-cell">미리보기를 실행해 등록 가능 여부를 확인하세요.</p>'; });
+  importForm.addEventListener('submit', async event => {
+    event.preventDefault(); const file = importForm.elements.assetCsv.files[0]; const button = event.submitter;
+    if (!file) return showMessage('CSV 파일을 선택하세요.', 'error');
+    if (file.size > 512 * 1024) return showMessage('CSV 파일은 512KiB 이하여야 합니다.', 'error');
+    button.disabled = true; resultBox.innerHTML = '<p class="loading">전체 행을 검증하고 있습니다…</p>';
+    try {
+      const csv = await file.text(); const response = await uploadCsv('/api/enterprise/assets/import/preview', csv); const preview = response.preview;
+      previewState = { csv, checksum: preview.checksum, invalid: preview.summary.invalid };
+      const rows = preview.rows.slice(0, 100).map(row => `<tr><td>${row.rowNumber}</td><td class="mono">${escapeHtml(row.values.assetTag || '-')}</td><td>${escapeHtml(row.values.name || '-')}</td><td>${row.errors.length ? `<ul class="row-errors">${row.errors.map(error => `<li>${escapeHtml(error.message)}</li>`).join('')}</ul>` : '<span class="badge good">등록 가능</span>'}</td></tr>`).join('');
+      resultBox.innerHTML = `<div class="import-summary ${preview.summary.invalid ? 'has-errors' : 'ready'}"><strong>전체 ${preview.summary.total}건</strong><span>등록 가능 ${preview.summary.valid}건</span><span>수정 필요 ${preview.summary.invalid}건</span></div><div class="table-wrap"><table><thead><tr><th>Excel 행</th><th>자산번호</th><th>자산명</th><th>검증 결과</th></tr></thead><tbody>${rows}</tbody></table></div>${preview.rows.length > 100 ? '<p class="muted">화면에는 처음 100건만 표시됩니다. 전체 행은 서버에서 모두 검증했습니다.</p>' : ''}<div class="import-confirm"><p>${preview.summary.invalid ? '오류 행을 Excel에서 수정한 뒤 다시 미리보기 하세요.' : '모든 행이 유효합니다. 확정하면 하나의 트랜잭션으로 등록됩니다.'}</p><button id="asset-import-commit" class="primary" type="button" ${preview.summary.invalid ? 'disabled' : ''}>${preview.summary.valid}개 자산 등록 확정</button></div>`;
+      $('#asset-import-commit')?.addEventListener('click', async clickEvent => {
+        if (!previewState || previewState.invalid || !window.confirm(`${preview.summary.valid}개 자산을 통합 원장에 등록하시겠습니까?`)) return;
+        const target = clickEvent.currentTarget; target.disabled = true; target.textContent = '등록 중…';
+        try { const committed = await uploadCsv('/api/enterprise/assets/import/commit', previewState.csv, { 'x-import-checksum': previewState.checksum }); showMessage(`${committed.result.imported}개 자산을 등록했습니다.`); navigate('assets'); }
+        catch (error) { target.disabled = false; target.textContent = `${preview.summary.valid}개 자산 등록 확정`; showMessage(error.message, 'error'); }
+      });
+    } catch (error) { previewState = null; resultBox.innerHTML = `<div class="alert error" role="alert">${escapeHtml(error.message)}</div>`; }
+    finally { button.disabled = false; }
+  });
 }
 
 async function renderAssignments() {

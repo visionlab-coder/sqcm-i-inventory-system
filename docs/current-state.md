@@ -7,7 +7,7 @@ Harness 진행: **7 / 8 Phase 완료**
 Production GO: **true**
 <!-- HARNESS_STATUS_END -->
 
-기준일: 2026-09-03
+기준일: 2026-09-04
 
 릴리스 기준 브랜치: `main`
 현재 작업 브랜치: `codex/p7-qs-6-16-0-production-evidence`
@@ -16,6 +16,15 @@ Production GO: **true**
 상태: **P6 actual Production cutover 증거 완료 / P7-G0 PASS / P7-G1 운영 활성화·인수 진행 / Production GO**
 
 이 문서는 현재 상태의 단일 정본이다. 과거 Phase 보고서의 당시 수치와 설계 결정은 역사 증거로 보존하되 현재 판정에는 이 문서와 실제 코드·테스트 결과를 우선한다.
+
+## 2026-09-04 SQCM-i C 제품 고도화 — C1 진행 중
+
+- 서원토건의 Excel 비품 원장을 안전하게 옮기기 위한 한국어 CSV 템플릿, 최대 500행 미리보기, 행별 오류, checksum 재검증, 전부 또는 전무 트랜잭션, RBAC·CSRF·idempotency·감사·outbox를 구현했다.
+- 자산 등록 화면에 3단계 Excel 이관 UX를 추가했고 900px 이하 단일 열, label과 live 결과 영역을 계약검사로 확인했다. CSV 입력과 내보내기는 스프레드시트 수식 시작 문자를 차단 또는 중화한다.
+- 메타프롬프트 계약 8/8, UI 계약 28/28, 저장소 구문 435개, 단위 927 PASS·8 SKIP·0 FAIL을 통과했다.
+- 이전에는 Docker CLI와 로컬 PostgreSQL이 응답하지 않았지만 2026-09-04 재확인에서 Docker Engine 29.6.1 응답과 격리 이미지 build 진행을 확인했다. 시스템 재부팅 전 안전 저장 요청으로 실제 컨테이너 기동·PostgreSQL HTTP 통합·브라우저 검증 전에 중단해 현재 상태는 `NOT_RUN_REBOOT_CHECKPOINT`다.
+- 따라서 C1은 `진행 중 / 복구 지점 차단`이며 Production 배포, DB migration, 계정·Secret 변경은 수행하지 않았다. 기존 P7 7/8과 Production GO 상태도 변경하지 않는다.
+- 다음 READY: `PE-C1-REAL-POSTGRES-INTEGRATION-AND-BROWSER-EVIDENCE`. 완료 뒤에만 C2 QR 자산 신분증·라벨을 연다.
 
 ## 2026-09-03 qs 6.16.0 Production 패치 완료
 

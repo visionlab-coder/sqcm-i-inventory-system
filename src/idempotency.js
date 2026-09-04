@@ -16,6 +16,7 @@ function requestHash(req) {
     contentType: String(req.get?.('content-type') || '').split(';')[0].toLowerCase(),
     fileName: String(req.get?.('x-file-name') || ''),
     fileType: String(req.get?.('x-file-type') || ''),
+    importChecksum: String(req.get?.('x-import-checksum') || ''),
     contentLength: String(req.get?.('content-length') || ''),
     body: canonicalize(req.body || null)
   };

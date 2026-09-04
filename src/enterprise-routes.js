@@ -11,6 +11,7 @@ const { createApprovalPolicy, listApprovalPolicies } = require('./services/appro
 const { uploadReturnPhoto } = require('./services/return-service');
 const { getCostCommandCenter, getCostRoiSummary, recordSavingsEvent } = require('./services/cost-service');
 const { recommendActions, searchAssets, detectAnomalies, extractDocument, normalizeFeedback, normalizeEvaluation } = require('./services/ai-service');
+const { analyzeAssetImport, commitAssetImport, safeSpreadsheetCsvCell, assetImportTemplate } = require('./services/asset-import-service');
 const { createIdempotencyMiddleware } = require('./idempotency');
 
 const page = req => ({ size: Math.min(100, Math.max(1, Number(req.query.size) || 25)), offset: Math.max(0, Number(req.query.page) || 0) * Math.min(100, Math.max(1, Number(req.query.size) || 25)) });
@@ -29,7 +30,7 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
   router.use(apiAuth);
   router.use((req, res, next) => {
     const contentType = String(req.get('content-type') || '').toLowerCase();
-    if (contentType.startsWith('image/') || contentType.startsWith('application/pdf')) return next();
+    if (contentType.startsWith('image/') || contentType.startsWith('application/pdf') || contentType.startsWith('text/csv') || contentType.startsWith('application/csv')) return next();
     idempotency(req, res, next);
   });
   router.use((req, res, next) => {
@@ -69,6 +70,24 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
     const organizationId = orgId(req, req.query.organizationId);
     const scope = await resolveScope(pool, req.user);
     res.json(await getAssetDashboard(pool, organizationId, req.user, scope));
+  });
+
+  const rawAssetCsv = express.text({ type: ['text/csv', 'application/csv'], limit: '512kb' });
+  router.get('/assets/import/template.csv', (req, res) => {
+    requirePermission(req.user, 'asset.create');
+    res.set({
+      'content-type': 'text/csv; charset=utf-8',
+      'content-disposition': 'attachment; filename="sqcm-i-asset-import-template.csv"',
+      'cache-control': 'no-store'
+    }).send(`\ufeff${assetImportTemplate()}`);
+  });
+  router.post('/assets/import/preview', rawAssetCsv, idempotency, async (req, res) => {
+    const preview = await analyzeAssetImport(pool, req.user, req.body);
+    res.set('cache-control', 'no-store').json({ preview });
+  });
+  router.post('/assets/import/commit', rawAssetCsv, idempotency, async (req, res) => {
+    const result = await commitAssetImport(pool, req.user, req.body, String(req.get('x-import-checksum') || ''), trace(req));
+    res.status(201).json({ result });
   });
 
   router.post('/assets', async (req, res) => res.status(201).json({ asset: await createAsset(pool, req.user, req.body, trace(req)) }));
@@ -156,7 +175,7 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
 
   router.get('/reports/summary', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.query.organizationId); const scope=await resolveScope(pool,req.user); const report=await getAssetReport(pool,organizationId,{},scope); const values=[organizationId]; const scopeSql=scope.departmentIds?(values.push(scope.departmentIds),` AND COALESCE(a.department_id,u.department_id)=ANY($2::bigint[])`):''; const pending=await pool.query(`SELECT count(*)::int count FROM workflow_requests r JOIN users u ON u.id=r.requester_id LEFT JOIN assets a ON a.id=r.asset_id WHERE r.organization_id=$1 AND r.status='SUBMITTED'${scopeSql}`,values); res.json({summary:{...report.summary,pending_requests:pending.rows[0].count}}); });
   router.get('/reports/assets', async(req,res)=>{ requirePermission(req.user,'report.read'); const scope=await resolveScope(pool,req.user); res.json(await getAssetReport(pool,orgId(req,req.query.organizationId),req.query,scope)); });
-  router.get('/reports/assets.csv', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.query.organizationId); const scope=await resolveScope(pool,req.user); const report=await getReportAssets(pool,organizationId,req.query,scope); const esc=value=>`"${String(value??'').replaceAll('"','""')}"`; const csv=['asset_tag,name,serial_no,status,department,location,category,acquired_at,acquisition_cost',...report.assets.map(row=>[row.asset_tag,row.name,row.serial_no,row.status_code,row.department_name,row.location_name,row.category_name,row.acquired_at?.toISOString?.().slice(0,10)||row.acquired_at,row.acquisition_cost].map(esc).join(','))].join('\r\n'); await audit(pool,req,'REPORT_EXPORTED','REPORT',organizationId,{format:'csv',rows:report.assets.length,filters:report.filters}); res.set({'content-type':'text/csv; charset=utf-8','content-disposition':'attachment; filename="seowon-assets.csv"'}).send('\ufeff'+csv); });
+  router.get('/reports/assets.csv', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.query.organizationId); const scope=await resolveScope(pool,req.user); const report=await getReportAssets(pool,organizationId,req.query,scope); const csv=['asset_tag,name,serial_no,status,department,location,category,acquired_at,acquisition_cost',...report.assets.map(row=>[row.asset_tag,row.name,row.serial_no,row.status_code,row.department_name,row.location_name,row.category_name,row.acquired_at?.toISOString?.().slice(0,10)||row.acquired_at,row.acquisition_cost].map(safeSpreadsheetCsvCell).join(','))].join('\r\n'); await audit(pool,req,'REPORT_EXPORTED','REPORT',organizationId,{format:'csv',rows:report.assets.length,filters:report.filters}); res.set({'content-type':'text/csv; charset=utf-8','content-disposition':'attachment; filename="seowon-assets.csv"'}).send('\ufeff'+csv); });
   router.get('/cost/command-center', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.query.organizationId); const scope=await resolveScope(pool,req.user); res.json(await getCostCommandCenter(pool,req.user,organizationId,scope)); });
   router.get('/cost/roi', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.query.organizationId); const scope=await resolveScope(pool,req.user); res.json(await getCostRoiSummary(pool,req.user,organizationId,scope)); });
   router.post('/cost/savings', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.body.organizationId); const scope=await resolveScope(pool,req.user); if(req.body.assetId){const asset=await pool.query('SELECT organization_id,department_id FROM assets WHERE id=$1',[positiveInteger(req.body.assetId,'자산번호')]);if(!asset.rowCount)throw new DomainError('자산을 찾을 수 없습니다.',404);orgId(req,asset.rows[0].organization_id);if(!canAccessDepartment(scope,asset.rows[0].department_id))throw new DomainError('허용된 부서 범위를 벗어났습니다.',403);} const result=await recordSavingsEvent(pool,req.user,{...req.body,organizationId}); await audit(pool,req,'COST_SAVINGS_RECORDED','COST_SAVINGS',result.id,{savingsType:result.savingsType,avoidedAmount:result.avoidedAmount,assetId:result.assetId}); res.status(201).json({savings:result}); });

@@ -7,7 +7,7 @@ Harness 진행: **7 / 8 Phase 완료**
 Production GO: **true**
 <!-- HARNESS_STATUS_END -->
 
-기준일: 2026-09-03
+기준일: 2026-09-04
 
 상태 정본: [`docs/current-state.md`](./current-state.md)
 
@@ -16,6 +16,18 @@ Production GO: **true**
 로드맵 역할: 전체 진행 순서와 현재 실행 Phase를 한 화면에 고정한다. 과거 `docs/phase-reports/`의 Phase 번호는 역사 증거이며, 새로운 실행 순서를 결정하지 않는다.
 
 제품 인도 체크포인트: **최신 `qs 6.16.0` 포함 Production 제품 11/11 완료**. 원격 main·배포 release는 `93aa5b8fde5a6ac29758afb91acbef278bdfae49`이며 P7은 기능 개발이 아닌 운영 자격 증거 축적 단계다.
+
+## SQCM-i C 제품 고도화 트랙
+
+현재 Production 기준선과 P7 운영 증거는 보존하면서, Excel 업무를 건설 자산 통제 제품으로 전환하는 별도 제품 Epic을 순차 진행한다.
+
+`C1 Excel 이관 🔄 → C2 QR·라벨 ⏳ → C3 오프라인 재물조사 ⏳ → C4 직원 셀프서비스 ⏳ → C5 HR·ERP 연동 ⏳ → C6 선택형 IoT 🔒`
+
+- 현재 제품 READY: `PE-C1-REAL-POSTGRES-INTEGRATION-AND-BROWSER-EVIDENCE`
+- C1 구현 증거: 메타프롬프트 8/8, UI 계약 28/28, 구문 435개, 단위 927 PASS·8 SKIP·0 FAIL.
+- C1 미완료 증거: Docker Engine 복구와 격리 build 진행은 확인했지만 재부팅 안전 저장 요청으로 실제 PostgreSQL HTTP 통합·1440px/390px 브라우저 검증은 `NOT_RUN_REBOOT_CHECKPOINT`.
+- 판정: C1은 `진행 중 / 복구 지점 차단`. C2는 C1 실제 통합 증거와 복구 가능한 Git 체크포인트 뒤에만 연다.
+- 상세 정본: [`develop docs/34_SQCM-i_C_제품고도화_로드맵.md`](../develop%20docs/34_SQCM-i_C_%EC%A0%9C%ED%92%88%EA%B3%A0%EB%8F%84%ED%99%94_%EB%A1%9C%EB%93%9C%EB%A7%B5.md)
 
 ## 1. 운영 규칙
 

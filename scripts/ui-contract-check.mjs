@@ -29,6 +29,9 @@ const checks = [
   ,['first login requires an isolated password-change form', /id="required-password-change-form"[\s\S]*autocomplete="current-password"[\s\S]*autocomplete="new-password"/]
   ,['password-reset-required user is routed before the app shell', /function showApp\(\)[\s\S]*passwordResetRequired[\s\S]*showRequiredPasswordChange/]
   ,['password-change-required API responses route to the isolated form', /data\.code === 'PASSWORD_CHANGE_REQUIRED'[\s\S]*showRequiredPasswordChange\(\)/]
+  ,['Excel migration exposes template, file input, and preview action', /assets\/import\/template\.csv[\s\S]*name="assetCsv"[\s\S]*등록 전 미리보기/]
+  ,['bulk import keeps preview before explicit confirmation', /assets\/import\/preview[\s\S]*window\.confirm[\s\S]*assets\/import\/commit/]
+  ,['bulk import result is announced to assistive technology', /id="asset-import-result"[^>]+aria-live="polite"/]
 ];
 for (const [name, pattern] of checks) {
   const source = `${index}\n${app}\n${components}\n${baseCss}\n${css}`;

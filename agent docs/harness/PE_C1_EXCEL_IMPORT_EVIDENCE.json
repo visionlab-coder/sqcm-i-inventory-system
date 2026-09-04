@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "workId": "PE-C1-EXCEL-SAFE-BULK-IMPORT",
+  "checkedAt": "2026-09-04T11:43:00+09:00",
+  "status": "IN_PROGRESS_RECOVERY_CHECKPOINT_BLOCKED",
+  "productTrack": "SQCM-i C",
+  "productMeaning": "Construction Asset Control & Cost",
+  "phaseProgressUnchanged": "7 / 8",
+  "productionGoUnchanged": true,
+  "verification": {
+    "promptContract": { "passed": 8, "total": 8, "status": "PASS" },
+    "focusedUnit": { "passed": 12, "failed": 0, "status": "PASS" },
+    "syntaxFiles": { "passed": 435, "failed": 0, "status": "PASS" },
+    "unit": { "passed": 927, "skipped": 8, "failed": 0, "status": "PASS" },
+    "uiContract": { "passed": 28, "failed": 0, "status": "PASS" },
+    "harness": { "status": "PASS", "errors": 0, "currentPhase": "P7" },
+    "postgresHttpIntegration": { "status": "NOT_RUN_REBOOT_CHECKPOINT" },
+    "dockerHealthSmoke": { "status": "PARTIAL_BUILD_INTERRUPTED_BEFORE_RUNTIME" },
+    "desktopBrowser1440": { "status": "NOT_RUN_DEPENDENCY_BLOCKED" },
+    "mobileBrowser390x844": { "status": "NOT_RUN_DEPENDENCY_BLOCKED" }
+  },
+  "implementedControls": [
+    "UTF8_BOM_KOREAN_TEMPLATE",
+    "PREVIEW_WITH_ROW_ERRORS",
+    "MAX_500_ROWS_AND_512_KIB",
+    "CHECKSUM_BOUND_ATOMIC_COMMIT",
+    "RBAC_ORGANIZATION_DEPARTMENT_SCOPE",
+    "CSRF_AND_IDEMPOTENCY",
+    "AUDIT_HISTORY_OUTBOX",
+    "SPREADSHEET_FORMULA_INPUT_BLOCK_AND_EXPORT_NEUTRALIZATION",
+    "RESPONSIVE_ACCESSIBLE_IMPORT_UI"
+  ],
+  "changesMade": true,
+  "externalChangesMade": false,
+  "databaseMigrationMade": false,
+  "productionDeploymentMade": false,
+  "blockedReasons": [
+    "CONTROLLED_REBOOT_CHECKPOINT_REQUESTED",
+    "ISOLATED_COMPOSE_BUILD_INTERRUPTED_BEFORE_RUNTIME_VERIFICATION",
+    "REAL_BROWSER_EVIDENCE_DEPENDS_ON_RUNTIME"
+  ],
+  "completionCommitCreated": false,
+  "completionPushMade": false,
+  "checkpointType": "WIP_RECOVERY_CHECKPOINT",
+  "nextReady": "PE-C1-REAL-POSTGRES-INTEGRATION-AND-BROWSER-EVIDENCE"
+}
