@@ -29,6 +29,7 @@
     { "file": "026_postgres_file_blobs.sql", "targets": ["application"] },
     { "file": "027_asset_qr_identity.sql", "targets": ["application", "supabase"] },
     { "file": "028_stocktake_offline_sync.sql", "targets": ["application", "supabase"] },
-    { "file": "029_hr_integration_inbox.sql", "targets": ["application", "supabase"] }
+    { "file": "029_hr_integration_inbox.sql", "targets": ["application", "supabase"] },
+    { "file": "030_hr_lifecycle_mapping_exceptions.sql", "targets": ["application", "supabase"] }
   ]
 }
