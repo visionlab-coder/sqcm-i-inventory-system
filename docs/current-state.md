@@ -17,7 +17,7 @@ Production GO: **true**
 
 이 문서는 현재 상태의 단일 정본이다. 과거 Phase 보고서의 당시 수치와 설계 결정은 역사 증거로 보존하되 현재 판정에는 이 문서와 실제 코드·테스트 결과를 우선한다.
 
-## 2026-09-04 SQCM-i C 제품 고도화 — C1~C4 완료 / C5 G0~G2 완료·G3 READY
+## 2026-09-04 SQCM-i C 제품 고도화 — C1~C4 완료 / C5 G0~G3 완료·G4 외부 입력 대기
 
 - 서원토건의 Excel 비품 원장을 안전하게 옮기기 위한 한국어 CSV 템플릿, 최대 500행 미리보기, 행별 오류, checksum 재검증, 전부 또는 전무 트랜잭션, RBAC·CSRF·idempotency·감사·outbox를 구현했다.
 - 자산 등록 화면에 3단계 Excel 이관 UX를 추가했고 900px 이하 단일 열, label과 live 결과 영역을 계약검사로 확인했다. CSV 입력과 내보내기는 스프레드시트 수식 시작 문자를 차단 또는 중화한다.
@@ -33,6 +33,7 @@ Production GO: **true**
 - C5 G0 `PE-C5-HR-ERP-INTEGRATION-CONTRACT`를 증거 있는 완료로 닫았다. raw-body HMAC-SHA256, 300초 timestamp, replay 예약, 1 MiB·fatal UTF-8, HR 최소 이벤트 스키마와 ERP canonical payload SHA-256·idempotency·금지 필드 계약을 추가했다. 집중시험 4/4, 저장소 구문 452개, 전체 단위 945 PASS·8 SKIP, 메타프롬프트 8/8, Harness 오류 0건을 확인했다. WIP 복구 체크포인트 `13d5cd57c7122b087b4acb395d54d0f8bd712d09`을 원격 동일 branch에 push해 SHA 일치를 확인했다. DB·외부 공급자·Production·staging은 변경하지 않았고 C5 전체는 진행 중이며 다음 제품 READY는 `PE-C5-G1-HR-INBOX-AND-AUDIT-LEDGER`다.
 - C5 G1 `PE-C5-G1-HR-INBOX-AND-AUDIT-LEDGER`를 증거 있는 완료로 닫았다. 조직·공급자·event ID UNIQUE 원장과 최소 payload SHA 충돌, transactional audit, SKIP LOCKED·5분 stale lock 회수, retry·열 번째 dead-letter를 구현했다. 집중 10/10, 구문 455개, 전체 단위 950 PASS·8 SKIP, 로컬 application migration 28/28과 합성 PostgreSQL APPLIED·REJECTED·감사 6종·cleanup 0/0이 PASS했다. WIP 복구 체크포인트 `38b50abf7de3aff842c003274ae1a560567a06ce`을 원격 동일 branch에 push해 SHA 일치를 확인했다. Production·staging·외부 공급자는 변경하지 않았으며 다음 제품 READY는 `PE-C5-G2-EMPLOYEE-LIFECYCLE-MAPPING-AND-EXCEPTION-QUEUE`다.
 - C5 G2 `PE-C5-G2-EMPLOYEE-LIFECYCLE-MAPPING-AND-EXCEPTION-QUEUE`를 증거 있는 완료로 닫았다. provider·organization 범위의 조직·부서·직원 명시 매핑, 조직 격리, 원자적 이동·정보갱신·자산 없는 퇴사와 미매핑·이메일 identity 변경·자산 보유 퇴사 예외 큐를 구현했다. 집중 9/9, 구문 458개, 전체 단위 954 PASS·8 SKIP, 로컬 application migration 29/29와 합성 이동 APPLIED·자산 보유 퇴사 REJECTED·OPEN 예외·cleanup 0이 PASS했다. WIP 복구 체크포인트 `6651ae0d540dc60a4b718104b49f9d7578921226`을 원격 동일 branch에 push해 SHA 일치를 확인했다. 1234·11434·18766 listener는 유지됐고 18765는 재부팅 이후 기존 미복구 상태이며 본 작업의 프로세스 변경은 0이다. Production·staging·외부 공급자는 변경하지 않았으며 다음 제품 READY는 `PE-C5-G3-ERP-EAPPROVAL-DELIVERY`다.
+- C5 G3 `PE-C5-G3-ERP-EAPPROVAL-DELIVERY`를 증거 있는 완료로 닫았다. HTTPS 전용 canonical HMAC publisher, 검증된 provider receipt·응답 SHA-256, 안전한 실패 코드, 열 번째 dead-letter와 ADMIN 조직 범위 재처리·감사를 구현했다. 집중 13/13, 구문 461개, 전체 단위 958 PASS·8 SKIP, 로컬 application migration 30/30과 합성 signed delivery·receipt·dead-letter·재처리 감사·cleanup 0이 PASS했다. 구현 체크포인트 `afdef50f4c34532bd1b01d0f3ec0bfe1ce818308`을 원격 동일 branch에 push해 SHA 일치를 확인했다. 1234·11434·18766 listener는 유지됐고 18765는 재부팅 이후 기존 미복구 상태이며 본 작업의 프로세스 변경은 0이다. Production·staging·외부 공급자는 변경하지 않았으며 다음 제품 READY는 `PE-C5-G4-ACTUAL-PROVIDER-UAT-AND-DEPLOYMENT`다.
 
 ## 2026-09-03 qs 6.16.0 Production 패치 완료
 

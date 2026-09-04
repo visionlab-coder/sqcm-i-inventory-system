@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "workId": "PE-C5-G3-ERP-EAPPROVAL-DELIVERY",
+  "checkedAt": "2026-09-04T16:18:49+09:00",
+  "status": "PASS",
+  "epicStatus": "IN_PROGRESS",
+  "productTrack": "SQCM-i C",
+  "phaseProgressUnchanged": "7 / 8",
+  "productionGoUnchanged": true,
+  "verification": {
+    "focusedUnit": { "passed": 13, "skipped": 0, "failed": 0, "status": "PASS" },
+    "promptContract": { "passed": 8, "total": 8, "status": "PASS" },
+    "syntax": { "passed": 461, "failed": 0, "status": "PASS" },
+    "repositoryUnit": { "passed": 958, "skipped": 8, "failed": 0, "status": "PASS" },
+    "applicationMigration": { "passed": 30, "total": 30, "target": "loopback-local-only", "status": "PASS" },
+    "postgresIntegration": { "signedDelivery": true, "receiptPersisted": true, "deadLetter": true, "adminRequeueAudit": true, "cleanupRows": 0, "status": "PASS" },
+    "localDeployment": { "services": ["frontend", "backend", "database"], "healthy": 3, "status": "PASS" },
+    "protectedListeners": { "present": [1234, 11434, 18766], "preExistingMissing": [18765], "changesMade": false, "status": "PASS_WITH_PREEXISTING_GAP" },
+    "harnessContract": { "errors": 0, "currentPhase": "P7", "status": "PASS" },
+    "gitCheckpoint": {
+      "sha": "afdef50f4c34532bd1b01d0f3ec0bfe1ce818308",
+      "remote": "origin/codex/p7-qs-6-16-0-production-evidence",
+      "localRemoteShaMatched": true,
+      "status": "PASS"
+    }
+  },
+  "implementedControls": [
+    "HTTPS_ONLY_SIGNED_DELIVERY",
+    "CANONICAL_ENVELOPE_HMAC_SHA256",
+    "VALIDATED_PROVIDER_RECEIPT_AND_RESPONSE_SHA256",
+    "SAFE_FAILURE_CODE_WITHOUT_RAW_PROVIDER_ERROR",
+    "TENTH_ATTEMPT_DEAD_LETTER",
+    "ADMIN_ORGANIZATION_SCOPED_REQUEUE_WITH_AUDIT",
+    "EXACT_SYNTHETIC_EVENT_INTEGRATION_ISOLATION"
+  ],
+  "changesMade": true,
+  "localDatabaseChangesMade": true,
+  "productionChangesMade": false,
+  "stagingChangesMade": false,
+  "externalCallsMade": false,
+  "checkpointType": "WIP_RECOVERY_CHECKPOINT",
+  "blockedReasons": [
+    "ACTUAL_ERP_EAPPROVAL_PROVIDER_NOT_SELECTED",
+    "ACTUAL_ENDPOINT_FIELD_MAPPING_SECRET_REFERENCE_AND_UAT_OWNER_NOT_APPROVED"
+  ],
+  "nextReady": "PE-C5-G4-ACTUAL-PROVIDER-UAT-AND-DEPLOYMENT"
+}
