@@ -17,7 +17,7 @@ Production GO: **true**
 
 이 문서는 현재 상태의 단일 정본이다. 과거 Phase 보고서의 당시 수치와 설계 결정은 역사 증거로 보존하되 현재 판정에는 이 문서와 실제 코드·테스트 결과를 우선한다.
 
-## 2026-09-04 SQCM-i C 제품 고도화 — C1~C4 완료 / C5 READY
+## 2026-09-04 SQCM-i C 제품 고도화 — C1~C4 완료 / C5 G0 완료·G1 READY
 
 - 서원토건의 Excel 비품 원장을 안전하게 옮기기 위한 한국어 CSV 템플릿, 최대 500행 미리보기, 행별 오류, checksum 재검증, 전부 또는 전무 트랜잭션, RBAC·CSRF·idempotency·감사·outbox를 구현했다.
 - 자산 등록 화면에 3단계 Excel 이관 UX를 추가했고 900px 이하 단일 열, label과 live 결과 영역을 계약검사로 확인했다. CSV 입력과 내보내기는 스프레드시트 수식 시작 문자를 차단 또는 중화한다.
@@ -30,6 +30,7 @@ Production GO: **true**
 - C3 사전 migration 검사에서 C2 `027_asset_qr_identity.sql`의 적용 당시 EOF 빈 줄 checksum과 원격 파일이 달라진 사실을 발견했다. 적용 이력 값을 바꾸지 않고 checksum 후보가 CRLF/LF와 SQL 의미에 영향이 없는 EOF 빈 줄만 허용하도록 보완했으며 실제 SQL 변경 차단은 유지했다.
 - C3 `PE-C3-OFFLINE-INVENTORY-PWA`를 증거 있는 완료로 닫았다. PWA 정적 shell은 `/api/`를 캐시하지 않고, IndexedDB 조사 snapshot·operation queue, 서버 version 충돌, UUID·payload hash receipt, 확정 전 대기 차단을 구현했다. migration 27/27, 전체 938 PASS·8 SKIP, UI 38/38, PostgreSQL 통합 24 PASS·1 실제 Defender SKIP, 1440×900·390×844 오프라인→재연결 동기화가 PASS했다. 완료 commit `c85199454dd9699580bfeb1b05484cab5022138c`을 원격 동일 branch에 push해 SHA 일치를 확인했다. Production·staging과 P7 7/8은 변경하지 않았으며 다음 제품 READY는 `PE-C4-EMPLOYEE-SELF-SERVICE`다.
 - C4 `PE-C4-EMPLOYEE-SELF-SERVICE`를 증거 있는 완료로 닫았다. 일반 직원의 활성 자기 배정, 자기 요청·수리·알림만 집계하는 전용 API와 모바일 `내 비품` 화면, 반납·수리·분실 빠른 요청을 추가했다. 전체 941 PASS·8 SKIP, UI 40/40, PostgreSQL 통합 24 PASS·1 실제 Defender SKIP, migration 27/27과 로컬 3서비스가 PASS했다. 합성 USER 브라우저에서 내 자산 1·타인 표시 0·타인 요청 HTTP 403, 분실 요청 `SUBMITTED`·감사 2건, 1440×900·390×844 가로 넘침 0을 확인했다. 완료 commit `62fd863949bbba93ca6751406b71e8e8b2614c7a`을 원격 동일 branch에 push해 SHA 일치를 확인했다. Production·staging과 P7 7/8은 변경하지 않았으며 다음 제품 READY는 `PE-C5-HR-ERP-INTEGRATION-CONTRACT`다.
+- C5 G0 `PE-C5-HR-ERP-INTEGRATION-CONTRACT`를 증거 있는 완료로 닫았다. raw-body HMAC-SHA256, 300초 timestamp, replay 예약, 1 MiB·fatal UTF-8, HR 최소 이벤트 스키마와 ERP canonical payload SHA-256·idempotency·금지 필드 계약을 추가했다. 집중시험 4/4, 저장소 구문 452개, 전체 단위 945 PASS·8 SKIP, 메타프롬프트 8/8, Harness 오류 0건을 확인했다. WIP 복구 체크포인트 `13d5cd57c7122b087b4acb395d54d0f8bd712d09`을 원격 동일 branch에 push해 SHA 일치를 확인했다. DB·외부 공급자·Production·staging은 변경하지 않았고 C5 전체는 진행 중이며 다음 제품 READY는 `PE-C5-G1-HR-INBOX-AND-AUDIT-LEDGER`다.
 
 ## 2026-09-03 qs 6.16.0 Production 패치 완료
 

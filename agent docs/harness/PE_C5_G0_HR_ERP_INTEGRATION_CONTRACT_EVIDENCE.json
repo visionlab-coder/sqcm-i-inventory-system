@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "workId": "PE-C5-HR-ERP-INTEGRATION-CONTRACT",
+  "packetId": "PE-C5-G0-INTEGRATION-SECURITY-CONTRACT",
+  "checkedAt": "2026-09-04T15:39:49+09:00",
+  "status": "PASS",
+  "epicStatus": "IN_PROGRESS",
+  "productTrack": "SQCM-i C",
+  "phaseProgressUnchanged": "7 / 8",
+  "productionGoUnchanged": true,
+  "verification": {
+    "failureFirst": { "status": "PASS", "observed": "MODULE_NOT_FOUND before implementation" },
+    "focusedUnit": { "passed": 4, "skipped": 0, "failed": 0, "status": "PASS" },
+    "promptContract": { "passed": 8, "total": 8, "status": "PASS" },
+    "syntax": { "passed": 452, "failed": 0, "status": "PASS" },
+    "repositoryUnit": { "passed": 945, "skipped": 8, "failed": 0, "status": "PASS" },
+    "harnessContract": { "errors": 0, "currentPhase": "P7", "status": "PASS" },
+    "gitCheckpoint": {
+      "sha": "13d5cd57c7122b087b4acb395d54d0f8bd712d09",
+      "remote": "origin/codex/p7-qs-6-16-0-production-evidence",
+      "localRemoteShaMatched": true,
+      "status": "PASS"
+    }
+  },
+  "implementedControls": [
+    "RAW_BODY_HMAC_SHA256_BEFORE_JSON_PARSE",
+    "FIVE_MINUTE_TIMESTAMP_WINDOW",
+    "EXPLICIT_REPLAY_RESERVATION",
+    "ONE_MIB_BODY_LIMIT",
+    "FATAL_UTF8_JSON_DECODE",
+    "HR_EVENT_ALLOWLIST_AND_MINIMUM_FIELDS",
+    "ERP_CANONICAL_PAYLOAD_SHA256",
+    "ERP_IDEMPOTENCY_KEY",
+    "CREDENTIAL_AND_RESIDENT_IDENTIFIER_FIELD_REJECTION"
+  ],
+  "changesMade": true,
+  "databaseChangesMade": false,
+  "productionChangesMade": false,
+  "stagingChangesMade": false,
+  "externalCallsMade": false,
+  "checkpointType": "WIP_RECOVERY_CHECKPOINT",
+  "blockedReasons": [
+    "ACTUAL_HR_ERP_PROVIDER_NOT_SELECTED",
+    "ACTUAL_ENDPOINT_AND_FIELD_MAPPING_NOT_APPROVED",
+    "ACTUAL_SECRET_REFERENCE_NOT_AVAILABLE"
+  ],
+  "nextReady": "PE-C5-G1-HR-INBOX-AND-AUDIT-LEDGER"
+}

@@ -21,12 +21,12 @@ Production GO: **true**
 
 현재 Production 기준선과 P7 운영 증거는 보존하면서, Excel 업무를 건설 자산 통제 제품으로 전환하는 별도 제품 Epic을 순차 진행한다.
 
-`C1 Excel 이관 ✅ → C2 QR·라벨 ✅ → C3 오프라인 재물조사 ✅ → C4 직원 셀프서비스 ✅ → C5 HR·ERP 연동 READY → C6 선택형 IoT 🔒`
+`C1 Excel 이관 ✅ → C2 QR·라벨 ✅ → C3 오프라인 재물조사 ✅ → C4 직원 셀프서비스 ✅ → C5 HR·ERP 연동 G0 ✅ / G1 READY → C6 선택형 IoT 🔒`
 
-- 현재 제품 READY: `PE-C5-HR-ERP-INTEGRATION-CONTRACT`
+- 현재 제품 READY: `PE-C5-G1-HR-INBOX-AND-AUDIT-LEDGER`
 - C1 구현 증거: 메타프롬프트 8/8, UI 계약 30/30, 구문 436개, 단위 927 PASS·8 SKIP·0 FAIL.
 - C1 실제 증거: 격리 PostgreSQL HTTP 통합 1 PASS·0 FAIL, frontend/backend/database 3컨테이너 health·smoke PASS, Chrome 1440×900·390×844 렌더·무가로넘침 PASS.
-- 판정: C4 전체 941 PASS·8 SKIP, UI 40/40, PostgreSQL 통합 24 PASS·1 실제 Defender SKIP, migration 27/27과 local 3서비스가 PASS했다. 합성 USER에서 내 자산 1·타인 표시 0·타인 요청 HTTP 403, 분실 신고 `SUBMITTED`·감사 2건과 1440×900·390×844 가로 넘침 0을 확인했다. 완료 commit `62fd863949bbba93ca6751406b71e8e8b2614c7a` push와 SHA 일치로 C4를 닫고 C5를 열었다. Production·staging은 변경하지 않았다.
+- 판정: C5 G0는 raw-body HMAC·300초 timestamp·replay guard·1 MiB·fatal UTF-8·HR 최소 스키마와 ERP canonical payload hash·금지 필드 계약을 구현했다. 집중 4/4, 전체 단위 945 PASS·8 SKIP, 구문 452개, 메타프롬프트 8/8, Harness가 PASS했고 WIP 복구 체크포인트 `13d5cd57c7122b087b4acb395d54d0f8bd712d09`을 push했다. C5 전체는 진행 중이며 Production·staging·DB·외부 공급자는 변경하지 않았다.
 - 상세 정본: [`develop docs/34_SQCM-i_C_제품고도화_로드맵.md`](../develop%20docs/34_SQCM-i_C_%EC%A0%9C%ED%92%88%EA%B3%A0%EB%8F%84%ED%99%94_%EB%A1%9C%EB%93%9C%EB%A7%B5.md)
 
 ## 1. 운영 규칙
