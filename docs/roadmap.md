@@ -21,12 +21,12 @@ Production GO: **true**
 
 현재 Production 기준선과 P7 운영 증거는 보존하면서, Excel 업무를 건설 자산 통제 제품으로 전환하는 별도 제품 Epic을 순차 진행한다.
 
-`C1 Excel 이관 ✅ → C2 QR·라벨 ✅ → C3 오프라인 재물조사 ✅(checkpoint 생성 중) → C4 직원 셀프서비스 READY → C5 HR·ERP 연동 ⏳ → C6 선택형 IoT 🔒`
+`C1 Excel 이관 ✅ → C2 QR·라벨 ✅ → C3 오프라인 재물조사 ✅ → C4 직원 셀프서비스 READY → C5 HR·ERP 연동 ⏳ → C6 선택형 IoT 🔒`
 
-- 현재 제품 READY: C3 완료 Git 체크포인트 후 `PE-C4-EMPLOYEE-SELF-SERVICE`
+- 현재 제품 READY: `PE-C4-EMPLOYEE-SELF-SERVICE`
 - C1 구현 증거: 메타프롬프트 8/8, UI 계약 30/30, 구문 436개, 단위 927 PASS·8 SKIP·0 FAIL.
 - C1 실제 증거: 격리 PostgreSQL HTTP 통합 1 PASS·0 FAIL, frontend/backend/database 3컨테이너 health·smoke PASS, Chrome 1440×900·390×844 렌더·무가로넘침 PASS.
-- 판정: C3 migration 27/27, 전체 938 PASS·8 SKIP, UI 계약 38/38, PostgreSQL 통합 24 PASS·1 실제 Defender SKIP, local 3서비스와 합성 MANAGER 오프라인 브라우저가 PASS했다. 1440×900·390×844 가로 넘침 0, 큐 1건의 재연결 동기화와 DB receipt·audit 각 1건을 확인했다. Production·staging은 변경하지 않았다.
+- 판정: C3 migration 27/27, 전체 938 PASS·8 SKIP, UI 계약 38/38, PostgreSQL 통합 24 PASS·1 실제 Defender SKIP, local 3서비스와 합성 MANAGER 오프라인 브라우저가 PASS했다. 1440×900·390×844 가로 넘침 0, 큐 1건의 재연결 동기화와 DB receipt·audit 각 1건을 확인했다. 완료 commit `c85199454dd9699580bfeb1b05484cab5022138c` push와 SHA 일치로 C3를 닫고 C4를 열었다. Production·staging은 변경하지 않았다.
 - 상세 정본: [`develop docs/34_SQCM-i_C_제품고도화_로드맵.md`](../develop%20docs/34_SQCM-i_C_%EC%A0%9C%ED%92%88%EA%B3%A0%EB%8F%84%ED%99%94_%EB%A1%9C%EB%93%9C%EB%A7%B5.md)
 
 ## 1. 운영 규칙

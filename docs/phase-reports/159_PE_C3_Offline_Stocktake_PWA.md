@@ -2,7 +2,7 @@
 
 기준일: 2026-09-04 KST
 
-상태: **기능·검증 완료 / Git 완료 체크포인트 생성 중**
+상태: **증거 있는 완료**
 
 다음 READY: `PE-C4-EMPLOYEE-SELF-SERVICE`
 
@@ -53,7 +53,7 @@
 ## 7. 인도·복구
 
 - [x] C3 사람용·기계용 증거와 C4 READY를 같은 사실로 기록
-- [ ] C3 exact allowlist 완료 commit·push
-- [ ] local/remote SHA 일치 기록
+- [x] C3 exact allowlist 완료 commit·push `c85199454dd9699580bfeb1b05484cab5022138c`
+- [x] local/remote SHA 일치 기록
 
-Production·staging에는 배포하지 않았다. C3 코드는 로컬 3서비스에서 검증됐으며 Git 완료 체크포인트 후 C4로 이동한다.
+Production·staging에는 배포하지 않았다. C3 코드는 로컬 3서비스에서 검증했고 완료 commit push와 SHA 일치를 확인했으므로 C3를 닫고 C4를 연다.

@@ -30,12 +30,12 @@
   "changesMade": true,
   "productionChangesMade": false,
   "stagingChangesMade": false,
-  "completionCommitCreated": false,
-  "completionPushMade": false,
-  "completionCommitSha": null,
+  "completionCommitCreated": true,
+  "completionPushMade": true,
+  "completionCommitSha": "c85199454dd9699580bfeb1b05484cab5022138c",
   "completionRemote": "origin/codex/p7-qs-6-16-0-production-evidence",
-  "localRemoteShaMatched": false,
+  "localRemoteShaMatched": true,
   "blockedReasons": [],
-  "checkpointType": "PHASE_COMPLETION_CHECKPOINT_PENDING",
+  "checkpointType": "PHASE_COMPLETION_CHECKPOINT",
   "nextReady": "PE-C4-EMPLOYEE-SELF-SERVICE"
 }
