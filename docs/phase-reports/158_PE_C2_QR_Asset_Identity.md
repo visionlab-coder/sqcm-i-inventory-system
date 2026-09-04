@@ -2,15 +2,15 @@
 
 기준일: 2026-09-04 KST
 
-상태: **진행 중 — 인증 브라우저 재검증 대기**
+상태: **증거 있는 완료 — 완료 체크포인트 push 진행 중**
 
-다음 READY: `PE-C2-QR-ASSET-IDENTITY-AND-LABEL-BROWSER-REVALIDATION`
+다음 READY: `PE-C3-OFFLINE-INVENTORY-PWA`
 
 ## 1. 사용자 가치
 
 - [x] QR 또는 수동 코드로 자산을 조회한다.
 - [x] 조회 성공 시 기존 자산 상세 화면으로 연결한다.
-- [ ] 실제 로그인 직원 화면에서 데스크톱·모바일 흐름을 확인한다.
+- [x] 일회성 합성 MANAGER로 데스크톱·모바일 로그인 흐름을 확인하고 계정·세션·감사를 정리했다.
 
 ## 2. 기능
 
@@ -30,8 +30,8 @@
 
 - [x] 키보드 label, `aria-live`, 카메라 미지원 안내
 - [x] 모바일 단일 열과 인쇄 전용 레이아웃
-- [ ] 1440×900 실제 로그인 렌더
-- [ ] 390×844 실제 로그인 렌더·가로 넘침 0
+- [x] 1440×900 실제 로그인 렌더·가로 넘침 0
+- [x] 390×844 실제 로그인 렌더·가로 넘침 0
 
 ## 5. 데이터·운영
 
@@ -46,12 +46,14 @@
 - [x] UI 계약: 34/34 PASS
 - [x] PostgreSQL HTTP QR 계약: 8 PASS / 0 FAIL
 - [x] local frontend/backend/database 3서비스와 QR bundle 확인
-- [ ] 브라우저 자동화는 동일 실패 3회 뒤 중단했다. 원인은 dashboard 비동기 렌더 전에 QR view를 열어 후속 렌더가 덮어쓴 경쟁 조건이며, 실행기 wait 조건을 수정했지만 규칙상 즉시 네 번째 실행하지 않았다.
+- [x] 브라우저 자동화 대체 경로 PASS. 기존 계정 비밀번호를 변경하지 않고 일회성 합성 MANAGER를 생성·검증·exact cleanup했다. 숨겨진 로그인 화면 제목을 읽던 선택자를 실제 `#view-root`로 한정했다.
+- [x] 데스크톱 SHA-256 `6f0e2cd38c11f4784ef762e90e2318508e80428dd1b13b950c54e7effe36b88e`
+- [x] 모바일 SHA-256 `2221c5a76d4bca18008d9ffad55a4f650312a6cbfb04d17baa30f0b316848aff`
 
 ## 7. 인도·복구
 
 - [x] C2 상태·미완료·다음 READY를 사람용/기계용 문서에 기록
-- [ ] 브라우저 PASS 뒤 C2 완료 exact allowlist commit·push
-- [ ] 완료 commit의 local/remote SHA 일치
+- [x] C2 완료 exact allowlist commit 생성 대상 확정
+- [ ] 완료 commit의 push와 local/remote SHA 일치
 
-현재 체크포인트는 C2 완료가 아니다. 실제 직원 계정으로 로컬 앱에 로그인한 뒤 QR 메뉴, 수동 조회, 자산 상세, 개별/A4 라벨을 데스크톱과 390×844에서 읽기 검증해야 C2를 닫고 C3를 연다.
+QR 메뉴, 수동 조회, 자산 상세 연결, 개별/A4 라벨을 1440×900과 390×844에서 검증했다. push와 SHA 일치가 확인되면 C2를 닫고 C3를 연다.

@@ -1,13 +1,18 @@
 import { spawn } from 'node:child_process';
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import { createRequire } from 'node:module';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
+const require = createRequire(import.meta.url);
+const bcrypt = require('bcryptjs');
+const { Pool } = require('pg');
 const required = name => { const value=process.env[name]; if(!value) throw new Error(`${name} is required`); return value; };
 const baseUrl = required('C2_BROWSER_BASE_URL').replace(/\/$/, '');
-const email = required('C2_BROWSER_EMAIL');
-const password = required('C2_BROWSER_PASSWORD');
+const provisionSynthetic = process.env.C2_BROWSER_PROVISION_SYNTHETIC === 'true';
+let email = provisionSynthetic ? `c2-browser-${randomUUID()}@example.invalid` : required('C2_BROWSER_EMAIL');
+let password = provisionSynthetic ? `Aa1!${randomBytes(18).toString('base64url')}` : required('C2_BROWSER_PASSWORD');
 const outputDir = path.resolve(process.env.C2_BROWSER_OUTPUT_DIR || 'artifacts/c2-browser');
 const chromeCandidates = [process.env.CHROME_PATH,'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe','C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'].filter(Boolean);
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -25,7 +30,7 @@ async function capture(cdp,name,width,height,mobile,publicId){
   await evaluate(cdp,`history.replaceState({},'',${JSON.stringify(`#scan=${publicId}`)})`);
   await cdp.send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile});
   await waitFor(cdp,`document.querySelector('#qr-open-detail')`,'responsive QR result');await sleep(250);
-  const metrics=await evaluate(cdp,`(() => { const input=document.querySelector('#qr-code-input'); const rect=input?.getBoundingClientRect(); return {heading:document.querySelector('h1')?.textContent?.trim(),resultHeading:document.querySelector('#qr-result h2')?.textContent?.trim(),viewport:{width:innerWidth,height:innerHeight},scrollWidth:document.documentElement.scrollWidth,hasHorizontalOverflow:document.documentElement.scrollWidth>innerWidth,manualInput:{width:rect?.width||0,height:rect?.height||0},cameraButton:document.querySelector('#qr-camera-start')?.textContent?.trim(),resultLive:document.querySelector('#qr-result')?.getAttribute('aria-live')}; })()`);
+  const metrics=await evaluate(cdp,`(() => { const input=document.querySelector('#qr-code-input'); const rect=input?.getBoundingClientRect(); return {heading:document.querySelector('#view-root h1')?.textContent?.trim(),resultHeading:document.querySelector('#qr-result h2')?.textContent?.trim(),viewport:{width:innerWidth,height:innerHeight},scrollWidth:document.documentElement.scrollWidth,hasHorizontalOverflow:document.documentElement.scrollWidth>innerWidth,manualInput:{width:rect?.width||0,height:rect?.height||0},cameraButton:document.querySelector('#qr-camera-start')?.textContent?.trim(),resultLive:document.querySelector('#qr-result')?.getAttribute('aria-live')}; })()`);
   if(metrics.heading!=='QR로 자산 찾기'||!metrics.resultHeading)throw new Error(`${name}: QR result screen missing (${JSON.stringify(metrics)})`);
   if(metrics.hasHorizontalOverflow||metrics.manualInput.width<=0||metrics.manualInput.height<=0)throw new Error(`${name}: responsive input contract failed`);
   if(metrics.resultLive!=='polite'||!metrics.cameraButton)throw new Error(`${name}: accessibility contract failed`);
@@ -33,19 +38,35 @@ async function capture(cdp,name,width,height,mobile,publicId){
   return {...metrics,file,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
 }
 
-const chrome=await firstExisting(chromeCandidates); const profile=await mkdtemp(path.join(os.tmpdir(),'sqcm-c2-browser-')); const port=54818; let child; let cdp;
+const chrome=await firstExisting(chromeCandidates); const profile=await mkdtemp(path.join(os.tmpdir(),'sqcm-c2-browser-')); const port=54818; let child; let cdp; let pool; let syntheticUserId;
 try {
+  if(provisionSynthetic){
+    pool=new Pool({connectionString:required('C2_BROWSER_DATABASE_URL')});
+    const scope=await pool.query("SELECT organization_id,department_id FROM users WHERE role='MANAGER' AND status='ACTIVE' AND organization_id IS NOT NULL ORDER BY id LIMIT 1");
+    if(!scope.rowCount)throw new Error('No manager scope was available for synthetic browser validation');
+    const created=await pool.query("INSERT INTO users(email,display_name,password_hash,role,status,organization_id,department_id,password_reset_required,mfa_enabled,is_system_admin) VALUES($1,'C2 브라우저 검증',$2,'MANAGER','ACTIVE',$3,$4,false,false,false) RETURNING id",[email,await bcrypt.hash(password,12),scope.rows[0].organization_id,scope.rows[0].department_id]);
+    syntheticUserId=created.rows[0].id;
+  }
   await mkdir(outputDir,{recursive:true});
   child=spawn(chrome,['--headless=new','--disable-gpu','--no-first-run','--no-default-browser-check',`--remote-debugging-port=${port}`,`--user-data-dir=${profile}`,baseUrl],{stdio:'ignore',windowsHide:true});
   const pages=await waitForJson(`http://127.0.0.1:${port}/json/list`); const page=pages.find(item=>item.type==='page'); if(!page?.webSocketDebuggerUrl)throw new Error('Chrome page target was not found');
   cdp=connectCdp(page.webSocketDebuggerUrl);await cdp.opened;await cdp.send('Page.enable');await cdp.send('Runtime.enable');
   await waitFor(cdp,`document.querySelector('#login-form') && typeof state !== 'undefined' && Boolean(state.csrfToken)`,'login form');
   await evaluate(cdp,`(() => { const set=(selector,value)=>{const input=document.querySelector(selector);Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,value);input.dispatchEvent(new Event('input',{bubbles:true}));};set('input[type="email"]',${JSON.stringify(email)});set('input[type="password"]',${JSON.stringify(password)});document.querySelector('#login-form button[type="submit"]').click();return true;})()`);
-  await waitFor(cdp,`location.hash.includes('dashboard') && document.querySelector('h1')?.textContent?.trim() === '현장 자산 지휘판'`,'authenticated dashboard');
+  await waitFor(cdp,`location.hash.includes('dashboard') || !document.querySelector('#login-error')?.classList.contains('hidden') || !document.querySelector('#mfa-login-form')?.classList.contains('hidden')`,'login outcome');
+  const loginOutcome=await evaluate(cdp,`({dashboard:location.hash.includes('dashboard'),errorVisible:!document.querySelector('#login-error')?.classList.contains('hidden'),mfaVisible:!document.querySelector('#mfa-login-form')?.classList.contains('hidden')})`);
+  if(!loginOutcome.dashboard)throw new Error(`Authenticated dashboard unavailable (${JSON.stringify(loginOutcome)})`);
+  await sleep(1000);
+  const dashboardState=await evaluate(cdp,`({heading:document.querySelector('#view-root h1')?.textContent?.trim()||'',viewText:(document.querySelector('#view-root')?.innerText||'').slice(0,120),userReady:Boolean(state.user),appHidden:document.querySelector('#app-shell')?.classList.contains('hidden')})`);
+  if(dashboardState.heading!=='현장 자산 지휘판')throw new Error(`Authenticated dashboard render failed (${JSON.stringify(dashboardState)})`);
   const publicId=await evaluate(cdp,`fetch('/api/enterprise/assets?size=1',{credentials:'same-origin'}).then(r=>r.json()).then(v=>v.assets?.[0]?.qr_public_id||'')`); if(!publicId)throw new Error('No QR-enabled asset was available');
   await evaluate(cdp,`document.querySelector('[data-view="qr-scan"]').click()`);await waitFor(cdp,`document.querySelector('#qr-manual-form')`,'QR scan screen');
   await evaluate(cdp,`(() => { const input=document.querySelector('#qr-code-input');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(publicId)});input.dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('#qr-manual-form button[type="submit"]').click();return true;})()`);
   await waitFor(cdp,`document.querySelector('#qr-open-detail')`,'authorized QR result');
   const desktop=await capture(cdp,'desktop',1440,900,false,publicId); const mobile=await capture(cdp,'mobile',390,844,true,publicId);
   const result={schemaVersion:1,checkedAt:new Date().toISOString(),status:'PASS',baseUrl,syntheticAccount:true,captures:{desktop,mobile}}; const resultPath=path.join(outputDir,'result.json');await writeFile(resultPath,`${JSON.stringify(result,null,2)}\n`,'utf8');console.log(JSON.stringify({status:'PASS',resultPath,captures:result.captures},null,2));
-} finally { cdp?.close(); if(child&&!child.killed)child.kill(); await sleep(200); await rm(profile,{recursive:true,force:true}); }
+} finally {
+  cdp?.close(); if(child&&!child.killed)child.kill(); await sleep(200); await rm(profile,{recursive:true,force:true});
+  if(pool&&syntheticUserId){await pool.query('DELETE FROM audit_logs WHERE actor_user_id=$1',[syntheticUserId]);await pool.query("DELETE FROM user_sessions WHERE sess->>'userId'=$1",[String(syntheticUserId)]);await pool.query('DELETE FROM users WHERE id=$1',[syntheticUserId]);}
+  await pool?.end(); email=''; password='';
+}

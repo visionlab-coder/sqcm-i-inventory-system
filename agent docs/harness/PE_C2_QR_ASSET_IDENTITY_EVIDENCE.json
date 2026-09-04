@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "workId": "PE-C2-QR-ASSET-IDENTITY-AND-LABEL",
-  "checkedAt": "2026-09-04T13:25:28+09:00",
-  "status": "HOLD_BROWSER_REVALIDATION",
+  "checkedAt": "2026-09-04T13:53:58+09:00",
+  "status": "PASS",
   "productTrack": "SQCM-i C",
   "phaseProgressUnchanged": "7 / 8",
   "productionGoUnchanged": true,
@@ -13,8 +13,8 @@
     "applicationMigration": { "passed": 26, "total": 26, "status": "PASS" },
     "postgresHttpIntegration": { "passed": 8, "failed": 0, "status": "PASS", "transport": "supertest-in-process", "cleanup": "asset,audit,outbox,idempotency,session" },
     "localDeployment": { "services": ["frontend", "backend", "database"], "backend": "healthy", "database": "healthy", "frontendBundleContainsQrScanner": true, "status": "PASS" },
-    "browserDesktop1440x900": { "status": "NOT_RUN", "reason": "THREE_SAME_AUTOMATION_FAILURES_STOPPED_AFTER_ROOT_CAUSE_FIX" },
-    "browserMobile390x844": { "status": "NOT_RUN", "reason": "AUTHENTICATED_UI_REVALIDATION_REQUIRED" }
+    "browserDesktop1440x900": { "status": "PASS", "horizontalOverflow": false, "resultHeading": "증빙 수명주기 자산", "sha256": "6f0e2cd38c11f4784ef762e90e2318508e80428dd1b13b950c54e7effe36b88e", "evidencePath": "D:\\seowon_runtime\\sqcm-i-inventory-c2\\evidence\\browser-final\\desktop-1440x900.png" },
+    "browserMobile390x844": { "status": "PASS", "horizontalOverflow": false, "resultHeading": "증빙 수명주기 자산", "sha256": "2221c5a76d4bca18008d9ffad55a4f650312a6cbfb04d17baa30f0b316848aff", "evidencePath": "D:\\seowon_runtime\\sqcm-i-inventory-c2\\evidence\\browser-final\\mobile-390x844.png" }
   },
   "implementedControls": [
     "OPAQUE_UUID_QR_PAYLOAD",
@@ -28,9 +28,9 @@
   "changesMade": true,
   "productionChangesMade": false,
   "stagingChangesMade": false,
-  "completionCommitCreated": false,
+  "completionCommitCreated": true,
   "completionPushMade": false,
-  "blockedReasons": ["AUTHENTICATED_BROWSER_EVIDENCE_NOT_RUN"],
-  "checkpointType": "WIP_RECOVERY_CHECKPOINT",
-  "nextReady": "PE-C2-QR-ASSET-IDENTITY-AND-LABEL-BROWSER-REVALIDATION"
+  "blockedReasons": [],
+  "checkpointType": "PHASE_COMPLETION_CHECKPOINT_PENDING_PUSH",
+  "nextReady": "PE-C3-OFFLINE-INVENTORY-PWA"
 }
