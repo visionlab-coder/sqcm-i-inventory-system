@@ -17,6 +17,7 @@ const QRCode = require('qrcode');
 const { findAssetByQr, findAssetForQrLabel, qrScanUrl } = require('./services/asset-qr-service');
 const { normalizeOfflineBatch } = require('./services/stocktake-offline-service');
 const { getEmployeeSelfService, createEmployeeAssetRequest } = require('./services/employee-self-service');
+const { requeueDeadLetter } = require('./services/outbox-service');
 
 const page = req => ({ size: Math.min(100, Math.max(1, Number(req.query.size) || 25)), offset: Math.max(0, Number(req.query.page) || 0) * Math.min(100, Math.max(1, Number(req.query.size) || 25)) });
 const trace = req => ({ ...auditTrace(req), idempotencyKey: String(req.get('idempotency-key') || '').slice(0, 100) || null });
@@ -300,6 +301,7 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
   router.post('/admin/departments', async(req,res)=>{ const department=await createOrganizationUnit(pool,req.user,req.body.organizationId,req.body,trace(req)); res.status(201).json({department}); });
   router.post('/admin/invitations', async(req,res)=>{ const created=await createInvitation(pool,req.user,req.body.organizationId,req.body,trace(req)); res.status(201).json({invitation:created.invitation,...(!isProduction?{developmentToken:created.rawToken}:{})}); });
   router.post('/admin/invitations/:id/revoke', async(req,res)=>res.json({invitation:await revokeInvitation(pool,req.user,req.params.id,trace(req))}));
+  router.post('/admin/outbox/:id/retry', async(req,res)=>{ requirePermission(req.user,'admin.manage'); res.json({outbox:await requeueDeadLetter(pool,req.user,req.params.id,trace(req))}); });
   router.get('/admin/approval-policies', async(req,res)=>res.json({policies:await listApprovalPolicies(pool,req.user,req.query.organizationId)}));
   router.post('/admin/approval-policies', async(req,res)=>res.status(201).json({policy:await createApprovalPolicy(pool,req.user,req.body.organizationId,req.body,trace(req))}));
   router.get('/admin/references', async(req,res)=>res.json({references:await getAdminReferences(pool,req.user,req.query.organizationId)}));

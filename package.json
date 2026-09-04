@@ -14,6 +14,7 @@
     "test:integration:asset-qr": "node scripts/run-asset-qr-integration.mjs",
     "test:integration:hr-inbox": "node scripts/run-hr-inbox-integration.mjs",
     "test:integration:hr-lifecycle": "node scripts/run-hr-lifecycle-integration.mjs",
+    "test:integration:erp-delivery": "node scripts/run-erp-delivery-integration.mjs",
     "test:browser:c1": "node scripts/c1-browser-evidence.mjs",
     "test:browser:c2": "node scripts/c2-browser-evidence.mjs",
     "test:browser:c3": "node scripts/c3-browser-evidence.mjs",
