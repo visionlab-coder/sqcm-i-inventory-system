@@ -28,7 +28,7 @@
 | C2 | QR 자산 신분증·라벨 | 현장에서 카메라 또는 수동 코드로 즉시 자산 확인 | 자체 QR, 인쇄 라벨, 위조·다른 조직 차단, 모바일 상세 연결 | 완료 · `833ddfb` push |
 | C3 | 오프라인 재물조사 | 통신 불량 현장에서도 조사 후 안전하게 동기화 | PWA cache, offline queue, 충돌 검토, 중복 전송 방지 | 완료 · `c851994` push |
 | C4 | 직원 셀프서비스 | 사용자 스스로 보유자산·반납·분실·수리 요청 | 모바일 390px, 알림 상태, 관리자 workflow 연계 | 완료 · `62fd863` push |
-| C5 | 회사 시스템 연동 | HR 이동·퇴사와 ERP/전자결재를 중복 입력 없이 연결 | 승인된 API/Webhook, 서명 검증, outbox, 재처리·감사 | READY |
+| C5 | 회사 시스템 연동 | HR 이동·퇴사와 ERP/전자결재를 중복 입력 없이 연결 | 승인된 API/Webhook, 서명 검증, outbox, 재처리·감사 | 진행 중 · G0 계약 PASS |
 | C6 | 건설 자산 확장 | 차량·중장비·공구에 적합한 선택형 IoT | 자산군·ROI·공급자 PoC 승인 후 adapter 방식 연결 | 승인된 보류 |
 
 ## C1 요구사항과 상태 매트릭스
@@ -47,7 +47,19 @@
 
 ## 다음 READY 계약
 
-C4 구현과 검증은 PASS했다. 전체 941 PASS·8 SKIP, UI 40/40, PostgreSQL 통합 24 PASS·1 실제 Defender SKIP, migration 27/27과 로컬 3서비스가 통과했다. 합성 USER 브라우저에서 내 자산 1·타인 표시 0·타인 요청 HTTP 403, 분실 요청 `SUBMITTED`·감사 2건, 1440×900·390×844 가로 넘침 0을 확인했다. exact allowlist 완료 commit `62fd863949bbba93ca6751406b71e8e8b2614c7a`을 push하고 SHA 일치를 확인해 C4를 닫았다. 현재 READY는 `PE-C5-HR-ERP-INTEGRATION-CONTRACT`다.
+C4 구현과 검증은 PASS했다. 전체 941 PASS·8 SKIP, UI 40/40, PostgreSQL 통합 24 PASS·1 실제 Defender SKIP, migration 27/27과 로컬 3서비스가 통과했다. 합성 USER 브라우저에서 내 자산 1·타인 표시 0·타인 요청 HTTP 403, 분실 요청 `SUBMITTED`·감사 2건, 1440×900·390×844 가로 넘침 0을 확인했다. exact allowlist 완료 commit `62fd863949bbba93ca6751406b71e8e8b2614c7a`을 push하고 SHA 일치를 확인해 C4를 닫았다.
+
+## C5 실행 체크리스트
+
+| 순서 | 작업 | 완료 조건 | 상태 |
+|---:|---|---|---|
+| G0 | 공급자 독립 HR·ERP 계약 | raw-body HMAC, 300초 window, replay guard, HR 최소 스키마, ERP payload hash·금지필드 시험 | 증거 있는 완료 |
+| G1 | HR inbox·감사 원장 | event ID UNIQUE, 수신·거부·재처리 상태, payload 최소보관, audit를 transaction으로 검증 | READY |
+| G2 | 직원 이동·퇴사 적용 | 외부 코드를 내부 조직·부서에 명시 매핑하고 미매핑·퇴사 보유자산을 예외 큐로 보냄 | 미착수 |
+| G3 | ERP·전자결재 delivery | 기존 outbox를 승인 endpoint에 서명 전송하고 receipt·retry·dead-letter·관리자 재처리를 검증 | 미착수 |
+| G4 | 공급자 UAT·배포 | 승인 공급자·endpoint·Secret reference로 정상·변조·중복·timeout·rollback 실제 증거 확보 | 외부 입력 대기 |
+
+현재 제품 READY는 `PE-C5-G1-HR-INBOX-AND-AUDIT-LEDGER`다. G0는 실제 공급자나 DB를 변경하지 않은 계약 완료이며 C5 전체 완료가 아니다. 실제 연동 전에 HR·ERP 공급자, endpoint, 필드 매핑, Secret reference, 시험 담당자 승인이 필요하다.
 
 C1 완료 뒤 여는 다음 제품 Epic은 아래와 같다.
 
