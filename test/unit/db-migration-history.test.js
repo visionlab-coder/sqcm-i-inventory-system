@@ -16,8 +16,8 @@ async function providerRows() {
 test('migration target manifest is exhaustive and isolates Supabase-only migration 023', async () => {
   const application = await migrationFilesForTarget('application');
   const supabase = await migrationFilesForTarget('supabase');
-  assert.equal(application.length, 27);
-  assert.equal(supabase.length, 27);
+  assert.equal(application.length, 28);
+  assert.equal(supabase.length, 28);
   assert.equal(application.includes('023_supabase_data_api_lockdown.sql'), false);
   assert.equal(application.includes('024_function_search_path_hardening.sql'), true);
   assert.equal(application.includes('025_allow_supabase_s3_storage_driver.sql'), true);
@@ -29,6 +29,8 @@ test('migration target manifest is exhaustive and isolates Supabase-only migrati
   assert.equal(supabase.includes('027_asset_qr_identity.sql'), true);
   assert.equal(application.includes('028_stocktake_offline_sync.sql'), true);
   assert.equal(supabase.includes('028_stocktake_offline_sync.sql'), true);
+  assert.equal(application.includes('029_hr_integration_inbox.sql'), true);
+  assert.equal(supabase.includes('029_hr_integration_inbox.sql'), true);
 });
 
 test('migration target manifest fails closed on missing, duplicate and unsupported targets', () => {
