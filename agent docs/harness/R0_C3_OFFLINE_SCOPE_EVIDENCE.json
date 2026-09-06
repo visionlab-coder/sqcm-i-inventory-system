@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "workId": "R0-C3-ACCOUNT-SCOPED-OFFLINE-STORAGE",
+  "status": "LOCAL_VERIFIED_NOT_DEPLOYED",
+  "baselineSha": "adc33cdcb7347259fc4e373bd079f2f02bd24794",
+  "nextReady": "R0-C3-LEGACY-RECOVERY-AND-SESSION-UI-VERIFICATION",
+  "verification": {
+    "focused": { "pass": 15, "fail": 0 },
+    "chromeIndexedDbSynthetic": { "pass": 13, "fail": 0, "exitCode": 0 },
+    "syntax": { "files": 468, "exitCode": 0 },
+    "unit": { "pass": 974, "skip": 8, "fail": 0 },
+    "uiContract": { "pass": 40 },
+    "employeeAuthenticatedE2e": "NOT_RUN",
+    "multiTabSession": "NOT_RUN"
+  },
+  "legacyData": "PRESERVED_NOT_ADOPTED",
+  "productionChanged": false,
+  "stagingChanged": false,
+  "secretUsed": false,
+  "push": "HOLD_PUBLIC_REMOTE_CONFLICTS_WITH_PRIVATE_ONLY_CONTRACT",
+  "observedProductionRevision": "38b2bca7f34a7a950469c8d0cd6d2a4b11e3b7a6"
+}

@@ -60,4 +60,22 @@
 - [ ] 복구 체크포인트 원격 확인 잔여; 승인 remote URL과 원격 기준 SHA는 읽기 확인, private 여부 확인 도구 gh 미가용
 - [x] 다음 READY와 남은 위험 명시
 
-다음 READY: `R0-C3-ACCOUNT-SCOPED-OFFLINE-STORAGE`. 실제 계정 데이터 없이 합성 사용자 2명·조직 2개와 미동기화 작업을 사용해 격리·계정 전환·보존 정책을 검증한다. 이번 변경은 로컬 후보이며 자동 배포하지 않는다.
+## 후속 실행 — R0-C3-ACCOUNT-SCOPED-OFFLINE-STORAGE
+
+계정·조직·부서·역할별 별도 IndexedDB 이름을 사용하는 불변 저장 핸들을 구현했다. 현재 계정 확인을 작업 전후 수행하고 화면 렌더링·동기화·확정 전에 핸들의 유효성을 확인한다. 구형 소유자 미상 DB는 읽기·이관·삭제하지 않는다. 계정 전환 뒤에도 원래 계정의 미동기화 작업은 원래 namespace에 남는다.
+
+- [x] 모듈과 실제 화면 호출 연결, 서버 인가 계약 유지
+- [x] focused 15/15 PASS
+- [x] 실제 Chrome IndexedDB 합성 시나리오 13/13 PASS: 사용자·조직 격리, logout, role downgrade, 읽기 중 계정 전환, 대기 작업 보존, 구형 DB 보존
+- [x] 구문 468개, 전체 단위 974 PASS / 8 SKIP / 0 FAIL; UI 40 PASS; diff check PASS
+- [x] 운영 계정·Secret·운영 DB·컨테이너 변경 없음. 브라우저는 별도 합성 프로필과 loopback 시험 서버만 사용했고 정상 Browser.close로 종료했다. 합성 프로필은 임시 디렉터리에 보존했다.
+- [ ] 실제 직원 인증 UI·여러 탭 세션 변경·오프라인 중 서버 권한 회수는 이번 시험 범위 밖. 구형 미동기화 데이터의 소유자 확인·복구 UX도 잔여 항목이다. 저장 namespace는 앱 수준 격리이며 브라우저 프로필 소유자에 대한 암호화 경계가 아니다.
+- [!] GitHub get_repo가 repository visibility=public을 확인했다. private remote만 허용한 전역 계약과 충돌하여 push 미실행. 저장소 공개설정을 임의 변경하지 않는다.
+
+시험기 첫 실행은 dump-dom이 IndexedDB 완료 이전 NOT_RUN을 읽어 실패했다. 실제 완료 신호를 CDP로 기다리는 경로로 수정 후 PASS했다. 증거 정본: `agent docs/harness/R0_C3_OFFLINE_SCOPE_EVIDENCE.json`.
+
+## 배포 추적 항목 확인 결과
+
+Production frontend/backend 모두 image tag와 revision label이 `38b2bca7f34a7a950469c8d0cd6d2a4b11e3b7a6`다. 로컬 Git에서 해당 커밋은 `feat(auth): force company users to change initial password (#24)`이며 `93aa5b8…`의 후손이다. 두 SHA 사이 변경은 해당 커밋 1개다. 따라서 더 오래된 버전으로의 회귀라는 근거는 없고 문서 기준이 갱신되지 않은 것이다. 해당 커밋 tree에 `frontend/offline-stocktake.js`는 없다. 실행 컨테이너 파일 전체의 SHA 검증은 아직 하지 않았으므로 label만으로 현재 모든 파일 내용을 보증하지 않는다.
+
+다음 READY: `R0-C3-LEGACY-RECOVERY-AND-SESSION-UI-VERIFICATION`. 구형 데이터를 자동 배정하지 않는 복구 안내 및 공유 기기 세션 전환 화면 검증. R0 전체·운영 Phase·배포 완료는 아님. 공개 remote push에는 기존 private-only 조건과의 충돌을 해소하는 사용자 결정이 필요하다.

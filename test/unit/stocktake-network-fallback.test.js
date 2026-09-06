@@ -16,6 +16,10 @@ function harness({ requestError, saveError } = {}) {
     state: { user: { id: 1, role: 'MANAGER' } }, isManager: () => true,
     request: async () => { if (requestError) throw requestError; return data; },
     OfflineStocktake: {
+      forUser(user, currentUser) {
+        const id = user?.id;
+        return { ...this, assertActive() { if (!id || currentUser()?.id !== id) throw new Error('scope changed'); } };
+      },
       saveSnapshot: async () => { calls.save++; if (saveError) throw saveError; },
       loadSnapshot: async () => { calls.load++; return { data, savedAt: '2026-09-07' }; },
       listOperations: async () => [],

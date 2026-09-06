@@ -11,7 +11,7 @@ Production GO: **true**
 
 ## 2026-09-07 Astra R0 제품 감사 진행
 
-`docs/phase-reports/166_Astra_Product_Audit.md`에서 현재 실행 증거와 배포 버전 차이를 추적한다. C3의 서버 거부를 오프라인 snapshot으로 대체하던 오류를 로컬 수정했다. 집중 13 PASS, 전체 단위 972 PASS·8 SKIP·0 FAIL, UI 계약 40 PASS다. 실제 브라우저·계정별 저장소 격리·배포는 미완료이며 R0 전체 완료가 아니다. 다음 로컬 READY는 `R0-C3-ACCOUNT-SCOPED-OFFLINE-STORAGE`다. P7 7/8과 C5 G4 외부 입력 보류는 유지한다.
+`docs/phase-reports/166_Astra_Product_Audit.md`에서 실행 증거를 추적한다. C3의 오류 분류와 계정·조직·부서·역할별 IndexedDB 격리를 로컬 구현했다. focused 15 PASS, Chrome 합성 IndexedDB 13 PASS, 구문 468개, 전체 단위 974 PASS·8 SKIP·0 FAIL, UI 계약 40 PASS다. 실제 직원 UI·멀티탭 세션·운영 배포는 미완료이며 R0 전체 완료가 아니다. Production image revision은 `38b2bca7f34a7a950469c8d0cd6d2a4b11e3b7a6`(초기 비밀번호 PR #24)로 확인했으며 기록된 main 기준 `93aa5b8…`의 후손이다. 다음 로컬 READY는 `R0-C3-LEGACY-RECOVERY-AND-SESSION-UI-VERIFICATION`이다. 원격 저장소가 public으로 확인되어 private-only checkpoint 계약과 충돌하므로 push는 보류한다. P7 7/8과 C5 G4 외부 입력 보류는 유지한다.
 
 릴리스 기준 브랜치: `main`
 현재 작업 브랜치: `codex/p7-qs-6-16-0-production-evidence`

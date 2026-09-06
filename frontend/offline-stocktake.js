@@ -1,10 +1,29 @@
 (function attachOfflineStocktake(global) {
-  const DB_NAME = 'sqcm-i-offline-stocktake';
+  function scopeKey(user) {
+    if (!user || user.passwordResetRequired || !['ADMIN', 'MANAGER'].includes(user.role)
+        || !Number.isSafeInteger(Number(user.id)) || Number(user.id) <= 0
+        || !Number.isSafeInteger(Number(user.organizationId)) || Number(user.organizationId) <= 0) {
+      throw new Error('오프라인 조사에는 인증된 조직 담당자가 필요합니다.');
+    }
+    const department = user.departmentId == null ? 0 : Number(user.departmentId);
+    if (!Number.isSafeInteger(department) || department < 0) throw new Error('부서 범위를 확인할 수 없습니다.');
+    return `${Number(user.organizationId)}-${Number(user.id)}-${department}-${user.role}`;
+  }
+
+  function forUser(user, currentUser) {
+  const key = scopeKey(user);
+  if (typeof currentUser !== 'function') throw new Error('현재 계정 확인 함수가 필요합니다.');
+  // Never adopt the legacy unowned database: retain it untouched for supervised recovery.
+  const DB_NAME = `sqcm-i-offline-stocktake-scoped-${key}`;
+  function assertActive() {
+    if (scopeKey(currentUser()) !== key) throw new Error('계정 또는 권한 범위가 변경되었습니다. 다시 열어 주세요.');
+  }
   const DB_VERSION = 1;
   const SNAPSHOTS = 'snapshots';
   const OPERATIONS = 'operations';
 
   function openDatabase() {
+    assertActive();
     if (!global.indexedDB) return Promise.reject(new Error('이 브라우저는 오프라인 저장소를 지원하지 않습니다.'));
     return new Promise((resolve, reject) => {
       const request = global.indexedDB.open(DB_NAME, DB_VERSION);
@@ -91,7 +110,16 @@
     } finally { db.close(); }
   }
 
-  const api = { saveSnapshot, loadSnapshot, listOperations, queueOperation, removeOperations, markConflict };
+  const methods = { saveSnapshot, loadSnapshot, listOperations, queueOperation, removeOperations, markConflict };
+  return Object.freeze({ assertActive, ...Object.fromEntries(Object.entries(methods).map(([name, method]) => [name, async (...args) => {
+    assertActive();
+    const value = await method(...args);
+    assertActive();
+    return value;
+  }])) });
+  }
+
+  const api = Object.freeze({ forUser });
   global.OfflineStocktake = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window);
