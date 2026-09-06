@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "workId": "PE-C5-G4-ACTUAL-PROVIDER-INPUT-BINDING",
+  "approvalQueue": {
+    "status": "CONDITIONALLY_APPROVED_PENDING_INPUTS",
+    "approverName": "김무빈 차장",
+    "evidenceRef": "USER_INSTRUCTION_2026-09-07",
+    "approvedScopes": [
+      "READ_ONLY_INPUT_CONFIRMATION",
+      "SYNTHETIC_CONTRACT_TEST_PREPARATION"
+    ],
+    "releaseCondition": "5개 필수 입력과 각 근거가 확인되기 전에는 외부 호출, 배포, 결재 또는 자금 데이터 변경을 금지한다."
+  },
+  "providerProduct": {
+    "productName": null,
+    "vendor": null,
+    "apiVersion": null,
+    "evidenceRef": null
+  },
+  "httpsEndpoint": {
+    "url": null,
+    "environment": "staging",
+    "method": "POST",
+    "evidenceRef": null
+  },
+  "fieldMapping": {
+    "evidenceRef": null,
+    "rows": []
+  },
+  "secretReference": {
+    "reference": null,
+    "evidenceRef": null,
+    "rotationOwner": null,
+    "revocationProcedureRef": null
+  },
+  "testOwner": {
+    "name": null,
+    "title": null,
+    "evidenceRef": null,
+    "responsibilities": []
+  },
+  "sourceFindings": {
+    "actualProviderProduct": "NOT_FOUND",
+    "actualProviderBoundEndpoint": "NOT_FOUND",
+    "providerSpecificFieldMapping": "NOT_FOUND",
+    "c5SigningSecretReference": "NOT_FOUND",
+    "explicitUatOwner": "NOT_FOUND",
+    "genericEventPublisherNotPromoted": true,
+    "secretMaterialRecorded": false
+  }
+}
