@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "workId": "PE-C5-G4-PROVIDER-INPUT-PREFLIGHT",
+  "checkedAt": "2026-09-07T08:29:30+09:00",
+  "status": "PASS_PREFLIGHT_HOLD_EXTERNAL_INPUT",
+  "epicStatus": "IN_PROGRESS",
+  "productTrack": "SQCM-i C",
+  "phaseProgressUnchanged": "7 / 8",
+  "productionGoUnchanged": true,
+  "approvalQueue": {
+    "status": "CONDITIONALLY_APPROVED_PENDING_INPUTS",
+    "approver": "김무빈 차장",
+    "approvedScopes": [
+      "READ_ONLY_INPUT_CONFIRMATION",
+      "SYNTHETIC_CONTRACT_TEST_PREPARATION"
+    ],
+    "externalExecutionReleased": false
+  },
+  "requiredInputs": {
+    "providerProduct": "MISSING",
+    "httpsEndpoint": "MISSING",
+    "fieldMapping": "MISSING",
+    "secretReference": "MISSING",
+    "testOwner": "MISSING"
+  },
+  "verification": {
+    "failureFirst": { "initialPassed": 14, "initialFailed": 2, "cause": "VALUE_AND_EVIDENCE_LENGTH_RULE_CONFLATED", "status": "PASS_REPRODUCED_AND_FIXED" },
+    "focusedContract": { "passed": 16, "failed": 0, "status": "PASS" },
+    "promptContract": { "passed": 8, "total": 8, "status": "PASS" },
+    "syntax": { "passed": 464, "failed": 0, "status": "PASS" },
+    "repositoryUnit": { "passed": 962, "skipped": 8, "failed": 0, "status": "PASS" },
+    "currentInputPreflight": { "status": "HOLD_EXTERNAL_INPUT", "expectedExitCode": 2, "failureCount": 6 },
+    "harnessContract": { "errors": 0, "currentPhase": "P7", "status": "PASS" },
+    "gitCheckpoint": {
+      "sha": "f1c637293efc16c75ebda564ccf79b4a1429f95b",
+      "remote": "origin/codex/p7-qs-6-16-0-production-evidence",
+      "localRemoteShaMatched": true,
+      "status": "PASS"
+    }
+  },
+  "implementedControls": [
+    "FIVE_REQUIRED_INPUTS_WITH_EVIDENCE",
+    "STAGING_HTTPS_POST_NO_CREDENTIAL_QUERY_FRAGMENT",
+    "OUTBOUND_AND_RECEIPT_MAPPING_COVERAGE",
+    "SECRET_REFERENCE_ONLY_NO_RAW_MATERIAL",
+    "EXPLICIT_UAT_EXECUTE_SIGNOFF_ROLLBACK_OWNER",
+    "APPROVAL_QUEUE_RELEASE_REQUIRED",
+    "NO_GENERIC_EVENT_PUBLISHER_PROMOTION"
+  ],
+  "externalCallsMade": false,
+  "deploymentsMade": false,
+  "approvalOrFinancialDataChangesMade": false,
+  "secretMaterialReadOrRecorded": false,
+  "checkpointType": "WIP_RECOVERY_CHECKPOINT",
+  "blockedReasons": [
+    "PROVIDER_PRODUCT_NOT_EVIDENCED",
+    "HTTPS_ENDPOINT_NOT_EVIDENCED",
+    "FIELD_MAPPING_NOT_EVIDENCED",
+    "SECRET_REFERENCE_NOT_EVIDENCED",
+    "TEST_OWNER_NOT_EVIDENCED",
+    "APPROVAL_QUEUE_NOT_RELEASED"
+  ],
+  "nextReady": "PE-C5-G4-ACTUAL-PROVIDER-INPUT-BINDING"
+}

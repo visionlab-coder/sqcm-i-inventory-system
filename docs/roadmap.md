@@ -21,12 +21,12 @@ Production GO: **true**
 
 현재 Production 기준선과 P7 운영 증거는 보존하면서, Excel 업무를 건설 자산 통제 제품으로 전환하는 별도 제품 Epic을 순차 진행한다.
 
-`C1 Excel 이관 ✅ → C2 QR·라벨 ✅ → C3 오프라인 재물조사 ✅ → C4 직원 셀프서비스 ✅ → C5 HR·ERP 연동 G0~G3 ✅ / G4 외부 입력 대기 → C6 선택형 IoT 🔒`
+`C1 Excel 이관 ✅ → C2 QR·라벨 ✅ → C3 오프라인 재물조사 ✅ → C4 직원 셀프서비스 ✅ → C5 HR·ERP G0~G3 ✅ / G4 입력 Gate ✅·실제 연결 HOLD → C6 선택형 IoT 🔒`
 
-- 현재 제품 READY: `PE-C5-G4-ACTUAL-PROVIDER-UAT-AND-DEPLOYMENT`
+- 현재 제품 READY: `PE-C5-G4-ACTUAL-PROVIDER-INPUT-BINDING`
 - C1 구현 증거: 메타프롬프트 8/8, UI 계약 30/30, 구문 436개, 단위 927 PASS·8 SKIP·0 FAIL.
 - C1 실제 증거: 격리 PostgreSQL HTTP 통합 1 PASS·0 FAIL, frontend/backend/database 3컨테이너 health·smoke PASS, Chrome 1440×900·390×844 렌더·무가로넘침 PASS.
-- 판정: C5 G3는 HTTPS 전용 HMAC publisher, receipt·응답 SHA-256, 안전한 실패 코드, 열 번째 dead-letter와 ADMIN 조직 범위 재처리·감사를 구현했다. 전체 단위 958 PASS·8 SKIP, 구문 461개, 로컬 migration 30/30과 합성 signed delivery·receipt·dead-letter·재처리 감사·cleanup 0이 PASS했다. WIP 복구 체크포인트 `afdef50f4c34532bd1b01d0f3ec0bfe1ce818308`을 push했다. C5 전체는 진행 중이며 Production·staging·외부 공급자는 변경하지 않았다.
+- 판정: C5 G4 입력 Gate는 5개 필수 입력·승인큐·근거·Secret reference를 fail-closed로 검증한다. 집중 16 PASS, 전체 단위 962 PASS·8 SKIP, 구문 464개와 Harness 오류 0이 PASS했다. 현재 실제 입력 5/5가 누락이고 승인큐는 조건부이므로 `HOLD_EXTERNAL_INPUT`이며 외부 호출·배포·결재/자금 변경은 0이다. WIP 복구 체크포인트 `f1c637293efc16c75ebda564ccf79b4a1429f95b`을 push했다.
 - 상세 정본: [`develop docs/34_SQCM-i_C_제품고도화_로드맵.md`](../develop%20docs/34_SQCM-i_C_%EC%A0%9C%ED%92%88%EA%B3%A0%EB%8F%84%ED%99%94_%EB%A1%9C%EB%93%9C%EB%A7%B5.md)
 
 ## 1. 운영 규칙
