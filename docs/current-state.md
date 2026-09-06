@@ -9,6 +9,10 @@ Production GO: **true**
 
 기준일: 2026-09-04
 
+## 2026-09-07 Astra R0 제품 감사 진행
+
+`docs/phase-reports/166_Astra_Product_Audit.md`에서 현재 실행 증거와 배포 버전 차이를 추적한다. C3의 서버 거부를 오프라인 snapshot으로 대체하던 오류를 로컬 수정했다. 집중 13 PASS, 전체 단위 972 PASS·8 SKIP·0 FAIL, UI 계약 40 PASS다. 실제 브라우저·계정별 저장소 격리·배포는 미완료이며 R0 전체 완료가 아니다. 다음 로컬 READY는 `R0-C3-ACCOUNT-SCOPED-OFFLINE-STORAGE`다. P7 7/8과 C5 G4 외부 입력 보류는 유지한다.
+
 릴리스 기준 브랜치: `main`
 현재 작업 브랜치: `codex/p7-qs-6-16-0-production-evidence`
 최신 릴리스 기준 main: `93aa5b8fde5a6ac29758afb91acbef278bdfae49`

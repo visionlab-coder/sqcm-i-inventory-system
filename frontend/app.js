@@ -51,7 +51,13 @@ async function request(path, options = {}) {
     const headers = { Accept: 'application/json', ...(options.headers || {}) }; let body;
     if (options.body) { headers['Content-Type'] = 'application/json'; body = JSON.stringify(options.body); }
     if (mutating) { headers['x-csrf-token'] = state.csrfToken || ''; headers['idempotency-key'] = options.idempotencyKey || newIdempotencyKey(); }
-    const response = await fetch(path, { ...options, method, headers, body, credentials: 'same-origin' });
+    // Classify transport failures here, never HTTP denials or downstream code errors.
+    let response;
+    try { response = await fetch(path, { ...options, method, headers, body, credentials: 'same-origin' }); }
+    catch (error) {
+      if (error?.name !== 'TypeError') throw error;
+      throw Object.assign(new Error('네트워크에 연결하지 못했습니다.'), { code: 'NETWORK_UNAVAILABLE' });
+    }
     if (response.status === 401 && !['/api/auth/login','/api/auth/mfa/verify','/api/auth/password/change-required'].includes(path)) showLogin();
     return responseData(response);
   })();
@@ -474,13 +480,19 @@ async function renderStocktakes() {
 
 async function renderStocktakeDetail(id) {
   state.stocktakeDetailId=String(id); let data; let offline=false; let savedAt=null;
-  try { data=await request(`/api/enterprise/stocktakes/${id}`); await globalThis.OfflineStocktake?.saveSnapshot(id,data); }
-  catch(error){ const snapshot=await globalThis.OfflineStocktake?.loadSnapshot(id).catch(()=>null); if(!snapshot) throw error; data=snapshot.data; savedAt=snapshot.savedAt; offline=true; }
+  try { data=await request(`/api/enterprise/stocktakes/${id}`); }
+  catch(error){
+    if(error.code!=='NETWORK_UNAVAILABLE'||!state.user||state.user.passwordResetRequired||!isManager()) throw error;
+    const snapshot=await globalThis.OfflineStocktake?.loadSnapshot(id).catch(()=>null);
+    if(!snapshot) throw error;
+    data=snapshot.data; savedAt=snapshot.savedAt; offline=true;
+  }
+  if(!offline) await globalThis.OfflineStocktake?.saveSnapshot(id,data).catch(()=>null);
   const queued=await globalThis.OfflineStocktake?.listOperations(id).catch(()=>[])||[];
   const rows=data.items.map(row=>`<tr><td class="mono">${escapeHtml(row.asset_tag)}</td><td>${escapeHtml(row.name)}</td><td>${statusBadge(row.result)}</td><td><select class="stock-result" data-asset="${row.asset_id}" aria-label="${escapeHtml(row.asset_tag)} 실사 결과">${['MATCH','MISSING','LOCATION_MISMATCH','DAMAGED'].map(value=>`<option ${value===row.result?'selected':''}>${value}</option>`).join('')}</select><button class="small stock-save" data-asset="${row.asset_id}" data-version="${Number(row.version||0)}">저장</button></td></tr>`).join('');
   const conflictRows=queued.filter(item=>item.syncStatus==='CONFLICT').map(item=>`<li><strong>${escapeHtml(item.operationId)}</strong> ${escapeHtml(item.conflict?.code||'CONFLICT')} · 서버 버전 ${escapeHtml(item.conflict?.serverVersion??'-')}</li>`).join('');
   $('#view-root').innerHTML=`<div class="page-heading"><div><p class="eyebrow">STOCKTAKE #${id}</p><h1>${escapeHtml(data.stocktake.name)}</h1><p class="muted">현장에서 연결이 끊겨도 결과를 이 기기에 보관하고 재연결 후 안전하게 동기화합니다.</p></div><button class="secondary" data-go="stocktakes">목록</button></div><section class="offline-status ${offline?'is-offline':'is-online'}" role="status"><div><strong>${offline?'오프라인 저장본 사용 중':'온라인 연결됨'}</strong><span>${offline?`마지막 저장 ${date(savedAt)}`:'서버 원장과 연결되어 있습니다.'} · 대기 ${queued.length}건</span></div><button id="stock-sync" class="secondary" ${offline||!queued.length?'disabled':''}>대기 결과 동기화</button></section>${conflictRows?`<section class="alert error stock-conflicts"><strong>직접 확인이 필요한 충돌</strong><ul>${conflictRows}</ul></section>`:''}<section class="panel"><div class="table-wrap"><table><thead><tr><th>자산번호</th><th>자산명</th><th>결과</th><th>확인</th></tr></thead><tbody>${rows}</tbody></table></div><div class="stocktake-actions"><button id="stock-confirm" class="primary" ${offline||queued.length?'disabled':''}>조사 확정</button><small>${queued.length?'대기 결과를 모두 동기화한 뒤 확정할 수 있습니다.':''}</small></div></section>`;
-  document.querySelectorAll('.stock-save').forEach(button=>button.addEventListener('click',async()=>{const assetId=Number(button.dataset.asset);const baseVersion=Number(button.dataset.version);const result=document.querySelector(`.stock-result[data-asset="${assetId}"]`).value;try{await request(`/api/enterprise/stocktakes/${id}/items/${assetId}`,{method:'POST',body:{result}});showMessage('조사 결과를 저장했습니다.');renderStocktakeDetail(id);}catch(error){if(navigator.onLine&&error.name!=='TypeError')return showMessage(error.message,'error');const operation={operationId:newIdempotencyKey(),assetId,baseVersion,result,foundLocationId:null,reason:'offline field stocktake'};await globalThis.OfflineStocktake.queueOperation(id,operation);const item=data.items.find(candidate=>Number(candidate.asset_id)===assetId);if(item)item.result=result;await globalThis.OfflineStocktake.saveSnapshot(id,data);showMessage('연결이 없어 이 기기에 안전하게 보관했습니다.');renderStocktakeDetail(id);}}));
+  document.querySelectorAll('.stock-save').forEach(button=>button.addEventListener('click',async()=>{const assetId=Number(button.dataset.asset);const baseVersion=Number(button.dataset.version);const result=document.querySelector(`.stock-result[data-asset="${assetId}"]`).value;try{await request(`/api/enterprise/stocktakes/${id}/items/${assetId}`,{method:'POST',body:{result}});showMessage('조사 결과를 저장했습니다.');renderStocktakeDetail(id);}catch(error){if(error.code!=='NETWORK_UNAVAILABLE'||!state.user||state.user.passwordResetRequired||!isManager())return showMessage(error.message,'error');const operation={operationId:newIdempotencyKey(),assetId,baseVersion,result,foundLocationId:null,reason:'offline field stocktake'};await globalThis.OfflineStocktake.queueOperation(id,operation);const item=data.items.find(candidate=>Number(candidate.asset_id)===assetId);if(item)item.result=result;await globalThis.OfflineStocktake.saveSnapshot(id,data);showMessage('연결이 없어 이 기기에 안전하게 보관했습니다.');renderStocktakeDetail(id);}}));
   $('#stock-sync').addEventListener('click',async()=>{try{const pending=await globalThis.OfflineStocktake.listOperations(id);const response=await request(`/api/enterprise/stocktakes/${id}/offline-sync`,{method:'POST',body:{organizationId:state.user.organizationId,operations:pending.map(({operationId,assetId,baseVersion,result,foundLocationId,reason})=>({operationId,assetId,baseVersion,result,foundLocationId,reason}))}});await globalThis.OfflineStocktake.removeOperations(response.results.filter(item=>['APPLIED','DUPLICATE'].includes(item.status)).map(item=>item.operationId));for(const item of response.results.filter(item=>item.status==='CONFLICT'))await globalThis.OfflineStocktake.markConflict(item.operationId,item);showMessage(response.conflicts?`동기화 완료, 충돌 ${response.conflicts}건을 확인하세요.`:'대기 결과를 모두 동기화했습니다.',response.conflicts?'error':'success');renderStocktakeDetail(id);}catch(error){showMessage(error.message,'error');}});
   $('#stock-confirm').addEventListener('click',async()=>{try{await request(`/api/enterprise/stocktakes/${id}/confirm`,{method:'POST',body:{}});showMessage('재물조사를 확정했습니다.');renderStocktakes();}catch(error){showMessage(error.message,'error');}});
 }
