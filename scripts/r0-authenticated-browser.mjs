@@ -11,7 +11,7 @@ const q=JSON.parse(input);const r=await fetch('http://frontend'+q.path,{method:q
 const headers=Object.fromEntries(r.headers);delete headers['content-length'];delete headers['content-encoding'];delete headers['transfer-encoding'];headers['set-cookie']=r.headers.getSetCookie();
 console.log(JSON.stringify({status:r.status,headers,body:Buffer.from(await r.arrayBuffer()).toString('base64')}));}catch{process.exitCode=1;}});`;
 
-export async function verifyAuthenticatedBrowser({ backendId, password }) {
+export async function verifyAuthenticatedBrowser({ backendId, password, excel = false }) {
   assert.match(backendId, /^[a-f0-9]{64}$/);
   const server = createServer(async (req, res) => {
     try {
@@ -97,6 +97,22 @@ export async function verifyAuthenticatedBrowser({ backendId, password }) {
     await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true }, b);
     assert.ok(await evaluate(b, 'document.documentElement.scrollWidth<=innerWidth'), 'mobile overflow');
     checks.push('authenticated mobile 390x844 no horizontal overflow');
+    if (excel) {
+      await evaluate(a, 'renderAssetRegister()');
+      await wait(a, '!!document.querySelector("#asset-import")', 'import form');
+      const upload = async csv => evaluate(a, `(()=>{const f=document.querySelector('#asset-import');const d=new DataTransfer();d.items.add(new File([${JSON.stringify(csv)}],'synthetic.csv',{type:'text/csv'}));f.elements.assetCsv.files=d.files;f.elements.assetCsv.dispatchEvent(new Event('change'));f.querySelector('button[type=submit]').click();})()`);
+      await upload('자산번호,자산명\nR0-BROWSER-001,"노트북"오류');
+      await wait(a, '!!document.querySelector("#asset-import-result [role=alert]")', 'CSV syntax error visible');
+      assert.ok(await evaluate(a, '!document.querySelector("#asset-import-commit")'));
+      checks.push('invalid CSV displays server error and no commit control');
+      await upload('자산번호,자산명\nR0-BROWSER-001,합성 브라우저 노트북');
+      await wait(a, 'document.querySelector("#asset-import-commit")?.disabled===false', 'corrected CSV preview');
+      checks.push('corrected file can be previewed and committed');
+      // Confirm only this synthetic import; real employee confirmation is NOT_RUN.
+      await evaluate(a, 'window.confirm=()=>true;document.querySelector("#asset-import-commit").click()');
+      await wait(a, 'document.querySelector("#view-root").textContent.includes("R0-BROWSER-001") && !document.querySelector("#asset-import")', 'import visible in real asset list');
+      checks.push('corrected CSV import appears in actual backend asset list');
+    }
     await evaluate(a, 'document.querySelector("#logout-button").click()');
     for (const sid of [a, b]) await wait(sid, 'state.user===null && document.querySelector("#app-shell").classList.contains("hidden") && document.querySelector("#view-root").innerHTML===""', 'cross-tab logout');
     checks.push('real server logout clears both browser tabs');

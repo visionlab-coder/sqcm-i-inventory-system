@@ -4,7 +4,9 @@
   "goalStatus": "active",
   "currentPhase": "R0",
   "readyWork": "R0-EXCEL-IMPORT-RECOVERY-AUDIT",
-  "readyStep": "BROWSER_IMPORT_CORRECTION_PREVIEW_AND_COMMIT",
+  "readyStep": "EXCEL_AUDIT_RECOVERY_CHECKPOINT",
+  "nextAfterCheckpoint": "R0-INITIAL-PASSWORD-MFA-AUDIT",
+  "excelBrowser": { "status": "PASS_ISOLATED", "command": "node scripts/r0-authenticated-isolated-check.mjs --browser --excel", "exitCode": 0, "browserChecks": 10, "httpChecks": 7, "dbChecks": 4, "apiMocked": false, "confirmation": "synthetic browser confirm accepted by runner", "actualEmployeeUat": "NOT_RUN" },
   "excelRecovery": { "status": "in-progress", "csvQuoteBoundary": "FAIL_REPRODUCED_THEN_10_UNIT_PASS", "regressionPass": 981, "regressionSkip": 8, "regressionFail": 0, "actualRollback": "PASS_ISOLATED_POSTGRES", "dbChecks": 4, "httpChecks": 7, "command": "node scripts/r0-authenticated-isolated-check.mjs --excel", "exitCode": 0, "browserRecovery": "NOT_RUN", "deployment": "NOT_RUN" },
   "lastCompletedPacket": { "id": "R0-C4-SELF-SERVICE-COUNT-AND-CONCURRENCY-AUDIT", "scope": "local synthetic verification only", "checkpoint": "0bca821b3e015f2b1f40b8d9ac8b95330a41c962", "remoteShaMatched": true },
   "phases": [

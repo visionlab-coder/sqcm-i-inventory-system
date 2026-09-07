@@ -113,7 +113,7 @@ try {
   // Execute HTTP client inside the isolated network: no host publish or egress needed.
   const script = `const assert=require('node:assert/strict'); const {randomUUID}=require('node:crypto'); const password=${JSON.stringify(password)}; (${verifyHttp.toString()})('http://frontend').then(checks=>console.log(JSON.stringify(checks))).catch(error=>{console.error(JSON.stringify({name:error.name,actual:typeof error.actual==='number'?error.actual:undefined,expected:typeof error.expected==='number'?error.expected:undefined,location:error.stack?.split('\\n').filter(line=>line.trim().startsWith('at ')).slice(0,2)}));process.exit(1);});`;
   const checks = JSON.parse(docker(['exec', '-i', backendId, 'node'], script));
-  const browser = process.argv.includes('--browser') ? await verifyAuthenticatedBrowser({ backendId, password }) : 'NOT_RUN';
+  const browser = process.argv.includes('--browser') ? await verifyAuthenticatedBrowser({ backendId, password, excel: process.argv.includes('--excel') }) : 'NOT_RUN';
   const c4 = process.argv.includes('--c4') ? JSON.parse(docker(['exec', '-i', backendId, 'node'],
     `(${verifyC4Postgres.toString()})().then(result=>console.log(JSON.stringify(result))).catch(error=>{console.error(JSON.stringify({name:error.name,code:error.code}));process.exit(1);});`)) : 'NOT_RUN';
   const excel = process.argv.includes('--excel') ? JSON.parse(docker(['exec', '-i', backendId, 'node'],

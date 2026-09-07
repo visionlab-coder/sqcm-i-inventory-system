@@ -8,7 +8,9 @@
 - [x] 잘못된 따옴표 경계를 오류로 반환하고 수정·재미리보기 안내. 정상 Excel escaped quote·CRLF·셀 내 줄바꿈 유지: 집중 10 PASS.
 - [x] `npm.cmd run check` 종료 0: 981 PASS·8 SKIP·0 FAIL.
 - [x] 실제 격리 PostgreSQL에서 두 번째 INSERT 후 DB 오류(22012)를 발생시켜 자산·이력·감사·outbox 전체 건수 복원을 확인. 같은 CSV 재시도 2건 성공, 반복 등록 거부 후 건수 불변.
-- [ ] 파일 수정·실패 후 재미리보기·재등록 브라우저 경로 확인.
+- [x] 합성 CSV 오류 표시·확정 버튼 부재→수정 파일 재미리보기→등록→실제 backend 목록 확인. Chrome/HTTP/DB 연결, API mock 없음. 확정 대화상자만 합성 시험에서 자동 수락.
+
+통합 명령 `node scripts/r0-authenticated-isolated-check.mjs --browser --excel`: 종료 0, 브라우저 10/10·HTTP 7/7·DB 복구 4/4 PASS. 실제 직원 원장/UAT 및 운영 배포는 NOT_RUN이다. 복구 체크포인트 후 다음 로컬 항목은 `R0-INITIAL-PASSWORD-MFA-AUDIT`다.
 
 이번 변경은 `asset-import-service.js` 파서와 단위시험이다. 실제 원장·운영·staging 변경은 없으며 Excel 감사 전체 완료가 아니다.
 
