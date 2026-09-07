@@ -163,7 +163,7 @@ async function changeAssetStatus(pool, user, assetId, input, trace = {}) {
   } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
 }
 
-async function createRequest(pool, user, input, trace = {}) {
+async function createRequest(pool, user, input, trace = {}, options = {}) {
   requirePermission(user, 'request.create');
   const organizationId = requireOrganization(user, input.organizationId || user.organizationId);
   const type = String(input.requestType || '').toUpperCase();
@@ -174,10 +174,14 @@ async function createRequest(pool, user, input, trace = {}) {
   try {
     await client.query('BEGIN');
     if (input.assetId) {
-      const asset = await client.query('SELECT organization_id,department_id FROM assets WHERE id=$1', [input.assetId]);
+      const asset = await client.query('SELECT organization_id,department_id FROM assets WHERE id=$1 FOR UPDATE', [input.assetId]);
       if (!asset.rowCount) throw new DomainError('요청 자산을 찾을 수 없습니다.', 404);
       requireOrganization(user, asset.rows[0].organization_id);
       await requireDepartmentAccess(client, user, asset.rows[0].department_id);
+      if (options.requireCurrentAssignment) {
+        const assigned = await client.query("SELECT id FROM asset_assignments WHERE asset_id=$1 AND user_id=$2 AND ended_at IS NULL AND status='ACTIVE' FOR UPDATE", [input.assetId, user.id]);
+        if (!assigned.rowCount) throw new DomainError('현재 내게 배정된 자산만 요청할 수 있습니다.', 403);
+      }
     }
     let payload;
     if (type === 'PURCHASE') payload = normalizePurchasePayload(input.payload);

@@ -1,5 +1,28 @@
 # Astra 제품 감사 — R0 진행 중 / C3 인증 HTTP·세션 경계 로컬 검증
 
+## 장기 Goal 단계 체크리스트
+
+2026-09-07 사용자 장기 Goal 실행 요청을 등록했다. 기계 정본은 `agent docs/harness/ASTRA_REMAINING_WORK.json`, 실행 계약은 기존 108이다. R0~R5는 감사/고도화 작업 순서이며 운영 P0~P7 진행률과 합산하지 않는다. 현재 R0 진행 중, R 단계 완료 0/6; 기존 C3 로컬 완료 증거는 보존한다.
+
+| 단계 | 남은 작업 | 상태 / 완료 기준 |
+|---|---|---|
+| R0 | C4 집계·동시성, Excel 오류복구, 초기 비밀번호/MFA 잔여 검증, 배포 내용 대조 | 진행 중 / 증거와 우선순위 확정 |
+| R1 | 현 구조 유지 또는 점진 개편 판단 | 대기 / 호환성·영향·롤백 결정 |
+| R2 | 확인된 사용자 영향 결함과 복구 UX 개선 | 대기 / 실패 재현→수정→회귀 |
+| R3 | Excel 이전·현장 실사·자산 이력·비용 근거 강화 | 대기 / 승인 업무에 대한 실효 검증 |
+| R4 | 통합 테스트·후보 이미지·복구 적합성 | 대기 / 정확한 SHA·검증·Git 체크포인트 |
+| R5 | 승인된 배포·직원 UAT·운영 인수 | 외부 게이트 / 실제 승인·실행 증거 |
+
+현재 READY: `R0-C4-SELF-SERVICE-COUNT-AND-CONCURRENCY-AUDIT`.
+- [x] 최근 요청/수리 50건, 알림 20건으로 전체 요약을 계산하던 코드 확인.
+- [x] 목록 제한과 무관한 건수 61/52/25 반례 추가 후 실패 재현.
+- [x] 조직·사용자 제한을 유지한 별도 COUNT 쿼리로 수정; 집중 4/4 PASS.
+- [x] 실제 격리 PostgreSQL에서 목록 상한·완료 상태·다른 사용자 제외 검증: 목록 50/50/20, 전체 요약 61/52/25.
+- [x] 배정 조회 직후 해제 반례 실패 재현 후 요청 트랜잭션 내부 재검증·행 잠금 보완. 해제된 배정은 403·INSERT 0건, 동시 해제는 요청 COMMIT까지 대기·감사 1건.
+- [ ] C4 완료 게이트 검증 후 exact allowlist commit·push.
+
+검증: `node scripts/r0-authenticated-isolated-check.mjs --c4` 종료 0, HTTP 7/7 및 C4 실제 격리 PostgreSQL 6/6 PASS. `npm.cmd run check` 종료 0, 980 PASS·8 SKIP·0 FAIL. 단위 4/4도 PASS. 실제 다른 조직 데이터 검증과 직원 UAT는 이번 NOT_RUN이며 로컬 합성 검증을 운영 승인으로 승격하지 않는다. 운영·staging 배포·migration·직원 계정은 변경하지 않았다. 장기 Goal은 ACTIVE이며 별도 예약 자동화는 생성하지 않았다. 체크포인트 뒤 다음 READY는 `R0-EXCEL-IMPORT-RECOVERY-AUDIT`다.
+
 기준일: 2026-09-07. 기준 HEAD `17d09ccad7708bc9821c1338df038317d9e56185`.
 실행 계약: `agent docs/prompts/108_Astra_Product_Audit_And_Modernization.md`.
 현재 운영 Harness P7 7/8, productionGo=true는 유지한다. R0 전체 또는 제품 전체 완료 보고가 아니다.

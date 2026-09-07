@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "contract": "agent docs/prompts/108_Astra_Product_Audit_And_Modernization.md",
+  "goalStatus": "active",
+  "currentPhase": "R0",
+  "readyWork": "R0-C4-SELF-SERVICE-COUNT-AND-CONCURRENCY-AUDIT",
+  "readyStep": "EXACT_ALLOWLIST_RECOVERY_CHECKPOINT",
+  "nextAfterCheckpoint": "R0-EXCEL-IMPORT-RECOVERY-AUDIT",
+  "phases": [
+    { "id": "R0", "status": "in-progress", "work": ["C4 total counts and assignment concurrency", "Excel import recovery evidence", "remaining initial-password and MFA lifecycle evidence", "deployment content provenance"], "gate": "prioritized findings with implementation/test/deployment/UAT distinguished" },
+    { "id": "R1", "status": "not-started", "work": ["retain versus incremental restructuring decision"], "gate": "evidence-backed scope, compatibility and rollback decision" },
+    { "id": "R2", "status": "not-started", "work": ["confirmed high-impact defects and recovery UX"], "gate": "reproductions fixed and regression verified" },
+    { "id": "R3", "status": "not-started", "work": ["Excel migration, field stocktake, lifecycle traceability and cost explanations"], "gate": "existing strengths validated against approved workflows; no speculative feature expansion" },
+    { "id": "R4", "status": "not-started", "work": ["integrated tests, immutable candidate image, rollback compatibility"], "gate": "verified candidate SHA and approved remote checkpoint" },
+    { "id": "R5", "status": "external-gates", "work": ["approved deployment", "real employee UAT", "operational handover"], "gate": "exact approvals and actual evidence; no synthetic promotion" }
+  ],
+  "currentEvidence": {
+    "c3AuthenticatedBrowser": "docs/phase-reports/166_Astra_Product_Audit.md",
+    "c4CountUnit": { "status": "PASS_LOCAL_ONLY", "pass": 4, "fail": 0 },
+    "c4CountPostgres": { "status": "PASS_ISOLATED", "counts": [61, 52, 25], "listCaps": [50, 50, 20] },
+    "c4Concurrency": { "status": "PASS_ISOLATED", "revokedAssignmentRejected": true, "concurrentRevocationWaitsForCommit": true, "singleAudit": true },
+    "c4Command": "node scripts/r0-authenticated-isolated-check.mjs --c4",
+    "c4Checks": { "pass": 6, "fail": 0, "httpPass": 7, "exitCode": 0 },
+    "regression": { "command": "npm.cmd run check", "pass": 980, "skip": 8, "fail": 0, "exitCode": 0 },
+    "deployment": "NOT_RUN"
+  },
+  "separateGates": { "operations": "P7 7/8 unchanged", "erpProvider": "C5 G4 five approved inputs required", "visibility": "retain public until user-approved completion" },
+  "completionRule": "phase acceptance plus exact-allowlist commit and verified same-branch push; otherwise preserve incomplete state",
+  "schedulerCreated": false
+}

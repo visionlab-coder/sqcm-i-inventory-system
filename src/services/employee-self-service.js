@@ -7,7 +7,7 @@ async function getEmployeeSelfService(pool, user) {
   requirePermission(user, 'asset.read');
   const organizationId = requireOrganization(user, user.organizationId);
   const values = [organizationId, user.id];
-  const [assets, requests, repairs, notifications] = await Promise.all([
+  const [assets, requests, repairs, notifications, totals] = await Promise.all([
     pool.query(`SELECT a.id,a.asset_tag,a.name,a.serial_no,a.status_code,a.updated_at,
         aa.started_at,d.name department_name,l.name location_name
       FROM asset_assignments aa
@@ -31,7 +31,14 @@ async function getEmployeeSelfService(pool, user) {
     pool.query(`SELECT id,severity,title,body,entity_type,entity_id,read_at,created_at
       FROM notifications
       WHERE organization_id=$1 AND recipient_user_id=$2
-      ORDER BY created_at DESC LIMIT 20`, values)
+      ORDER BY created_at DESC LIMIT 20`, values),
+    pool.query(`SELECT
+      (SELECT count(*)::int FROM workflow_requests WHERE organization_id=$1 AND requester_id=$2
+        AND status NOT IN ('COMPLETED','REJECTED','CANCELLED')) active_requests,
+      (SELECT count(*)::int FROM service_tickets WHERE organization_id=$1 AND reporter_id=$2
+        AND status NOT IN ('RESOLVED','CLOSED','CANCELLED')) open_repairs,
+      (SELECT count(*)::int FROM notifications WHERE organization_id=$1 AND recipient_user_id=$2
+        AND read_at IS NULL) unread_notifications`, values)
   ]);
   return {
     assets: assets.rows,
@@ -40,9 +47,9 @@ async function getEmployeeSelfService(pool, user) {
     notifications: notifications.rows,
     summary: {
       assignedAssets: assets.rowCount,
-      activeRequests: requests.rows.filter(row => !['COMPLETED', 'REJECTED', 'CANCELLED'].includes(row.status)).length,
-      openRepairs: repairs.rows.filter(row => !['RESOLVED', 'CLOSED', 'CANCELLED'].includes(row.status)).length,
-      unreadNotifications: notifications.rows.filter(row => !row.read_at).length
+      activeRequests: totals.rows[0].active_requests,
+      openRepairs: totals.rows[0].open_repairs,
+      unreadNotifications: totals.rows[0].unread_notifications
     }
   };
 }
@@ -68,7 +75,7 @@ async function createEmployeeAssetRequest(pool, user, input, trace = {}) {
     title: `${titles[requestType]}: ${asset.asset_tag}`,
     reason,
     payload: requestType === 'RETURN' ? input.payload : {}
-  }, trace);
+  }, trace, { requireCurrentAssignment: true });
 }
 
 module.exports = { EMPLOYEE_REQUEST_TYPES, getEmployeeSelfService, createEmployeeAssetRequest };
