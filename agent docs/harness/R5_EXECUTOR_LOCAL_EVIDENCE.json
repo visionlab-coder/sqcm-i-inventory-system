@@ -14,6 +14,7 @@
   "controls": ["exact candidate and CI binding", "change window and cutoff", "freeze before backup and migration", "run-bound receipts", "pre-release recovery", "post-release containment without automatic old database restore", "unverified recovery remains HOLD"],
   "realDockerDriver": "ISOLATED_FAILURE_RECOVERY_IMPLEMENTED",
   "productionDriver": "NOT_IMPLEMENTED",
+  "newCandidateEvidence": "agent docs/harness/R5_WORKER_FREEZE_CANDIDATE.json",
   "productionIntegration": "NOT_RUN",
   "productionChanged": false,
   "employeeUat": "NOT_RUN",

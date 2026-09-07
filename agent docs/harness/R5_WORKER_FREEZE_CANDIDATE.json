@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "candidateSha": "469a0c0e35b3e4fff1ef3b83d105e9652b2d9b6e",
+  "status": "LOCAL_CANDIDATE_VERIFIED_PRODUCTION_GATED",
+  "reason": "Freeze both outbox publishing and automation during pre-release verification",
+  "ci": { "runId": 34083021916, "status": "completed", "conclusion": "success", "jobs": ["unit", "three-tier-integration"] },
+  "build": { "context": "exact Git archive of Dockerfile .dockerignore package.json package-lock.json frontend src db", "environmentFiles": 0, "exitCode": 0, "revisionLabelsMatch": true },
+  "backendImage": "sha256:43092777a8a4829936a3f9295edcb8e99393fb831aa2e93b7c74ba131b2b1f41",
+  "frontendImage": "sha256:f747d8a01473cf1150d6f54773dfed20664baa8b681ac9ee0a5ca3d25dfbfaef",
+  "runs": [
+    { "command": "node scripts/r0-authenticated-isolated-check.mjs --candidate-sha=469a0c0e35b3e4fff1ef3b83d105e9652b2d9b6e --workers-frozen --backup-restore", "exitCode": 0, "httpPass": 7, "workerGate": "PASS", "backupRestore": "PASS", "sourceMounted": false },
+    { "command": "node scripts/r0-authenticated-isolated-check.mjs --candidate-sha=469a0c0e35b3e4fff1ef3b83d105e9652b2d9b6e --browser --lifecycle", "exitCode": 0, "browserPass": 13, "lifecyclePass": 2, "httpPass": 7, "sourceMounted": false },
+    { "command": "node scripts/r5-isolated-recovery-rehearsal.mjs --candidate-sha=469a0c0e35b3e4fff1ef3b83d105e9652b2d9b6e --fail-at=switchImages", "exitCode": 0, "status": "PASS_ISOLATED_R5_RECOVERY", "restoredSchema": 25, "preservedCandidateSchema": 30, "comparedTables": 4, "runtimeFiles": 3, "restoredLogin": "PASS" }
+  ],
+  "regression": { "pass": 1009, "skip": 8, "fail": 0 },
+  "productionDriver": "NOT_IMPLEMENTED",
+  "deploymentApproval": "NOT_GRANTED_FOR_THIS_SHA",
+  "previousCandidateCutoff": "2026-09-07T04:30:00Z",
+  "cutoffObservedPassedAt": "2026-09-07T04:30:44Z",
+  "backupDirectoryReview": { "scope": "existing parent directory ACL only; individual files not inspected", "generalUserAccessPresent": true, "required": "private backup destination before any operational data export", "changesMade": false, "dataExposureConclusion": "NOT_DETERMINED" },
+  "productionChanged": false,
+  "stagingChanged": false,
+  "employeeUat": "NOT_RUN"
+}

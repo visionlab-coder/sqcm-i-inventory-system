@@ -2,6 +2,19 @@
 
 ## 현재 정본: R0~R4 5/6, R5 진행
 
+### R5 현재 체크리스트 — 신규 후보469a0c0 / 운영 변경 없음
+
+- [x] 실행기 후보·CI·시각·복귀/불확실 결과 차단 단위11 PASS.
+- [x] 실제 Docker 장애 주입: 구 후보 migration/이미지 교체 직후 2경로 복귀, 새 후보 이미지 교체 직후 복귀 PASS.
+- [x] 새 후보 `469a0c0e35b3e4fff1ef3b83d105e9652b2d9b6e`: 정확한 Git archive 이미지2개, 환경파일0, CI `34083021916` unit/integration success.
+- [x] 새 후보 이미지(소스 마운트 없음): worker-freeze·HTTP7·별도 DB 복원, Chrome13·인증2 PASS. 반복 HTTP7은 중복 합산하지 않는다.
+- [x] 운영 3서비스 healthy·backend/DB host port 없음, 보호 listener1234/31896·11434/13620·18766/11460 유지.18765 기존 부재. 이 작업에서 운영/staging 변경 없음.
+- [ ] 보호 백업 목적지와 실제 Production driver 연결. 기존 백업 부모 폴더에 일반 사용자 권한이 있어 새 운영 백업을 그대로 저장하지 않는다. 기존 파일 ACL/내용 미검사이므로 노출 사실로 판정하지 않는다.
+- [ ] 신규 후보의 정확한 배포 승인 및 유효 변경창. 기존 eab1ed7 승인은 9/7 13:30 cutoff를 지났고 다른 SHA로 확대하지 않는다.
+- [ ] 실제 직원 UAT·출시 인수. 합성 로그인/MFA 시험은 실제 사용자 서명 아님.
+
+기계 증거 `agent docs/harness/R5_WORKER_FREEZE_CANDIDATE.json`. READY는 `R5-VERIFIED-DEPLOYMENT-EXECUTOR`, 다음 기술 단위는 `PROTECTED_BACKUP_AND_PRODUCTION_DRIVER_BINDING`. 아래 기존 승인/후보 상태는 역사 기록이다.
+
 ### R5 실행기 로컬 작업 — 2026-09-07
 
 실제 격리 Docker 장애 주입 2경로(migration 직후/이미지 교체 직후) 복귀 PASS. 별도 DB의 migration 25 복원·4테이블 지문·구버전 로그인·화면 파일 3개 복원 및 후보 DB migration 30 보존을 검증했다. 초기 실패는 설치 Compose의 `create --no-deps` 미지원이며 `up --no-start --no-deps`로 수정 후 통과했다. 테스트용 3서비스만 제거했으며 운영·staging은 변경하지 않았다.

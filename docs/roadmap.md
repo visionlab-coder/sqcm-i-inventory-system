@@ -1,5 +1,7 @@
 # SQCM-i 비품관리 시스템 전체 로드맵
 
+현재 R5 순서: **worker-freeze 신규 후보469a0c0 로컬·CI·이미지·브라우저·복귀 ✓** → 보호 백업 목적지/운영 driver 연결 → 새 SHA·유효 변경창 승인 → 운영 배포 → 실제 직원 UAT·인수. 기존 eab1ed7 cutoff(9/7 13:30 KST) 경과로 운영 미실행. R 트랙5/6·P7 7/8 유지. 상세 `R5_WORKER_FREEZE_CANDIDATE.json`.
+
 R5 현재: **격리 실제 복귀 2경로 ✓ / 백그라운드 중지 옵션 로컬 ✓** → 새 후보 이미지 검증 → 운영 실행기 연결·유효 후보/변경창 승인 → 배포 → 직원 UAT. 전체5/6과 P7 7/8 유지. 이전 승인 eab1ed7과 신규 코드 후보를 혼합하지 않는다.
 
 현재 순서: R0~R4 ✓ → **R5 실행기 부분 구현(단위 10 PASS, Docker 연결 미완료)** → 승인창 내 배포 → 실제 직원 UAT → 출시·인수. R 트랙 **5/6**, 운영 P7 **7/8** 유지. 현재 READY `R5-VERIFIED-DEPLOYMENT-EXECUTOR`; 보고서166과 `R5_EXECUTOR_LOCAL_EVIDENCE.json` 참조.
