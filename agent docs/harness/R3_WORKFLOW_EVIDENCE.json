@@ -1,0 +1,18 @@
+{
+  "packet":"R3-WORKFLOW-TRACEABILITY",
+  "date":"2026-09-07",
+  "status":"LOCAL_VERIFIED",
+  "command":"node scripts/r0-authenticated-isolated-check.mjs --workflow",
+  "exitCode":0,
+  "integrationPass":3,
+  "httpBaselinePass":7,
+  "coverage":["assignment audit actors and ordered actions","submission and approval outbox","asset status history and originating request link","repeat approval rejected without duplicate assignment","two-step approval cannot be skipped","return photo validation and return record"],
+  "correctedTestAssumption":"Draft creation has audit only; outbox starts at submission. Initial expectation failed, code inspection corrected the test; no publisher behavior change.",
+  "syntheticOnly":true,
+  "actualPostgres":true,
+  "browser":"NOT_RUN",
+  "employeeUat":"NOT_RUN",
+  "productionChanged":false,
+  "stagingChanged":false,
+  "phaseCompleted":false
+}

@@ -11,6 +11,8 @@ Production GO: **true**
 
 ## 2026-09-07 Astra R0 제품 감사 진행
 
+R3 최신: 배정·다단계 승인·반납의 실제 격리 HTTP/DB 통합 3 PASS 및 기본 HTTP 7 PASS. 감사 행위자·순서와 자산 이력의 요청 연결·중복 승인 거부까지 검증했다. 다음 세부 READY는 `REPAIR_COST_PROVENANCE_AND_EXPLANATION`. 증거 `agent docs/harness/R3_WORKFLOW_EVIDENCE.json`; R3 전체 및 운영 완료로 승격하지 않는다.
+
 최신 R3: R0~R2 체크포인트 완료(3/6). 비용 ROI 부서 범위 수정은 집중 3·렌더 3·격리 DB 4·HTTP 7 PASS, 전체 check 종료 0. 다음 READY 세부 항목은 업무 추적 나머지 경로 검증이다. R3 전체 완료·브라우저 검증·운영 배포는 아직 아니며 P7과 별도다. 기계 증거: `agent docs/harness/R3_COST_SCOPE_EVIDENCE.json`.
 
 최신 R 트랙: R0 감사 범위 완료, R1 점진 구조 결정 체크포인트 진행. 근거·7범주 완료표는 보고서 166, 기술 결정은 `docs/ADR-ASTRA-INCREMENTAL-MODERNIZATION.md`. 전면 재작성하지 않으며 R2 로그인 준비 경계→R3 업무 근거→R4 불변 후보→R5 승인 배포로 연결한다. 아래 개별 실행 문구는 이력이며 운영 P7 상태는 유지한다.

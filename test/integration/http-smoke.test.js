@@ -240,7 +240,18 @@ test('기업 자산 요청은 직원 제출과 관리자 승인 후 배정·감�
     assert.equal((await api(`/api/enterprise/requests/${requestId}/action`,admin,{method:'POST',body:{action:'APPROVE',reviewReason:'업무 필요 확인'}})).status,200);
     const asset=await pool.query('SELECT status_code FROM assets WHERE id=$1',[assetId]); assert.equal(asset.rows[0].status_code,'ASSIGNED');
     const assignment=await pool.query('SELECT user_id,status FROM asset_assignments WHERE asset_id=$1',[assetId]); assert.deepEqual(assignment.rows[0],{user_id:employee.user.id,status:'ACTIVE'});
-    const proof=await pool.query("SELECT (SELECT count(*) FROM audit_logs WHERE entity_type='REQUEST' AND entity_id=$1)::int audits,(SELECT count(*) FROM outbox_events WHERE aggregate_type='REQUEST' AND aggregate_id=$1)::int events",[String(requestId)]); assert.ok(proof.rows[0].audits>=2); assert.ok(proof.rows[0].events>=2);
+    const audits=await pool.query("SELECT action,actor_user_id FROM audit_logs WHERE entity_type='REQUEST' AND entity_id=$1 ORDER BY id",[String(requestId)]);
+    assert.deepEqual(audits.rows.map(row=>row.action),['REQUEST_CREATED','REQUEST_SUBMITTED','REQUEST_APPROVED']);
+    assert.deepEqual(audits.rows.map(row=>Number(row.actor_user_id)),[Number(employee.user.id),Number(employee.user.id),Number(admin.user.id)]);
+    const events=await pool.query("SELECT event_type FROM outbox_events WHERE aggregate_type='REQUEST' AND aggregate_id=$1 ORDER BY id",[String(requestId)]);
+    // Draft creation is audited locally; the publisher begins at submission.
+    assert.deepEqual(events.rows.map(row=>row.event_type),['REQUEST_SUBMITTED','REQUEST_APPROVED']);
+    const history=await pool.query("SELECT from_status,to_status,changed_by FROM asset_status_histories WHERE asset_id=$1 AND to_status='ASSIGNED'",[assetId]);
+    assert.equal(history.rowCount,1); assert.equal(history.rows[0].from_status,'AVAILABLE'); assert.equal(Number(history.rows[0].changed_by),Number(admin.user.id));
+    const assetEvent=await pool.query("SELECT payload FROM outbox_events WHERE aggregate_type='ASSET' AND aggregate_id=$1 AND event_type='ASSET_STATUS_CHANGED'",[String(assetId)]);
+    assert.equal(assetEvent.rowCount,1); assert.equal(Number(assetEvent.rows[0].payload.workflowRequestId),Number(requestId));
+    assert.equal((await api(`/api/enterprise/requests/${requestId}/action`,admin,{method:'POST',body:{action:'APPROVE',reviewReason:'중복 승인 시도'}})).status,409);
+    assert.equal((await pool.query('SELECT count(*)::int n FROM asset_assignments WHERE asset_id=$1',[assetId])).rows[0].n,1);
   } finally {
     if(requestId) await pool.query("DELETE FROM outbox_events WHERE aggregate_id IN ($1,$2)",[String(requestId),String(assetId||'')]);
     if(requestId) await pool.query("DELETE FROM audit_logs WHERE entity_id IN ($1,$2)",[String(requestId),String(assetId||'')]);
