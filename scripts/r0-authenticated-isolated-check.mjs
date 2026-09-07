@@ -8,6 +8,7 @@ import assert from 'node:assert/strict';
 import { verifyAuthenticatedBrowser } from './r0-authenticated-browser.mjs';
 import { verifyC4Postgres } from './r0-c4-postgres-fixture.mjs';
 import { verifyImportPostgres } from './r0-import-postgres-fixture.mjs';
+import { verifyCostPostgres } from './r3-cost-postgres-fixture.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const project = `sqcm-r0-auth-${randomUUID().replaceAll('-', '').slice(0, 12)}`;
@@ -122,12 +123,14 @@ try {
   const excel = process.argv.includes('--excel') ? JSON.parse(docker(['exec', '-i', backendId, 'node'],
     `(${verifyImportPostgres.toString()})().then(result=>console.log(JSON.stringify(result))).catch(error=>{console.error(JSON.stringify({name:error.name,code:error.code}));process.exit(1);});`)) : 'NOT_RUN';
   let lifecycle = 'NOT_RUN';
+  const cost = process.argv.includes('--cost') ? JSON.parse(docker(['exec', '-i', backendId, 'node'],
+    `(${verifyCostPostgres.toString()})().then(result=>console.log(JSON.stringify(result))).catch(error=>{console.error(JSON.stringify({name:error.name,code:error.code}));process.exit(1);});`)) : 'NOT_RUN';
   if (process.argv.includes('--lifecycle')) {
     const output = docker(['exec', '-i', backendId, 'node'], `const {spawnSync}=require('node:child_process');const r=spawnSync(process.execPath,['--test','--test-reporter=tap','--test-name-pattern=초기 비밀번호 계정|TOTP MFA','test/integration/http-smoke.test.js','test/integration/mfa-auth.test.js'],{env:{...process.env,INTEGRATION_BASE_URL:'http://frontend',INTEGRATION_DATABASE_URL:process.env.DATABASE_URL},encoding:'utf8'});const pass=Number(r.stdout.match(/# pass (\\d+)/)?.[1]);if(r.status!==0||pass!==2){console.error('Lifecycle integration failed or selected tests skipped');process.exit(1);}console.log(JSON.stringify({status:'PASS',pass,syntheticOnly:true}));`);
     lifecycle = JSON.parse(output);
   }
   console.log(JSON.stringify({ status: 'PASS', checks, syntheticOnly: true, actualHttpBackend: true,
-    actualPostgres: true, actualEmployeeUat: 'NOT_RUN', browser, c4, excel, lifecycle, productionChanged: false, stagingChanged: false }));
+    actualPostgres: true, actualEmployeeUat: 'NOT_RUN', browser, c4, excel, cost, lifecycle, productionChanged: false, stagingChanged: false }));
 } catch (error) {
   if (started) {
     const logs = compose('logs', '--no-color', '--tail', '5', 'backend');

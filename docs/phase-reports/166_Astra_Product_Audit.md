@@ -1,6 +1,17 @@
-# Astra 제품 감사 — R0 진행 중 / C3 인증 HTTP·세션 경계 로컬 검증
+# Astra 제품 감사 — R3 업무 추적·비용 근거 진행 중
 
 ## 장기 Goal 단계 체크리스트
+
+### R3 비용 근거·범위 — 진행 중
+
+R2 로컬 수정은 `2383fed` 원격 체크포인트로 완료(3/6 R 단계; 운영 반영은 별도).
+
+- [x] `/cost/roi`가 resolveScope를 전달하지만 조직 전체 거래처·예산과 자산 미연결 절감액을 부서 사용자에게 반환하는 반례 확인: 신규 시험 FAIL.
+- [x] 부서 제한에서는 귀속 가능한 절감액만 포함하고 조직 집계 조회를 생략하도록 최소 수정. 집중 3/3·전체 984 PASS·8 SKIP·0 FAIL.
+- [x] 실제 격리 DB: 부서 소유·미귀속 제외·조직 집계 제한·조직 기준선 4 PASS. 기본 HTTP 7 PASS, `node scripts/r0-authenticated-isolated-check.mjs --cost` 종료 0.
+- [x] 화면의 데이터 없음·권한 제한·조회 실패를 구별: 실제 렌더 함수 단위 3 PASS. 브라우저 및 직원 UAT는 NOT_RUN.
+- [x] `npm.cmd run check` 종료 0. 기계 증거: `agent docs/harness/R3_COST_SCOPE_EVIDENCE.json`.
+- [ ] 업무 이력·비용 근거 나머지 경로 확인 및 체크포인트. 운영·staging 변경 없음.
 
 ### R2 로그인 준비 경쟁 상태 — 로컬 수정, 검증 진행
 
@@ -10,7 +21,7 @@ R1 구조 결정은 `16257a7` 동일 branch 원격 체크포인트로 완료. R 
 - [x] logout 후 기존 CSRF 폐기, 진행 중 준비 Promise 대기, 준비 실패 시 다음 제출에서 재발급하도록 보완.
 - [x] 집중 1/1 및 전체 `npm.cmd run check` 종료 0, 982 PASS·8 SKIP·0 FAIL.
 - [x] 준비 실패 시 전송 0·다음 제출 새 CSRF 복구: 집중 2/2 PASS. 전체 983 PASS·8 SKIP·0 FAIL. 격리 `--browser --lifecycle` 종료 0: Chrome 12/12·HTTP 7/7·인증 통합 2/2 PASS.
-- [ ] R2 exact allowlist 체크포인트. 운영·staging 변경 없음.
+- [x] R2 exact allowlist 체크포인트 `2383fed2801926cbf1dca973c47c46729ec17fdc`, 원격 동기화 확인. 운영·staging 변경 없음.
 
 R2 로그인 준비 수정의 검증 범위는 로컬이다. 다음 R3는 생애주기 추적·비용 판단의 실제 소비 경로와 근거를 확인한다. 새로운 직원 사용 효과나 운영 적용은 주장하지 않는다.
 

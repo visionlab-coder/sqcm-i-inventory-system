@@ -46,23 +46,24 @@ async function recordSavingsEvent(pool, user, input = {}) {
 async function getCostRoiSummary(pool, user, organizationInput, scope = {}) {
   const organizationId = requireOrg(user, organizationInput); const values = [organizationId]; const scopeSql = scopeClause(scope, values, 'a');
   const savingsValues = [organizationId]; let savingsScope = '';
-  if (scope.departmentIds?.length) { savingsValues.push(scope.departmentIds); savingsScope = ` AND (a.department_id=ANY($${savingsValues.length}::bigint[]) OR s.asset_id IS NULL)`; }
+  const departmentLimited = Boolean(scope.departmentIds?.length);
+  if (departmentLimited) { savingsValues.push(scope.departmentIds); savingsScope = ` AND a.department_id=ANY($${savingsValues.length}::bigint[])`; }
   const [savings, vendors, budgetRows, spendRows, utilization] = await Promise.all([
     pool.query(`SELECT count(*)::int event_count,COALESCE(sum(s.avoided_amount),0)::numeric realized_savings,COALESCE(sum(s.baseline_cost),0)::numeric baseline_cost,COALESCE(sum(s.actual_cost),0)::numeric actual_cost FROM cost_savings_events s LEFT JOIN assets a ON a.id=s.asset_id AND a.organization_id=s.organization_id WHERE s.organization_id=$1${savingsScope}`, savingsValues),
-    pool.query(`SELECT v.id,v.name,
+    departmentLimited ? Promise.resolve({rows:[]}) : pool.query(`SELECT v.id,v.name,
       COALESCE((SELECT count(*) FROM purchase_orders po WHERE po.vendor_id=v.id AND po.organization_id=v.organization_id),0)::int order_count,
       COALESCE((SELECT sum(po.total_amount) FROM purchase_orders po WHERE po.vendor_id=v.id AND po.organization_id=v.organization_id),0)::numeric ordered_amount,
       COALESCE((SELECT avg(EXTRACT(EPOCH FROM (r.received_at-po.ordered_at))/86400) FROM receipts r JOIN purchase_orders po ON po.id=r.purchase_order_id WHERE po.vendor_id=v.id AND po.organization_id=v.organization_id),0)::numeric avg_lead_days,
       COALESCE((SELECT count(*) FROM service_tickets st WHERE st.vendor_id=v.id AND st.organization_id=v.organization_id),0)::int repair_count,
       COALESCE((SELECT sum(st.cost) FROM service_tickets st WHERE st.vendor_id=v.id AND st.organization_id=v.organization_id),0)::numeric repair_cost
       FROM vendors v WHERE v.organization_id=$1 AND v.is_active ORDER BY ordered_amount DESC,v.name`, [organizationId]),
-    pool.query(`SELECT cost_center,fiscal_year,amount::numeric budget FROM cost_budgets WHERE organization_id=$1 AND fiscal_year=EXTRACT(YEAR FROM current_date)::int ORDER BY cost_center`, [organizationId]),
+    departmentLimited ? Promise.resolve({rows:[]}) : pool.query(`SELECT cost_center,fiscal_year,amount::numeric budget FROM cost_budgets WHERE organization_id=$1 AND fiscal_year=EXTRACT(YEAR FROM current_date)::int ORDER BY cost_center`, [organizationId]),
     pool.query(`SELECT COALESCE(d.cost_center,'UNASSIGNED') cost_center,EXTRACT(YEAR FROM e.occurred_at)::int fiscal_year,COALESCE(sum(e.amount),0)::numeric spent FROM asset_cost_events e LEFT JOIN assets a ON a.id=e.asset_id AND a.organization_id=e.organization_id LEFT JOIN departments d ON d.id=a.department_id WHERE e.organization_id=$1${scopeSql} GROUP BY 1,2`, values),
     pool.query(`SELECT count(*)::int asset_count,count(*) FILTER(WHERE a.status_code IN ('ASSIGNED','IN_USE'))::int active_count,count(*) FILTER(WHERE a.status_code IN ('AVAILABLE','RETURNED'))::int idle_candidate_count FROM assets a WHERE a.organization_id=$1${scopeSql}`, values)
   ]);
   const spendMap = new Map(spendRows.rows.map(row => [`${row.cost_center}:${row.fiscal_year}`, Number(row.spent || 0)]));
   const budgets = budgetRows.rows.map(row => ({ ...row, budget: Number(row.budget || 0), spent: spendMap.get(`${row.cost_center}:${row.fiscal_year}`) || 0, remaining: Number(row.budget || 0) - (spendMap.get(`${row.cost_center}:${row.fiscal_year}`) || 0) }));
-  return { organizationId, savings: savings.rows[0], budgets, vendors: vendors.rows, utilization: utilization.rows[0] };
+  return { organizationId, visibility: { organizationAggregatesRestricted: departmentLimited }, savings: savings.rows[0], budgets, vendors: vendors.rows, utilization: utilization.rows[0] };
 }
 
 async function getCostCommandCenter(pool, user, organizationInput, scope = {}) {
