@@ -2,6 +2,25 @@
 
 ## 장기 Goal 단계 체크리스트
 
+### R0 배포 내용 대조 — 2026-09-07 읽기 전용 증거
+
+기준 HEAD `b2aba0f1f1df7b8ada59a86c42a93815d98459f1`, 운영 이미지 tag `38b2bca7f34a7a950469c8d0cd6d2a4b11e3b7a6`.
+
+| 확인 대상 | 운영 | staging | 판정 |
+|---|---|---|---|
+| frontend/session-boundary.js·offline-stocktake.js | 파일 없음 | 파일 없음 | 최근 계정 격리·오프라인 기능 미배포 |
+| services/employee-self-service.js·asset-import-service.js | 파일 없음 | 파일 없음 | C4 셀프서비스·C1 이관 미배포 |
+| services/enterprise-service.js | 이미지 tag Git SHA256 일치, HEAD 불일치 | tag·HEAD 불일치 | 최근 C4 동시성 수정 미배포 |
+| frontend/app.js | tag·HEAD 모두 불일치 | tag·HEAD 모두 불일치 | 이미지 라벨만으로 내용 확정 불가 |
+
+명령: `docker ps`, 고정 대상 `docker exec ... sha256sum`·`ls`, `git show <ref>:<file>` SHA256, `docker inspect` mount destination, `docker diff`. 운영 frontend bind mount 없음; `docker diff`에서 app.js·index.html·experience.css의 writable-layer 변경 확인. 변경 주체·시각은 이 증거만으로 판정하지 않는다.
+
+운영 app.js SHA256 `4e10cbe7e4b12d0a19f01dcae86623a6378bb82441ac651b2d31e94ee770c51e`; staging `fca708350693c1d5e28e27e2a181e0d72403c79e1d3fd4afa8a6845f90c9f244`. 운영 enterprise-service SHA256 `299e7c95e356444687708aa85c5027286d842187618ce1dd4904bb5550e30a41`.
+
+운영·staging 각각 3서비스 healthy, backend/database host publish 없음. 기존 local frontend 3000은 전체 인터페이스 게시 상태(변경하지 않음). 보호 봇 개별 상태는 이번 NOT_RUN.
+
+**P1 배포 신뢰성 공백:** 검증된 로컬 개선과 실제 서비스가 다르다. R4에서 정확한 Git SHA의 불변 후보를 만들고 파일 manifest로 검증해야 하며, R5 승인된 배포 전 현재 writable-layer 수정의 보존·비교 및 롤백 사본이 필요하다. 현재 태그 이미지만 다시 올리는 작업은 최신 운영 화면 수정을 잃을 수 있으므로 수행하지 않는다. 운영·staging 변경 0.
+
 ### R0 초기 비밀번호·MFA — 진행 중
 
 - [x] Excel 체크포인트 `cc765f7` push·동일 원격 SHA 검증 후 인증 감사로 이동.

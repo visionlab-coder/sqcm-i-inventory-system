@@ -11,6 +11,8 @@ Production GO: **true**
 
 ## 2026-09-07 Astra R0 제품 감사 진행
 
+배포 대조 결과: 운영·staging에 C1 이관/C4 셀프서비스 서비스 파일과 C3 오프라인·세션 경계 스크립트가 없다. 운영 frontend app.js는 이미지 tag Git 파일과 다르고 writable-layer 변경이 확인된다. 최근 로컬 PASS는 운영 기능 완료가 아니다. R4 후보 manifest와 R5 승인 배포 전 현재 화면 수정 보존·롤백 검토가 필요하다. 보고서 166의 실제 hash·목록을 기준으로 하며 이번 운영 변경은 0이다.
+
 초기 비밀번호 자동 변경 화면을 격리 Chrome으로 검증했다: `--browser --lifecycle` 종료 0, 브라우저 9/9·HTTP 7/7·인증 통합 2/2 PASS. 변경 전 업무 403, 실제 폼 변경 후 200. 다음은 MFA 브라우저 등록·challenge이며 운영 계정·실제 UAT는 NOT_RUN이다.
 
 Excel 오류복구 로컬 검증: 잘못된 CSV 따옴표 경계 수정 후 단위 981 PASS·8 SKIP·0 FAIL(8ab0515), 실제 DB 전체 롤백·재시도 4/4(8909bfe). 최신 `--browser --excel`은 브라우저 10/10·HTTP 7/7·DB 4/4 PASS, 종료 0. Excel 체크포인트 뒤 초기 비밀번호/MFA 감사로 진행한다. 운영·실제 직원 UAT는 이번 NOT_RUN이다.

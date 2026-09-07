@@ -11,6 +11,8 @@ Production GO: **true**
 
 상태 정본: [`docs/current-state.md`](./current-state.md)
 
+R0 배포 신뢰성 공백 확인: 최근 C1/C3/C4 파일은 운영·staging에 미배포이고 운영 frontend writable-layer가 이미지 tag와 다르다. R4 불변 후보·manifest 및 R5 기존 화면 수정 보존·승인 배포가 필요하다. 단순 태그 재배포는 수행하지 않는다.
+
 R0 초기 비밀번호 화면·업무 차단/해제는 격리 브라우저 검증 PASS. MFA HTTP 통합은 PASS이며 다음 세부 READY는 MFA 브라우저 등록·challenge다. 운영 반영은 이번 NOT_RUN.
 
 R0 Excel 오류복구의 실제 격리 브라우저 10/10·HTTP 7/7·DB 롤백/재시도 4/4를 확인했다. 복구 체크포인트 이후 다음 작업은 초기 비밀번호/MFA 감사다. 운영 및 실사용 UAT 완료로 승격하지 않는다.
