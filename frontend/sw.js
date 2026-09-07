@@ -1,5 +1,5 @@
-const CACHE_NAME = 'sqcm-i-shell-20260904-c3';
-const SHELL = ['/', '/index.html', '/styles.css', '/brand.css', '/experience.css', '/evidence.css', '/ui-components.js', '/offline-stocktake.js', '/app.js', '/assets/seowon-official-logo-display.png'];
+const CACHE_NAME = 'sqcm-i-shell-20260907-scope';
+const SHELL = ['/', '/index.html', '/styles.css', '/brand.css', '/experience.css', '/evidence.css', '/ui-components.js', '/ui-components.js?v=20260810-p2', '/session-boundary.js?v=20260907-scope', '/offline-stocktake.js?v=20260907-scope', '/app.js?v=20260907-scope', '/assets/seowon-official-logo-display.png'];
 
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL))));
 self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))).then(() => self.clients.claim())));

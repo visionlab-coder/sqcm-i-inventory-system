@@ -3,20 +3,20 @@
   "workId": "R0-C3-ACCOUNT-SCOPED-OFFLINE-STORAGE",
   "status": "LOCAL_VERIFIED_NOT_DEPLOYED",
   "baselineSha": "adc33cdcb7347259fc4e373bd079f2f02bd24794",
-  "nextReady": "R0-C3-LEGACY-RECOVERY-AND-SESSION-UI-VERIFICATION",
+  "nextReady": "R0-AUTHENTICATED-APP-INTEGRATION-VALIDATION",
   "verification": {
-    "focused": { "pass": 15, "fail": 0 },
-    "chromeIndexedDbSynthetic": { "pass": 13, "fail": 0, "exitCode": 0 },
-    "syntax": { "files": 468, "exitCode": 0 },
-    "unit": { "pass": 974, "skip": 8, "fail": 0 },
+    "focused": { "pass": 18, "fail": 0 },
+    "chromeIndexedDbSynthetic": { "pass": 16, "fail": 0, "exitCode": 0 },
+    "syntax": { "files": 470, "exitCode": 0 },
+    "unit": { "pass": 977, "skip": 8, "fail": 0 },
     "uiContract": { "pass": 40 },
     "employeeAuthenticatedE2e": "NOT_RUN",
-    "multiTabSession": "NOT_RUN"
+    "multiTabSession": "PASS_REAL_SPA_WITH_SYNTHETIC_HTTP"
   },
   "legacyData": "PRESERVED_NOT_ADOPTED",
   "productionChanged": false,
   "stagingChanged": false,
   "secretUsed": false,
-  "push": "HOLD_PUBLIC_REMOTE_CONFLICTS_WITH_PRIVATE_ONLY_CONTRACT",
+  "push": "PUBLIC_REMOTE_EXCEPTION_APPROVED_PENDING_CHECKPOINT",
   "observedProductionRevision": "38b2bca7f34a7a950469c8d0cd6d2a4b11e3b7a6"
 }

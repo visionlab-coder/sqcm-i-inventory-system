@@ -6,6 +6,8 @@ const isManager = () => ['MANAGER', 'ADMIN'].includes(state.user?.role);
 const mutatingMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const inFlightWrites = new Map();
 const newIdempotencyKey = () => globalThis.crypto?.randomUUID?.() || `req-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+const sessionBoundary = globalThis.SessionBoundary?.create(() => showLogin());
+const sessionChanges = new Set(['/api/auth/login', '/api/auth/mfa/verify', '/api/auth/logout', '/api/auth/password/change-required']);
 
 async function refreshSecurityContext() {
   const me = await fetch('/api/auth/me', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
@@ -43,6 +45,7 @@ async function responseData(response) {
 }
 
 async function request(path, options = {}) {
+  const sessionVersion = sessionBoundary?.version();
   const method = String(options.method || 'GET').toUpperCase();
   const mutating = mutatingMethods.has(method);
   const signature = mutating ? `${method}:${path}:${JSON.stringify(options.body || null)}` : null;
@@ -58,8 +61,12 @@ async function request(path, options = {}) {
       if (error?.name !== 'TypeError') throw error;
       throw Object.assign(new Error('네트워크에 연결하지 못했습니다.'), { code: 'NETWORK_UNAVAILABLE' });
     }
+    if (sessionVersion !== sessionBoundary?.version()) throw Object.assign(new Error('다른 탭에서 계정이 변경되었습니다. 다시 로그인하세요.'), { code: 'SESSION_CHANGED' });
     if (response.status === 401 && !['/api/auth/login','/api/auth/mfa/verify','/api/auth/password/change-required'].includes(path)) showLogin();
-    return responseData(response);
+    const data = await responseData(response);
+    if (sessionVersion !== sessionBoundary?.version()) throw Object.assign(new Error('계정이 변경되었습니다. 다시 로그인하세요.'), { code: 'SESSION_CHANGED' });
+    if (mutating && sessionChanges.has(path)) sessionBoundary?.publish();
+    return data;
   })();
   if (signature) inFlightWrites.set(signature, operation);
   try { return await operation; } finally { if (signature) inFlightWrites.delete(signature); }
@@ -96,6 +103,9 @@ function showMessage(message, type = 'success') {
 
 function showLogin() {
   state.user = null;
+  state.reference = null;
+  state.stocktakeDetailId = null;
+  $('#view-root').innerHTML = '';
   $('#app-shell').classList.add('hidden');
   $('#login-page').classList.remove('hidden');
   $('#mfa-login-form').classList.add('hidden');
@@ -479,7 +489,8 @@ async function renderStocktakes() {
 }
 
 async function renderStocktakeDetail(id) {
-  const offlineStore = globalThis.OfflineStocktake.forUser(state.user, () => state.user);
+  const sessionVersion = sessionBoundary?.version();
+  const offlineStore = globalThis.OfflineStocktake.forUser(state.user, () => sessionVersion === sessionBoundary?.version() ? state.user : null);
   state.stocktakeDetailId=String(id); let data; let offline=false; let savedAt=null;
   try { data=await request(`/api/enterprise/stocktakes/${id}`); }
   catch(error){
@@ -494,7 +505,7 @@ async function renderStocktakeDetail(id) {
   offlineStore.assertActive();
   const rows=data.items.map(row=>`<tr><td class="mono">${escapeHtml(row.asset_tag)}</td><td>${escapeHtml(row.name)}</td><td>${statusBadge(row.result)}</td><td><select class="stock-result" data-asset="${row.asset_id}" aria-label="${escapeHtml(row.asset_tag)} 실사 결과">${['MATCH','MISSING','LOCATION_MISMATCH','DAMAGED'].map(value=>`<option ${value===row.result?'selected':''}>${value}</option>`).join('')}</select><button class="small stock-save" data-asset="${row.asset_id}" data-version="${Number(row.version||0)}">저장</button></td></tr>`).join('');
   const conflictRows=queued.filter(item=>item.syncStatus==='CONFLICT').map(item=>`<li><strong>${escapeHtml(item.operationId)}</strong> ${escapeHtml(item.conflict?.code||'CONFLICT')} · 서버 버전 ${escapeHtml(item.conflict?.serverVersion??'-')}</li>`).join('');
-  $('#view-root').innerHTML=`<div class="page-heading"><div><p class="eyebrow">STOCKTAKE #${id}</p><h1>${escapeHtml(data.stocktake.name)}</h1><p class="muted">현장에서 연결이 끊겨도 결과를 이 기기에 보관하고 재연결 후 안전하게 동기화합니다.</p></div><button class="secondary" data-go="stocktakes">목록</button></div><section class="offline-status ${offline?'is-offline':'is-online'}" role="status"><div><strong>${offline?'오프라인 저장본 사용 중':'온라인 연결됨'}</strong><span>${offline?`마지막 저장 ${date(savedAt)}`:'서버 원장과 연결되어 있습니다.'} · 대기 ${queued.length}건</span></div><button id="stock-sync" class="secondary" ${offline||!queued.length?'disabled':''}>대기 결과 동기화</button></section>${conflictRows?`<section class="alert error stock-conflicts"><strong>직접 확인이 필요한 충돌</strong><ul>${conflictRows}</ul></section>`:''}<section class="panel"><div class="table-wrap"><table><thead><tr><th>자산번호</th><th>자산명</th><th>결과</th><th>확인</th></tr></thead><tbody>${rows}</tbody></table></div><div class="stocktake-actions"><button id="stock-confirm" class="primary" ${offline||queued.length?'disabled':''}>조사 확정</button><small>${queued.length?'대기 결과를 모두 동기화한 뒤 확정할 수 있습니다.':''}</small></div></section>`;
+  $('#view-root').innerHTML=`<div class="page-heading"><div><p class="eyebrow">STOCKTAKE #${id}</p><h1>${escapeHtml(data.stocktake.name)}</h1><p class="muted">현장에서 연결이 끊겨도 결과를 이 기기에 보관하고 재연결 후 안전하게 동기화합니다.</p></div><button class="secondary" data-go="stocktakes">목록</button></div><aside class="alert" role="note"><strong>기기 저장 데이터 안내</strong><p>저장본과 대기 결과는 현재 계정·조직·부서별로 분리됩니다. 이전 버전에서 입력한 미동기화 결과가 보이지 않으면 이 기기의 사이트 데이터를 삭제하지 말고 관리자에게 소유자 확인과 복구를 요청하세요. 다른 계정의 결과를 임의로 가져오지 않습니다.</p></aside><section class="offline-status ${offline?'is-offline':'is-online'}" role="status"><div><strong>${offline?'오프라인 저장본 사용 중':'온라인 연결됨'}</strong><span>${offline?`마지막 저장 ${date(savedAt)}`:'서버 원장과 연결되어 있습니다.'} · 대기 ${queued.length}건</span></div><button id="stock-sync" class="secondary" ${offline||!queued.length?'disabled':''}>대기 결과 동기화</button></section>${conflictRows?`<section class="alert error stock-conflicts"><strong>직접 확인이 필요한 충돌</strong><ul>${conflictRows}</ul></section>`:''}<section class="panel"><div class="table-wrap"><table><thead><tr><th>자산번호</th><th>자산명</th><th>결과</th><th>확인</th></tr></thead><tbody>${rows}</tbody></table></div><div class="stocktake-actions"><button id="stock-confirm" class="primary" ${offline||queued.length?'disabled':''}>조사 확정</button><small>${queued.length?'대기 결과를 모두 동기화한 뒤 확정할 수 있습니다.':''}</small></div></section>`;
   document.querySelectorAll('.stock-save').forEach(button=>button.addEventListener('click',async()=>{const assetId=Number(button.dataset.asset);const baseVersion=Number(button.dataset.version);const result=document.querySelector(`.stock-result[data-asset="${assetId}"]`).value;try{offlineStore.assertActive();await request(`/api/enterprise/stocktakes/${id}/items/${assetId}`,{method:'POST',body:{result}});showMessage('조사 결과를 저장했습니다.');renderStocktakeDetail(id);}catch(error){if(error.code!=='NETWORK_UNAVAILABLE'||!state.user||state.user.passwordResetRequired||!isManager())return showMessage(error.message,'error');const operation={operationId:newIdempotencyKey(),assetId,baseVersion,result,foundLocationId:null,reason:'offline field stocktake'};await offlineStore.queueOperation(id,operation);const item=data.items.find(candidate=>Number(candidate.asset_id)===assetId);if(item)item.result=result;await offlineStore.saveSnapshot(id,data);showMessage('연결이 없어 이 기기에 안전하게 보관했습니다.');renderStocktakeDetail(id);}}));
   $('#stock-sync').addEventListener('click',async()=>{try{offlineStore.assertActive();const pending=await offlineStore.listOperations(id);const response=await request(`/api/enterprise/stocktakes/${id}/offline-sync`,{method:'POST',body:{organizationId:state.user.organizationId,operations:pending.map(({operationId,assetId,baseVersion,result,foundLocationId,reason})=>({operationId,assetId,baseVersion,result,foundLocationId,reason}))}});await offlineStore.removeOperations(response.results.filter(item=>['APPLIED','DUPLICATE'].includes(item.status)).map(item=>item.operationId));for(const item of response.results.filter(item=>item.status==='CONFLICT'))await offlineStore.markConflict(item.operationId,item);showMessage(response.conflicts?`동기화 완료, 충돌 ${response.conflicts}건을 확인하세요.`:'대기 결과를 모두 동기화했습니다.',response.conflicts?'error':'success');renderStocktakeDetail(id);}catch(error){showMessage(error.message,'error');}});
   $('#stock-confirm').addEventListener('click',async()=>{try{offlineStore.assertActive();await request(`/api/enterprise/stocktakes/${id}/confirm`,{method:'POST',body:{}});showMessage('재물조사를 확정했습니다.');renderStocktakes();}catch(error){showMessage(error.message,'error');}});
@@ -632,7 +643,7 @@ $('#required-password-change-form').addEventListener('submit', async event => {
 
 $('#required-password-change-logout').addEventListener('click', async () => {
   try { await request('/api/auth/logout', { method:'POST', body:{} }); }
-  finally { const csrf = await request('/api/auth/csrf'); state.csrfToken = csrf.csrfToken; showLogin(); }
+  finally { showLogin(); try { const csrf = await request('/api/auth/csrf'); state.csrfToken = csrf.csrfToken; } catch { /* remain locked while offline */ } }
 });
 
 $('#invitation-form').addEventListener('submit', async event => {
@@ -651,7 +662,7 @@ $('#mobile-nav-toggle')?.addEventListener('click', toggleMobileNav);
 $('#nav-backdrop')?.addEventListener('click', closeMobileNav);
 document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMobileNav(); });
 window.addEventListener('online',()=>{if(state.view==='stocktakes'&&state.stocktakeDetailId){showMessage('연결이 복구되었습니다. 대기 결과를 동기화하세요.');renderStocktakeDetail(state.stocktakeDetailId).catch(error=>showMessage(error.message,'error'));}});
-$('#logout-button').addEventListener('click', async () => { try { await request('/api/auth/logout', { method:'POST', body:{} }); } finally { const csrf = await request('/api/auth/csrf'); state.csrfToken = csrf.csrfToken; showLogin(); } });
+$('#logout-button').addEventListener('click', async () => { try { await request('/api/auth/logout', { method:'POST', body:{} }); } finally { showLogin(); try { const csrf = await request('/api/auth/csrf'); state.csrfToken = csrf.csrfToken; } catch { /* remain locked while offline */ } } });
 
 if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
 boot();

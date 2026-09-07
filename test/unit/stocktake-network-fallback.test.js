@@ -13,6 +13,7 @@ function harness({ requestError, saveError } = {}) {
   const data = { stocktake: { name: 'Synthetic audit' }, items: [] };
   const element = { innerHTML: '', addEventListener() {} };
   const context = vm.createContext({
+    sessionBoundary: undefined, sessionChanges: new Set(),
     state: { user: { id: 1, role: 'MANAGER' } }, isManager: () => true,
     request: async () => { if (requestError) throw requestError; return data; },
     OfflineStocktake: {
@@ -59,6 +60,7 @@ test('logged-out session cannot read offline snapshot', async () => {
 });
 test('request classifies fetch rejection but not response parser failures', async () => {
   const context = vm.createContext({
+    sessionBoundary: undefined, sessionChanges: new Set(),
     mutatingMethods: new Set(), inFlightWrites: new Map(), state: {},
     fetch: async () => { throw new TypeError('network failure'); },
     responseData: async () => { throw new TypeError('parser defect'); }

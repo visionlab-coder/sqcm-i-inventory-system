@@ -79,3 +79,17 @@
 Production frontend/backend 모두 image tag와 revision label이 `38b2bca7f34a7a950469c8d0cd6d2a4b11e3b7a6`다. 로컬 Git에서 해당 커밋은 `feat(auth): force company users to change initial password (#24)`이며 `93aa5b8…`의 후손이다. 두 SHA 사이 변경은 해당 커밋 1개다. 따라서 더 오래된 버전으로의 회귀라는 근거는 없고 문서 기준이 갱신되지 않은 것이다. 해당 커밋 tree에 `frontend/offline-stocktake.js`는 없다. 실행 컨테이너 파일 전체의 SHA 검증은 아직 하지 않았으므로 label만으로 현재 모든 파일 내용을 보증하지 않는다.
 
 다음 READY: `R0-C3-LEGACY-RECOVERY-AND-SESSION-UI-VERIFICATION`. 구형 데이터를 자동 배정하지 않는 복구 안내 및 공유 기기 세션 전환 화면 검증. R0 전체·운영 Phase·배포 완료는 아님. 공개 remote push에는 기존 private-only 조건과의 충돌을 해소하는 사용자 결정이 필요하다.
+
+## 후속 실행 — 복구 안내·멀티탭 화면 잠금
+
+사용자가 작업 완료 전까지 기존 public 저장소를 유지한다고 명시하여 공개 remote 체크포인트 예외가 승인됐다. 설정을 private으로 바꾸지 않고 동일 작업 branch만 push한다. 앞의 public 충돌 표시는 당시 보류 이력이며 현재 승인 상태가 아니다.
+
+- [x] 재물조사 화면에 구형 데이터 자동 이관 금지, 사이트 데이터 삭제 금지, 관리자 소유자 확인·복구 요청 안내 표시
+- [x] BroadcastChannel과 storage fallback으로 다른 탭의 로그인/MFA/초기 비밀번호 변경/로그아웃 성공을 알림. 전송값은 변경 신호 또는 불투명 nonce뿐이며 계정·토큰·업무 데이터 없음
+- [x] 수신 탭은 이전 화면·참조 데이터·선택 조사를 비우고 로그인 화면으로 잠금. 이전 세션 revision의 요청 응답은 사용하지 않음
+- [x] 초기/일반 로그아웃 이후 CSRF 재조회 실패에도 현재 화면은 잠금 유지
+- [x] 새 모듈의 HTML 로드 순서·service worker cache 버전과 정확한 query URL을 함께 갱신
+- [x] focused 18 PASS, Chrome 16 PASS(실제 SPA 두 탭 잠금·390px 가로 넘침 없음 포함), 구문 470개, 전체 단위 977 PASS·8 SKIP·0 FAIL, UI 계약 40 PASS
+- [ ] 실제 인증 backend와 직원 UAT는 NOT_RUN. 브라우저는 실제 프런트엔드+합성 HTTP 서버이며 이 차이를 완료 증거에서 보존한다.
+
+이번 결과는 C3 로컬 회귀·멀티탭 UI 후보이며 전체 제품 또는 R0 완료가 아니다. 구형 데이터 실제 복구는 원래 소유자와 데이터별 근거 없이는 실행하지 않는다. 다음 READY: `R0-AUTHENTICATED-APP-INTEGRATION-VALIDATION` — 격리 backend에서 합성 직원 인증·재물조사·로그아웃의 실제 HTTP 계약을 대조한다. 운영 배포·migration·회사 계정 변경은 하지 않는다.

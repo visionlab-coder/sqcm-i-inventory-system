@@ -11,7 +11,7 @@ Production GO: **true**
 
 ## 2026-09-07 Astra R0 제품 감사 진행
 
-`docs/phase-reports/166_Astra_Product_Audit.md`에서 실행 증거를 추적한다. C3의 오류 분류와 계정·조직·부서·역할별 IndexedDB 격리를 로컬 구현했다. focused 15 PASS, Chrome 합성 IndexedDB 13 PASS, 구문 468개, 전체 단위 974 PASS·8 SKIP·0 FAIL, UI 계약 40 PASS다. 실제 직원 UI·멀티탭 세션·운영 배포는 미완료이며 R0 전체 완료가 아니다. Production image revision은 `38b2bca7f34a7a950469c8d0cd6d2a4b11e3b7a6`(초기 비밀번호 PR #24)로 확인했으며 기록된 main 기준 `93aa5b8…`의 후손이다. 다음 로컬 READY는 `R0-C3-LEGACY-RECOVERY-AND-SESSION-UI-VERIFICATION`이다. 원격 저장소가 public으로 확인되어 private-only checkpoint 계약과 충돌하므로 push는 보류한다. P7 7/8과 C5 G4 외부 입력 보류는 유지한다.
+`docs/phase-reports/166_Astra_Product_Audit.md`에서 실행 증거를 추적한다. C3 오류 분류·계정별 IndexedDB 격리·구형 데이터 복구 안내·멀티탭 화면 잠금을 로컬 구현했다. focused 18 PASS, 실제 Chrome 16 PASS(합성 HTTP·실제 SPA 두 탭 포함), 구문 470개, 전체 단위 977 PASS·8 SKIP·0 FAIL, UI 계약 40 PASS다. 실제 직원 인증 backend·운영 배포는 미완료이며 R0 전체 완료가 아니다. Production image revision은 `38b2bca7f34a7a950469c8d0cd6d2a4b11e3b7a6`(초기 비밀번호 PR #24)이다. 다음 로컬 READY는 `R0-AUTHENTICATED-APP-INTEGRATION-VALIDATION`이다. 사용자가 완료 전 public 유지 예외를 승인하여 동일 branch의 검증된 복구 체크포인트 push를 허용한다. 공개설정·운영 환경·P7 7/8·C5 G4 외부 입력 보류는 변경하지 않는다.
 
 릴리스 기준 브랜치: `main`
 현재 작업 브랜치: `codex/p7-qs-6-16-0-production-evidence`
