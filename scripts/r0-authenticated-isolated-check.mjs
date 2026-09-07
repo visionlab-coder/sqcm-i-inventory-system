@@ -7,6 +7,7 @@ import { readdirSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { verifyAuthenticatedBrowser } from './r0-authenticated-browser.mjs';
 import { verifyC4Postgres } from './r0-c4-postgres-fixture.mjs';
+import { verifyImportPostgres } from './r0-import-postgres-fixture.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const project = `sqcm-r0-auth-${randomUUID().replaceAll('-', '').slice(0, 12)}`;
@@ -115,8 +116,10 @@ try {
   const browser = process.argv.includes('--browser') ? await verifyAuthenticatedBrowser({ backendId, password }) : 'NOT_RUN';
   const c4 = process.argv.includes('--c4') ? JSON.parse(docker(['exec', '-i', backendId, 'node'],
     `(${verifyC4Postgres.toString()})().then(result=>console.log(JSON.stringify(result))).catch(error=>{console.error(JSON.stringify({name:error.name,code:error.code}));process.exit(1);});`)) : 'NOT_RUN';
+  const excel = process.argv.includes('--excel') ? JSON.parse(docker(['exec', '-i', backendId, 'node'],
+    `(${verifyImportPostgres.toString()})().then(result=>console.log(JSON.stringify(result))).catch(error=>{console.error(JSON.stringify({name:error.name,code:error.code}));process.exit(1);});`)) : 'NOT_RUN';
   console.log(JSON.stringify({ status: 'PASS', checks, syntheticOnly: true, actualHttpBackend: true,
-    actualPostgres: true, actualEmployeeUat: 'NOT_RUN', browser, c4, productionChanged: false, stagingChanged: false }));
+    actualPostgres: true, actualEmployeeUat: 'NOT_RUN', browser, c4, excel, productionChanged: false, stagingChanged: false }));
 } catch (error) {
   if (started) {
     const logs = compose('logs', '--no-color', '--tail', '5', 'backend');
