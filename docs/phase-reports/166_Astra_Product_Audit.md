@@ -4,6 +4,15 @@
 
 ### R3 비용 근거·범위 — 진행 중
 
+최신 수정: 수리 상태 API를 `repair-service`로 분리해 행 잠금·부서 권한·비용 원장·감사를 한 트랜잭션에 묶었다. 생략 비용/처리 내용은 보존, 명시적 0은 반영, NULL 등 모호한 금액은 거부한다. 같은 수리 ID의 이벤트는 중복 합산하지 않는다.
+
+- [x] 단위 2 PASS, 격리 HTTP/DB 통합 1 PASS 및 기본 HTTP 7 PASS.
+- [x] TCO API 증가 12,345원·비용 보존·0원·원장 단일성·감사 SQL 실패 시 전체 rollback 검증.
+- [x] 전체 `check`: 989 PASS·8 SKIP·0 FAIL.
+- [ ] 다음: 승인 시 수리 생성 경로와 화면 비용 설명 검토. 과거 운영 비용 일괄 보정·배포·직원 UAT는 NOT_RUN.
+
+증거: `agent docs/harness/R3_REPAIR_STATUS_FIX.json`. 아래 GAP 기록은 수정 전 재현 증거이며 전체 생성 경로까지 해결했다고 확대하지 않는다.
+
 수리비 검증 **GAP_CONFIRMED**: `--repair-probe` 격리 PostgreSQL에서 수리 건 12,345원 저장 후 TCO 수리비 증가 0원(기대 12,345원). 상태 변경 route의 비용 생략→NULL SQL도 기존 비용을 없앰을 확인했다. 실제 운영/HTTP 수리 쓰기는 실행하지 않았다. 진단 종료 0은 제품 PASS가 아니다.
 
 - [x] 수리 원장과 TCO 간 누락 및 비용 생략 시 손실 반례 확보 (`R3_REPAIR_COST_GAP.json`).

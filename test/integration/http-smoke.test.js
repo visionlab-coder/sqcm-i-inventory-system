@@ -9,6 +9,42 @@ const baseUrl = process.env.INTEGRATION_BASE_URL;
 const databaseUrl = process.env.INTEGRATION_DATABASE_URL;
 const integrationConfig = getConfig();
 
+test('수리 비용 상태 변경은 원장·감사와 함께 보존되고 실패하면 롤백한다',{skip:!baseUrl||!databaseUrl},async()=>{
+  const pool=createPool(databaseUrl); let admin; let assetId; let ticketId;
+  try {
+    admin=await login('admin@seowon.local',integrationConfig.seedAdminPassword);
+    assetId=(await pool.query("INSERT INTO assets(organization_id,asset_tag,name,created_by) VALUES($1,$2,'Synthetic repair',$3) RETURNING id",[admin.user.organizationId,`RC-${Date.now()}`,admin.user.id])).rows[0].id;
+    ticketId=(await pool.query("INSERT INTO service_tickets(organization_id,asset_id,reporter_id,symptom) VALUES($1,$2,$3,'Synthetic repair') RETURNING id",[admin.user.organizationId,assetId,admin.user.id])).rows[0].id;
+    const url=`/api/enterprise/repairs/${ticketId}/status`;
+    const beforeCost=await (await api('/api/enterprise/cost/command-center',admin)).json();
+    assert.equal((await api(url,admin,{method:'POST',body:{status:'RESOLVED',cost:12345,resolution:'Synthetic completed'}})).status,200);
+    assert.equal((await api(url,admin,{method:'POST',body:{status:'CLOSED'}})).status,200);
+    const stored=(await pool.query('SELECT cost,resolution FROM service_tickets WHERE id=$1',[ticketId])).rows[0];
+    assert.equal(Number(stored.cost),12345); assert.equal(stored.resolution,'Synthetic completed');
+    const ledger=await pool.query("SELECT amount FROM asset_cost_events WHERE source_type='SERVICE_TICKET' AND source_id=$1",[String(ticketId)]);
+    assert.equal(ledger.rowCount,1); assert.equal(Number(ledger.rows[0].amount),12345);
+    const afterCost=await (await api('/api/enterprise/cost/command-center',admin)).json();
+    assert.equal(Number(afterCost.summary.repair_cost)-Number(beforeCost.summary.repair_cost),12345);
+    assert.equal((await api(url,admin,{method:'POST',body:{status:'CLOSED',cost:null}})).status,400);
+    const {updateRepairStatus}=require('../../src/services/repair-service');
+    const failingPool={connect:async()=>{
+      const client=await pool.connect();
+      return {release:()=>client.release(),query:(sql,args)=>sql.includes('INSERT INTO audit_logs')?client.query('SELECT 1/0'):client.query(sql,args)};
+    }};
+    await assert.rejects(()=>updateRepairStatus(failingPool,admin.user,ticketId,{status:'WAITING',cost:99}),e=>e.code==='22012');
+    assert.equal((await pool.query('SELECT status FROM service_tickets WHERE id=$1',[ticketId])).rows[0].status,'CLOSED');
+    assert.equal(Number((await pool.query("SELECT amount FROM asset_cost_events WHERE source_type='SERVICE_TICKET' AND source_id=$1",[String(ticketId)])).rows[0].amount),12345);
+    assert.equal((await api(url,admin,{method:'POST',body:{status:'CLOSED',cost:0}})).status,200);
+    const zero=await pool.query("SELECT amount FROM asset_cost_events WHERE source_type='SERVICE_TICKET' AND source_id=$1",[String(ticketId)]);
+    assert.equal(zero.rowCount,1); assert.equal(Number(zero.rows[0].amount),0);
+    assert.equal((await pool.query("SELECT count(*)::int n FROM audit_logs WHERE entity_type='REPAIR' AND entity_id=$1",[String(ticketId)])).rows[0].n,3);
+  } finally {
+    if(ticketId){await pool.query("DELETE FROM audit_logs WHERE entity_type='REPAIR' AND entity_id=$1",[String(ticketId)]);await pool.query("DELETE FROM asset_cost_events WHERE source_type='SERVICE_TICKET' AND source_id=$1",[String(ticketId)]);await pool.query('DELETE FROM service_tickets WHERE id=$1',[ticketId]);}
+    if(assetId) await pool.query('DELETE FROM assets WHERE id=$1',[assetId]);
+    await removeTestSessions(pool,[admin]); await pool.end();
+  }
+});
+
 const cookieFrom = response => response.headers.get('set-cookie')?.split(';')[0];
 const sessionIdFromCookie = cookie => {
   const encoded = String(cookie || '').split('=', 2)[1] || '';

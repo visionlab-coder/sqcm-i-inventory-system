@@ -132,13 +132,17 @@ try {
   }
   const repairCostProbe = process.argv.includes('--repair-probe') ? JSON.parse(docker(['exec', '-i', backendId, 'node'],
     `(${probeRepairCost.toString()})().then(result=>console.log(JSON.stringify(result))).catch(error=>{console.error(JSON.stringify({name:error.name,code:error.code}));process.exit(1);});`)) : 'NOT_RUN';
+  let repair = 'NOT_RUN';
+  if (process.argv.includes('--repair')) {
+    repair = JSON.parse(docker(['exec','-i',backendId,'node'],`const {spawnSync}=require('node:child_process');const r=spawnSync(process.execPath,['--test','--test-reporter=tap','--test-name-pattern=수리 비용 상태 변경은','test/integration/http-smoke.test.js'],{env:{...process.env,INTEGRATION_BASE_URL:'http://frontend',INTEGRATION_DATABASE_URL:process.env.DATABASE_URL},encoding:'utf8'});const pass=Number(r.stdout.match(/# pass (\\d+)/)?.[1]);if(r.status!==0||pass!==1){console.error(JSON.stringify({status:'FAIL',pass,exitCode:r.status,failures:r.stdout.split('\\n').filter(line=>/^not ok|^  error:|^  code:/.test(line))}));process.exit(1);}console.log(JSON.stringify({status:'PASS',pass,syntheticOnly:true}));`));
+  }
   let workflow = 'NOT_RUN';
   if (process.argv.includes('--workflow')) {
     const output = docker(['exec', '-i', backendId, 'node'], `const {spawnSync}=require('node:child_process');const r=spawnSync(process.execPath,['--test','--test-reporter=tap','--test-name-pattern=기업 자산 요청은|2단계 승인 정책은|반납 사진은','test/integration/http-smoke.test.js'],{env:{...process.env,INTEGRATION_BASE_URL:'http://frontend',INTEGRATION_DATABASE_URL:process.env.DATABASE_URL},encoding:'utf8'});const pass=Number(r.stdout.match(/# pass (\\d+)/)?.[1]);if(r.status!==0||pass!==3){console.error(JSON.stringify({status:'FAIL',pass,exitCode:r.status,failures:r.stdout.split('\\n').filter(line=>/^not ok|^  error:|^  code:/.test(line))}));process.exit(1);}console.log(JSON.stringify({status:'PASS',pass,syntheticOnly:true}));`);
     workflow = JSON.parse(output);
   }
   console.log(JSON.stringify({ status: repairCostProbe?.status === 'GAP_CONFIRMED' ? 'GAP_CONFIRMED' : 'PASS', checks, syntheticOnly: true, actualHttpBackend: true,
-    actualPostgres: true, actualEmployeeUat: 'NOT_RUN', browser, c4, excel, cost, lifecycle, workflow, repairCostProbe, productionChanged: false, stagingChanged: false }));
+    actualPostgres: true, actualEmployeeUat: 'NOT_RUN', browser, c4, excel, cost, lifecycle, workflow, repair, repairCostProbe, productionChanged: false, stagingChanged: false }));
 } catch (error) {
   if (started) {
     const logs = compose('logs', '--no-color', '--tail', '5', 'backend');

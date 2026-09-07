@@ -18,6 +18,7 @@ const { findAssetByQr, findAssetForQrLabel, qrScanUrl } = require('./services/as
 const { normalizeOfflineBatch } = require('./services/stocktake-offline-service');
 const { getEmployeeSelfService, createEmployeeAssetRequest } = require('./services/employee-self-service');
 const { requeueDeadLetter } = require('./services/outbox-service');
+const { updateRepairStatus } = require('./services/repair-service');
 
 const page = req => ({ size: Math.min(100, Math.max(1, Number(req.query.size) || 25)), offset: Math.max(0, Number(req.query.page) || 0) * Math.min(100, Math.max(1, Number(req.query.size) || 25)) });
 const trace = req => ({ ...auditTrace(req), idempotencyKey: String(req.get('idempotency-key') || '').slice(0, 100) || null });
@@ -181,13 +182,7 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
     await audit(pool, req, 'REPAIR_CREATED', 'REPAIR', result.rows[0].id, { assetId:id }); res.status(201).json({ repair:result.rows[0] });
   });
   router.post('/repairs/:id/status', async (req, res) => {
-    requirePermission(req.user, 'repair.manage'); const id=positiveInteger(req.params.id,'수리번호'); const status=String(req.body.status||'').toUpperCase();
-    if(!['OPEN','IN_PROGRESS','WAITING','RESOLVED','CLOSED','CANCELLED'].includes(status)) throw new DomainError('올바른 수리 상태가 아닙니다.');
-    const organizationId=orgId(req,req.body.organizationId); const scope=await resolveScope(pool,req.user);
-    const values=[status,String(req.body.resolution||'').slice(0,1000)||null,req.body.cost==null?null:Number(req.body.cost),id,organizationId];
-    const scopeSql=scope.departmentIds?(values.push(scope.departmentIds),` AND EXISTS(SELECT 1 FROM assets a WHERE a.id=service_tickets.asset_id AND a.department_id=ANY($${values.length}::bigint[]))`):'';
-    const result=await pool.query(`UPDATE service_tickets SET status=$1,resolution=$2,cost=$3,updated_at=now() WHERE id=$4 AND organization_id=$5${scopeSql} RETURNING *`,values);
-    if(!result.rowCount) throw new DomainError('수리 건을 찾을 수 없습니다.',404); await audit(pool,req,'REPAIR_STATUS_CHANGED','REPAIR',id,{status}); res.json({repair:result.rows[0]});
+    res.json({repair:await updateRepairStatus(pool,req.user,req.params.id,req.body,trace(req))});
   });
 
   router.get('/stocktakes', async (req,res)=>{ requirePermission(req.user,'stocktake.manage'); const organizationId=orgId(req,req.query.organizationId); const scope=await resolveScope(pool,req.user); const values=[organizationId]; const scopeSql=scope.departmentIds?(values.push(scope.departmentIds),` AND EXISTS(SELECT 1 FROM stocktake_items access_si JOIN assets access_a ON access_a.id=access_si.asset_id WHERE access_si.stocktake_id=s.id AND access_a.department_id=ANY($2::bigint[]))`):''; const itemScope=scope.departmentIds?` AND EXISTS(SELECT 1 FROM assets count_a WHERE count_a.id=si.asset_id AND count_a.department_id=ANY($2::bigint[]))`:''; const result=await pool.query(`SELECT s.*,l.name location_name,(SELECT count(*) FROM stocktake_items si WHERE si.stocktake_id=s.id${itemScope})::int item_count,(SELECT count(*) FROM stocktake_items si WHERE si.stocktake_id=s.id AND si.result NOT IN ('PENDING','MATCH')${itemScope})::int mismatch_count FROM stocktakes s LEFT JOIN locations l ON l.id=s.location_id WHERE s.organization_id=$1${scopeSql} ORDER BY s.created_at DESC`,values); res.json({stocktakes:result.rows}); });

@@ -11,6 +11,8 @@ Production GO: **true**
 
 ## 2026-09-07 Astra R0 제품 감사 진행
 
+R3 최신 수정: 수리 상태 변경의 비용 보존·TCO 원장·감사 트랜잭션 로컬 검증 완료. 단위 2, 격리 통합 1+HTTP 7, 전체 989 PASS·8 SKIP·0 FAIL. 다음 `REPAIR_CREATION_AND_COST_EXPLANATION_REVIEW`. 과거 데이터 보정과 운영 반영은 하지 않았다. 아래 진단 기록은 수정 전 증거다.
+
 R3 우선 결함: 수리비 12,345원 기록의 TCO 반영이 0원이며, 상태 변경 시 비용 생략이 NULL 덮어쓰기로 이어짐을 격리 DB에서 재현했다. 다음 READY는 `REPAIR_COST_TRANSACTION_AND_PRESERVATION_FIX`. 진단만 완료했으며 제품 수정·운영 반영은 아직 아니다. 증거 `agent docs/harness/R3_REPAIR_COST_GAP.json`.
 
 R3 최신: 배정·다단계 승인·반납의 실제 격리 HTTP/DB 통합 3 PASS 및 기본 HTTP 7 PASS. 감사 행위자·순서와 자산 이력의 요청 연결·중복 승인 거부까지 검증했다. 다음 세부 READY는 `REPAIR_COST_PROVENANCE_AND_EXPLANATION`. 증거 `agent docs/harness/R3_WORKFLOW_EVIDENCE.json`; R3 전체 및 운영 완료로 승격하지 않는다.

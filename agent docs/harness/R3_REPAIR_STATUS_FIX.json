@@ -1,0 +1,17 @@
+{
+  "status":"LOCAL_VERIFIED",
+  "date":"2026-09-07",
+  "scope":"repair status endpoint only; historical backfill and approval-time creation not included",
+  "verification":[
+    {"command":"node --test test/unit/repair-service.test.js","pass":2,"exitCode":0},
+    {"command":"node scripts/r0-authenticated-isolated-check.mjs --repair","pass":1,"httpBaselinePass":7,"exitCode":0},
+    {"command":"npm.cmd run check","pass":989,"skip":8,"fail":0,"exitCode":0}
+  ],
+  "proved":["omitted cost and resolution preserved","explicit zero accepted","ambiguous null rejected","one source-linked cost event per ticket","TCO API delta 12345","audit failure rolls back ticket and ledger","only committed audit records retained"],
+  "syntheticOnly":true,
+  "productionChanged":false,
+  "stagingChanged":false,
+  "browser":"NOT_RUN",
+  "phaseCompleted":false,
+  "next":"REPAIR_CREATION_AND_COST_EXPLANATION_REVIEW"
+}
