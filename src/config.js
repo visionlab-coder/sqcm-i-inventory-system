@@ -171,6 +171,7 @@ function getConfig(overrides = {}) {
     outboxPublisherRequired: isProduction,
     outboxPollIntervalMs: boundedInteger(env.OUTBOX_POLL_INTERVAL_MS, 5000, 'OUTBOX_POLL_INTERVAL_MS', 1000, 300000),
     outboxBatchSize: boundedInteger(env.OUTBOX_BATCH_SIZE, 20, 'OUTBOX_BATCH_SIZE', 1, 100),
+    backgroundWorkersEnabled: booleanValue(env.BACKGROUND_WORKERS_ENABLED, true, 'BACKGROUND_WORKERS_ENABLED'),
     automationWorkerEnabled: booleanValue(env.AUTOMATION_WORKER_ENABLED, isProduction, 'AUTOMATION_WORKER_ENABLED'),
     automationWorkerIntervalMs: boundedInteger(env.AUTOMATION_WORKER_INTERVAL_MS, 60000, 'AUTOMATION_WORKER_INTERVAL_MS', 10000, 3600000),
     seedAdminPassword,

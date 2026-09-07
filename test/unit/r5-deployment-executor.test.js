@@ -51,3 +51,7 @@ test('unverified rollback never claims recovered runtime',async()=>{
  const {executeR5Deployment}=await import('../../src/operations/r5-deployment-executor.mjs');const {driver}=fakeDriver('migrate');driver.rollback=async()=>({originalRuntimeRestored:true});
  const result=await executeR5Deployment({approval,candidate,driver,now,execute:true});assert.equal(result.status,'HOLD_RECOVERY_UNVERIFIED');
 });
+test('unknown Docker command completion cannot race database recovery',async()=>{
+ const {executeR5Deployment}=await import('../../src/operations/r5-deployment-executor.mjs');const {driver,calls}=fakeDriver();driver.migrate=async()=>{throw Object.assign(new Error('private command'),{code:'R5_COMMAND_OUTCOME_UNKNOWN'});};
+ const result=await executeR5Deployment({approval,candidate,driver,now,execute:true});assert.equal(result.status,'HOLD_COMMAND_OUTCOME_UNKNOWN');assert.equal(result.automaticDatabaseRestore,false);assert.ok(!calls.includes('rollback'));assert.ok(calls.includes('contain'));
+});

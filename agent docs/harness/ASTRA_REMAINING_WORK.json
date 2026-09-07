@@ -5,7 +5,7 @@
   "currentPhase": "R5",
   "readyWork": "R5-VERIFIED-DEPLOYMENT-EXECUTOR",
   "readyStep": "BIND_R5_CANDIDATE_AND_TEST_DATABASE_COMPATIBLE_RECOVERY",
-  "r5Executor": { "status": "PARTIAL_LOCAL_UNIT_VERIFIED", "evidence": "agent docs/harness/R5_EXECUTOR_LOCAL_EVIDENCE.json", "focusedPass": 10, "realDockerDriver": "NOT_IMPLEMENTED", "deployment": "NOT_RUN" },
+  "r5Executor": { "status": "ISOLATED_RECOVERY_VERIFIED_PRODUCTION_DRIVER_PENDING", "evidence": "agent docs/harness/R5_EXECUTOR_LOCAL_EVIDENCE.json", "focusedPass": 11, "realDockerDriver": "ISOLATED_RECOVERY_PASS", "productionDriver": "NOT_IMPLEMENTED", "workerFreezeCandidateRebuildRequired": true, "deployment": "NOT_RUN" },
   "r5Approval": { "status": "APPROVED_WITH_TIME_BOUNDARY", "evidence": "agent docs/harness/R5_DEPLOYMENT_APPROVAL_AND_PREFLIGHT.json", "execution": "HOLD_EXECUTOR_TARGET_MISMATCH" },
   "navigationRace": { "status": "LOCAL_FIX_VERIFIED", "evidence": "agent docs/harness/R4_NAVIGATION_RACE.json", "candidateRebuildRequired": true },
   "finalCandidate": { "sha": "eab1ed72584c300174b67eca344f127a476be528", "status": "R4_LOCAL_CANDIDATE_ACCEPTED", "ciRun": 34077115778, "evidence": "agent docs/harness/R4_FINAL_CANDIDATE.json", "concurrentNavigation": "PASS_REAL_BROWSER_DELAY" },

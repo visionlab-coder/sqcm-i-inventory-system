@@ -4,6 +4,10 @@
 
 ### R5 실행기 로컬 작업 — 2026-09-07
 
+실제 격리 Docker 장애 주입 2경로(migration 직후/이미지 교체 직후) 복귀 PASS. 별도 DB의 migration 25 복원·4테이블 지문·구버전 로그인·화면 파일 3개 복원 및 후보 DB migration 30 보존을 검증했다. 초기 실패는 설치 Compose의 `create --no-deps` 미지원이며 `up --no-start --no-deps`로 수정 후 통과했다. 테스트용 3서비스만 제거했으며 운영·staging은 변경하지 않았다.
+
+운영 사전검토에서 `AUTOMATION_WORKER_ENABLED=false`로 outbox 발행이 중지되지 않는 결함을 확인했다. `BACKGROUND_WORKERS_ENABLED=false`로 두 작업을 시작하지 않는 옵션 추가(기본 true 보존). 신규 단위 3 PASS, 실행기 11 PASS, 실제 합성 HTTP/DB 7 PASS 및 컨테이너 설정/두 작업 차단 PASS. 전체1009 PASS/8 SKIP/0 FAIL. 실제 운영 driver·TLS·직원 UAT는 미완료이며 이 코드 변경은 새 후보 SHA/이미지 검증 및 해당 후보의 배포 승인을 요구한다. 기존 eab1ed7 승인을 다른 후보로 확대하지 않는다.
+
 - [x] 목표·범위: 과거 P6 실행기는 변경하지 않고 R5 전용 순서 제어 모듈 작성.
 - [x] 산출물: `src/operations/r5-deployment-executor.mjs`, 대응 단위테스트.
 - [x] 승인 경계: 후보/CI/대상/변경창 불일치 시 실행 차단.

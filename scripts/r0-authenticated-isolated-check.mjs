@@ -30,7 +30,8 @@ const spec = {
       environment: { NODE_ENV: 'test', PORT: '8080', DATABASE_URL: `postgres://r0:${password}@database:5432/r0_synthetic`,
         SESSION_SECRET: sessionSecret, DB_AUTO_MIGRATE: 'true', DB_RUN_SEEDS: 'true',
         SEED_ADMIN_PASSWORD: password, SEED_MANAGER_PASSWORD: password, SEED_USER_PASSWORD: password,
-        AUTH_PROVIDER: 'local', COOKIE_SECURE: 'false', AUTOMATION_WORKER_ENABLED: 'false', FILE_STORAGE_DRIVER: 'postgres' },
+        AUTH_PROVIDER: 'local', COOKIE_SECURE: 'false', AUTOMATION_WORKER_ENABLED: 'false',
+        BACKGROUND_WORKERS_ENABLED: process.argv.includes('--workers-frozen') ? 'false' : 'true', FILE_STORAGE_DRIVER: 'postgres' },
       depends_on: { database: { condition: 'service_healthy' } },
       healthcheck: { test: ['CMD', 'wget', '-q', '--spider', 'http://127.0.0.1:8080/api/health'], interval: '2s', timeout: '2s', retries: 30 } },
     frontend: { image: 'nginx:1.27-alpine', pull_policy: 'never', mem_limit: '128m',
@@ -150,6 +151,11 @@ try {
   // Execute HTTP client inside the isolated network: no host publish or egress needed.
   const script = `const assert=require('node:assert/strict'); const {randomUUID}=require('node:crypto'); const password=${JSON.stringify(password)}; (${verifyHttp.toString()})('http://frontend').then(checks=>console.log(JSON.stringify(checks))).catch(error=>{console.error(JSON.stringify({name:error.name,actual:typeof error.actual==='number'?error.actual:undefined,expected:typeof error.expected==='number'?error.expected:undefined,location:error.stack?.split('\\n').filter(line=>line.trim().startsWith('at ')).slice(0,2)}));process.exit(1);});`;
   const checks = JSON.parse(docker(['exec', '-i', backendId, 'node'], script));
+  let workersFrozen='NOT_RUN';
+  if(process.argv.includes('--workers-frozen')) {
+    docker(['exec','-i',backendId,'node'],`const assert=require('node:assert/strict');const {getConfig}=require('./src/config');const {startBackgroundWorkers}=require('./src/automation/runtime-workers');const config=getConfig();assert.equal(config.backgroundWorkersEnabled,false);const forbidden=()=>{throw Error('worker started');};const w=startBackgroundWorkers({config:{...config,automationWorkerEnabled:true},pool:{},eventPublisher:{},publishBatch:forbidden,createAutomationScheduler:forbidden,setInterval:forbidden});assert.equal(w.enabled,false);w.stop();`);
+    workersFrozen='PASS_CONTAINER_CONFIG_AND_BOTH_WORKER_GATES';
+  }
   if (process.argv.includes('--browser') && process.argv.includes('--lifecycle')) {
     docker(['exec','-i',backendId,'node'], `const {Pool}=require('pg');const p=new Pool({connectionString:process.env.DATABASE_URL});p.query("UPDATE users SET password_reset_required=true WHERE email='employee@seowon.local'").then(()=>p.end()).catch(()=>process.exit(1));`);
   }
@@ -218,7 +224,7 @@ try {
     rollback={status:'PASS',scope:'previous backend healthy and login on candidate schema, core row counts preserved',oldImage,counts:after,productionRollback:'NOT_RUN'};
   }
   console.log(JSON.stringify({ status: repairCostProbe?.status === 'GAP_CONFIRMED' ? 'GAP_CONFIRMED' : 'PASS', checks, syntheticOnly: true, actualHttpBackend: true,
-    actualPostgres: true, candidateSha: candidateSha || null, sourceMounted: !candidateSha, actualEmployeeUat: 'NOT_RUN', browser, c4, excel, cost, lifecycle, workflow, repair, rollback, repairCostProbe, productionChanged: false, stagingChanged: false }));
+    actualPostgres: true, candidateSha: candidateSha || null, sourceMounted: !candidateSha, actualEmployeeUat: 'NOT_RUN', browser, c4, excel, cost, lifecycle, workflow, repair, rollback, repairCostProbe, workersFrozen, productionChanged: false, stagingChanged: false }));
 } catch (error) {
   if (started) {
     const logs = compose('logs', '--no-color', '--tail', '5', 'backend');

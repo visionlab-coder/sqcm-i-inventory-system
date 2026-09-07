@@ -58,15 +58,15 @@ export async function executeR5Deployment({approval, candidate, driver, now=Date
     if(!receipt || receipt.runId!==context.runId || receipt.candidateSha!==candidate.sha || receipt.writesEnabled!==true) throw new Error('R5_RELEASE_UNCERTAIN');
     assertBeforeCutoff();
     return {status:'DEPLOYED_UAT_PENDING',candidateSha:candidate.sha,receipts,externalMutationPerformed:true,employeeUat:'NOT_RUN'};
-  } catch {
-    if(releaseAttempted) {
+  } catch (error) {
+    if(releaseAttempted || error?.code==='R5_COMMAND_OUTCOME_UNKNOWN') {
       // Writes may already have been accepted. Never restore an old DB automatically.
       let containmentVerified=false;
       try {
         const held=await driver.contain(context);
         containmentVerified=held?.runId===context.runId && held?.candidateSha===candidate.sha && held?.ingressBlocked===true && held?.workersStopped===true && held?.activeWritesZero===true && held?.candidateDataPreserved===true;
       } catch { /* Unknown state stays unverified, without exposing driver errors. */ }
-      return {status:'HOLD_RELEASE_UNCERTAIN_RECONCILIATION_REQUIRED',failedStage:stage,receipts,externalMutationPerformed:true,automaticDatabaseRestore:false,containmentVerified};
+      return {status:releaseAttempted?'HOLD_RELEASE_UNCERTAIN_RECONCILIATION_REQUIRED':'HOLD_COMMAND_OUTCOME_UNKNOWN',failedStage:stage,receipts,externalMutationPerformed:true,automaticDatabaseRestore:false,containmentVerified};
     }
     if(!freezeAttempted) return {status:'HOLD_BEFORE_MUTATION',failedStage:stage,receipts,externalMutationPerformed:false};
     try {

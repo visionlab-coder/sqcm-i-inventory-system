@@ -1,5 +1,7 @@
 # 서원토건 비품관리 시스템 최신 단일 현황
 
+R5 최신: 실제 격리 Docker 복귀 2경로 PASS, 신규 백그라운드 전체 중지 옵션 로컬 검증 PASS(전체1009/8 SKIP/0 FAIL). 운영 driver는 미완료이며 수정 포함 신규 후보 검증이 필요하다. `R5_EXECUTOR_LOCAL_EVIDENCE.json`/보고서166 참조. 운영·staging 무변경, R 트랙5/6·P7 7/8 유지. 아래 단위-only 메모는 이전 기록이다.
+
 R5 실행기 부분 진행: 전용 순서 제어 모듈과 실패/복귀 단위테스트 **10 PASS**. 실제 Docker driver 미구현으로 배포는 NOT_RUN이며 READY는 `R5-VERIFIED-DEPLOYMENT-EXECUTOR` 유지. 보고서166 및 `R5_EXECUTOR_LOCAL_EVIDENCE.json` 참조. P7 7/8과 R 트랙 5/6은 별도이며 변동 없음.
 
 R5 최신: 9월7일12:30~14:00/cutoff13:30 배포 승인 확인. 운영 실행기의 과거 P6 후보/확인 코드 결박으로 `HOLD_EXECUTOR_TARGET_MISMATCH`; 운영 무변경. 다음 `R5-VERIFIED-DEPLOYMENT-EXECUTOR`. 승인 재요청이 아니라 실행 경로 보완이 필요하다. 보고서166 및 R5_DEPLOYMENT_APPROVAL_AND_PREFLIGHT.json 참조.

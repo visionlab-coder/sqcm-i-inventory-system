@@ -4,6 +4,7 @@ const { createApp } = require('./app');
 const { loadOperationalAdapters } = require('./adapters/loader');
 const { publishBatch } = require('./services/outbox-service');
 const { createAutomationScheduler } = require('./automation/scheduler');
+const { startBackgroundWorkers } = require('./automation/runtime-workers');
 
 async function main() {
   const config = getConfig();
@@ -12,16 +13,11 @@ async function main() {
   const adapters = await loadOperationalAdapters(config, { pool });
   const app = createApp({ pool, config, ...adapters });
   const server = app.listen(config.port, () => console.log(JSON.stringify({ event: 'server_started', port: config.port, env: config.env })));
-  let publishing=false;
-  const publishTimer=adapters.eventPublisher?setInterval(async()=>{if(publishing)return;publishing=true;try{const results=await publishBatch(pool,adapters.eventPublisher,config.outboxBatchSize);if(results.length)console.log(JSON.stringify({event:'outbox_batch',results}));}catch(error){console.error(JSON.stringify({event:'outbox_publish_error',message:error.message}));}finally{publishing=false;}},config.outboxPollIntervalMs):null;
-  const automationScheduler = config.automationWorkerEnabled
-    ? createAutomationScheduler({ pool, intervalMs: config.automationWorkerIntervalMs })
-    : null;
+  const backgroundWorkers = startBackgroundWorkers({config,pool,eventPublisher:adapters.eventPublisher,publishBatch,createAutomationScheduler});
 
   const shutdown = signal => {
     console.log(JSON.stringify({ event: 'server_shutdown', signal }));
-    if(publishTimer) clearInterval(publishTimer);
-    automationScheduler?.stop();
+    backgroundWorkers.stop();
     server.close(async () => {
       await pool.end();
       process.exit(0);
