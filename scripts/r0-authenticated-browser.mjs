@@ -91,7 +91,9 @@ export async function verifyAuthenticatedBrowser({ backendId, password, excel = 
     await wait(a, 'document.querySelector("[role=note]") && document.querySelector("#view-root").textContent.includes("현장 노트북")', 'stocktake detail');
     checks.push('authenticated stocktake detail and recovery notice rendered');
     const b = await tab();
-    await wait(b, 'typeof state!=="undefined" && state.user?.role==="MANAGER" && !document.querySelector("#app-shell").classList.contains("hidden") && document.querySelector("#view-root").textContent.trim().length>0', 'shared session bootstrap');
+    // Non-empty root alone also matches the initial loading placeholder. Wait for
+    // the initial view to finish before issuing a second navigation from this tab.
+    await wait(b, 'typeof state!=="undefined" && state.user?.role==="MANAGER" && !document.querySelector("#app-shell").classList.contains("hidden") && !document.querySelector("#view-root .loading") && document.querySelector("#view-root").textContent.trim().length>0', 'shared session bootstrap');
     await evaluate(b, 'document.querySelector("[data-view=stocktakes]").click()');
     await wait(b, '!!document.querySelector(".stocktake-open")', 'second tab stocktake list');
     await evaluate(b, 'document.querySelector(".stocktake-open[data-id=\\"1\\"]").click()');

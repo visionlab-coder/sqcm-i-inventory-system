@@ -4,6 +4,10 @@
 
 ### R4 현재 진행
 
+최신 후보 `6a16e36` 확정: 동일 SHA Git archive 이미지 2개 및 revision label 검증, 원격 quality `34076470560` SUCCESS. 이미지 자체 API/DB 비용4·업무3·수리1 및 backup restore PASS, Chrome 초기 비밀번호/MFA12·인증통합2 PASS. Excel 브라우저는 처음 두 번째 탭 초기 로딩/이동 대기에서 timeout; 시험기가 로딩 placeholder를 초기화 완료로 인정하던 조건을 보완한 재실행은 Chrome10·Excel DB4 PASS. 각 실행 기본 HTTP7은 중복 합산하지 않는다. `npm.cmd run check` 구문484·단위992 PASS/8 SKIP/0 FAIL.
+
+이 시험기 보완은 **사용자가 로딩 중 다른 메뉴를 누르는 경합이 안전하다는 증거가 아니다**. 다음 READY `R4-CONCURRENT-NAVIGATION-REPRODUCTION`으로 지연 응답의 화면 덮어쓰기 여부를 결정론적으로 확인한다. R4를 성급히 완료하지 않는다. 이미지 CI·순차 흐름 검증 증거는 `agent docs/harness/R4_FINAL_CANDIDATE.json`.
+
 최신 대체 경로: `--repair --backup-restore` **종료 0**. 이전 이미지로 합성 baseline 생성 → 메모리 내 pg_dump → 후보 migration 30개 및 HTTP 7/수리 통합 1 PASS → 새 `r4_restore` DB에 psql 오류 중단 복원 → 이전 이미지 자동 migration/seed 없이 healthy·로그인 PASS. `assets/workflow_requests/asset_cost_events/schema_migrations` 4개 테이블 전체 행 hash·건수 일치, 업그레이드 DB도 hash 일치로 보존 확인. 모든 테이블 의미 대조나 실제 운영 복구로 확대하지 않는다. 기존 image-only 실패는 해결됐다고 삭제하지 않는다.
 
 - [x] 별도 합성 DB 백업 복원 경로 실제 검증.
