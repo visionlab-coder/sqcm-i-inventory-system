@@ -7,7 +7,9 @@
 - [x] Excel 체크포인트 `cc765f7` push·동일 원격 SHA 검증 후 인증 감사로 이동.
 - [x] `--lifecycle` 격리 실제 HTTP/PostgreSQL 시험 종료 0, 실제 TAP pass 2 확인. 초기 비밀번호 업무 차단·약한 값/재사용 거부·변경 후 접근·이전 비밀번호 거부·감사 기록, TOTP 등록/검증·복구코드 단회성·저장 암호화 검사.
 - [x] 초기 변경 화면 자동 표시→업무 API 403→실제 폼 변경→업무 API 200. `--browser --lifecycle` 종료 0, 브라우저 9/9·HTTP 7/7·인증 통합 2/2 PASS.
-- [ ] MFA 브라우저 등록·challenge 흐름 확인. 실제 직원 UAT·운영 계정 변경은 NOT_RUN.
+- [x] MFA 브라우저 등록·challenge 흐름 확인. 실제 폼 등록→logout→새 CSRF→로그인→MFA pending 업무 401→코드 입력→업무 200. 최종 `--browser --lifecycle` 종료 0, 브라우저 12/12·HTTP 7/7·인증 통합 2/2 PASS. 실제 직원 UAT·운영 계정 변경은 NOT_RUN.
+
+시험 중 두 번째 탭 초기화 및 logout CSRF 갱신 대기 공백으로 각 1회 timeout이 발생했다. 앱 준비와 토큰 교체 대기 조건 보완 후 최종 전체 경로 통과. 인증키·복구코드는 출력하지 않았다. 다음은 배포 내용 정본 대조이며 R0 전체 완료는 아직 아니다.
 
 기존 `test/integration/http-smoke.test.js`와 `mfa-auth.test.js`를 재사용하며 실행기는 통과 2건 미만이면 실패한다. 기존 HTTP 7/7도 PASS. 다음 READY 세부 작업은 초기 비밀번호 브라우저 흐름이다.
 

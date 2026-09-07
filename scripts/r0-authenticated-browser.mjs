@@ -4,6 +4,8 @@ import { readFile, mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+const { totp } = createRequire(import.meta.url)('../src/services/mfa-service.js');
 
 // Transparent transport to the fresh isolated Nginx; no API responses are mocked.
 const relayCode = `let input='';process.stdin.on('data',x=>input+=x);process.stdin.on('end',async()=>{try{
@@ -76,8 +78,8 @@ export async function verifyAuthenticatedBrowser({ backendId, password, excel = 
     };
     const a = await tab();
     await wait(a, 'typeof state!=="undefined" && !!state.csrfToken', 'anonymous bootstrap');
-    const login = async (sid, email) => {
-      await evaluate(sid, `(()=>{const f=document.querySelector('#login-form');f.elements.email.value=${JSON.stringify(email)};f.elements.password.value=${JSON.stringify(password)};f.requestSubmit();})()`);
+    const login = async (sid, email, loginPassword = password) => {
+      await evaluate(sid, `(()=>{const f=document.querySelector('#login-form');f.elements.email.value=${JSON.stringify(email)};f.elements.password.value=${JSON.stringify(loginPassword)};f.requestSubmit();})()`);
     };
     await login(a, 'manager@seowon.local');
     await wait(a, 'state.user?.role==="MANAGER" && !document.querySelector("#app-shell").classList.contains("hidden")', 'manager form login');
@@ -89,7 +91,7 @@ export async function verifyAuthenticatedBrowser({ backendId, password, excel = 
     await wait(a, 'document.querySelector("[role=note]") && document.querySelector("#view-root").textContent.includes("현장 노트북")', 'stocktake detail');
     checks.push('authenticated stocktake detail and recovery notice rendered');
     const b = await tab();
-    await wait(b, 'typeof state!=="undefined" && state.user?.role==="MANAGER"', 'shared session bootstrap');
+    await wait(b, 'typeof state!=="undefined" && state.user?.role==="MANAGER" && !document.querySelector("#app-shell").classList.contains("hidden") && document.querySelector("#view-root").textContent.trim().length>0', 'shared session bootstrap');
     await evaluate(b, 'document.querySelector("[data-view=stocktakes]").click()');
     await wait(b, '!!document.querySelector(".stocktake-open")', 'second tab stocktake list');
     await evaluate(b, 'document.querySelector(".stocktake-open[data-id=\\"1\\"]").click()');
@@ -132,6 +134,28 @@ export async function verifyAuthenticatedBrowser({ backendId, password, excel = 
     await wait(a, 'state.user?.role==="USER"', 'USER form login');
     assert.equal(await evaluate(a, 'fetch("/api/enterprise/stocktakes/1").then(r=>r.status)'), 403);
     checks.push('account switch to USER cannot read manager stocktake');
+    if (lifecycle) {
+      await evaluate(a, 'renderSecurity()');
+      await wait(a, '!!document.querySelector("#mfa-setup")', 'MFA setup form');
+      await evaluate(a, `(()=>{const f=document.querySelector('#mfa-setup');f.elements.password.value=${JSON.stringify(password+'Z9!')};f.querySelector('button').click();})()`);
+      await wait(a, '!!document.querySelector("#mfa-enable")', 'MFA enrollment response');
+      const secret = await evaluate(a, 'document.querySelector("#mfa-setup-result .mono").textContent');
+      assert.ok(/^[A-Z2-7]+$/.test(secret), 'synthetic secret format');
+      await evaluate(a, `(()=>{const f=document.querySelector('#mfa-enable');f.elements.code.value=${JSON.stringify(totp(secret))};f.querySelector('button').click();})()`);
+      await wait(a, 'document.querySelector("#mfa-status")?.textContent==="사용 중"', 'MFA activated');
+      checks.push('MFA enrollment through actual security forms succeeds');
+      const previousCsrf = await evaluate(a, 'state.csrfToken');
+      await evaluate(a, 'document.querySelector("#logout-button").click()');
+      await wait(a, `state.user===null && !!state.csrfToken && state.csrfToken!==${JSON.stringify(previousCsrf)}`, 'MFA logout fresh CSRF');
+      await login(a, 'employee@seowon.local', password+'Z9!');
+      await wait(a, '!document.querySelector("#mfa-login-form").classList.contains("hidden")', 'MFA challenge form');
+      assert.equal(await evaluate(a, 'fetch("/api/dashboard").then(r=>r.status)'),401);
+      checks.push('MFA pending browser has no dashboard access');
+      await evaluate(a, `(()=>{const f=document.querySelector('#mfa-login-form');f.elements.code.value=${JSON.stringify(totp(secret))};f.querySelector('button').click();})()`);
+      await wait(a, 'state.user?.role==="USER" && !document.querySelector("#app-shell").classList.contains("hidden")', 'MFA challenge accepted');
+      assert.equal(await evaluate(a, 'fetch("/api/dashboard").then(r=>r.status)'),200);
+      checks.push('MFA challenge form authenticates and enables dashboard');
+    }
     await evaluate(a, 'document.querySelector("#logout-button").click()');
     await wait(a, 'state.user===null', 'final logout');
     return { status: 'PASS', checks, syntheticOnly: true, apiMocked: false, employeeUat: 'NOT_RUN' };
