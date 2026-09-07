@@ -11,6 +11,8 @@ Production GO: **true**
 
 ## 2026-09-07 Astra R0 제품 감사 진행
 
+R4 최신: SHA `69b3cb6`의 Git archive 기반 backend/frontend 후보 빌드와 revision 라벨 확인 완료. 소스 미마운트 이미지 격리 HTTP 7·비용 4·업무 3·수리 1 PASS. 다음 후보 브라우저·복구 리허설. 이미지 registry push·운영 배포 NOT_RUN. 증거 `agent docs/harness/R4_CANDIDATE_IMAGES.json`.
+
 R4 최신: 운영 frontend 수정 파일 3개를 저장소 밖 복구 위치에 보존하고 live SHA-256 일치 확인. Docker 문맥의 `.env.*` 제외 보완·단위 PASS. 다음 `RUNTIME_PATCH_COMPATIBILITY_AND_EXACT_SHA_BUILD`; 이미지 빌드·롤백 호환·운영 배포는 아직 NOT_RUN/PENDING.
 
 최신: R0~R3 로컬 작업 4/6 완료, R4 배포 후보 진행. 종합 격리 HTTP/DB 및 별도 Chrome+Excel PASS. 근거 `agent docs/harness/R3_ACCEPTANCE.json`. 다음은 후보 manifest와 기존 운영 writable-layer 수정 보존. 운영 배포·직원 UAT·P7 완료를 주장하지 않는다. 아래 R3 진행 문구는 이력이다.

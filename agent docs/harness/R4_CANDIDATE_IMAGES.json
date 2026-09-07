@@ -1,0 +1,21 @@
+{
+  "date":"2026-09-07",
+  "sha":"69b3cb6b7f6897a7819cf0fdd8d519b03a3d9975",
+  "context":"git archive exact SHA: Dockerfile .dockerignore package.json package-lock.json frontend src db",
+  "environmentFilesFound":0,
+  "backendImage":"sha256:0af5fd2b448edea6674db6e28db8ea05278b460a05da57022ca805bad07bb722",
+  "frontendImage":"sha256:c769ff1130209c55e2083f92053bc8c60e023fbe6aaacb40a94bc58f9dadff9b",
+  "revisionLabelsMatch":true,
+  "buildExitCode":0,
+  "command":"node scripts/r0-authenticated-isolated-check.mjs --candidate-sha=69b3cb6b7f6897a7819cf0fdd8d519b03a3d9975 --repair --workflow --cost",
+  "exitCode":0,
+  "sourceMounted":false,
+  "testCodeMountedReadOnly":true,
+  "verification":{"httpBaseline":7,"costScope":4,"workflow":3,"repair":1,"browser":"NOT_RUN","restoreRehearsal":"NOT_RUN"},
+  "compatibilityReview":"Static removed-line review maps app changes to session/Excel/stocktake/cost improvements; index retains first-login markup and adds navigation/scripts; responsive CSS changes remain subject to image browser check",
+  "syntheticOnly":true,
+  "productionChanged":false,
+  "stagingChanged":false,
+  "remoteImagePush":"NOT_RUN",
+  "phaseComplete":false
+}

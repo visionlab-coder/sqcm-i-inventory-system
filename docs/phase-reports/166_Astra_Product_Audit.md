@@ -4,6 +4,13 @@
 
 ### R4 현재 진행
 
+- [x] `69b3cb6` Git archive의 좁은 추적 파일만 추출하여 두 후보 이미지 빌드 종료 0. context 환경파일 0; 사용자 dirty 제외.
+- [x] image revision 라벨 일치, ID는 `R4_CANDIDATE_IMAGES.json`에 고정.
+- [x] 이미지 ID를 사용하고 소스 마운트를 제거한 3서비스 격리 실행: HTTP 7·비용 4·업무 3·수리 1 PASS, 종료 0.
+- [ ] 다음 `CANDIDATE_BROWSER_AND_RECOVERY_REHEARSAL`: 이미지 브라우저 검증과 운영 복구본 복원 검증. 아직 R4 완료·운영 배포 아님.
+
+보존본 대비 삭제/변경 코드는 세션·Excel·실사·비용 수정이며 초기 비밀번호 markup은 유지된다. CSS 반응형 변경은 이미지 브라우저 검증 전이므로 전반적 UI 호환성 통과로 확대하지 않는다.
+
 - [x] Production frontend writable-layer의 app.js/index.html/experience.css 변경 재확인.
 - [x] 저장소 밖 production runtime evidence의 `r4-frontend-recovery-990c902da425430c8fe723cb761e422e`에 정확히 3개 파일 복사; 실행 중 파일과 SHA-256 일치.
 - [x] `.dockerignore`에 루트/중첩 `.env.*` 제외 추가, 집중 단위 1 PASS. 이전 `.env` 단일 제외만으로는 staging/local 변형을 제외하지 못했다. 실제 Secret 유출을 확인한 것은 아니다.

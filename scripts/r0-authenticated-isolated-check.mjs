@@ -49,6 +49,18 @@ function docker(args, input) {
   return result.stdout.trim();
 }
 const compose = (...args) => docker(['compose', '--project-name', project, '--project-directory', root, '--env-file', 'NUL', '-f', '-', ...args], JSON.stringify(spec));
+const candidateSha = process.argv.find(arg => arg.startsWith('--candidate-sha='))?.split('=')[1];
+if (candidateSha !== undefined) {
+  assert.match(candidateSha,/^[a-f0-9]{40}$/);
+  for (const service of ['backend','frontend']) {
+    const tag=`sqcm-r4-${service}:sha-${candidateSha}`;
+    const info=JSON.parse(docker(['image','inspect',tag]))[0];
+    assert.equal(info.Config.Labels?.['org.opencontainers.image.revision'],candidateSha);
+    spec.services[service].image=info.Id;
+    // Test code only; application, migrations, dependencies and UI come from the image.
+    spec.services[service].volumes=service==='backend'?[mount('test','/app/test')]:[];
+  }
+}
 async function verifyHttp(base) {
   const checks = [];
   const call = (url, session, body, csrf = true) => fetch(base + url, {
@@ -142,7 +154,7 @@ try {
     workflow = JSON.parse(output);
   }
   console.log(JSON.stringify({ status: repairCostProbe?.status === 'GAP_CONFIRMED' ? 'GAP_CONFIRMED' : 'PASS', checks, syntheticOnly: true, actualHttpBackend: true,
-    actualPostgres: true, actualEmployeeUat: 'NOT_RUN', browser, c4, excel, cost, lifecycle, workflow, repair, repairCostProbe, productionChanged: false, stagingChanged: false }));
+    actualPostgres: true, candidateSha: candidateSha || null, sourceMounted: !candidateSha, actualEmployeeUat: 'NOT_RUN', browser, c4, excel, cost, lifecycle, workflow, repair, repairCostProbe, productionChanged: false, stagingChanged: false }));
 } catch (error) {
   if (started) {
     const logs = compose('logs', '--no-color', '--tail', '5', 'backend');
