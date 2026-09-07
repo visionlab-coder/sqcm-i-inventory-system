@@ -11,6 +11,8 @@ Production GO: **true**
 
 상태 정본: [`docs/current-state.md`](./current-state.md)
 
+R4: 운영 정적 파일 3개 로컬 복구 보존·해시 대조 완료, 환경파일 Docker 문맥 제외 보완. 다음은 운영 수정 호환 검토와 exact SHA 후보 이미지. 보존 사실은 배포/복구 리허설 통과를 의미하지 않는다.
+
 최신 R 트랙: **R0~R3 로컬 4/6 완료 → R4 후보 검증 진행 → R5 승인 배포/직원 인수 대기**. 종합 격리 API/DB 및 Chrome+Excel PASS, 다음은 `CANDIDATE_MANIFEST_AND_RUNTIME_PATCH_PRESERVATION`. 운영 P7 7/8 및 C5 G4는 별도이며 아래 과거 상태는 이력이다.
 
 R3 예상/실제 수리비 분리와 비용 설명 로컬 검증 완료. 다음은 R3 기존 흐름별 증거를 종합 대조한 뒤 R4 진입 판단이다. 운영·staging 배포 및 과거 비용 일괄 보정은 미실행이다.

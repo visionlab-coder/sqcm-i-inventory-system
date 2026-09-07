@@ -1,0 +1,19 @@
+{
+  "date":"2026-09-07",
+  "container":"seowon-inventory-production-frontend-1",
+  "imageTag":"sha-38b2bca7f34a7a950469c8d0cd6d2a4b11e3b7a6",
+  "localRecoveryId":"r4-frontend-recovery-990c902da425430c8fe723cb761e422e",
+  "localRecoveryRoot":"production runtime evidence directory outside Git",
+  "files":[
+    {"name":"app.js","sha256":"4e10cbe7e4b12d0a19f01dcae86623a6378bb82441ac651b2d31e94ee770c51e","copyMatchesLive":true,"candidateAddedLines":201,"candidateRemovedLines":13},
+    {"name":"index.html","sha256":"c8b04eb66cc98ad7b4b3e33a7f51640ca973ca99411d895c96a73a8d04e42d7f","copyMatchesLive":true,"candidateAddedLines":7,"candidateRemovedLines":1},
+    {"name":"experience.css","sha256":"9bccedf6dffadd7a970dcf54991cf0c693ece1e11188d82dca4c9dec56359d61","copyMatchesLive":true,"candidateAddedLines":67,"candidateRemovedLines":3}
+  ],
+  "verification":"docker diff; docker cp allowlisted static files; local Get-FileHash vs live sha256sum; git diff --no-index --numstat",
+  "diffExitCodeMeaning":"1 means file differences; no equivalence or compatibility claim",
+  "productionChanged":false,
+  "stagingChanged":false,
+  "compatibility":"PENDING",
+  "restoreRehearsal":"NOT_RUN",
+  "candidateBuild":"NOT_RUN"
+}

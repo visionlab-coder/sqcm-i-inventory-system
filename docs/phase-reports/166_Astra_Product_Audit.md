@@ -2,6 +2,16 @@
 
 ## 최신 단계 카드
 
+### R4 현재 진행
+
+- [x] Production frontend writable-layer의 app.js/index.html/experience.css 변경 재확인.
+- [x] 저장소 밖 production runtime evidence의 `r4-frontend-recovery-990c902da425430c8fe723cb761e422e`에 정확히 3개 파일 복사; 실행 중 파일과 SHA-256 일치.
+- [x] `.dockerignore`에 루트/중첩 `.env.*` 제외 추가, 집중 단위 1 PASS. 이전 `.env` 단일 제외만으로는 staging/local 변형을 제외하지 못했다. 실제 Secret 유출을 확인한 것은 아니다.
+- [ ] 후보와 운영 수정 내용의 의미·회귀 대조. line diff만으로 호환 판정하지 않는다.
+- [ ] exact Git SHA 후보 이미지 빌드 및 격리 검증·복구 리허설.
+
+증거 `agent docs/harness/R4_FRONTEND_RECOVERY.json`. 복구 파일은 Git에 올리지 않았으며 컨테이너 변경/재시작은 하지 않았다. 다음 `RUNTIME_PATCH_COMPATIBILITY_AND_EXACT_SHA_BUILD`.
+
 R0~R3 **4/6 로컬 작업 단계 완료**, R4 진행, R5 외부 게이트. 운영 P7 7/8은 별도다. 로컬 완료는 배포·직원 UAT 완료가 아니다.
 
 - [x] 목표·범위: Excel 복구, 현장 실사, 셀프서비스, 이력·비용의 기존 업무 강화.
