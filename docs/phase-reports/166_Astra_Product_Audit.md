@@ -13,13 +13,13 @@
 | R4 | 통합 테스트·후보 이미지·복구 적합성 | 대기 / 정확한 SHA·검증·Git 체크포인트 |
 | R5 | 승인된 배포·직원 UAT·운영 인수 | 외부 게이트 / 실제 승인·실행 증거 |
 
-현재 READY: `R0-C4-SELF-SERVICE-COUNT-AND-CONCURRENCY-AUDIT`.
+현재 READY: `R0-EXCEL-IMPORT-RECOVERY-AUDIT`. 직전 C4 로컬 점검 묶음 결과:
 - [x] 최근 요청/수리 50건, 알림 20건으로 전체 요약을 계산하던 코드 확인.
 - [x] 목록 제한과 무관한 건수 61/52/25 반례 추가 후 실패 재현.
 - [x] 조직·사용자 제한을 유지한 별도 COUNT 쿼리로 수정; 집중 4/4 PASS.
 - [x] 실제 격리 PostgreSQL에서 목록 상한·완료 상태·다른 사용자 제외 검증: 목록 50/50/20, 전체 요약 61/52/25.
 - [x] 배정 조회 직후 해제 반례 실패 재현 후 요청 트랜잭션 내부 재검증·행 잠금 보완. 해제된 배정은 403·INSERT 0건, 동시 해제는 요청 COMMIT까지 대기·감사 1건.
-- [ ] C4 완료 게이트 검증 후 exact allowlist commit·push.
+- [x] C4 로컬 점검 묶음 exact allowlist commit·push: `0bca821b3e015f2b1f40b8d9ac8b95330a41c962`, 동일 branch 원격 SHA 일치 확인. R0 전체/운영 완료는 아님.
 
 검증: `node scripts/r0-authenticated-isolated-check.mjs --c4` 종료 0, HTTP 7/7 및 C4 실제 격리 PostgreSQL 6/6 PASS. `npm.cmd run check` 종료 0, 980 PASS·8 SKIP·0 FAIL. 단위 4/4도 PASS. 실제 다른 조직 데이터 검증과 직원 UAT는 이번 NOT_RUN이며 로컬 합성 검증을 운영 승인으로 승격하지 않는다. 운영·staging 배포·migration·직원 계정은 변경하지 않았다. 장기 Goal은 ACTIVE이며 별도 예약 자동화는 생성하지 않았다. 체크포인트 뒤 다음 READY는 `R0-EXCEL-IMPORT-RECOVERY-AUDIT`다.
 

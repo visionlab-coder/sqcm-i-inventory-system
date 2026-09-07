@@ -3,9 +3,9 @@
   "contract": "agent docs/prompts/108_Astra_Product_Audit_And_Modernization.md",
   "goalStatus": "active",
   "currentPhase": "R0",
-  "readyWork": "R0-C4-SELF-SERVICE-COUNT-AND-CONCURRENCY-AUDIT",
-  "readyStep": "EXACT_ALLOWLIST_RECOVERY_CHECKPOINT",
-  "nextAfterCheckpoint": "R0-EXCEL-IMPORT-RECOVERY-AUDIT",
+  "readyWork": "R0-EXCEL-IMPORT-RECOVERY-AUDIT",
+  "readyStep": "INSPECT_EXISTING_IMPORT_RECOVERY_EVIDENCE",
+  "lastCompletedPacket": { "id": "R0-C4-SELF-SERVICE-COUNT-AND-CONCURRENCY-AUDIT", "scope": "local synthetic verification only", "checkpoint": "0bca821b3e015f2b1f40b8d9ac8b95330a41c962", "remoteShaMatched": true },
   "phases": [
     { "id": "R0", "status": "in-progress", "work": ["C4 total counts and assignment concurrency", "Excel import recovery evidence", "remaining initial-password and MFA lifecycle evidence", "deployment content provenance"], "gate": "prioritized findings with implementation/test/deployment/UAT distinguished" },
     { "id": "R1", "status": "not-started", "work": ["retain versus incremental restructuring decision"], "gate": "evidence-backed scope, compatibility and rollback decision" },

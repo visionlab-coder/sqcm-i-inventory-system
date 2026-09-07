@@ -11,7 +11,7 @@ Production GO: **true**
 
 ## 2026-09-07 Astra R0 제품 감사 진행
 
-장기 Goal ACTIVE. 단계별 남은 작업 정본은 `agent docs/harness/ASTRA_REMAINING_WORK.json`, 사람용 체크리스트는 보고서 166 상단이다. C4 집계·배정 동시성 보완은 격리 PostgreSQL 6/6, HTTP 7/7, 집중 4/4, 전체 단위 980 PASS·8 SKIP·0 FAIL로 검증했다. 현재 READY의 마지막 단계는 exact allowlist 복구 체크포인트이며 이후 `R0-EXCEL-IMPORT-RECOVERY-AUDIT`로 진행한다. 운영 배포·실제 직원 UAT는 NOT_RUN이다. 아래 C3 검증 수는 해당 체크포인트 이력이다.
+장기 Goal ACTIVE. 단계별 남은 작업 정본은 `agent docs/harness/ASTRA_REMAINING_WORK.json`, 사람용 체크리스트는 보고서 166 상단이다. C4 집계·배정 동시성 보완은 격리 PostgreSQL 6/6, HTTP 7/7, 집중 4/4, 전체 단위 980 PASS·8 SKIP·0 FAIL로 검증했다. 복구 체크포인트 `0bca821b3e015f2b1f40b8d9ac8b95330a41c962`의 동일 branch push·원격 SHA 일치를 확인했고 현재 READY는 `R0-EXCEL-IMPORT-RECOVERY-AUDIT`다. 운영 배포·실제 직원 UAT는 NOT_RUN이다. 아래 C3 검증 수는 해당 체크포인트 이력이다.
 
 최신 검증: `node scripts/r0-authenticated-isolated-check.mjs --browser`에서 실제 backend 연결 Chrome 인증 7/7 및 HTTP/DB 7/7 PASS. 로그인 폼·실사 메뉴/상세·모바일·두 탭 logout·USER 전환을 합성 계정으로 검증했다(API mock 없음). 다음 READY는 `R0-C4-SELF-SERVICE-COUNT-AND-CONCURRENCY-AUDIT`다. 실제 직원 UAT·초기 비밀번호/MFA 전체 검증·후보 이미지 build·운영 배포는 미완료다. 전체 단위 979 PASS·8 SKIP, 구문 473개, UI 40 PASS.
 
