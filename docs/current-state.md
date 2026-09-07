@@ -11,7 +11,9 @@ Production GO: **true**
 
 ## 2026-09-07 Astra R0 제품 감사 진행
 
-`docs/phase-reports/166_Astra_Product_Audit.md`에서 실행 증거를 추적한다. C3 오류 분류·계정별 IndexedDB 격리·구형 데이터 복구 안내·멀티탭 잠금에 이어 보안정보 재조회/logout 경쟁 상태와 이미지 script 복사 누락을 보완했다. focused 20 PASS, 실제 Chrome 16 PASS(합성 HTTP·실제 SPA 두 탭), 격리된 실제 Nginx→Express→PostgreSQL 합성 계정 인증·실사·logout HTTP 7 PASS, 구문 472개, 전체 단위 979 PASS·8 SKIP·0 FAIL, UI 40 PASS다. 실제 backend 인증 브라우저·직원 UAT·후보 이미지 build·운영 배포는 미완료이며 R0 전체 완료가 아니다. Production image revision의 최근 관찰값은 `38b2bca7f34a7a950469c8d0cd6d2a4b11e3b7a6`이다. 다음 로컬 READY는 `R0-AUTHENTICATED-BROWSER-LIFECYCLE`이다. 완료 전 public 유지 예외에 따라 동일 branch 복구 체크포인트 push를 허용하며 공개설정·운영 환경·P7 7/8·C5 G4 보류는 변경하지 않는다.
+최신 검증: `node scripts/r0-authenticated-isolated-check.mjs --browser`에서 실제 backend 연결 Chrome 인증 7/7 및 HTTP/DB 7/7 PASS. 로그인 폼·실사 메뉴/상세·모바일·두 탭 logout·USER 전환을 합성 계정으로 검증했다(API mock 없음). 다음 READY는 `R0-C4-SELF-SERVICE-COUNT-AND-CONCURRENCY-AUDIT`다. 실제 직원 UAT·초기 비밀번호/MFA 전체 검증·후보 이미지 build·운영 배포는 미완료다. 전체 단위 979 PASS·8 SKIP, 구문 473개, UI 40 PASS.
+
+`docs/phase-reports/166_Astra_Product_Audit.md`에서 실행 증거를 추적한다. C3 오류 분류·계정별 IndexedDB 격리·복구 안내·멀티탭 잠금·보안정보 조회 경쟁 상태·이미지 script 누락 보완은 기존 로컬 후보에 포함된다(focused 20 PASS, 별도 합성 API Chrome 16 PASS). R0 전체 완료는 아니다. Production revision의 최근 관찰값은 `38b2bca7f34a7a950469c8d0cd6d2a4b11e3b7a6`이다. 완료 전 public 유지 승인에 따라 동일 branch만 checkpoint push하며 운영·P7 7/8·C5 G4 보류는 유지한다.
 
 릴리스 기준 브랜치: `main`
 현재 작업 브랜치: `codex/p7-qs-6-16-0-production-evidence`

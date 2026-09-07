@@ -18,7 +18,7 @@
 | 로그인·초기 비밀번호 | 전체 생애주기 재감사 필요 | 기존 구현 | 관련 단위 포함, E2E 재실행 안 함 | 미확인 | 버전 대조 필요 | 이번 NOT_RUN | 핵심 로그인 브라우저 재검증 |
 | C1 Excel 이전 | 오류 복구·실제 원장 표본 확인 필요 | 존재 | 전체 단위 PASS, 통합은 과거 증거 | 미확인 | 미확인 | 이번 NOT_RUN | 실제 이전 경로 대조 |
 | C2 QR | 배포 버전 확인 필요 | 기존 증거 | 전체 단위 PASS | 미확인 | 미확인 | 이번 NOT_RUN | 후보 버전 대조 |
-| C3 오프라인 | 오류 분류·계정 격리·멀티탭·조회 경쟁 상태 보완 | 로컬 수정 | 집중 20/20, Chrome 합성 API 16/16, 실제 HTTP/DB 7/7 | 미배포 | 미배포 | NOT_RUN | R0-AUTHENTICATED-BROWSER-LIFECYCLE |
+| C3 오프라인 | 오류 분류·계정 격리·멀티탭·조회 경쟁 상태 보완 | 로컬 수정 | 집중 20/20, Chrome 합성 API 16/16, 실제 HTTP/DB 7/7 및 실제 backend 브라우저 7/7 | 미배포 | 미배포 | NOT_RUN | C4 집계·동시성 감사로 이동 |
 | C4 내 비품·반납·수리 | 동시 배정 변경·집계 범위 추가 감사 | 존재 | 전체 단위 PASS | 미확인 | 미확인 | 이번 NOT_RUN | 동시성·페이지 집계 검증 |
 | C5 ERP·전자결재 | 실제 입력 5항목 없음 | G0~G3 기존 기록 | 합성 증거만 존재 | HOLD | HOLD | NOT_RUN | 승인된 provider 입력 |
 | P7 운영 인수 | 운영 8영역 증거와 서명 | Harness 존재 | harness check PASS | N/A | GO 문서값 유지 | 미완료 | 기존 P7 READY 유지 |
@@ -109,3 +109,17 @@ Production frontend/backend 모두 image tag와 revision label이 `38b2bca7f34a7
 실행 중 조정: 읽기 전용 디렉터리 하위 mount 충돌 2회는 개별 파일 mount로 해결했다. internal network의 host port 조회가 `invalid IP:0`이어서 HTTP client를 backend 컨테이너 안으로 이동해 host port 없이 검증했다. logout 이후 쓰기 기대값은 초기 시험에서 401로 두어 실패했으나 실제 middleware는 CSRF가 인증보다 먼저 실행되므로 코드 확인 후 정확한 403/CSRF_INVALID를 검증했다. 보안 기준을 완화하거나 운영 동작을 변경하지 않았다.
 
 다음 READY: `R0-AUTHENTICATED-BROWSER-LIFECYCLE`. 실행 계약 108을 유지하고 이 로컬 HTTP 증거를 실제 직원 UAT로 승격하지 않는다. 체크포인트는 현재 public 유지 승인에 따라 exact allowlist로 동일 branch에 저장하며 원격 SHA 확인은 실행 보고에서 제시한다.
+
+## 후속 실행 — R0-AUTHENTICATED-BROWSER-LIFECYCLE
+
+기준선 `708715bb380ea6eec8a8cc751c268c50c18e139d`. 이번 단위는 테스트·증거만 추가하며 제품 코드·운영 계정은 수정하지 않았다. agent-browser CLI 미가용으로 기존 Chrome CDP 실행 경로를 사용했다.
+
+- [x] 목표/범위: 합성 계정의 실제 로그인 폼 → 실사 메뉴/상세 버튼 → 두 탭 logout → USER 전환을 같은 실제 Nginx·Express·PostgreSQL에 연결.
+- [x] 산출물: 기존 격리 실행기에 `--browser` 옵션과 `r0-authenticated-browser.mjs`를 추가. API 응답 mock 없음. loopback 임시 중계만 두며 컨테이너 내부망·host publish 0·fresh tmpfs DB 유지.
+- [x] 검증: `node scripts/r0-authenticated-isolated-check.mjs --browser` exit 0. 실제 HTTP 7/7, Chrome 인증 browser 7/7 PASS. 390×844 가로 넘침 없음, logout 후 401, USER 접근 403 포함.
+- [x] 보안/보존: 시험 비밀번호는 난수로 생성해 메모리/시험 컨테이너에서만 사용. 출력에 cookie/토큰 없음. 새 Chrome 프로필만 사용·정상 종료했고 개인 브라우저는 미변경. 시험 컨테이너·네트워크만 종료·제거했으며 합성 tmpfs 데이터는 폐기했다.
+- [x] 정합성: 기존 보고서·상태·로드맵·기계 증거에 같은 범위 반영. P7 7/8·C5 G4 보류·공개 저장소 유지.
+- [x] 회귀/복구: 집중 session/image 5 PASS, UI 40 PASS. 전체 단위 979 PASS·8 SKIP·0 FAIL, 구문 473개. 이전 체크포인트 보존, 현재 exact allowlist checkpoint는 최종 SHA/원격 확인으로 보고.
+- [x] 다음 범위: `R0-C4-SELF-SERVICE-COUNT-AND-CONCURRENCY-AUDIT` — 실제 직원 UAT·MFA 전체 생애주기·초기 비밀번호 변경·실제 오프라인 권한 회수·후보 image build/배포는 이번 7항목에 포함하지 않는다.
+
+실행 후 Production/staging 각각 3서비스 healthy. 보호 listener 1234/31896·11434/13620·18766/11460, 18765 없음은 이전 관찰과 같다. 전체 37봇 개별 검증은 NOT_RUN.

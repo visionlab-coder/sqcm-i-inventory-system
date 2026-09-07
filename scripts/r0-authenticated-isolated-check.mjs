@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { readdirSync } from 'node:fs';
 import assert from 'node:assert/strict';
+import { verifyAuthenticatedBrowser } from './r0-authenticated-browser.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const project = `sqcm-r0-auth-${randomUUID().replaceAll('-', '').slice(0, 12)}`;
@@ -110,8 +111,9 @@ try {
   // Execute HTTP client inside the isolated network: no host publish or egress needed.
   const script = `const assert=require('node:assert/strict'); const {randomUUID}=require('node:crypto'); const password=${JSON.stringify(password)}; (${verifyHttp.toString()})('http://frontend').then(checks=>console.log(JSON.stringify(checks))).catch(error=>{console.error(JSON.stringify({name:error.name,actual:typeof error.actual==='number'?error.actual:undefined,expected:typeof error.expected==='number'?error.expected:undefined,location:error.stack?.split('\\n').filter(line=>line.trim().startsWith('at ')).slice(0,2)}));process.exit(1);});`;
   const checks = JSON.parse(docker(['exec', '-i', backendId, 'node'], script));
+  const browser = process.argv.includes('--browser') ? await verifyAuthenticatedBrowser({ backendId, password }) : 'NOT_RUN';
   console.log(JSON.stringify({ status: 'PASS', checks, syntheticOnly: true, actualHttpBackend: true,
-    actualPostgres: true, actualEmployeeUat: 'NOT_RUN', browser: 'NOT_RUN', productionChanged: false, stagingChanged: false }));
+    actualPostgres: true, actualEmployeeUat: 'NOT_RUN', browser, productionChanged: false, stagingChanged: false }));
 } catch (error) {
   if (started) {
     const logs = compose('logs', '--no-color', '--tail', '5', 'backend');
