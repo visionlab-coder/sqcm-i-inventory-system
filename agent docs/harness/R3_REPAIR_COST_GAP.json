@@ -1,0 +1,18 @@
+{
+  "status":"GAP_CONFIRMED",
+  "command":"node scripts/r0-authenticated-isolated-check.mjs --repair-probe",
+  "exitCode":0,
+  "exitMeaning":"Diagnostic completed, not product acceptance",
+  "date":"2026-09-07",
+  "recordedRepairCost":12345,
+  "actualTcoRepairDelta":0,
+  "expectedTcoRepairDelta":12345,
+  "statusOnlyUpdatePreservesCost":false,
+  "evidenceScope":"Actual isolated PostgreSQL with SQL equivalent to inspected route; HTTP repair write NOT_RUN",
+  "source":"src/enterprise-routes.js repair status update; src/services/cost-service.js TCO read",
+  "next":"Preserve omitted cost and atomically synchronize repair cost provenance and audit; verify via HTTP and DB",
+  "syntheticOnly":true,
+  "productionChanged":false,
+  "stagingChanged":false,
+  "phaseComplete":false
+}

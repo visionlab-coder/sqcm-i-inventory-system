@@ -4,6 +4,13 @@
 
 ### R3 비용 근거·범위 — 진행 중
 
+수리비 검증 **GAP_CONFIRMED**: `--repair-probe` 격리 PostgreSQL에서 수리 건 12,345원 저장 후 TCO 수리비 증가 0원(기대 12,345원). 상태 변경 route의 비용 생략→NULL SQL도 기존 비용을 없앰을 확인했다. 실제 운영/HTTP 수리 쓰기는 실행하지 않았다. 진단 종료 0은 제품 PASS가 아니다.
+
+- [x] 수리 원장과 TCO 간 누락 및 비용 생략 시 손실 반례 확보 (`R3_REPAIR_COST_GAP.json`).
+- [ ] `REPAIR_COST_TRANSACTION_AND_PRESERVATION_FIX`: 생략 비용 보존, 비용 이벤트·감사 트랜잭션 연결 및 실제 HTTP 회귀.
+
+이 항목은 미해결이므로 R3 완료·R4 승격을 하지 않는다.
+
 - [x] `--workflow` 격리 실행: 배정·2단계 승인·반납 통합 3 PASS, HTTP 기본 7 PASS, 종료 0. 감사 행위자·순서, outbox, 자산 상태 이력·요청 연결, 중복 승인 거부를 확인했다.
 - [x] 초안 outbox를 기대한 시험 가정 1회 실패 후 코드 확인: 초안은 감사만, 제출부터 발행. 제품 발행 경계는 변경하지 않았다.
 - [ ] 다음 READY: `REPAIR_COST_PROVENANCE_AND_EXPLANATION` — 수리 처리에서 비용 원장·설명까지 연결 확인. 브라우저·직원 UAT·운영 배포 NOT_RUN.

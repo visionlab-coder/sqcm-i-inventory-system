@@ -9,6 +9,7 @@ import { verifyAuthenticatedBrowser } from './r0-authenticated-browser.mjs';
 import { verifyC4Postgres } from './r0-c4-postgres-fixture.mjs';
 import { verifyImportPostgres } from './r0-import-postgres-fixture.mjs';
 import { verifyCostPostgres } from './r3-cost-postgres-fixture.mjs';
+import { probeRepairCost } from './r3-repair-cost-probe.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const project = `sqcm-r0-auth-${randomUUID().replaceAll('-', '').slice(0, 12)}`;
@@ -129,13 +130,15 @@ try {
     const output = docker(['exec', '-i', backendId, 'node'], `const {spawnSync}=require('node:child_process');const r=spawnSync(process.execPath,['--test','--test-reporter=tap','--test-name-pattern=초기 비밀번호 계정|TOTP MFA','test/integration/http-smoke.test.js','test/integration/mfa-auth.test.js'],{env:{...process.env,INTEGRATION_BASE_URL:'http://frontend',INTEGRATION_DATABASE_URL:process.env.DATABASE_URL},encoding:'utf8'});const pass=Number(r.stdout.match(/# pass (\\d+)/)?.[1]);if(r.status!==0||pass!==2){console.error('Lifecycle integration failed or selected tests skipped');process.exit(1);}console.log(JSON.stringify({status:'PASS',pass,syntheticOnly:true}));`);
     lifecycle = JSON.parse(output);
   }
+  const repairCostProbe = process.argv.includes('--repair-probe') ? JSON.parse(docker(['exec', '-i', backendId, 'node'],
+    `(${probeRepairCost.toString()})().then(result=>console.log(JSON.stringify(result))).catch(error=>{console.error(JSON.stringify({name:error.name,code:error.code}));process.exit(1);});`)) : 'NOT_RUN';
   let workflow = 'NOT_RUN';
   if (process.argv.includes('--workflow')) {
     const output = docker(['exec', '-i', backendId, 'node'], `const {spawnSync}=require('node:child_process');const r=spawnSync(process.execPath,['--test','--test-reporter=tap','--test-name-pattern=기업 자산 요청은|2단계 승인 정책은|반납 사진은','test/integration/http-smoke.test.js'],{env:{...process.env,INTEGRATION_BASE_URL:'http://frontend',INTEGRATION_DATABASE_URL:process.env.DATABASE_URL},encoding:'utf8'});const pass=Number(r.stdout.match(/# pass (\\d+)/)?.[1]);if(r.status!==0||pass!==3){console.error(JSON.stringify({status:'FAIL',pass,exitCode:r.status,failures:r.stdout.split('\\n').filter(line=>/^not ok|^  error:|^  code:/.test(line))}));process.exit(1);}console.log(JSON.stringify({status:'PASS',pass,syntheticOnly:true}));`);
     workflow = JSON.parse(output);
   }
-  console.log(JSON.stringify({ status: 'PASS', checks, syntheticOnly: true, actualHttpBackend: true,
-    actualPostgres: true, actualEmployeeUat: 'NOT_RUN', browser, c4, excel, cost, lifecycle, workflow, productionChanged: false, stagingChanged: false }));
+  console.log(JSON.stringify({ status: repairCostProbe?.status === 'GAP_CONFIRMED' ? 'GAP_CONFIRMED' : 'PASS', checks, syntheticOnly: true, actualHttpBackend: true,
+    actualPostgres: true, actualEmployeeUat: 'NOT_RUN', browser, c4, excel, cost, lifecycle, workflow, repairCostProbe, productionChanged: false, stagingChanged: false }));
 } catch (error) {
   if (started) {
     const logs = compose('logs', '--no-color', '--tail', '5', 'backend');

@@ -11,6 +11,8 @@ Production GO: **true**
 
 상태 정본: [`docs/current-state.md`](./current-state.md)
 
+R3 수리비 근거 검증에서 실제 격리 DB 결함 확인: 수리 건 비용이 TCO에 누락되고 비용 생략 상태 변경은 기존 비용을 지운다. 다음 작업은 `REPAIR_COST_TRANSACTION_AND_PRESERVATION_FIX`; 해결·회귀 전 R3 완료로 처리하지 않는다.
+
 R3 최신 완료 묶음: 배정·다단계 승인·반납 추적의 격리 통합 3 PASS, 기본 HTTP 7 PASS. 다음은 수리 처리→비용 원장·설명 연결 검증이다. R0~R2 완료, R3 진행, R4/R5 미완료 및 P7 별도 상태를 유지한다.
 
 R0~R2 체크포인트 완료(3/6), 현재 R3. 비용 조회 범위는 집중 3·렌더 3·격리 DB 4·HTTP 7 PASS 및 전체 check 종료 0. 다음은 업무 추적 나머지 경로 검증이다. R3 전체 완료는 아니며 R4 후보·R5 승인 배포와 운영 P7은 남아 있다. 아래 과거 단계 문구는 이력이다.
