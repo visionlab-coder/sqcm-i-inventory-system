@@ -11,6 +11,8 @@ Production GO: **true**
 
 상태 정본: [`docs/current-state.md`](./current-state.md)
 
+최신 R 트랙: **R0~R3 로컬 4/6 완료 → R4 후보 검증 진행 → R5 승인 배포/직원 인수 대기**. 종합 격리 API/DB 및 Chrome+Excel PASS, 다음은 `CANDIDATE_MANIFEST_AND_RUNTIME_PATCH_PRESERVATION`. 운영 P7 7/8 및 C5 G4는 별도이며 아래 과거 상태는 이력이다.
+
 R3 예상/실제 수리비 분리와 비용 설명 로컬 검증 완료. 다음은 R3 기존 흐름별 증거를 종합 대조한 뒤 R4 진입 판단이다. 운영·staging 배포 및 과거 비용 일괄 보정은 미실행이다.
 
 R3 최신: 수리 상태 API 비용 보존·원장/감사 원자성 및 TCO 증가액 검증 완료(전체 989 PASS). 다음은 수리 생성 경로·비용 설명 검토. 과거 비용 일괄 보정·운영 배포는 미실행이며 아래 GAP은 수정 전 이력이다.

@@ -280,7 +280,7 @@ test('기업 자산 요청은 직원 제출과 관리자 승인 후 배정·감�
     employee=await login('employee@seowon.local',integrationConfig.seedUserPassword);
     admin=await login('admin@seowon.local',integrationConfig.seedAdminPassword);
     const refResponse=await api('/api/enterprise/reference',admin); assert.equal(refResponse.status,200); const ref=await refResponse.json();
-    const created=await api('/api/enterprise/assets',admin,{method:'POST',body:{organizationId:admin.user.organizationId,assetTag:`EA-${marker}`,name:'기업 통합 테스트 자산',categoryId:ref.categories[0]?.id,locationId:ref.locations[0]?.id,departmentId:ref.departments[0]?.id,statusCode:'AVAILABLE'}});
+    const created=await api('/api/enterprise/assets',admin,{method:'POST',body:{organizationId:admin.user.organizationId,assetTag:`EA-${marker}`,name:'기업 통합 테스트 자산',categoryId:ref.categories[0]?.id,locationId:ref.locations[0]?.id,departmentId:employee.user.departmentId,statusCode:'AVAILABLE'}});
     assert.equal(created.status,201); assetId=(await created.json()).asset.id;
     const forbidden=await api('/api/enterprise/assets',employee,{method:'POST',body:{organizationId:employee.user.organizationId,assetTag:`NO-${marker}`,name:'권한 거부'}}); assert.equal(forbidden.status,403);
     const drafted=await api('/api/enterprise/requests',employee,{method:'POST',body:{organizationId:employee.user.organizationId,requestType:'ASSIGN',assetId,title:'현장 장비 배정',reason:'현장 업무 사용',payload:{assigneeUserId:employee.user.id}}});

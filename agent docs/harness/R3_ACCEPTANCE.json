@@ -1,0 +1,16 @@
+{
+  "phase":"R3",
+  "date":"2026-09-07",
+  "sourceBaseline":"39f18584f890495725dc747bd557c9c6c3c987d7",
+  "scope":"Local synthetic workflow improvement; no deployment, employee UAT or measured business savings claim",
+  "tests":[
+    {"command":"node scripts/r0-authenticated-isolated-check.mjs --c4 --excel --cost --workflow --repair","exitCode":0,"http":7,"selfService":6,"excelRecovery":4,"costScope":4,"workflowIntegration":3,"repairIntegration":1},
+    {"command":"node scripts/r0-authenticated-isolated-check.mjs --browser --excel","exitCode":0,"browser":"PASS","excelRecovery":4,"apiMocked":false}
+  ],
+  "correctedFixtureDependency":"Assignment uses actual employee department instead of first reference-list entry; combined execution passed after correction",
+  "acceptanceMapping":{"excel":"actual database rollback and browser correction","fieldStocktake":"authenticated mobile and idempotent sync","selfService":"full counts and concurrent assignment revocation","lifecycle":"request actors, ordered audits, asset source link, multi-step approval and return","cost":"department isolation, repair preservation and transactional audit, estimate/actual distinction"},
+  "productionChanged":false,
+  "stagingChanged":false,
+  "actualEmployeeUat":"NOT_RUN",
+  "remaining":["R4 exact candidate image and rollback compatibility","R5 exact deployment approval and actual employee acceptance","P7 period-based operations evidence","C5 G4 approved external provider inputs"]
+}

@@ -1,4 +1,18 @@
-# Astra 제품 감사 — R3 업무 추적·비용 근거 진행 중
+# Astra 제품 감사 — R3 로컬 개선 검증 완료 / R4 배포 후보 진행
+
+## 최신 단계 카드
+
+R0~R3 **4/6 로컬 작업 단계 완료**, R4 진행, R5 외부 게이트. 운영 P7 7/8은 별도다. 로컬 완료는 배포·직원 UAT 완료가 아니다.
+
+- [x] 목표·범위: Excel 복구, 현장 실사, 셀프서비스, 이력·비용의 기존 업무 강화.
+- [x] 산출물: 기존 코드 수정 및 `R3_ACCEPTANCE.json` 실제 증거 연결.
+- [x] 검증: 종합 격리 HTTP 7/C4 6/Excel 4/비용 4/업무 3/수리 1 PASS; 별도 Chrome+Excel 실행 PASS, 종료 0.
+- [x] 보안: 운영·staging·외부 공급자 변경 없음, 합성 데이터만 사용.
+- [x] 정본: 고도화 큐·본 보고서·현재 상태·로드맵 동기화.
+- [x] 복구: exact allowlist 체크포인트, 사용자 변경 제외. 이 카드의 완료 확정은 동일 실행 commit·push 검증 후다.
+- [x] 잔여: R4 후보 SHA/이미지·기존 운영 writable-layer 보존·rollback, R5 승인 배포/실제 UAT, P7/C5 외부 게이트 명시.
+
+종합시험 첫 실패는 reference 첫 부서를 직원 부서로 가정한 fixture 의존성이었다. 실제 직원 부서로 고정 후 전체 묶음 통과. 다음 READY는 `CANDIDATE_MANIFEST_AND_RUNTIME_PATCH_PRESERVATION`; 운영 화면의 이미지 외 수정 보존 전 재배포하지 않는다.
 
 ## 장기 Goal 단계 체크리스트
 

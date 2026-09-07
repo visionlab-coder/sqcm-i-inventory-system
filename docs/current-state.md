@@ -11,6 +11,8 @@ Production GO: **true**
 
 ## 2026-09-07 Astra R0 제품 감사 진행
 
+최신: R0~R3 로컬 작업 4/6 완료, R4 배포 후보 진행. 종합 격리 HTTP/DB 및 별도 Chrome+Excel PASS. 근거 `agent docs/harness/R3_ACCEPTANCE.json`. 다음은 후보 manifest와 기존 운영 writable-layer 수정 보존. 운영 배포·직원 UAT·P7 완료를 주장하지 않는다. 아래 R3 진행 문구는 이력이다.
+
 R3 최신: 승인 요청의 예상 수리비는 payload에만 보존하고 실제 비용과 분리했다. 명시 입력 때만 비용 원장 반영, 화면에 예상액 제외·결제 의미 아님 안내. 확장 격리 HTTP/DB PASS 및 전체 989 PASS·8 SKIP·0 FAIL. 다음은 `R3_CONSOLIDATED_ACCEPTANCE_REVIEW`; 운영 변경 0.
 
 R3 최신 수정: 수리 상태 변경의 비용 보존·TCO 원장·감사 트랜잭션 로컬 검증 완료. 단위 2, 격리 통합 1+HTTP 7, 전체 989 PASS·8 SKIP·0 FAIL. 다음 `REPAIR_CREATION_AND_COST_EXPLANATION_REVIEW`. 과거 데이터 보정과 운영 반영은 하지 않았다. 아래 진단 기록은 수정 전 증거다.
