@@ -2,7 +2,7 @@ name: quality
 
 on:
   push:
-    branches: [main]
+    branches: [main, codex/p7-qs-6-16-0-production-evidence]
   pull_request:
   workflow_dispatch:
 
