@@ -48,3 +48,17 @@ test('request rejects responses from a prior session revision', async () => {
   vm.runInContext(requestSource, context);
   await assert.rejects(() => context.request('/synthetic'), e => e.code === 'SESSION_CHANGED');
 });
+
+test('security refresh cannot restore an account after a concurrent logout', async () => {
+  const app = fs.readFileSync('frontend/app.js', 'utf8');
+  const refresh = app.slice(app.indexOf('async function refreshSecurityContext('), app.indexOf('async function responseData('));
+  let revision = 0;
+  const context = vm.createContext({
+    state: { user: null, csrfToken: null }, sessionBoundary: { version: () => revision },
+    fetch: async () => ({ ok: true, json: async () => { revision++; return { user: { id: 99 }, csrfToken: 'synthetic' }; } })
+  });
+  vm.runInContext(refresh, context);
+  assert.equal(await context.refreshSecurityContext(), false);
+  assert.equal(context.state.user, null);
+  assert.equal(context.state.csrfToken, null);
+});

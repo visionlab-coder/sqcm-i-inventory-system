@@ -10,12 +10,20 @@ const sessionBoundary = globalThis.SessionBoundary?.create(() => showLogin());
 const sessionChanges = new Set(['/api/auth/login', '/api/auth/mfa/verify', '/api/auth/logout', '/api/auth/password/change-required']);
 
 async function refreshSecurityContext() {
+  const revision = sessionBoundary?.version();
   const me = await fetch('/api/auth/me', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+  if (revision !== sessionBoundary?.version()) return false;
   if (me.ok) {
-    const data = await me.json(); state.user = data.user; state.csrfToken = data.csrfToken; return true;
+    const data = await me.json();
+    if (revision !== sessionBoundary?.version()) return false;
+    state.user = data.user; state.csrfToken = data.csrfToken; return true;
   }
   const csrf = await fetch('/api/auth/csrf', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
-  if (csrf.ok) state.csrfToken = (await csrf.json()).csrfToken;
+  if (csrf.ok) {
+    const data = await csrf.json();
+    if (revision !== sessionBoundary?.version()) return false;
+    state.csrfToken = data.csrfToken;
+  }
   return false;
 }
 

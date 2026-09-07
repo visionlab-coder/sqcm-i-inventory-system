@@ -1,4 +1,4 @@
-# Astra 제품 감사 — R0 진행 중 / C3 오류 분류 로컬 보완
+# Astra 제품 감사 — R0 진행 중 / C3 인증 HTTP·세션 경계 로컬 검증
 
 기준일: 2026-09-07. 기준 HEAD `17d09ccad7708bc9821c1338df038317d9e56185`.
 실행 계약: `agent docs/prompts/108_Astra_Product_Audit_And_Modernization.md`.
@@ -18,7 +18,7 @@
 | 로그인·초기 비밀번호 | 전체 생애주기 재감사 필요 | 기존 구현 | 관련 단위 포함, E2E 재실행 안 함 | 미확인 | 버전 대조 필요 | 이번 NOT_RUN | 핵심 로그인 브라우저 재검증 |
 | C1 Excel 이전 | 오류 복구·실제 원장 표본 확인 필요 | 존재 | 전체 단위 PASS, 통합은 과거 증거 | 미확인 | 미확인 | 이번 NOT_RUN | 실제 이전 경로 대조 |
 | C2 QR | 배포 버전 확인 필요 | 기존 증거 | 전체 단위 PASS | 미확인 | 미확인 | 이번 NOT_RUN | 후보 버전 대조 |
-| C3 오프라인 | 권한 거부 fallback 결함 수정 / 계정 격리 미완료 | 로컬 수정 | 집중 13/13 | 미배포 | 미배포 | NOT_RUN | R0-C3-ACCOUNT-SCOPED-OFFLINE-STORAGE |
+| C3 오프라인 | 오류 분류·계정 격리·멀티탭·조회 경쟁 상태 보완 | 로컬 수정 | 집중 20/20, Chrome 합성 API 16/16, 실제 HTTP/DB 7/7 | 미배포 | 미배포 | NOT_RUN | R0-AUTHENTICATED-BROWSER-LIFECYCLE |
 | C4 내 비품·반납·수리 | 동시 배정 변경·집계 범위 추가 감사 | 존재 | 전체 단위 PASS | 미확인 | 미확인 | 이번 NOT_RUN | 동시성·페이지 집계 검증 |
 | C5 ERP·전자결재 | 실제 입력 5항목 없음 | G0~G3 기존 기록 | 합성 증거만 존재 | HOLD | HOLD | NOT_RUN | 승인된 provider 입력 |
 | P7 운영 인수 | 운영 8영역 증거와 서명 | Harness 존재 | harness check PASS | N/A | GO 문서값 유지 | 미완료 | 기존 P7 READY 유지 |
@@ -93,3 +93,19 @@ Production frontend/backend 모두 image tag와 revision label이 `38b2bca7f34a7
 - [ ] 실제 인증 backend와 직원 UAT는 NOT_RUN. 브라우저는 실제 프런트엔드+합성 HTTP 서버이며 이 차이를 완료 증거에서 보존한다.
 
 이번 결과는 C3 로컬 회귀·멀티탭 UI 후보이며 전체 제품 또는 R0 완료가 아니다. 구형 데이터 실제 복구는 원래 소유자와 데이터별 근거 없이는 실행하지 않는다. 다음 READY: `R0-AUTHENTICATED-APP-INTEGRATION-VALIDATION` — 격리 backend에서 합성 직원 인증·재물조사·로그아웃의 실제 HTTP 계약을 대조한다. 운영 배포·migration·회사 계정 변경은 하지 않는다.
+
+## 후속 실행 — 실제 인증 HTTP·PostgreSQL 및 두 가지 회귀 수정
+
+기준선 `c782502b961dd8b858c39886651a12081d1c573a`는 작업 시작 시 원격 동일 branch와 일치했다. 위의 과거 미완료/다음 READY 문구는 이력이며 현재 결과는 이 절과 기계 증거를 따른다.
+
+- [x] 범위: `r0-authenticated-isolated-check.mjs`로 기존 .env·운영 자격증명을 읽지 않는 독립 시험 구현. 기존 이미지 재사용, 새 frontend/backend/database 3서비스, 내부 전용 network, 호스트 공개 포트 0, 임시 메모리 DB, 난수 시험 비밀번호 사용.
+- [x] 실제 통합: `node scripts/r0-authenticated-isolated-check.mjs` exit 0, 7/7 PASS. 익명 401, BCrypt 로그인·세션 회전, USER 403, CSRF 누락 403, 담당자 실사 생성/조회, offline APPLIED→DUPLICATE, logout 후 이전 cookie 읽기 401·쓰기 CSRF_INVALID 403 확인.
+- [x] 결함 수정: HTML이 로드하는 `session-boundary.js`가 frontend Dockerfile COPY에서 빠진 것을 신규 시험 FAIL로 재현하고 복사 목록에 추가. 실제 이미지 build·배포는 NOT_RUN.
+- [x] 결함 수정: `refreshSecurityContext` 응답 중 logout이 발생하면 이전 사용자/CSRF를 복구하던 경쟁 상태를 VM 시험 FAIL로 재현. 응답 전후 session revision 검사로 차단 후 PASS.
+- [x] 회귀: focused 20 PASS, 실제 Chrome 16 PASS(합성 HTTP 서버), 전체 단위 979 PASS / 8 SKIP / 0 FAIL, 구문 472개, UI 40 PASS. 실제 backend 인증 브라우저 검증과 혼합하지 않는다.
+- [x] 보존: Production·staging·기존 DB·직원 계정 변경 없음. 테스트가 만든 unique Compose project의 label·대상 수를 검사한 뒤 그 임시 컨테이너/network만 정리했다. tmpfs의 합성 시험 데이터는 폐기됐으며 원본 업무 데이터는 대상이 아니다.
+- [ ] 잔여: 실제 backend를 사용하는 브라우저 로그인·계정 전환, 직원 UAT, C4 동시성/집계, 후보 이미지 build·배포, C5 실제 provider 입력, P7 운영 인수. 전체 제품 완료로 전환하지 않는다.
+
+실행 중 조정: 읽기 전용 디렉터리 하위 mount 충돌 2회는 개별 파일 mount로 해결했다. internal network의 host port 조회가 `invalid IP:0`이어서 HTTP client를 backend 컨테이너 안으로 이동해 host port 없이 검증했다. logout 이후 쓰기 기대값은 초기 시험에서 401로 두어 실패했으나 실제 middleware는 CSRF가 인증보다 먼저 실행되므로 코드 확인 후 정확한 403/CSRF_INVALID를 검증했다. 보안 기준을 완화하거나 운영 동작을 변경하지 않았다.
+
+다음 READY: `R0-AUTHENTICATED-BROWSER-LIFECYCLE`. 실행 계약 108을 유지하고 이 로컬 HTTP 증거를 실제 직원 UAT로 승격하지 않는다. 체크포인트는 현재 public 유지 승인에 따라 exact allowlist로 동일 branch에 저장하며 원격 SHA 확인은 실행 보고에서 제시한다.

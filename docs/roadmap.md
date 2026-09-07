@@ -11,6 +11,8 @@ Production GO: **true**
 
 상태 정본: [`docs/current-state.md`](./current-state.md)
 
+2026-09-07 R0 감사: C3 계정 격리·멀티탭 보호의 격리 실제 HTTP/PostgreSQL 7항목을 통과했다. 보안정보 재조회/logout 경쟁 상태와 frontend 이미지 script 복사 누락을 보완했다. 로컬 focused 20·Chrome 합성 API 16·전체 단위 979 PASS이며 운영 배포/직원 UAT 완료와 구분한다. 다음 로컬 READY는 `R0-AUTHENTICATED-BROWSER-LIFECYCLE`. 세부 체크리스트는 [감사 보고서 166](./phase-reports/166_Astra_Product_Audit.md)에 둔다. 운영 P7 7/8은 그대로 유지한다.
+
 장기 실행 상태: [`agent docs/harness/MASTER_ROADMAP.json`](../agent%20docs/harness/MASTER_ROADMAP.json)
 
 로드맵 역할: 전체 진행 순서와 현재 실행 Phase를 한 화면에 고정한다. 과거 `docs/phase-reports/`의 Phase 번호는 역사 증거이며, 새로운 실행 순서를 결정하지 않는다.
