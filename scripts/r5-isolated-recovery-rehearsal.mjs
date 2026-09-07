@@ -99,6 +99,7 @@ const driver={
   },
   async verify(){throw new Error('PUBLIC_TLS_NOT_TESTED_IN_ISOLATION');},
   async release(){throw new Error('NO_PUBLIC_RELEASE_IN_REHEARSAL');},
+  async postReleaseVerify(){throw new Error('NO_PUBLIC_RELEASE_IN_REHEARSAL');},
   async contain(){throw new Error('UNKNOWN_REMOTE_COMMAND_REQUIRES_RECONCILIATION');},
   async rollback(ctx,{backup,migrationAttempted}) {
     recoveryStep='FREEZE';

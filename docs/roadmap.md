@@ -1,5 +1,9 @@
 # SQCM-i 비품관리 시스템 전체 로드맵
 
+R5 driver 진척: read-only 실제 Production preflight와 post-release containment 계약 완료(집중 테스트17 PASS). 기술 관찰 실패0이나 9/7 cutoff 경과로 배포 미실행. 다음은 actual mutation driver 구현·격리 복귀 → 새 변경창 → 배포 → 직원 UAT이며 R 트랙5/6 유지. `R5_PRODUCTION_DRIVER_PREFLIGHT_EVIDENCE.json` 참조.
+
+R5 현재 승인: **9/7 14:00~17:00 KST, cutoff16:00**, 새 후보469a0c0. READY 운영 driver 연결/검증 → 변경창 내 배포 → 실제 UAT. 실행 준비 미완료 시 배포하지 않는다. `R5_ACTIVE_DEPLOYMENT_APPROVAL.json` 참조. 별도 예약 실행은 생성하지 않았다.
+
 R5 최신: **새 후보469a0c0 승인 ✓ / 보호 백업 폴더·권한 검증 ✓** → 운영 driver 연결 및 새 변경창 시각 확정 → 배포 → 직원 UAT·인수. 운영 데이터·서비스 변경 없음, 5/6 유지.
 
 현재 R5 순서: **worker-freeze 신규 후보469a0c0 로컬·CI·이미지·브라우저·복귀 ✓** → 보호 백업 목적지/운영 driver 연결 → 새 SHA·유효 변경창 승인 → 운영 배포 → 실제 직원 UAT·인수. 기존 eab1ed7 cutoff(9/7 13:30 KST) 경과로 운영 미실행. R 트랙5/6·P7 7/8 유지. 상세 `R5_WORKER_FREEZE_CANDIDATE.json`.

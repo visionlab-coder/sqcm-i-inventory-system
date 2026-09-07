@@ -2,6 +2,22 @@
 
 ## 현재 정본: R0~R4 5/6, R5 진행
 
+### R5 운영 driver preflight — 2026-09-07 16:33 KST
+
+- [x] 정확한 후보 SHA·image ID·revision 결박
+- [x] Production frontend/backend/database 정확히 3서비스 및 health 확인
+- [x] frontend `127.0.0.1:3300`, backend/database host port 0 확인
+- [x] ADMIN·MANAGER·USER credential 파일을 저장소 밖 물리 참조로 읽고 계약만 검증(값 미출력)
+- [x] 보호 백업 폴더 물리 경로·상속 차단·3개 FullControl 주체 확인
+- [x] runtime overlay 8개 보존 대상으로 분류(계정/UI 6, 기존 DB 임시 백업 2)
+- [x] post-release 실제 HTTPS/인증/DB 실패 시 old DB 자동복원 금지·contain 계약 추가
+- [ ] 실제 mutation driver 구현 및 격리 복귀 검증
+- [ ] 새 유효 변경창 승인·운영 배포·실제 직원 UAT
+
+결과: 기술 사전검증 실패 0, 현재 cutoff 경과로 `READY_WAIT_R5_CHANGE_WINDOW`, 운영 변경 0. 기계 증거 `agent docs/harness/R5_PRODUCTION_DRIVER_PREFLIGHT_EVIDENCE.json`.
+
+변경창 추가 확정: 사용자 `니가 설정해` 위임에 따라 2026-09-07 **14:00~17:00 KST / rollback cutoff16:00**로 지정했다. 정확한 후보469a0c0·기존 AI PC Production만 승인 범위다. 16:00~17:00은 복구/검증 여유이며 신규 전환 금지. 운영 실행기 검증·백업 결박 미충족이면 시작하지 않는다. 공개 후 새 쓰기 가능성이 있으면 이전 DB 덮어쓰기 대신 차단·데이터 보존으로 전환한다. 승인 정본 `R5_ACTIVE_DEPLOYMENT_APPROVAL.json`, 아직 배포/예약 실행 미실행.
+
 R5 사용자 추가 승인(2026-09-07): 새 후보469a0c0와 보호 백업 폴더 생성·권한 제한 승인. 새 폴더 생성 시 현재 사용자/SYSTEM/Administrators만 FullControl을 갖도록 ACL을 적용했고 3개 규칙·상속 차단을 재확인했다. 기존 백업 ACL/파일은 변경하지 않았으며 실제 백업 데이터 미기록. 새 변경창 시작·종료·복귀 기준은 사용자 지정 전까지 null이다. 운영 driver 연결 및 실제 배포/UAT는 아직 미완료. 아래 이전 미승인 상태는 역사다.
 
 ### R5 현재 체크리스트 — 신규 후보469a0c0 / 운영 변경 없음

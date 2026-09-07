@@ -25,7 +25,7 @@ function validateInput({approval, candidate, now}) {
 export async function executeR5Deployment({approval, candidate, driver, now=Date.now, execute=false}={}) {
   const times=validateInput({approval,candidate,now});
   if (!execute) return {status:'READY_DRY_RUN',candidateSha:candidate.sha,steps:R5_STEPS,externalMutationPerformed:false};
-  const methods=[...R5_STEPS,'rollback','release','contain'];
+  const methods=[...R5_STEPS,'rollback','release','postReleaseVerify','contain'];
   if (!driver || methods.some(step => typeof driver[step]!=='function')) throw new Error('R5_DRIVER_INCOMPLETE');
   const context=Object.freeze({runId:randomUUID(),candidate:Object.freeze({...candidate}),rollbackCutoff:times[1],windowEnd:times[2]});
   const receipts=[];
@@ -56,7 +56,14 @@ export async function executeR5Deployment({approval, candidate, driver, now=Date
     stage='release';releaseAttempted=true;
     const receipt=await driver.release(context,backup);
     if(!receipt || receipt.runId!==context.runId || receipt.candidateSha!==candidate.sha || receipt.writesEnabled!==true) throw new Error('R5_RELEASE_UNCERTAIN');
+    stage='postReleaseVerify';
+    const publicReceipt=await driver.postReleaseVerify(context,backup);
+    if(!publicReceipt || publicReceipt.runId!==context.runId || publicReceipt.candidateSha!==candidate.sha
+      || publicReceipt.publicHttps!==true || publicReceipt.authenticatedSmoke!==true || publicReceipt.database!==true) {
+      throw new Error('R5_PUBLIC_VERIFICATION_FAILED');
+    }
     assertBeforeCutoff();
+    receipts.push({stage:'postReleaseVerify',verified:true});
     return {status:'DEPLOYED_UAT_PENDING',candidateSha:candidate.sha,receipts,externalMutationPerformed:true,employeeUat:'NOT_RUN'};
   } catch (error) {
     if(releaseAttempted || error?.code==='R5_COMMAND_OUTCOME_UNKNOWN') {

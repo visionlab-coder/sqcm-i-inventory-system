@@ -37,6 +37,7 @@
     "production:cutover-adapter-rehearsal": "node scripts/production-cutover-adapter-rehearsal.mjs",
     "production:cutover-process-runner-rehearsal": "node scripts/production-cutover-process-runner-rehearsal.mjs",
     "production:cutover-execute": "node scripts/production-cutover-execute.mjs",
+    "production:r5-driver-preflight": "node scripts/r5-production-driver-preflight.mjs",
     "production:cutover-actual-evidence": "node scripts/production-cutover-actual-evidence.mjs",
     "production:role-result-evidence": "node scripts/production-role-result-evidence.mjs",
     "production:signoff-request-bundle": "node scripts/production-signoff-request-bundle.mjs",

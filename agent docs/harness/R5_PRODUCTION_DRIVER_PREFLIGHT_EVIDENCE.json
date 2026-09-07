@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-09-07T16:33:39+09:00",
+  "candidateSha": "469a0c0e35b3e4fff1ef3b83d105e9652b2d9b6e",
+  "status": "READY_WAIT_R5_CHANGE_WINDOW",
+  "technicalReady": true,
+  "safeToMutate": false,
+  "failures": [],
+  "pending": ["R5_OUTSIDE_EXECUTION_INTERVAL"],
+  "observations": {
+    "serviceCount": 3,
+    "frontendLoopback": "PASS",
+    "backendDatabaseHostPorts": 0,
+    "candidateImageIdsAndRevision": "PASS",
+    "activeClientWrites": 0,
+    "uatCredentialReferences": 3,
+    "protectedBackupAclRules": 3,
+    "runtimePreservePathCount": 8,
+    "protectedDatabaseBackupCount": 2
+  },
+  "verification": {
+    "focusedUnit": {"pass": 17, "fail": 0},
+    "productionObservationCommand": "npm.cmd run production:r5-driver-preflight",
+    "productionObservationExitCode": 0,
+    "diffCheck": "PASS"
+  },
+  "implementation": {
+    "readOnlyObserver": "scripts/r5-production-driver-preflight.mjs",
+    "pureContract": "src/operations/r5-production-driver-preflight.mjs",
+    "postReleaseContainmentContract": "src/operations/r5-deployment-executor.mjs",
+    "actualMutationDriver": "NOT_IMPLEMENTED"
+  },
+  "externalMutationPerformed": false,
+  "productionChanged": false,
+  "secretValuesReadOrRecorded": false,
+  "employeeUat": "NOT_RUN"
+}

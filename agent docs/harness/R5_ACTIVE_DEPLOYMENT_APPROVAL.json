@@ -1,0 +1,19 @@
+{
+  "candidateSha": "469a0c0e35b3e4fff1ef3b83d105e9652b2d9b6e",
+  "target": "seowon-inventory-production on existing AI PC",
+  "publicUrl": "https://inventory.safe-link.co.kr/",
+  "approvalSource": "2026-09-07 user approved new candidate/private backup setup, then delegated change-window selection with 니가 설정해",
+  "window": { "start": "2026-09-07T05:00:00Z", "rollbackCutoff": "2026-09-07T07:00:00Z", "end": "2026-09-07T08:00:00Z", "timezone": "Asia/Seoul" },
+  "status": "APPROVED_PENDING_TECHNICAL_READINESS",
+  "rationale": "14:00-16:00 KST for verified execution; 16:00-17:00 reserved for recovery and validation, not new cutover",
+  "conditions": [
+    "Verify Production driver and same-run backup/recovery binding before any cutover mutation",
+    "No new deployment before start or at/after rollbackCutoff",
+    "Health, authenticated smoke, DB and TLS gates must pass before release and cutoff",
+    "Before release, recover previous compatible database/runtime on failure and hold ingress",
+    "After possibly accepting new writes, contain ingress/workers and preserve candidate data; never automatically overwrite with an old database",
+    "No implicit extension, unrelated service changes, or fabricated employee UAT"
+  ],
+  "deploymentExecuted": false,
+  "schedulerCreated": false
+}

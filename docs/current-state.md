@@ -1,5 +1,9 @@
 # 서원토건 비품관리 시스템 최신 단일 현황
 
+R5 운영 driver 사전검증(9/7 16:33 KST): read-only Production preflight 구현·실행 PASS. 서비스3개, backend/database host port0, 후보 image/revision, UAT credential 참조3개, 보호 ACL3규칙, 보존 대상8개를 실제 관찰했고 기술 실패0이다. `16:00 cutoff`가 지나 `safeToMutate=false`; 운영 변경0. 다음 READY는 실제 mutation driver 구현·격리 검증 후 새 변경창에서 실행이며 직원 UAT는 NOT_RUN이다. 증거 `R5_PRODUCTION_DRIVER_PREFLIGHT_EVIDENCE.json`.
+
+현재 R5 변경창 확정: 사용자 위임으로 **2026-09-07 14:00~17:00 KST / 복귀 기준16:00**. 후보469a0c0, 기존 AI PC Production만 대상이다. `R5_ACTIVE_DEPLOYMENT_APPROVAL.json`이 현재 승인 정본이며 아래 미지정/구후보 승인 기록보다 우선한다. 운영 driver 검증 전 실행하지 않고, 16:00부터 신규 전환 금지·복구 검증 시간을 확보한다. 일정 설정은 예약 실행이나 배포 완료가 아니다.
+
 R5 추가 승인 반영: 사용자 승인으로 후보469a0c0 및 보호 백업 경로 생성·권한 제한을 확정했다. 새 폴더 `backups/r5-protected-469a0c0` 생성 및 현재 사용자/SYSTEM/관리자 3개 규칙·상속 차단 확인 PASS. 기존 백업·운영 서비스 무변경, 백업 데이터 아직 미기록. 새 변경창 시각은 미지정이며 운영 driver도 미완료다. 아래 '새 SHA 승인 없음'은 이전 상태다.
 
 R5 정본 갱신(9/7 13:30 KST 이후): 새 worker-freeze 후보 **469a0c0** CI success, exact 이미지 HTTP/DB·초기 비밀번호/MFA·모바일 Chrome13·격리 복귀 PASS. 운영 driver는 아직 미구현이다. 기존 eab1ed7 승인 cutoff13:30 경과, 새 SHA 승인 없음. 운영 백업 부모 폴더 ACL에 일반 사용자 접근이 있어 새 백업 전 보호 목적지 필요(기존 파일 노출 여부 미판정). READY `R5-VERIFIED-DEPLOYMENT-EXECUTOR` / `PROTECTED_BACKUP_AND_PRODUCTION_DRIVER_BINDING`. 운영·staging 무변경, 5/6·P7 7/8 유지. `R5_WORKER_FREEZE_CANDIDATE.json` 참조; 아래 승인이 유효하다는 이전 메모는 역사다.
