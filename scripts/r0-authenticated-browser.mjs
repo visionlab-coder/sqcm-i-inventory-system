@@ -84,6 +84,13 @@ export async function verifyAuthenticatedBrowser({ backendId, password, excel = 
     await login(a, 'manager@seowon.local');
     await wait(a, 'state.user?.role==="MANAGER" && !document.querySelector("#app-shell").classList.contains("hidden")', 'manager form login');
     checks.push('real browser login form authenticates synthetic manager');
+    await wait(a, '!document.querySelector("#view-root .loading") && document.querySelector("#view-root").textContent.trim().length>0', 'initial view completed');
+    // Delay a genuine HTTP response, not its status/body, to force response reordering.
+    await evaluate(a, `(()=>{window.auditOriginalFetch=window.fetch;window.auditResponseHeld=false;const gate=new Promise(resolve=>window.auditRelease=resolve);window.fetch=async(...args)=>{const response=await window.auditOriginalFetch(...args);if(String(args[0]).startsWith('/api/enterprise/dashboard?')){window.auditResponseHeld=true;await gate;}return response;};window.auditOldNavigation=navigate('dashboard');})()`);
+    await wait(a, 'window.auditResponseHeld===true', 'delayed dashboard response received');
+    await evaluate(a, "navigate('assets')");
+    assert.ok(await evaluate(a, `(async()=>{const before=document.querySelector('#view-root').innerHTML;window.auditRelease();await window.auditOldNavigation;window.fetch=window.auditOriginalFetch;return state.view==='assets'&&document.querySelector('#view-root').innerHTML===before;})()`), 'late dashboard response replaced asset screen');
+    checks.push('delayed actual dashboard response cannot overwrite newer asset navigation');
     await evaluate(a, 'document.querySelector("[data-view=stocktakes]").click()');
     await wait(a, 'document.querySelector("#view-root").textContent.includes("R0 synthetic stocktake")', 'stocktake list');
     checks.push('stocktake menu displays actual PostgreSQL fixture');

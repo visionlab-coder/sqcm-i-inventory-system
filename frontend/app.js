@@ -55,8 +55,10 @@ async function responseData(response) {
 
 async function request(path, options = {}) {
   const sessionVersion = sessionBoundary?.version();
+  const navigationRevision = state.navigationRevision || 0;
   const method = String(options.method || 'GET').toUpperCase();
   const mutating = mutatingMethods.has(method);
+  const viewRead = !mutating && !path.startsWith('/api/auth/');
   const signature = mutating ? `${method}:${path}:${JSON.stringify(options.body || null)}` : null;
   if (signature && inFlightWrites.has(signature)) return inFlightWrites.get(signature);
   const operation = (async () => {
@@ -71,8 +73,10 @@ async function request(path, options = {}) {
       throw Object.assign(new Error('네트워크에 연결하지 못했습니다.'), { code: 'NETWORK_UNAVAILABLE' });
     }
     if (sessionVersion !== sessionBoundary?.version()) throw Object.assign(new Error('다른 탭에서 계정이 변경되었습니다. 다시 로그인하세요.'), { code: 'SESSION_CHANGED' });
+    if (viewRead && navigationRevision !== (state.navigationRevision || 0)) throw Object.assign(new Error('이전 화면 요청입니다.'), { code: 'NAVIGATION_CHANGED' });
     if (response.status === 401 && !['/api/auth/login','/api/auth/mfa/verify','/api/auth/password/change-required'].includes(path)) showLogin();
     const data = await responseData(response);
+    if (viewRead && navigationRevision !== (state.navigationRevision || 0)) throw Object.assign(new Error('이전 화면 요청입니다.'), { code: 'NAVIGATION_CHANGED' });
     if (sessionVersion !== sessionBoundary?.version()) throw Object.assign(new Error('계정이 변경되었습니다. 다시 로그인하세요.'), { code: 'SESSION_CHANGED' });
     if (mutating && sessionChanges.has(path)) sessionBoundary?.publish();
     return data;
@@ -111,6 +115,7 @@ function showMessage(message, type = 'success') {
 }
 
 function showLogin() {
+  state.navigationRevision = (state.navigationRevision || 0) + 1;
   state.user = null;
   state.reference = null;
   state.stocktakeDetailId = null;
@@ -196,6 +201,7 @@ async function boot() {
 }
 
 async function navigate(view) {
+  const navigationRevision = state.navigationRevision = (state.navigationRevision || 0) + 1;
   if (view !== 'qr-scan' && state.qrStream) {
     state.qrStream.getTracks().forEach(track => track.stop());
     state.qrStream = null;
@@ -225,8 +231,9 @@ async function navigate(view) {
     if (view === 'items' || view === 'loans') await renderAssets();
     if (view === 'audit') await renderAudit();
     if (view === 'security') await renderSecurity();
-    $('#main').focus();
+    if (navigationRevision === state.navigationRevision) $('#main').focus();
   } catch (error) {
+    if (navigationRevision !== state.navigationRevision || error.code === 'NAVIGATION_CHANGED') return;
     $('#view-root').innerHTML = `<div class="empty"><h2>화면을 불러오지 못했습니다.</h2><p>${escapeHtml(error.message)}</p><button class="secondary" onclick="navigate('${view}')">다시 시도</button></div>`;
   }
 }
@@ -252,11 +259,13 @@ async function renderDashboard() {
 }
 
 async function renderCostControl() {
+  const navigationRevision = state.navigationRevision || 0;
   const data = await request(`/api/enterprise/cost/command-center?organizationId=${encodeURIComponent(state.user.organizationId)}`);
   const [ai, roi] = await Promise.all([
     request(`/api/enterprise/ai/recommendations?organizationId=${encodeURIComponent(state.user.organizationId)}`).catch(() => ({ recommendations: [] })),
     request(`/api/enterprise/cost/roi?organizationId=${encodeURIComponent(state.user.organizationId)}`).catch(() => null)
   ]);
+  if (navigationRevision !== (state.navigationRevision || 0)) return;
   const s = data.summary || {};
   const money = value => `${Number(value || 0).toLocaleString('ko-KR')}원`;
   const idleRows = (data.idleAssets || []).map(asset => `<tr><td class="mono">${escapeHtml(asset.asset_tag)}</td><td><strong>${escapeHtml(asset.name)}</strong></td><td>${escapeHtml(asset.location_name || '-')}</td><td>${asset.idle_days}일</td><td>${money(asset.acquisition_cost)}</td><td><button class="small" data-go="assets">이동 후보 확인</button></td></tr>`).join('');

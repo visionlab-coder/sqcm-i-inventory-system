@@ -1,0 +1,16 @@
+{
+  "baselineSha": "d869f07b0c862c6f9282fe2fde02dfdcabefcba0",
+  "before": { "command": "node --test test/unit/navigation-race.test.js", "exitCode": 1, "fail": 2, "observed": ["late success replaces NEW with OLD", "late failure replaces newer screen with error page"] },
+  "fix": "navigation revision rejects stale screen reads and suppresses stale navigation error/focus; auth context reads retain session-only boundary; writes retain their actual result",
+  "intermediateRegression": "logout CSRF refresh was incorrectly navigation-bound; auth endpoint reads excluded before final verification",
+  "focused": { "command": "node --test test/unit/navigation-race.test.js test/unit/session-boundary.test.js", "pass": 7, "fail": 0, "exitCode": 0 },
+  "fullCheck": { "command": "npm.cmd run check", "pass": 995, "skip": 8, "fail": 0, "exitCode": 0 },
+  "browserExcel": { "command": "node scripts/r0-authenticated-isolated-check.mjs --browser --excel", "browserPass": 11, "httpBaselinePass": 7, "excelDatabasePass": 4, "exitCode": 0, "actualResponseDelayedNotMocked": true },
+  "browserLifecycle": { "command": "node scripts/r0-authenticated-isolated-check.mjs --browser --lifecycle", "browserPass": 13, "httpBaselinePass": 7, "lifecyclePass": 2, "exitCode": 0 },
+  "sourceMounted": true,
+  "syntheticOnly": true,
+  "candidate6a16e36": "SUPERSEDED_FOR_RELEASE_BY_THIS_SOURCE_FIX",
+  "productionChanged": false,
+  "stagingChanged": false,
+  "next": "UPDATED_SHA_CI_IMAGE_AND_FINAL_ACCEPTANCE"
+}

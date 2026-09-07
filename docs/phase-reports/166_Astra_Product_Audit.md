@@ -4,6 +4,10 @@
 
 ### R4 현재 진행
 
+최신: 메뉴 전환 경합 **2개 실패 재현 → 소스 수정**. 늦은 성공/실패가 새 화면을 덮어쓰던 문제를 navigation revision으로 차단했다. 인증 컨텍스트 GET은 세션 경계만 적용하고 변경 요청 결과는 취소로 오인하지 않는다. 중간 회귀(로그아웃 CSRF 갱신 차단)를 수정한 뒤 단위/세션7 PASS, 전체995 PASS/8 SKIP/0 FAIL, 실제 응답 지연 Chrome+Excel11·HTTP7·DB4 PASS. 증거 `agent docs/harness/R4_NAVIGATION_RACE.json`.
+
+기존 후보 `6a16e36`에는 이 수정이 없어 **신규 출시 후보로는 대체 필요**. 다음 READY `UPDATED_SHA_CI_IMAGE_AND_FINAL_ACCEPTANCE`. 운영/staging 미변경, 실제 직원 UAT 미실행, R4 진행/전체4/6 유지.
+
 최신 후보 `6a16e36` 확정: 동일 SHA Git archive 이미지 2개 및 revision label 검증, 원격 quality `34076470560` SUCCESS. 이미지 자체 API/DB 비용4·업무3·수리1 및 backup restore PASS, Chrome 초기 비밀번호/MFA12·인증통합2 PASS. Excel 브라우저는 처음 두 번째 탭 초기 로딩/이동 대기에서 timeout; 시험기가 로딩 placeholder를 초기화 완료로 인정하던 조건을 보완한 재실행은 Chrome10·Excel DB4 PASS. 각 실행 기본 HTTP7은 중복 합산하지 않는다. `npm.cmd run check` 구문484·단위992 PASS/8 SKIP/0 FAIL.
 
 이 시험기 보완은 **사용자가 로딩 중 다른 메뉴를 누르는 경합이 안전하다는 증거가 아니다**. 다음 READY `R4-CONCURRENT-NAVIGATION-REPRODUCTION`으로 지연 응답의 화면 덮어쓰기 여부를 결정론적으로 확인한다. R4를 성급히 완료하지 않는다. 이미지 CI·순차 흐름 검증 증거는 `agent docs/harness/R4_FINAL_CANDIDATE.json`.

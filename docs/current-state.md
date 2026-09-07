@@ -1,5 +1,7 @@
 # 서원토건 비품관리 시스템 최신 단일 현황
 
+R4 최신: 늦은 화면 응답/오류 덮어쓰기 재현·수정 및 실제 지연 응답 브라우저 PASS. 전체995 PASS/8 SKIP. 이전 `6a16e36` 이미지는 새 수정 미포함으로 출시 후보 대체 필요. READY `UPDATED_SHA_CI_IMAGE_AND_FINAL_ACCEPTANCE`. 증거 `agent docs/harness/R4_NAVIGATION_RACE.json`, 운영 미변경.
+
 R4 최신: CI 성공 SHA `6a16e36` 후보 이미지 2개·API/DB·인증/Excel Chrome·백업 복원 검증. 회귀992 PASS/8 SKIP. Excel 초기 로딩 대기는 시험기 보완 후 통과했으나 로딩 중 사용자 메뉴 전환 안전성은 미검증. 다음 READY `R4-CONCURRENT-NAVIGATION-REPRODUCTION`, 전체4/6 유지. 증거 `agent docs/harness/R4_FINAL_CANDIDATE.json`.
 
 R4 최신: **별도 합성 DB 백업 복원 PASS**(migration 25 복원, 구 backend 로그인, 핵심 4테이블 hash 일치, 후보 DB migration 30 및 데이터 보존). image-only 롤백 불가는 유지. 다음 READY `CI_VERIFIED_EXACT_SHA_CANDIDATE_FINALIZATION`. 실제 운영 rollback/직원 UAT 미실행이며 4/6 유지. 세부 증거 `agent docs/harness/R4_ROLLBACK_SCHEMA_GATE.json`.

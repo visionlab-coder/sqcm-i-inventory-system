@@ -1,5 +1,7 @@
 # SQCM-i 비품관리 시스템 전체 로드맵
 
+R4 최신: 화면 전환 경합 수정·브라우저 반례 PASS → READY `UPDATED_SHA_CI_IMAGE_AND_FINAL_ACCEPTANCE` → R5 승인 배포·직원 인수. 신규 수정 이미지/CI 검증 전까지 R4 진행, R0~R3 4/6 유지.
+
 R4 최신: `6a16e36` CI·불변 후보·순차 핵심 브라우저·복원 검증 완료 → **READY R4-CONCURRENT-NAVIGATION-REPRODUCTION** → R5 승인 배포/직원 UAT. 로딩 placeholder 대기 보완을 동시 화면 전환 안전성으로 확대하지 않으며 R4 완료 전 해당 반례를 확인한다. R0~R3 4/6 유지.
 
 R4 최신: 백업 기반 **격리 복원 경로 PASS** → 다음 `CI_VERIFIED_EXACT_SHA_CANDIDATE_FINALIZATION` → R5 승인된 쓰기 차단/복귀 계약·배포·실제 직원 UAT. 전체 R0~R3 4/6 유지. image-only 롤백은 여전히 불가하며 아래 실패 메모는 이력이다.
