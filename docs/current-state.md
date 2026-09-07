@@ -1,5 +1,7 @@
 # 서원토건 비품관리 시스템 최신 단일 현황
 
+R 트랙 최신: **4/6, R4 진행**. 원격 quality `34075788038` SUCCESS. 이미지-only rollback은 migration 25/30 불일치로 FAIL(격리 합성). 다음 READY `ISOLATED_PRE_MIGRATION_BACKUP_RESTORE_REHEARSAL`. 운영·staging 미변경. 증거 `agent docs/harness/R4_ROLLBACK_SCHEMA_GATE.json`; 아래 이전 R4 메모는 이력이다.
+
 <!-- HARNESS_STATUS_START -->
 Harness 진행: **7 / 8 Phase 완료**
 현재 Phase: **P7**
@@ -10,6 +12,8 @@ Production GO: **true**
 기준일: 2026-09-04
 
 ## 2026-09-07 Astra R0 제품 감사 진행
+
+R4 원격 quality run `34075788038` / SHA `97808560d14d34a2f736271353d2166c46c73f77` 실제 시작. unit 검사 단계 성공, 통합 진행 중. 동일 run 결과 확인 후 후보 SHA·롤백 검증을 잇는다. release·운영 배포는 시작하지 않았다.
 
 R4 최신: 후보 이미지 Chrome+Excel 10 PASS, 초기 비밀번호/MFA 포함 Chrome 12 PASS, DB·HTTP 통과. 보존 정적 파일 3개 복원 hash 일치(전체 rollback 아님). 후보 SHA 원격 quality run은 없으며 main-only push trigger 확인. 다음 원격 quality 실행 경로와 rollback 호환성 검증. 운영 변경 0.
 

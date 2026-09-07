@@ -1,5 +1,7 @@
 # SQCM-i 비품관리 시스템 전체 로드맵
 
+R 트랙 최신: R0~R3 **4/6 완료** → R4 원격 quality SUCCESS / 이미지-only rollback FAIL(스키마 25/30) → R5 미완료. 다음 READY `ISOLATED_PRE_MIGRATION_BACKUP_RESTORE_REHEARSAL`. 신규 데이터 보존 계약과 exact SHA 이미지 검증 후에만 R4를 닫는다. 증거 `agent docs/harness/R4_ROLLBACK_SCHEMA_GATE.json`; 기존 운영 P7과 별도다.
+
 <!-- HARNESS_STATUS_START -->
 Harness 진행: **7 / 8 Phase 완료**
 현재 Phase: **P7**
@@ -10,6 +12,8 @@ Production GO: **true**
 기준일: 2026-09-04
 
 상태 정본: [`docs/current-state.md`](./current-state.md)
+
+R4 원격 quality 실제 실행 중: `34075788038` (`9780856`). unit 단계 성공, 통합 결과 대기. 기존 ‘run 없음’은 이력이며 새 실행을 만들지 않고 이 run을 이어 확인한다. 운영·release 변경 없음.
 
 R4 후보 브라우저·인증·Excel PASS, 운영 정적 파일 복원 hash 검증 완료. 원격 quality는 후보 SHA run 없음(main-only trigger), 전체 DB/서비스 rollback은 NOT_RUN. 다음 `CANDIDATE_REMOTE_QUALITY_AND_ROLLBACK_COMPATIBILITY`; R4 진행 유지.
 

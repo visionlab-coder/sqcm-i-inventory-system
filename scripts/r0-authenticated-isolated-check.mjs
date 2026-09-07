@@ -153,14 +153,37 @@ try {
     const output = docker(['exec', '-i', backendId, 'node'], `const {spawnSync}=require('node:child_process');const r=spawnSync(process.execPath,['--test','--test-reporter=tap','--test-name-pattern=기업 자산 요청은|2단계 승인 정책은|반납 사진은','test/integration/http-smoke.test.js'],{env:{...process.env,INTEGRATION_BASE_URL:'http://frontend',INTEGRATION_DATABASE_URL:process.env.DATABASE_URL},encoding:'utf8'});const pass=Number(r.stdout.match(/# pass (\\d+)/)?.[1]);if(r.status!==0||pass!==3){console.error(JSON.stringify({status:'FAIL',pass,exitCode:r.status,failures:r.stdout.split('\\n').filter(line=>/^not ok|^  error:|^  code:/.test(line))}));process.exit(1);}console.log(JSON.stringify({status:'PASS',pass,syntheticOnly:true}));`);
     workflow = JSON.parse(output);
   }
+  let rollback = 'NOT_RUN';
+  if (process.argv.includes('--rollback-backend')) {
+    assert.ok(candidateSha,'Rollback rehearsal requires an image candidate');
+    const snapshotScript=`const {Pool}=require('pg');const p=new Pool({connectionString:process.env.DATABASE_URL});p.query("SELECT (SELECT count(*)::int FROM assets) assets,(SELECT count(*)::int FROM workflow_requests) requests,(SELECT count(*)::int FROM asset_cost_events) costs").then(r=>console.log(JSON.stringify(r.rows[0]))).finally(()=>p.end());`;
+    const before=JSON.parse(docker(['exec','-i',backendId,'node'],snapshotScript));
+    const oldTag='ghcr.io/visionlab-coder/sqcm-i-inventory-backend:sha-38b2bca7f34a7a950469c8d0cd6d2a4b11e3b7a6';
+    const oldImage=JSON.parse(docker(['image','inspect',oldTag]))[0].Id;
+    spec.services.backend.image=oldImage;
+    spec.services.backend.environment.DB_AUTO_MIGRATE='false';
+    spec.services.backend.environment.DB_RUN_SEEDS='false';
+    compose('up','-d','--no-deps','--wait','--wait-timeout','120','backend');
+    const rollbackId=compose('ps','-q','backend');
+    assert.match(rollbackId,/^[a-f0-9]{64}$/);
+    const after=JSON.parse(docker(['exec','-i',rollbackId,'node'],snapshotScript));
+    assert.deepEqual(after,before);
+    docker(['exec','-i',rollbackId,'node'],`const assert=require('node:assert/strict');(async()=>{const base='http://127.0.0.1:8080';const c=await fetch(base+'/api/auth/csrf');assert.equal(c.status,200);const token=(await c.json()).csrfToken;const cookie=c.headers.get('set-cookie').split(';')[0];const r=await fetch(base+'/api/auth/login',{method:'POST',headers:{cookie,'content-type':'application/json'},body:JSON.stringify({email:'admin@seowon.local',password:process.env.SEED_ADMIN_PASSWORD,_csrf:token})});assert.equal(r.status,200);assert.ok((await r.json()).user);console.log('ROLLBACK_LOGIN_PASS');})().catch(()=>process.exit(1));`);
+    rollback={status:'PASS',scope:'previous backend healthy and login on candidate schema, core row counts preserved',oldImage,counts:after,productionRollback:'NOT_RUN'};
+  }
   console.log(JSON.stringify({ status: repairCostProbe?.status === 'GAP_CONFIRMED' ? 'GAP_CONFIRMED' : 'PASS', checks, syntheticOnly: true, actualHttpBackend: true,
-    actualPostgres: true, candidateSha: candidateSha || null, sourceMounted: !candidateSha, actualEmployeeUat: 'NOT_RUN', browser, c4, excel, cost, lifecycle, workflow, repair, repairCostProbe, productionChanged: false, stagingChanged: false }));
+    actualPostgres: true, candidateSha: candidateSha || null, sourceMounted: !candidateSha, actualEmployeeUat: 'NOT_RUN', browser, c4, excel, cost, lifecycle, workflow, repair, rollback, repairCostProbe, productionChanged: false, stagingChanged: false }));
 } catch (error) {
   if (started) {
     const logs = compose('logs', '--no-color', '--tail', '5', 'backend');
     // Only event and startup error class are exposed, not arbitrary messages/config.
     for (const line of logs.split('\n')) {
-      try { const event = JSON.parse(line.slice(line.indexOf('{'))); console.error(JSON.stringify({ event: event.event, name: event.name })); } catch {}
+      try {
+        const event = JSON.parse(line.slice(line.indexOf('{')));
+        const mismatch = /^application migration target mismatch: expected (\d+), applied (\d+)\.$/.exec(event.message || '');
+        console.error(JSON.stringify({ event: event.event, name: event.name,
+          ...(mismatch ? { code: 'MIGRATION_TARGET_MISMATCH', expected: Number(mismatch[1]), applied: Number(mismatch[2]) } : {}) }));
+      } catch {}
     }
   }
   throw error;

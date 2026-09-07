@@ -1,0 +1,25 @@
+{
+  "scope": "isolated synthetic stack only",
+  "candidateSha": "69b3cb6b7f6897a7819cf0fdd8d519b03a3d9975",
+  "previousSha": "38b2bca7f34a7a950469c8d0cd6d2a4b11e3b7a6",
+  "command": "node scripts/r0-authenticated-isolated-check.mjs --candidate-sha=69b3cb6b7f6897a7819cf0fdd8d519b03a3d9975 --repair --rollback-backend",
+  "exitCode": 1,
+  "status": "FAIL_IMAGE_ONLY_ROLLBACK",
+  "diagnostic": { "code": "MIGRATION_TARGET_MISMATCH", "expected": 25, "applied": 30 },
+  "attempts": 2,
+  "secondAttemptPurpose": "allowlisted diagnostic only; no safety bypass",
+  "automaticSamePathRetry": false,
+  "remoteQuality": { "runId": 34075788038, "sha": "97808560d14d34a2f736271353d2166c46c73f77", "status": "completed", "conclusion": "success" },
+  "next": "ISOLATED_PRE_MIGRATION_BACKUP_RESTORE_REHEARSAL",
+  "requiredChecks": [
+    "Create synthetic old-schema baseline and backup before candidate migrations",
+    "Verify backup integrity and restore to an invocation-owned isolated database",
+    "Run original backend with migration verification unchanged; verify login and baseline data",
+    "Define write-freeze or approved reconciliation for data created after cutover; never silently discard it",
+    "Rebuild final candidate from CI-verified exact SHA and verify image identity"
+  ],
+  "productionChanged": false,
+  "stagingChanged": false,
+  "productionRollback": "NOT_RUN",
+  "phaseComplete": false
+}

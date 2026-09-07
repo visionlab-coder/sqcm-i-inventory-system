@@ -4,6 +4,18 @@
 
 ### R4 현재 진행
 
+최신: 원격 quality `34075788038` / SHA `97808560d14d34a2f736271353d2166c46c73f77` **SUCCESS**. 격리 이미지-only backend 롤백은 **FAIL**: 이전 migration 25개 기대, 후보 DB 30개 적용으로 `MIGRATION_TARGET_MISMATCH`. 진단 보완 후 동일 원인 확인까지 2회이며 같은 경로 재시도 중단. 아래 과거 진행 상태보다 이 문단이 우선한다.
+
+- [x] 원격 quality 성공 확인 및 실제 실패 원인 식별.
+- [x] 운영·staging 미변경, migration 검증 우회 없음.
+- [ ] READY `ISOLATED_PRE_MIGRATION_BACKUP_RESTORE_REHEARSAL`: 구 스키마 합성 baseline → 사전 backup → 후보 migration → 별도 격리 restore → 구 이미지 로그인·데이터 대조.
+- [ ] 전환 후 신규 데이터의 write-freeze/재조정 계약. 백업 복원 시 신규 데이터 유실을 숨기지 않는다.
+- [ ] CI 검증 exact SHA 후보 이미지 최종 생성. R4 완료 및 운영 배포 아님.
+
+기계 증거: `agent docs/harness/R4_ROLLBACK_SCHEMA_GATE.json`.
+
+원격 quality 재개: 승인된 작업 branch 하나만 quality push 대상에 추가(`9780856` 원격 일치), 기존 고정 Action SHA·contents:read·GitHub-hosted·합성 자격증명 유지, release workflow 변경 없음. 계약 단위 4 PASS. 실제 run `34075788038` 시작, unit의 check/운영계약/compose/hygiene steps 성공, 3계층 통합은 진행 중. 다음 실행은 같은 run을 조회하며 중복 실행하지 않는다. 앱·Docker 입력은 기존 후보 `69b3cb6`와 Git diff 0이지만 최종 이미지 SHA 검증은 별도다.
+
 - [x] 후보 이미지 자체 Chrome+Excel 10/HTTP 7/Excel DB 4 PASS, 별도 Chrome+초기 비밀번호·MFA 12/HTTP 7/인증 통합 2 PASS. 두 실행 종료 0, 소스 마운트·API mock 없음.
 - [x] 운영 보존 정적 파일 3개를 기존 frontend 이미지의 network-none 시험 컨테이너에 복원하고 hash 일치. 파일 복원만 검증했으며 DB/전체 서비스 rollback 아님.
 - [ ] 후보 SHA 원격 quality: 공개 Actions API 조회 결과 run 없음. quality.yml push는 main만 대상으로 하므로 feature branch push는 quality 증거가 아니다. gh CLI 미설치; 임의 설치/Secret 사용/dispatch는 하지 않았다.
