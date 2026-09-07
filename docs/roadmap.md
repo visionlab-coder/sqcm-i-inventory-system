@@ -11,6 +11,8 @@ Production GO: **true**
 
 상태 정본: [`docs/current-state.md`](./current-state.md)
 
+R0 초기 비밀번호 화면·업무 차단/해제는 격리 브라우저 검증 PASS. MFA HTTP 통합은 PASS이며 다음 세부 READY는 MFA 브라우저 등록·challenge다. 운영 반영은 이번 NOT_RUN.
+
 R0 Excel 오류복구의 실제 격리 브라우저 10/10·HTTP 7/7·DB 롤백/재시도 4/4를 확인했다. 복구 체크포인트 이후 다음 작업은 초기 비밀번호/MFA 감사다. 운영 및 실사용 UAT 완료로 승격하지 않는다.
 
 장기 Goal은 ACTIVE이며 R0~R5 잔여 작업은 [보고서 166](./phase-reports/166_Astra_Product_Audit.md) 상단 체크리스트와 `agent docs/harness/ASTRA_REMAINING_WORK.json`으로 순차 추적한다. R0 C4 집계·동시성 보완은 실제 격리 DB 6/6, HTTP 7/7, 전체 단위 980 PASS·8 SKIP·0 FAIL이다. 복구 체크포인트 `0bca821` push·원격 일치를 확인했고 현재 READY는 `R0-EXCEL-IMPORT-RECOVERY-AUDIT`다. 운영 Phase 7/8과 별도 계산하며 이번 배포는 NOT_RUN이다.

@@ -11,6 +11,8 @@ Production GO: **true**
 
 ## 2026-09-07 Astra R0 제품 감사 진행
 
+초기 비밀번호 자동 변경 화면을 격리 Chrome으로 검증했다: `--browser --lifecycle` 종료 0, 브라우저 9/9·HTTP 7/7·인증 통합 2/2 PASS. 변경 전 업무 403, 실제 폼 변경 후 200. 다음은 MFA 브라우저 등록·challenge이며 운영 계정·실제 UAT는 NOT_RUN이다.
+
 Excel 오류복구 로컬 검증: 잘못된 CSV 따옴표 경계 수정 후 단위 981 PASS·8 SKIP·0 FAIL(8ab0515), 실제 DB 전체 롤백·재시도 4/4(8909bfe). 최신 `--browser --excel`은 브라우저 10/10·HTTP 7/7·DB 4/4 PASS, 종료 0. Excel 체크포인트 뒤 초기 비밀번호/MFA 감사로 진행한다. 운영·실제 직원 UAT는 이번 NOT_RUN이다.
 
 장기 Goal ACTIVE. 단계별 남은 작업 정본은 `agent docs/harness/ASTRA_REMAINING_WORK.json`, 사람용 체크리스트는 보고서 166 상단이다. C4 집계·배정 동시성 보완은 격리 PostgreSQL 6/6, HTTP 7/7, 집중 4/4, 전체 단위 980 PASS·8 SKIP·0 FAIL로 검증했다. 복구 체크포인트 `0bca821b3e015f2b1f40b8d9ac8b95330a41c962`의 동일 branch push·원격 SHA 일치를 확인했고 현재 READY는 `R0-EXCEL-IMPORT-RECOVERY-AUDIT`다. 운영 배포·실제 직원 UAT는 NOT_RUN이다. 아래 C3 검증 수는 해당 체크포인트 이력이다.

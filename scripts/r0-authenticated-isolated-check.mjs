@@ -22,7 +22,7 @@ const spec = {
       healthcheck: { test: ['CMD', 'pg_isready', '-U', 'r0', '-d', 'r0_synthetic'], interval: '2s', timeout: '2s', retries: 30 } },
     backend: { image: 'node:24-alpine', pull_policy: 'never', mem_limit: '512m', working_dir: '/app',
       command: ['node', 'src/server.js'],
-      volumes: [mount('src', '/app/src'), mount('db', '/app/db'), mount('node_modules', '/app/node_modules')],
+      volumes: [mount('src', '/app/src'), mount('db', '/app/db'), mount('node_modules', '/app/node_modules'), mount('test', '/app/test')],
       environment: { NODE_ENV: 'test', PORT: '8080', DATABASE_URL: `postgres://r0:${password}@database:5432/r0_synthetic`,
         SESSION_SECRET: sessionSecret, DB_AUTO_MIGRATE: 'true', DB_RUN_SEEDS: 'true',
         SEED_ADMIN_PASSWORD: password, SEED_MANAGER_PASSWORD: password, SEED_USER_PASSWORD: password,
@@ -113,13 +113,21 @@ try {
   // Execute HTTP client inside the isolated network: no host publish or egress needed.
   const script = `const assert=require('node:assert/strict'); const {randomUUID}=require('node:crypto'); const password=${JSON.stringify(password)}; (${verifyHttp.toString()})('http://frontend').then(checks=>console.log(JSON.stringify(checks))).catch(error=>{console.error(JSON.stringify({name:error.name,actual:typeof error.actual==='number'?error.actual:undefined,expected:typeof error.expected==='number'?error.expected:undefined,location:error.stack?.split('\\n').filter(line=>line.trim().startsWith('at ')).slice(0,2)}));process.exit(1);});`;
   const checks = JSON.parse(docker(['exec', '-i', backendId, 'node'], script));
-  const browser = process.argv.includes('--browser') ? await verifyAuthenticatedBrowser({ backendId, password, excel: process.argv.includes('--excel') }) : 'NOT_RUN';
+  if (process.argv.includes('--browser') && process.argv.includes('--lifecycle')) {
+    docker(['exec','-i',backendId,'node'], `const {Pool}=require('pg');const p=new Pool({connectionString:process.env.DATABASE_URL});p.query("UPDATE users SET password_reset_required=true WHERE email='employee@seowon.local'").then(()=>p.end()).catch(()=>process.exit(1));`);
+  }
+  const browser = process.argv.includes('--browser') ? await verifyAuthenticatedBrowser({ backendId, password, excel: process.argv.includes('--excel'), lifecycle: process.argv.includes('--lifecycle') }) : 'NOT_RUN';
   const c4 = process.argv.includes('--c4') ? JSON.parse(docker(['exec', '-i', backendId, 'node'],
     `(${verifyC4Postgres.toString()})().then(result=>console.log(JSON.stringify(result))).catch(error=>{console.error(JSON.stringify({name:error.name,code:error.code}));process.exit(1);});`)) : 'NOT_RUN';
   const excel = process.argv.includes('--excel') ? JSON.parse(docker(['exec', '-i', backendId, 'node'],
     `(${verifyImportPostgres.toString()})().then(result=>console.log(JSON.stringify(result))).catch(error=>{console.error(JSON.stringify({name:error.name,code:error.code}));process.exit(1);});`)) : 'NOT_RUN';
+  let lifecycle = 'NOT_RUN';
+  if (process.argv.includes('--lifecycle')) {
+    const output = docker(['exec', '-i', backendId, 'node'], `const {spawnSync}=require('node:child_process');const r=spawnSync(process.execPath,['--test','--test-reporter=tap','--test-name-pattern=초기 비밀번호 계정|TOTP MFA','test/integration/http-smoke.test.js','test/integration/mfa-auth.test.js'],{env:{...process.env,INTEGRATION_BASE_URL:'http://frontend',INTEGRATION_DATABASE_URL:process.env.DATABASE_URL},encoding:'utf8'});const pass=Number(r.stdout.match(/# pass (\\d+)/)?.[1]);if(r.status!==0||pass!==2){console.error('Lifecycle integration failed or selected tests skipped');process.exit(1);}console.log(JSON.stringify({status:'PASS',pass,syntheticOnly:true}));`);
+    lifecycle = JSON.parse(output);
+  }
   console.log(JSON.stringify({ status: 'PASS', checks, syntheticOnly: true, actualHttpBackend: true,
-    actualPostgres: true, actualEmployeeUat: 'NOT_RUN', browser, c4, excel, productionChanged: false, stagingChanged: false }));
+    actualPostgres: true, actualEmployeeUat: 'NOT_RUN', browser, c4, excel, lifecycle, productionChanged: false, stagingChanged: false }));
 } catch (error) {
   if (started) {
     const logs = compose('logs', '--no-color', '--tail', '5', 'backend');

@@ -11,7 +11,7 @@ const q=JSON.parse(input);const r=await fetch('http://frontend'+q.path,{method:q
 const headers=Object.fromEntries(r.headers);delete headers['content-length'];delete headers['content-encoding'];delete headers['transfer-encoding'];headers['set-cookie']=r.headers.getSetCookie();
 console.log(JSON.stringify({status:r.status,headers,body:Buffer.from(await r.arrayBuffer()).toString('base64')}));}catch{process.exitCode=1;}});`;
 
-export async function verifyAuthenticatedBrowser({ backendId, password, excel = false }) {
+export async function verifyAuthenticatedBrowser({ backendId, password, excel = false, lifecycle = false }) {
   assert.match(backendId, /^[a-f0-9]{64}$/);
   const server = createServer(async (req, res) => {
     try {
@@ -120,6 +120,15 @@ export async function verifyAuthenticatedBrowser({ backendId, password, excel = 
     checks.push('browser cookie rejected by backend after logout');
     await wait(a, '!!state.csrfToken', 'logout CSRF bootstrap');
     await login(a, 'employee@seowon.local');
+    if (lifecycle) {
+      await wait(a, '!document.querySelector("#required-password-change-form").classList.contains("hidden")', 'initial password form automatic routing');
+      assert.equal(await evaluate(a, 'fetch("/api/dashboard").then(r=>r.status)'),403);
+      checks.push('initial password form automatically shown and dashboard denied');
+      await evaluate(a, `(()=>{const f=document.querySelector('#required-password-change-form');f.elements.currentPassword.value=${JSON.stringify(password)};f.elements.newPassword.value=${JSON.stringify(password+'Z9!')};f.elements.passwordConfirm.value=${JSON.stringify(password+'Z9!')};f.querySelector('button[type=submit]').click();})()`);
+      await wait(a, 'state.user?.passwordResetRequired===false && !document.querySelector("#app-shell").classList.contains("hidden")', 'initial password form completion');
+      assert.equal(await evaluate(a, 'fetch("/api/dashboard").then(r=>r.status)'),200);
+      checks.push('password change through actual form enables dashboard');
+    }
     await wait(a, 'state.user?.role==="USER"', 'USER form login');
     assert.equal(await evaluate(a, 'fetch("/api/enterprise/stocktakes/1").then(r=>r.status)'), 403);
     checks.push('account switch to USER cannot read manager stocktake');
