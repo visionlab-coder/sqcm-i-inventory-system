@@ -37,22 +37,27 @@ function parseCsv(csv) {
   const source = csv.replace(/^\uFEFF/, '');
   if (source.includes('\0')) throw csvError('CSV 파일에 허용되지 않는 NUL 문자가 있습니다.');
 
-  const rows = []; let row = []; let field = ''; let quoted = false;
+  const rows = []; let row = []; let field = ''; let quoted = false; let quoteClosed = false;
   for (let index = 0; index < source.length; index += 1) {
     const char = source[index];
     if (quoted) {
       if (char === '"' && source[index + 1] === '"') { field += '"'; index += 1; }
-      else if (char === '"') quoted = false;
+      else if (char === '"') { quoted = false; quoteClosed = true; }
       else field += char;
       continue;
     }
-    if (char === '"' && field.length === 0) quoted = true;
-    else if (char === ',') { row.push(field); field = ''; }
-    else if (char === '\n') { row.push(field.replace(/\r$/, '')); rows.push(row); row = []; field = ''; }
+    if (quoteClosed && char === '\r' && source[index + 1] === '\n') continue;
+    if (quoteClosed && char !== ',' && char !== '\n') throw csvError('CSV 닫는 따옴표 뒤에는 쉼표 또는 줄바꿈만 허용됩니다. 파일을 수정한 뒤 다시 미리보기를 실행하세요.');
+    if (char === '"') {
+      if (field.length !== 0) throw csvError('CSV 셀 안의 따옴표는 셀 전체를 따옴표로 감싸고 두 번 입력하세요.');
+      quoted = true;
+    }
+    else if (char === ',') { row.push(field); field = ''; quoteClosed = false; }
+    else if (char === '\n') { row.push(quoteClosed ? field : field.replace(/\r$/, '')); rows.push(row); row = []; field = ''; quoteClosed = false; }
     else field += char;
   }
   if (quoted) throw csvError('CSV 따옴표가 닫히지 않았습니다.');
-  row.push(field.replace(/\r$/, '')); rows.push(row);
+  row.push(quoteClosed ? field : field.replace(/\r$/, '')); rows.push(row);
   while (rows.length && rows.at(-1).every(value => String(value).trim() === '')) rows.pop();
   if (rows.length < 2) throw csvError('헤더와 자산 데이터 1행 이상이 필요합니다.');
   if (rows.length - 1 > MAX_IMPORT_ROWS) throw csvError(`한 번에 최대 ${MAX_IMPORT_ROWS}개 자산을 등록할 수 있습니다.`);

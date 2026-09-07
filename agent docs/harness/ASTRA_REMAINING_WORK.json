@@ -4,7 +4,8 @@
   "goalStatus": "active",
   "currentPhase": "R0",
   "readyWork": "R0-EXCEL-IMPORT-RECOVERY-AUDIT",
-  "readyStep": "INSPECT_EXISTING_IMPORT_RECOVERY_EVIDENCE",
+  "readyStep": "ISOLATED_POSTGRES_IMPORT_ROLLBACK_AND_RETRY",
+  "excelRecovery": { "status": "in-progress", "csvQuoteBoundary": "FAIL_REPRODUCED_THEN_10_UNIT_PASS", "regressionPass": 981, "regressionSkip": 8, "regressionFail": 0, "actualRollback": "NOT_RUN", "deployment": "NOT_RUN" },
   "lastCompletedPacket": { "id": "R0-C4-SELF-SERVICE-COUNT-AND-CONCURRENCY-AUDIT", "scope": "local synthetic verification only", "checkpoint": "0bca821b3e015f2b1f40b8d9ac8b95330a41c962", "remoteShaMatched": true },
   "phases": [
     { "id": "R0", "status": "in-progress", "work": ["C4 total counts and assignment concurrency", "Excel import recovery evidence", "remaining initial-password and MFA lifecycle evidence", "deployment content provenance"], "gate": "prioritized findings with implementation/test/deployment/UAT distinguished" },

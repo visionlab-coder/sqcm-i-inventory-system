@@ -33,6 +33,14 @@ test('CSV 파서는 따옴표·쉼표·줄바꿈과 UTF-8 BOM을 보존한다', 
   assert.throws(() => parseCsv('자산번호,자산명\nSW-001,"닫히지 않음'), error => error.code === 'ASSET_IMPORT_CSV_INVALID');
 });
 
+test('CSV 파서는 잘못된 따옴표 경계를 값으로 합치지 않고 수정 후 재시도를 허용한다', () => {
+  for (const value of ['"노트북"뒤문자', '노트"북', '"""노트북"뒤']) {
+    assert.throws(() => parseCsv(`자산번호,자산명\nSW-001,${value}`), error => error.code === 'ASSET_IMPORT_CSV_INVALID');
+  }
+  assert.deepEqual(parseCsv('자산번호,자산명\r\nSW-001,"노트북 ""15인치"""\r\n'), [['자산번호','자산명'],['SW-001','노트북 "15인치"']]);
+  assert.equal(parseCsv('자산번호,자산명\nSW-001,"첫 줄\n둘째 줄"')[1][1], '첫 줄\n둘째 줄');
+});
+
 test('CSV 파서는 500행 상한과 중복·미지원 헤더를 fail-closed한다', () => {
   const tooMany = ['자산번호,자산명', ...Array.from({ length: MAX_IMPORT_ROWS + 1 }, (_, index) => `SW-${index + 1000},자산 ${index}`)].join('\n');
   assert.throws(() => parseCsv(tooMany), /최대 500개/);

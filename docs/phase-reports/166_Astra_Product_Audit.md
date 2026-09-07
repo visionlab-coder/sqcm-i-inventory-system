@@ -2,6 +2,16 @@
 
 ## 장기 Goal 단계 체크리스트
 
+### R0 Excel 오류복구 — 진행 중
+
+- [x] CSV 닫는 따옴표 뒤 문자를 값에 합치는 결함을 신규 반례로 재현: 9 PASS·1 FAIL.
+- [x] 잘못된 따옴표 경계를 오류로 반환하고 수정·재미리보기 안내. 정상 Excel escaped quote·CRLF·셀 내 줄바꿈 유지: 집중 10 PASS.
+- [x] `npm.cmd run check` 종료 0: 981 PASS·8 SKIP·0 FAIL.
+- [ ] 실제 격리 PostgreSQL에서 중간 INSERT 실패 시 자산·이력·감사·outbox 전체 롤백과 재시도 확인.
+- [ ] 파일 수정·실패 후 재미리보기·재등록 브라우저 경로 확인.
+
+이번 변경은 `asset-import-service.js` 파서와 단위시험이다. 실제 원장·운영·staging 변경은 없으며 Excel 감사 전체 완료가 아니다.
+
 2026-09-07 사용자 장기 Goal 실행 요청을 등록했다. 기계 정본은 `agent docs/harness/ASTRA_REMAINING_WORK.json`, 실행 계약은 기존 108이다. R0~R5는 감사/고도화 작업 순서이며 운영 P0~P7 진행률과 합산하지 않는다. 현재 R0 진행 중, R 단계 완료 0/6; 기존 C3 로컬 완료 증거는 보존한다.
 
 | 단계 | 남은 작업 | 상태 / 완료 기준 |
