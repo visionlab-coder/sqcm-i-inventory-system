@@ -11,6 +11,8 @@ Production GO: **true**
 
 ## 2026-09-07 Astra R0 제품 감사 진행
 
+최신 R 트랙: R0 감사 범위 완료, R1 점진 구조 결정 체크포인트 진행. 근거·7범주 완료표는 보고서 166, 기술 결정은 `docs/ADR-ASTRA-INCREMENTAL-MODERNIZATION.md`. 전면 재작성하지 않으며 R2 로그인 준비 경계→R3 업무 근거→R4 불변 후보→R5 승인 배포로 연결한다. 아래 개별 실행 문구는 이력이며 운영 P7 상태는 유지한다.
+
 배포 대조 결과: 운영·staging에 C1 이관/C4 셀프서비스 서비스 파일과 C3 오프라인·세션 경계 스크립트가 없다. 운영 frontend app.js는 이미지 tag Git 파일과 다르고 writable-layer 변경이 확인된다. 최근 로컬 PASS는 운영 기능 완료가 아니다. R4 후보 manifest와 R5 승인 배포 전 현재 화면 수정 보존·롤백 검토가 필요하다. 보고서 166의 실제 hash·목록을 기준으로 하며 이번 운영 변경은 0이다.
 
 초기 비밀번호 자동 변경 화면을 격리 Chrome으로 검증했다: `--browser --lifecycle` 종료 0, 브라우저 9/9·HTTP 7/7·인증 통합 2/2 PASS. 변경 전 업무 403, 실제 폼 변경 후 200. 다음은 MFA 브라우저 등록·challenge이며 운영 계정·실제 UAT는 NOT_RUN이다.
