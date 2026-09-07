@@ -11,6 +11,8 @@ Production GO: **true**
 
 상태 정본: [`docs/current-state.md`](./current-state.md)
 
+R2 로그인 준비 경쟁 상태는 로컬 수정·회귀 PASS(전체 983, Chrome 12). 복구 체크포인트 후 R3 업무 추적·비용 근거 검증으로 이동한다. R4 후보·R5 승인 배포와 운영 P7은 남아 있다.
+
 최신: R0 감사 1/6 R 단계 완료(운영 완료 아님), R1 점진 구조 결정 진행. [ADR](./ADR-ASTRA-INCREMENTAL-MODERNIZATION.md)에 따라 기존 3계층을 유지하고 확인된 경계를 보완한다. 이후 R2 로그인 준비 상태→R3 업무 근거→R4 후보→R5 승인 배포 순서다.
 
 R0 배포 신뢰성 공백 확인: 최근 C1/C3/C4 파일은 운영·staging에 미배포이고 운영 frontend writable-layer가 이미지 tag와 다르다. R4 불변 후보·manifest 및 R5 기존 화면 수정 보존·승인 배포가 필요하다. 단순 태그 재배포는 수행하지 않는다.

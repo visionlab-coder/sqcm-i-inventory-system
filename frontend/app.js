@@ -5,6 +5,7 @@ const date = globalThis.AssetUI?.date || (value => value ? new Date(value).toLoc
 const isManager = () => ['MANAGER', 'ADMIN'].includes(state.user?.role);
 const mutatingMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const inFlightWrites = new Map();
+let loginReadiness = null;
 const newIdempotencyKey = () => globalThis.crypto?.randomUUID?.() || `req-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 const sessionBoundary = globalThis.SessionBoundary?.create(() => showLogin());
 const sessionChanges = new Set(['/api/auth/login', '/api/auth/mfa/verify', '/api/auth/logout', '/api/auth/password/change-required']);
@@ -608,6 +609,8 @@ $('#login-form').addEventListener('submit', async event => {
   const errorBox = $('#login-error');
   errorBox.classList.add('hidden');
   try {
+    if (loginReadiness) await loginReadiness;
+    if (!state.csrfToken) { const csrf = await request('/api/auth/csrf'); state.csrfToken = csrf.csrfToken; }
     const data = await request('/api/auth/login', { method: 'POST', body: Object.fromEntries(new FormData(event.target)) });
     if (data.mfaRequired) { state.csrfToken=data.csrfToken; event.target.reset(); event.target.classList.add('hidden'); $('#mfa-login-form').classList.remove('hidden'); return; }
     state.user = data.user;
@@ -670,7 +673,16 @@ $('#mobile-nav-toggle')?.addEventListener('click', toggleMobileNav);
 $('#nav-backdrop')?.addEventListener('click', closeMobileNav);
 document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMobileNav(); });
 window.addEventListener('online',()=>{if(state.view==='stocktakes'&&state.stocktakeDetailId){showMessage('연결이 복구되었습니다. 대기 결과를 동기화하세요.');renderStocktakeDetail(state.stocktakeDetailId).catch(error=>showMessage(error.message,'error'));}});
-$('#logout-button').addEventListener('click', async () => { try { await request('/api/auth/logout', { method:'POST', body:{} }); } finally { showLogin(); try { const csrf = await request('/api/auth/csrf'); state.csrfToken = csrf.csrfToken; } catch { /* remain locked while offline */ } } });
+$('#logout-button').addEventListener('click', async () => {
+  try { await request('/api/auth/logout', { method:'POST', body:{} }); }
+  finally {
+    state.csrfToken = null;
+    loginReadiness = request('/api/auth/csrf').then(csrf => { state.csrfToken = csrf.csrfToken; });
+    showLogin();
+    try { await loginReadiness; } catch { /* next login retries readiness, never the stale token */ }
+    finally { loginReadiness = null; }
+  }
+});
 
 if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
 boot();
