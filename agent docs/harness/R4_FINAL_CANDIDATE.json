@@ -1,25 +1,29 @@
 {
-  "candidateSha": "6a16e36dd3054252fe5cb43dabea526f2a51e070",
-  "ci": { "runId": 34076470560, "status": "completed", "conclusion": "success", "jobs": ["unit", "three-tier-integration"] },
+  "candidateSha": "eab1ed72584c300174b67eca344f127a476be528",
+  "supersedes": "6a16e36dd3054252fe5cb43dabea526f2a51e070",
+  "ci": { "runId": 34077115778, "status": "completed", "conclusion": "success", "jobs": ["unit", "three-tier-integration"] },
   "context": "exact Git archive: Dockerfile .dockerignore package.json package-lock.json frontend src db",
   "environmentFilesFound": 0,
   "buildExitCode": 0,
-  "backendImage": "sha256:ed323da5d53b9b140dea707cdeb77ceb5915d7c0dfe8d6ec68d8ab4b5b21aaa2",
-  "frontendImage": "sha256:25403c306f500b35b217339bb9dc39695a6265f1f0879f6fa02efd4b7527ecda",
+  "backendImage": "sha256:808656065e6d98b426e05387fa74e83f63966ea81705d92c50b9fa67cb5a4179",
+  "frontendImage": "sha256:b1a0c8bfc767db4837b5b04f323d561b3fd4a7268248c702f24244bdaf347e28",
   "revisionLabelsMatch": true,
   "sourceMounted": false,
   "testCodeMountedReadOnly": true,
   "runs": [
     { "flags": "--repair --workflow --cost --backup-restore", "exitCode": 0, "httpBaselinePass": 7, "costPass": 4, "workflowPass": 3, "repairPass": 1, "backupRestore": "PASS_ISOLATED_FOUR_TABLES_AND_LOGIN", "candidateDatabasePreserved": true },
-    { "flags": "--browser --lifecycle", "exitCode": 0, "browserPass": 12, "httpBaselinePass": 7, "lifecyclePass": 2 },
-    { "flags": "--browser --excel", "initialExitCode": 1, "failure": "second tab stocktake list timeout", "runnerFix": "wait until initial root loading placeholder disappears", "recheck": "PASS", "exitCode": 0, "browserPass": 10, "httpBaselinePass": 7, "excelDatabasePass": 4 }
+    { "flags": "--browser --lifecycle", "exitCode": 0, "browserPass": 13, "httpBaselinePass": 7, "lifecyclePass": 2 },
+    { "flags": "--browser --lifecycle --repair --workflow --cost --backup-restore", "exitCode": 1, "status": "FAIL_SHARED_MUTABLE_FIXTURE", "resolution": "separate fresh invocations; reject mixed lifecycle and repair/workflow before containers" },
+    { "flags": "--browser --excel", "exitCode": 0, "browserPass": 11, "httpBaselinePass": 7, "excelDatabasePass": 4 }
   ],
-  "localCheck": { "command": "npm.cmd run check", "exitCode": 0, "syntaxFiles": 484, "pass": 992, "skip": 8, "fail": 0 },
+  "localCheck": { "command": "npm.cmd run check", "exitCode": 0, "pass": 995, "skip": 8, "fail": 0 },
   "productionChanged": false,
   "stagingChanged": false,
   "actualEmployeeUat": "NOT_RUN",
-  "concurrentNavigationAcceptance": "NOT_RUN",
+  "concurrentNavigationAcceptance": "PASS_REAL_HTTP_RESPONSE_DELAY_IN_BROWSER",
   "productionRollback": "NOT_RUN",
   "remoteImagePush": "NOT_RUN",
-  "phaseComplete": false
+  "phaseComplete": true,
+  "completionScope": "R4 local candidate acceptance only; R5 deployment, real employee UAT and production recovery are not complete",
+  "releaseConstraints": ["No image-only rollback onto upgraded schema", "Use approved write-freeze or post-cutover reconciliation plan", "Preserve production frontend writable-layer recovery files", "Require exact deployment target, candidate and valid change-window approval"]
 }

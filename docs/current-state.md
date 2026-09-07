@@ -1,5 +1,7 @@
 # 서원토건 비품관리 시스템 최신 단일 현황
 
+R 트랙 정본: **R0~R4 5/6 완료, R5 출시·인수 진행**. 후보 `eab1ed7` CI/이미지/브라우저/업무/백업 복원 검증 PASS. 다음 READY `R5-EXACT-CANDIDATE-DEPLOYMENT-AND-UAT-APPROVAL`: 유효 변경창·쓰기 차단/복원 계약과 직원 UAT 필요. 운영/staging 미변경. 증거 `agent docs/harness/R4_FINAL_CANDIDATE.json`, 보고서166. 아래 R4 진행 메모는 이력이다.
+
 R4 최신: 늦은 화면 응답/오류 덮어쓰기 재현·수정 및 실제 지연 응답 브라우저 PASS. 전체995 PASS/8 SKIP. 이전 `6a16e36` 이미지는 새 수정 미포함으로 출시 후보 대체 필요. READY `UPDATED_SHA_CI_IMAGE_AND_FINAL_ACCEPTANCE`. 증거 `agent docs/harness/R4_NAVIGATION_RACE.json`, 운영 미변경.
 
 R4 최신: CI 성공 SHA `6a16e36` 후보 이미지 2개·API/DB·인증/Excel Chrome·백업 복원 검증. 회귀992 PASS/8 SKIP. Excel 초기 로딩 대기는 시험기 보완 후 통과했으나 로딩 중 사용자 메뉴 전환 안전성은 미검증. 다음 READY `R4-CONCURRENT-NAVIGATION-REPRODUCTION`, 전체4/6 유지. 증거 `agent docs/harness/R4_FINAL_CANDIDATE.json`.

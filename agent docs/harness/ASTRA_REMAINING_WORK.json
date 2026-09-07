@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "contract": "agent docs/prompts/108_Astra_Product_Audit_And_Modernization.md",
   "goalStatus": "active",
-  "currentPhase": "R4",
-  "readyWork": "R4-INTEGRATED-CANDIDATE-AND-ROLLBACK",
-  "readyStep": "UPDATED_SHA_CI_IMAGE_AND_FINAL_ACCEPTANCE",
+  "currentPhase": "R5",
+  "readyWork": "R5-EXACT-CANDIDATE-DEPLOYMENT-AND-UAT-APPROVAL",
+  "readyStep": "CONFIRM_VALID_CHANGE_WINDOW_AND_WRITE_FREEZE_PLAN",
   "navigationRace": { "status": "LOCAL_FIX_VERIFIED", "evidence": "agent docs/harness/R4_NAVIGATION_RACE.json", "candidateRebuildRequired": true },
-  "finalCandidate": { "sha": "6a16e36dd3054252fe5cb43dabea526f2a51e070", "status": "IMAGE_CI_AND_SEQUENTIAL_FLOWS_VERIFIED", "evidence": "agent docs/harness/R4_FINAL_CANDIDATE.json", "concurrentNavigation": "NOT_RUN" },
+  "finalCandidate": { "sha": "eab1ed72584c300174b67eca344f127a476be528", "status": "R4_LOCAL_CANDIDATE_ACCEPTED", "ciRun": 34077115778, "evidence": "agent docs/harness/R4_FINAL_CANDIDATE.json", "concurrentNavigation": "PASS_REAL_BROWSER_DELAY" },
   "r4Rollback": { "status": "PASS_BACKUP_RESTORE_ISOLATED", "imageOnlyRollback": "FAIL", "evidence": "agent docs/harness/R4_ROLLBACK_SCHEMA_GATE.json", "expectedMigrations": 25, "appliedMigrations": 30, "samePathRetry": false, "productionChanged": false, "postCutoverDataReconciliation": "REQUIRES_APPROVED_PLAN" },
   "r4RemoteQuality": { "runId": 34075788038, "sha": "97808560d14d34a2f736271353d2166c46c73f77", "status": "SUCCESS", "unitChecks": "PASS", "integration": "PASS", "releaseTriggered": false, "runtimeInputsEqualTo": "69b3cb6b7f6897a7819cf0fdd8d519b03a3d9975" },
   "r4BrowserRecovery": { "status": "LOCAL_VERIFIED", "evidence": "agent docs/harness/R4_BROWSER_RECOVERY.json", "remoteQuality": "NO_RUN_FOUND", "fullRollback": "NOT_RUN" },
@@ -37,8 +37,8 @@
     { "id": "R1", "status": "complete", "work": ["retain versus incremental restructuring decision"], "gate": "evidence-backed scope, compatibility and rollback decision", "checkpoint": "16257a71cb346f12cec8d498c543de7fd12188e8" },
     { "id": "R2", "status": "complete", "work": ["confirmed high-impact defects and recovery UX"], "gate": "reproductions fixed and regression verified", "checkpoint": "2383fed2801926cbf1dca973c47c46729ec17fdc", "scope": "local corrections; deployment remains R4/R5" },
     { "id": "R3", "status": "complete", "scope": "local synthetic workflow corrections and evidence only; production and employee acceptance remain R4/R5", "work": ["Excel migration, field stocktake, lifecycle traceability and cost explanations"], "gate": "existing strengths validated against approved workflows; no speculative feature expansion" },
-    { "id": "R4", "status": "in-progress", "work": ["integrated tests, immutable candidate image, rollback compatibility"], "gate": "verified candidate SHA and approved remote checkpoint" },
-    { "id": "R5", "status": "external-gates", "work": ["approved deployment", "real employee UAT", "operational handover"], "gate": "exact approvals and actual evidence; no synthetic promotion" }
+    { "id": "R4", "status": "complete", "scope": "local immutable candidate acceptance; image-only rollback forbidden; actual deployment and UAT remain R5", "candidateSha": "eab1ed72584c300174b67eca344f127a476be528", "work": ["integrated tests, immutable candidate image, rollback compatibility"], "gate": "verified candidate SHA and approved remote checkpoint", "evidence": "agent docs/harness/R4_FINAL_CANDIDATE.json" },
+    { "id": "R5", "status": "in-progress", "authority": "external-input", "work": ["approved deployment", "real employee UAT", "operational handover"], "gate": "exact approvals and actual evidence; no synthetic promotion" }
   ],
   "currentEvidence": {
     "c3AuthenticatedBrowser": "docs/phase-reports/166_Astra_Product_Audit.md",

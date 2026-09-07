@@ -1,5 +1,7 @@
 # SQCM-i 비품관리 시스템 전체 로드맵
 
+R 트랙 정본: **R0 ✓ → R1 ✓ → R2 ✓ → R3 ✓ → R4 ✓ → R5 출시·인수 대기(5/6)**. R4는 후보 `eab1ed7` CI·불변 이미지·핵심 실제 브라우저·격리 복원 증거로 닫는다. R5 READY `R5-EXACT-CANDIDATE-DEPLOYMENT-AND-UAT-APPROVAL`: 신규 후보의 유효 변경창/쓰기 차단·복귀 승인 및 실제 직원 인수. P7 7/8, C5 G4 별도. 상세는 보고서166, 아래 R4 메모는 과거 경과다.
+
 R4 최신: 화면 전환 경합 수정·브라우저 반례 PASS → READY `UPDATED_SHA_CI_IMAGE_AND_FINAL_ACCEPTANCE` → R5 승인 배포·직원 인수. 신규 수정 이미지/CI 검증 전까지 R4 진행, R0~R3 4/6 유지.
 
 R4 최신: `6a16e36` CI·불변 후보·순차 핵심 브라우저·복원 검증 완료 → **READY R4-CONCURRENT-NAVIGATION-REPRODUCTION** → R5 승인 배포/직원 UAT. 로딩 placeholder 대기 보완을 동시 화면 전환 안전성으로 확대하지 않으며 R4 완료 전 해당 반례를 확인한다. R0~R3 4/6 유지.

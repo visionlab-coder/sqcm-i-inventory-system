@@ -12,6 +12,8 @@ import { verifyCostPostgres } from './r3-cost-postgres-fixture.mjs';
 import { probeRepairCost } from './r3-repair-cost-probe.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+assert.ok(!(process.argv.includes('--lifecycle') && ['--repair','--workflow'].some(flag => process.argv.includes(flag))),
+  'Lifecycle mutates synthetic credentials; run repair/workflow in a separate fresh invocation');
 const project = `sqcm-r0-auth-${randomUUID().replaceAll('-', '').slice(0, 12)}`;
 const password = randomBytes(24).toString('hex');
 const sessionSecret = randomBytes(32).toString('hex');
