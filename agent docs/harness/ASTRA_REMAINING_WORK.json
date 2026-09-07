@@ -5,7 +5,7 @@
   "currentPhase": "R5",
   "readyWork": "R5-VERIFIED-DEPLOYMENT-EXECUTOR",
   "readyStep": "PROTECTED_BACKUP_AND_PRODUCTION_DRIVER_BINDING",
-  "r5PatchCandidate": { "sha": "469a0c0e35b3e4fff1ef3b83d105e9652b2d9b6e", "status": "LOCAL_CANDIDATE_VERIFIED_PRODUCTION_GATED", "evidence": "agent docs/harness/R5_WORKER_FREEZE_CANDIDATE.json", "ci": "SUCCESS", "deploymentApproval": "NOT_GRANTED_FOR_THIS_SHA" },
+  "r5PatchCandidate": { "sha": "469a0c0e35b3e4fff1ef3b83d105e9652b2d9b6e", "status": "LOCAL_CANDIDATE_VERIFIED_PRODUCTION_GATED", "evidence": "agent docs/harness/R5_WORKER_FREEZE_CANDIDATE.json", "ci": "SUCCESS", "deploymentApproval": "CANDIDATE_APPROVED_WINDOW_UNSPECIFIED", "protectedBackupDirectory": "PASS" },
   "r5Executor": { "status": "ISOLATED_RECOVERY_VERIFIED_PRODUCTION_DRIVER_PENDING", "evidence": "agent docs/harness/R5_EXECUTOR_LOCAL_EVIDENCE.json", "focusedPass": 11, "realDockerDriver": "ISOLATED_RECOVERY_PASS", "productionDriver": "NOT_IMPLEMENTED", "workerFreezeCandidateRebuildRequired": true, "deployment": "NOT_RUN" },
   "r5Approval": { "status": "HISTORICAL_APPROVAL_CUTOFF_PASSED", "evidence": "agent docs/harness/R5_DEPLOYMENT_APPROVAL_AND_PREFLIGHT.json", "execution": "NOT_RUN", "cutoff": "2026-09-07T04:30:00Z", "appliesTo": "eab1ed72584c300174b67eca344f127a476be528" },
   "navigationRace": { "status": "LOCAL_FIX_VERIFIED", "evidence": "agent docs/harness/R4_NAVIGATION_RACE.json", "candidateRebuildRequired": true },
