@@ -4,6 +4,13 @@
 
 ### R4 현재 진행
 
+- [x] 후보 이미지 자체 Chrome+Excel 10/HTTP 7/Excel DB 4 PASS, 별도 Chrome+초기 비밀번호·MFA 12/HTTP 7/인증 통합 2 PASS. 두 실행 종료 0, 소스 마운트·API mock 없음.
+- [x] 운영 보존 정적 파일 3개를 기존 frontend 이미지의 network-none 시험 컨테이너에 복원하고 hash 일치. 파일 복원만 검증했으며 DB/전체 서비스 rollback 아님.
+- [ ] 후보 SHA 원격 quality: 공개 Actions API 조회 결과 run 없음. quality.yml push는 main만 대상으로 하므로 feature branch push는 quality 증거가 아니다. gh CLI 미설치; 임의 설치/Secret 사용/dispatch는 하지 않았다.
+- [ ] 다음 `CANDIDATE_REMOTE_QUALITY_AND_ROLLBACK_COMPATIBILITY`. 운영 배포·직원 UAT는 아직 아님.
+
+증거 `agent docs/harness/R4_BROWSER_RECOVERY.json`. 테스트별 결과는 별개이며 중복 기본 HTTP 항목을 합산해 새 기능 수로 보고하지 않는다.
+
 - [x] `69b3cb6` Git archive의 좁은 추적 파일만 추출하여 두 후보 이미지 빌드 종료 0. context 환경파일 0; 사용자 dirty 제외.
 - [x] image revision 라벨 일치, ID는 `R4_CANDIDATE_IMAGES.json`에 고정.
 - [x] 이미지 ID를 사용하고 소스 마운트를 제거한 3서비스 격리 실행: HTTP 7·비용 4·업무 3·수리 1 PASS, 종료 0.

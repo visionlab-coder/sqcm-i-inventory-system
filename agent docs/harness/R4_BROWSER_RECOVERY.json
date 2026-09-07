@@ -1,0 +1,17 @@
+{
+  "date":"2026-09-07",
+  "candidateSha":"69b3cb6b7f6897a7819cf0fdd8d519b03a3d9975",
+  "runs":[
+    {"command":"node scripts/r0-authenticated-isolated-check.mjs --candidate-sha=69b3cb6b7f6897a7819cf0fdd8d519b03a3d9975 --browser --excel","exitCode":0,"browserPass":10,"httpPass":7,"excelDbPass":4},
+    {"command":"node scripts/r0-authenticated-isolated-check.mjs --candidate-sha=69b3cb6b7f6897a7819cf0fdd8d519b03a3d9975 --browser --lifecycle","exitCode":0,"browserPass":12,"httpPass":7,"lifecyclePass":2}
+  ],
+  "sourceMounted":false,
+  "apiMocked":false,
+  "staticRestore":{"status":"BYTES_MATCH","files":3,"containerId":"29b82ebde4a48d8583249d0b3779e3d0e4290e6fe8732f5ebe08321cbacb9a0b","network":"none","containerState":"exited retained","scope":"preserved static files copied onto original frontend image; sha256sum matches; no serving or DB rollback claim"},
+  "remoteQuality":{"status":"NO_RUN_FOUND","source":"public GitHub Actions runs API filtered by candidate head_sha","reason":"quality push trigger targets main; current feature branch push does not start quality","dispatch":"NOT_RUN","ghCli":"UNAVAILABLE"},
+  "fullRollback":"NOT_RUN",
+  "employeeUat":"NOT_RUN",
+  "productionChanged":false,
+  "stagingChanged":false,
+  "phaseComplete":false
+}

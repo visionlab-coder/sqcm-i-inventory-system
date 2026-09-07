@@ -11,6 +11,8 @@ Production GO: **true**
 
 상태 정본: [`docs/current-state.md`](./current-state.md)
 
+R4 후보 브라우저·인증·Excel PASS, 운영 정적 파일 복원 hash 검증 완료. 원격 quality는 후보 SHA run 없음(main-only trigger), 전체 DB/서비스 rollback은 NOT_RUN. 다음 `CANDIDATE_REMOTE_QUALITY_AND_ROLLBACK_COMPATIBILITY`; R4 진행 유지.
+
 R4 후보 SHA `69b3cb6`: 두 이미지 빌드 및 소스 미마운트 격리 API/DB 검증 PASS. 다음 후보 브라우저·운영 복구본 리허설이며 R4 완료와 Production 반영은 아직 아니다.
 
 R4: 운영 정적 파일 3개 로컬 복구 보존·해시 대조 완료, 환경파일 Docker 문맥 제외 보완. 다음은 운영 수정 호환 검토와 exact SHA 후보 이미지. 보존 사실은 배포/복구 리허설 통과를 의미하지 않는다.
