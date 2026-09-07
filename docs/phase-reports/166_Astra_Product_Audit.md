@@ -2,6 +2,8 @@
 
 ## 현재 정본: R0~R4 5/6, R5 진행
 
+R5 최신: 사용자 `배포하시오`로 2026-09-07 12:30~14:00 KST, cutoff13:30, 기존 AI PC Production/후보eab1ed7 쓰기 차단·복귀 계획 승인. 그러나 실제 실행기는 과거 P6 후보/9월3일 확인 코드에 결박되어 있어 **HOLD_EXECUTOR_TARGET_MISMATCH**. 예약 전에 이 실행 연결을 확인하지 못한 준비 공백이다. 운영 중단·DB 변경·이미지 교체 없음. 추가 승인 부족으로 보고하지 않는다. 다음 READY `R5-VERIFIED-DEPLOYMENT-EXECUTOR`: 현재 승인 입력을 소비하는 실행/실패 복귀 경로를 검증한 뒤 변경창 안에서만 실행. 기계 증거 `R5_DEPLOYMENT_APPROVAL_AND_PREFLIGHT.json`.
+
 후보 SHA `eab1ed72584c300174b67eca344f127a476be528`, 원격 quality `34077115778` SUCCESS. 같은 SHA 이미지에서 Excel Chrome11/DB4, 인증 Chrome13/통합2, 업무3·수리1·비용4 및 별도 DB 백업 복원 PASS. 기본 HTTP7은 실행마다 중복되므로 합산하지 않는다. 전체 회귀995 PASS/8 SKIP/0 FAIL. 혼합 인증/업무 시험은 합성 비밀번호 변경으로 실패하여 새 DB로 분리했고 잘못된 조합은 시작 전 차단한다. 소스/API mock 없는 이미지 실행이며 직원 UAT가 아니다.
 
 R4 완료 체크리스트(7범주):

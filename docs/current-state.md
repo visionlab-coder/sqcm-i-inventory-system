@@ -1,5 +1,7 @@
 # 서원토건 비품관리 시스템 최신 단일 현황
 
+R5 최신: 9월7일12:30~14:00/cutoff13:30 배포 승인 확인. 운영 실행기의 과거 P6 후보/확인 코드 결박으로 `HOLD_EXECUTOR_TARGET_MISMATCH`; 운영 무변경. 다음 `R5-VERIFIED-DEPLOYMENT-EXECUTOR`. 승인 재요청이 아니라 실행 경로 보완이 필요하다. 보고서166 및 R5_DEPLOYMENT_APPROVAL_AND_PREFLIGHT.json 참조.
+
 R 트랙 정본: **R0~R4 5/6 완료, R5 출시·인수 진행**. 후보 `eab1ed7` CI/이미지/브라우저/업무/백업 복원 검증 PASS. 다음 READY `R5-EXACT-CANDIDATE-DEPLOYMENT-AND-UAT-APPROVAL`: 유효 변경창·쓰기 차단/복원 계약과 직원 UAT 필요. 운영/staging 미변경. 증거 `agent docs/harness/R4_FINAL_CANDIDATE.json`, 보고서166. 아래 R4 진행 메모는 이력이다.
 
 R4 최신: 늦은 화면 응답/오류 덮어쓰기 재현·수정 및 실제 지연 응답 브라우저 PASS. 전체995 PASS/8 SKIP. 이전 `6a16e36` 이미지는 새 수정 미포함으로 출시 후보 대체 필요. READY `UPDATED_SHA_CI_IMAGE_AND_FINAL_ACCEPTANCE`. 증거 `agent docs/harness/R4_NAVIGATION_RACE.json`, 운영 미변경.

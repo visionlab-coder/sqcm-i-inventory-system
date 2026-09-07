@@ -1,0 +1,27 @@
+{
+  "candidateSha": "eab1ed72584c300174b67eca344f127a476be528",
+  "target": "seowon-inventory-production on existing AI PC",
+  "publicUrl": "https://inventory.safe-link.co.kr/",
+  "approvalSource": "user accepted proposed window and rollback plan with 배포하시오",
+  "window": { "start": "2026-09-07T03:30:00Z", "rollbackCutoff": "2026-09-07T04:30:00Z", "end": "2026-09-07T05:00:00Z", "timezone": "Asia/Seoul" },
+  "employeeUatActor": "current user; actual observations still required",
+  "status": "HOLD_EXECUTOR_TARGET_MISMATCH",
+  "observed": [
+    "scripts/production-cutover-execute.mjs reads P6_G4_CUTOVER_EVIDENCE_CANDIDATE.json rather than this R5 candidate",
+    "scripts/production-cutover-orchestrator.mjs checks ACK-2026-09-03-P6-G4",
+    "scripts/deploy.ps1 alone does not implement the required database-compatible automatic recovery",
+    "production frontend/backend/database healthy; no deployment mutations performed"
+  ],
+  "requiredBeforeExecution": [
+    "Bind a verified execution path to this exact candidate and approved change window without modifying historical P6 evidence",
+    "Prove ingress and worker write quiescence before consistent backup",
+    "Bind actual backup, preserved runtime files, image switch and DB-compatible recovery to the same run",
+    "Test failure recovery before changing production; do not use image-only rollback"
+  ],
+  "productionStopped": false,
+  "databaseChanged": false,
+  "imagesChanged": false,
+  "secretValuesRecorded": false,
+  "approvalStillValidOnlyInsideRecordedWindow": true,
+  "nextReady": "R5-VERIFIED-DEPLOYMENT-EXECUTOR"
+}
