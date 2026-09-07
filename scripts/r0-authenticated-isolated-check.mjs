@@ -116,11 +116,32 @@ async function verifyHttp(base) {
   return checks;
 }
 let started = false;
+const restoreRequested = process.argv.includes('--backup-restore');
+let backupSql, backupFingerprint, databaseId;
+const dataFingerprint = `const {Pool}=require('pg');const {createHash}=require('node:crypto');const p=new Pool({connectionString:process.env.DATABASE_URL});(async()=>{const result={};for(const table of ['assets','workflow_requests','asset_cost_events','schema_migrations']){const rows=(await p.query('SELECT * FROM '+table)).rows.map(row=>JSON.stringify(row)).sort();result[table]={count:rows.length,sha256:createHash('sha256').update(JSON.stringify(rows)).digest('hex')};}console.log(JSON.stringify(result));await p.end();})().catch(()=>process.exit(1));`;
 try {
   assert.deepEqual(Object.keys(spec.services).sort(), ['backend', 'database', 'frontend']);
   assert.ok(Object.values(spec.services).every(service => !service.ports));
   compose('config', '--quiet');
   started = true;
+  if (restoreRequested) {
+    assert.ok(candidateSha, 'Backup restore requires an image candidate');
+    assert.ok(!process.argv.includes('--rollback-backend'), 'Choose exactly one rollback method');
+    const candidateImage = spec.services.backend.image;
+    spec.services.backend.image = JSON.parse(docker(['image','inspect','ghcr.io/visionlab-coder/sqcm-i-inventory-backend:sha-38b2bca7f34a7a950469c8d0cd6d2a4b11e3b7a6']))[0].Id;
+    compose('up','-d','--wait','--wait-timeout','120','--no-build');
+    const oldId = compose('ps','-q','backend');
+    databaseId = compose('ps','-q','database');
+    assert.match(databaseId,/^[a-f0-9]{64}$/);
+    const owned = JSON.parse(docker(['inspect',databaseId]))[0];
+    assert.equal(owned.Config.Labels['com.docker.compose.project'],project);
+    assert.equal(owned.Config.Labels['com.docker.compose.service'],'database');
+    backupFingerprint = JSON.parse(docker(['exec','-i',oldId,'node'],dataFingerprint));
+    // Synthetic dump stays in memory; never print/write it or read a production backup.
+    backupSql = docker(['exec',databaseId,'pg_dump','-U','r0','-d','r0_synthetic','--no-owner','--no-acl']);
+    assert.ok(backupSql.includes('PostgreSQL database dump complete'));
+    spec.services.backend.image = candidateImage;
+  }
   compose('up', '-d', '--wait', '--wait-timeout', '120', '--no-build');
   const backendId = compose('ps', '-q', 'backend');
   assert.match(backendId, /^[a-f0-9]{64}$/);
@@ -154,6 +175,29 @@ try {
     workflow = JSON.parse(output);
   }
   let rollback = 'NOT_RUN';
+  if (restoreRequested) {
+    const candidateFingerprint = JSON.parse(docker(['exec','-i',backendId,'node'],dataFingerprint));
+    assert.equal(candidateFingerprint.schema_migrations.count,backupFingerprint.schema_migrations.count+5);
+    // Create a new database, never DROP/TRUNCATE or overwrite the upgraded database.
+    docker(['exec',databaseId,'createdb','-U','r0','r4_restore']);
+    docker(['exec','-i',databaseId,'psql','-U','r0','-d','r4_restore','-v','ON_ERROR_STOP=1'],backupSql);
+    backupSql = undefined;
+    const originalUrl = spec.services.backend.environment.DATABASE_URL;
+    spec.services.backend.image = JSON.parse(docker(['image','inspect','ghcr.io/visionlab-coder/sqcm-i-inventory-backend:sha-38b2bca7f34a7a950469c8d0cd6d2a4b11e3b7a6']))[0].Id;
+    spec.services.backend.environment.DATABASE_URL = originalUrl.replace(/\/r0_synthetic$/,'/r4_restore');
+    spec.services.backend.environment.DB_AUTO_MIGRATE = 'false';
+    spec.services.backend.environment.DB_RUN_SEEDS = 'false';
+    compose('up','-d','--no-deps','--wait','--wait-timeout','120','backend');
+    const restoredId = compose('ps','-q','backend');
+    const restored = JSON.parse(docker(['exec','-i',restoredId,'node'],dataFingerprint));
+    assert.deepEqual(restored,backupFingerprint);
+    docker(['exec','-i',restoredId,'node'],`const assert=require('node:assert/strict');(async()=>{const c=await fetch('http://frontend/api/auth/csrf');assert.equal(c.status,200);const token=(await c.json()).csrfToken;const r=await fetch('http://frontend/api/auth/login',{method:'POST',headers:{cookie:c.headers.get('set-cookie').split(';')[0],'content-type':'application/json'},body:JSON.stringify({email:'admin@seowon.local',password:process.env.SEED_ADMIN_PASSWORD,_csrf:token})});assert.equal(r.status,200);assert.ok((await r.json()).user);console.log('RESTORED_LOGIN_PASS');})().catch(()=>process.exit(1));`);
+    const preserved = JSON.parse(docker(['exec','-i',restoredId,'node'],dataFingerprint.replace('process.env.DATABASE_URL',"process.env.DATABASE_URL.replace(/\\/r4_restore$/,'/r0_synthetic')")));
+    assert.deepEqual(preserved,candidateFingerprint);
+    rollback = { status:'PASS_BACKUP_RESTORE_ISOLATED', oldSchemaMigrations:restored.schema_migrations.count,
+      candidateSchemaMigrations:candidateFingerprint.schema_migrations.count, comparedTables:4,
+      restoredLogin:'PASS', candidateDatabasePreserved:true, productionRollback:'NOT_RUN', postCutoverReconciliation:'REQUIRES_APPROVED_PLAN' };
+  }
   if (process.argv.includes('--rollback-backend')) {
     assert.ok(candidateSha,'Rollback rehearsal requires an image candidate');
     const snapshotScript=`const {Pool}=require('pg');const p=new Pool({connectionString:process.env.DATABASE_URL});p.query("SELECT (SELECT count(*)::int FROM assets) assets,(SELECT count(*)::int FROM workflow_requests) requests,(SELECT count(*)::int FROM asset_cost_events) costs").then(r=>console.log(JSON.stringify(r.rows[0]))).finally(()=>p.end());`;

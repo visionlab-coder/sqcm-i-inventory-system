@@ -1,5 +1,7 @@
 # 서원토건 비품관리 시스템 최신 단일 현황
 
+R4 최신: **별도 합성 DB 백업 복원 PASS**(migration 25 복원, 구 backend 로그인, 핵심 4테이블 hash 일치, 후보 DB migration 30 및 데이터 보존). image-only 롤백 불가는 유지. 다음 READY `CI_VERIFIED_EXACT_SHA_CANDIDATE_FINALIZATION`. 실제 운영 rollback/직원 UAT 미실행이며 4/6 유지. 세부 증거 `agent docs/harness/R4_ROLLBACK_SCHEMA_GATE.json`.
+
 R 트랙 최신: **4/6, R4 진행**. 원격 quality `34075788038` SUCCESS. 이미지-only rollback은 migration 25/30 불일치로 FAIL(격리 합성). 다음 READY `ISOLATED_PRE_MIGRATION_BACKUP_RESTORE_REHEARSAL`. 운영·staging 미변경. 증거 `agent docs/harness/R4_ROLLBACK_SCHEMA_GATE.json`; 아래 이전 R4 메모는 이력이다.
 
 <!-- HARNESS_STATUS_START -->

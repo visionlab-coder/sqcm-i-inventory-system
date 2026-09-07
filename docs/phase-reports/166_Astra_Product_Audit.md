@@ -4,6 +4,15 @@
 
 ### R4 현재 진행
 
+최신 대체 경로: `--repair --backup-restore` **종료 0**. 이전 이미지로 합성 baseline 생성 → 메모리 내 pg_dump → 후보 migration 30개 및 HTTP 7/수리 통합 1 PASS → 새 `r4_restore` DB에 psql 오류 중단 복원 → 이전 이미지 자동 migration/seed 없이 healthy·로그인 PASS. `assets/workflow_requests/asset_cost_events/schema_migrations` 4개 테이블 전체 행 hash·건수 일치, 업그레이드 DB도 hash 일치로 보존 확인. 모든 테이블 의미 대조나 실제 운영 복구로 확대하지 않는다. 기존 image-only 실패는 해결됐다고 삭제하지 않는다.
+
+- [x] 별도 합성 DB 백업 복원 경로 실제 검증.
+- [x] 운영·staging 미변경, Secret/덤프 원문 미출력, 시험 3서비스만 정리.
+- [ ] 다음 READY `CI_VERIFIED_EXACT_SHA_CANDIDATE_FINALIZATION`: 성공한 CI SHA로 최종 이미지 정체성 고정.
+- [ ] R5 전환 계약: **제안**은 백업 직전부터 핵심 smoke 통과까지 쓰기 차단, 실패 시 신규 DB를 보존하고 사전 백업 DB+구 backend+보존 frontend 파일로 복귀. 쓰기 허용 뒤에는 자동 과거 DB 복원을 금지하고 신규 데이터 재조정/forward recovery 승인 필요. 실제 쓰기 차단·복귀 대상/변경창은 별도 확정하며 이 문단은 실행 승인이 아니다.
+
+검증 기준선 `63006f8` 원격 quality `34076249471` SUCCESS도 확인했다. 실행기 변경의 새 체크포인트 CI는 별도다.
+
 최신: 원격 quality `34075788038` / SHA `97808560d14d34a2f736271353d2166c46c73f77` **SUCCESS**. 격리 이미지-only backend 롤백은 **FAIL**: 이전 migration 25개 기대, 후보 DB 30개 적용으로 `MIGRATION_TARGET_MISMATCH`. 진단 보완 후 동일 원인 확인까지 2회이며 같은 경로 재시도 중단. 아래 과거 진행 상태보다 이 문단이 우선한다.
 
 - [x] 원격 quality 성공 확인 및 실제 실패 원인 식별.
