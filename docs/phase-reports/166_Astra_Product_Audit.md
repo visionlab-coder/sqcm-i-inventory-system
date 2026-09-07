@@ -2,6 +2,18 @@
 
 ## 현재 정본: R0~R4 5/6, R5 진행
 
+### R5 실행기 로컬 작업 — 2026-09-07
+
+- [x] 목표·범위: 과거 P6 실행기는 변경하지 않고 R5 전용 순서 제어 모듈 작성.
+- [x] 산출물: `src/operations/r5-deployment-executor.mjs`, 대응 단위테스트.
+- [x] 승인 경계: 후보/CI/대상/변경창 불일치 시 실행 차단.
+- [x] 데이터·복구: 공개 전 오류는 복귀, 공개 후 불확실성은 신규 데이터 보존 및 쓰기 차단; 이전 DB 자동 덮어쓰기 금지.
+- [x] 검증: 합성 주입 driver 단위테스트 10 PASS/0 FAIL, 명령 종료 0. 실제 Docker 검증으로 승격하지 않음.
+- [ ] 실제 실행: 제한 시간 있는 Docker driver 연결 및 격리 실패 복귀 검증 미완료.
+- [ ] 출시·인수: Production 배포 및 직원 UAT 미실행. R5 완료 아님.
+
+다음 작업 순서: Docker driver 격리 검증 → 유효 승인 변경창 내 후보 배포 → 사용자 실제 업무 UAT → 출시·인수 증거. 기계 증거 `R5_EXECUTOR_LOCAL_EVIDENCE.json`. 현재 승인은 재요청하지 않으며 변경창 밖 실행으로 확대하지 않는다.
+
 R5 최신: 사용자 `배포하시오`로 2026-09-07 12:30~14:00 KST, cutoff13:30, 기존 AI PC Production/후보eab1ed7 쓰기 차단·복귀 계획 승인. 그러나 실제 실행기는 과거 P6 후보/9월3일 확인 코드에 결박되어 있어 **HOLD_EXECUTOR_TARGET_MISMATCH**. 예약 전에 이 실행 연결을 확인하지 못한 준비 공백이다. 운영 중단·DB 변경·이미지 교체 없음. 추가 승인 부족으로 보고하지 않는다. 다음 READY `R5-VERIFIED-DEPLOYMENT-EXECUTOR`: 현재 승인 입력을 소비하는 실행/실패 복귀 경로를 검증한 뒤 변경창 안에서만 실행. 기계 증거 `R5_DEPLOYMENT_APPROVAL_AND_PREFLIGHT.json`.
 
 후보 SHA `eab1ed72584c300174b67eca344f127a476be528`, 원격 quality `34077115778` SUCCESS. 같은 SHA 이미지에서 Excel Chrome11/DB4, 인증 Chrome13/통합2, 업무3·수리1·비용4 및 별도 DB 백업 복원 PASS. 기본 HTTP7은 실행마다 중복되므로 합산하지 않는다. 전체 회귀995 PASS/8 SKIP/0 FAIL. 혼합 인증/업무 시험은 합성 비밀번호 변경으로 실패하여 새 DB로 분리했고 잘못된 조합은 시작 전 차단한다. 소스/API mock 없는 이미지 실행이며 직원 UAT가 아니다.
