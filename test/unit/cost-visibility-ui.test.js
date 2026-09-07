@@ -25,6 +25,8 @@ test('ROI UI distinguishes restricted organization aggregates from empty data',a
 test('ROI UI retains empty-data wording for unrestricted empty aggregates',async()=>{
   const html=await render({visibility:{organizationAggregatesRestricted:false},vendors:[],budgets:[]});
   assert.match(html,/공급사 거래가 없습니다/); assert.match(html,/올해 예산이 없습니다/);
+  assert.match(html,/예상 수리비와 아직 확인하지 않은 과거 비용은 포함하지 않습니다/);
+  assert.match(html,/결제 완료를 의미하지 않습니다/);
 });
 test('ROI UI distinguishes unavailable aggregates from empty data',async()=>{
   const html=await render(null);

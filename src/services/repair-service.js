@@ -27,7 +27,8 @@ async function updateRepairStatus(pool, user, repairId, input, trace = {}) {
     const effectiveCost = cost === undefined ? before.cost : cost;
     const resolution = input.resolution === undefined ? before.resolution : String(input.resolution || '').slice(0,1000) || null;
     const result = await client.query('UPDATE service_tickets SET status=$1,resolution=$2,cost=$3,updated_at=now() WHERE id=$4 RETURNING *',[status,resolution,effectiveCost,id]);
-    if (effectiveCost !== null) {
+    // Historical ticket costs may be estimates; status-only edits must not promote them.
+    if (cost !== undefined) {
       await client.query(`INSERT INTO asset_cost_events(organization_id,asset_id,event_type,amount,source_type,source_id,note,created_by)
         VALUES($1,$2,'REPAIR',$3,'SERVICE_TICKET',$4,'수리 건 기록 비용',$5)
         ON CONFLICT(organization_id,source_type,source_id,event_type) DO UPDATE SET amount=EXCLUDED.amount`,[organizationId,before.asset_id,effectiveCost,String(id),user.id]);

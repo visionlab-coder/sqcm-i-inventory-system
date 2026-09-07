@@ -10,11 +10,18 @@ const databaseUrl = process.env.INTEGRATION_DATABASE_URL;
 const integrationConfig = getConfig();
 
 test('수리 비용 상태 변경은 원장·감사와 함께 보존되고 실패하면 롤백한다',{skip:!baseUrl||!databaseUrl},async()=>{
-  const pool=createPool(databaseUrl); let admin; let assetId; let ticketId;
+  const pool=createPool(databaseUrl); let admin; let employee; let assetId; let ticketId; let repairRequestId;
   try {
     admin=await login('admin@seowon.local',integrationConfig.seedAdminPassword);
-    assetId=(await pool.query("INSERT INTO assets(organization_id,asset_tag,name,created_by) VALUES($1,$2,'Synthetic repair',$3) RETURNING id",[admin.user.organizationId,`RC-${Date.now()}`,admin.user.id])).rows[0].id;
-    ticketId=(await pool.query("INSERT INTO service_tickets(organization_id,asset_id,reporter_id,symptom) VALUES($1,$2,$3,'Synthetic repair') RETURNING id",[admin.user.organizationId,assetId,admin.user.id])).rows[0].id;
+    employee=await login('employee@seowon.local',integrationConfig.seedUserPassword);
+    assetId=(await pool.query("INSERT INTO assets(organization_id,asset_tag,name,created_by,department_id) VALUES($1,$2,'Synthetic repair',$3,$4) RETURNING id",[admin.user.organizationId,`RC-${Date.now()}`,admin.user.id,employee.user.departmentId])).rows[0].id;
+    const drafted=await api('/api/enterprise/requests',employee,{method:'POST',body:{requestType:'REPAIR',assetId,title:'Synthetic repair',reason:'Synthetic provenance',payload:{estimatedCost:99999}}});
+    assert.equal(drafted.status,201); repairRequestId=(await drafted.json()).request.id;
+    assert.equal((await api(`/api/enterprise/requests/${repairRequestId}/action`,employee,{method:'POST',body:{action:'SUBMIT'}})).status,200);
+    assert.equal((await api(`/api/enterprise/requests/${repairRequestId}/action`,admin,{method:'POST',body:{action:'APPROVE'}})).status,200);
+    const ticket=(await pool.query('SELECT id,cost FROM service_tickets WHERE asset_id=$1',[assetId])).rows[0]; ticketId=ticket.id;
+    assert.equal(ticket.cost,null);
+    assert.equal((await pool.query('SELECT payload FROM workflow_requests WHERE id=$1',[repairRequestId])).rows[0].payload.estimatedCost,99999);
     const url=`/api/enterprise/repairs/${ticketId}/status`;
     const beforeCost=await (await api('/api/enterprise/cost/command-center',admin)).json();
     assert.equal((await api(url,admin,{method:'POST',body:{status:'RESOLVED',cost:12345,resolution:'Synthetic completed'}})).status,200);
@@ -40,8 +47,14 @@ test('수리 비용 상태 변경은 원장·감사와 함께 보존되고 실�
     assert.equal((await pool.query("SELECT count(*)::int n FROM audit_logs WHERE entity_type='REPAIR' AND entity_id=$1",[String(ticketId)])).rows[0].n,3);
   } finally {
     if(ticketId){await pool.query("DELETE FROM audit_logs WHERE entity_type='REPAIR' AND entity_id=$1",[String(ticketId)]);await pool.query("DELETE FROM asset_cost_events WHERE source_type='SERVICE_TICKET' AND source_id=$1",[String(ticketId)]);await pool.query('DELETE FROM service_tickets WHERE id=$1',[ticketId]);}
+    if(repairRequestId){
+      await pool.query("DELETE FROM outbox_events WHERE (aggregate_type='REQUEST' AND aggregate_id=$1) OR (aggregate_type='ASSET' AND aggregate_id=$2)",[String(repairRequestId),String(assetId)]);
+      await pool.query("DELETE FROM audit_logs WHERE entity_type='REQUEST' AND entity_id=$1",[String(repairRequestId)]);
+      await pool.query('DELETE FROM workflow_requests WHERE id=$1',[repairRequestId]);
+      await pool.query('DELETE FROM asset_status_histories WHERE asset_id=$1',[assetId]);
+    }
     if(assetId) await pool.query('DELETE FROM assets WHERE id=$1',[assetId]);
-    await removeTestSessions(pool,[admin]); await pool.end();
+    await removeTestSessions(pool,[admin,employee]); await pool.end();
   }
 });
 

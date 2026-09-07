@@ -11,6 +11,8 @@ Production GO: **true**
 
 ## 2026-09-07 Astra R0 제품 감사 진행
 
+R3 최신: 승인 요청의 예상 수리비는 payload에만 보존하고 실제 비용과 분리했다. 명시 입력 때만 비용 원장 반영, 화면에 예상액 제외·결제 의미 아님 안내. 확장 격리 HTTP/DB PASS 및 전체 989 PASS·8 SKIP·0 FAIL. 다음은 `R3_CONSOLIDATED_ACCEPTANCE_REVIEW`; 운영 변경 0.
+
 R3 최신 수정: 수리 상태 변경의 비용 보존·TCO 원장·감사 트랜잭션 로컬 검증 완료. 단위 2, 격리 통합 1+HTTP 7, 전체 989 PASS·8 SKIP·0 FAIL. 다음 `REPAIR_CREATION_AND_COST_EXPLANATION_REVIEW`. 과거 데이터 보정과 운영 반영은 하지 않았다. 아래 진단 기록은 수정 전 증거다.
 
 R3 우선 결함: 수리비 12,345원 기록의 TCO 반영이 0원이며, 상태 변경 시 비용 생략이 NULL 덮어쓰기로 이어짐을 격리 DB에서 재현했다. 다음 READY는 `REPAIR_COST_TRANSACTION_AND_PRESERVATION_FIX`. 진단만 완료했으며 제품 수정·운영 반영은 아직 아니다. 증거 `agent docs/harness/R3_REPAIR_COST_GAP.json`.

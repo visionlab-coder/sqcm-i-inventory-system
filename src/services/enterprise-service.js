@@ -244,7 +244,7 @@ async function applyApprovedRequest(client, request, reviewer, trace) {
   } else if (request.request_type === 'REPAIR') {
     if (!['AVAILABLE', 'ASSIGNED', 'IN_USE', 'RETURNED'].includes(asset.status_code)) throw new DomainError('현재 상태에서는 수리를 시작할 수 없습니다.', 409);
     await client.query(`INSERT INTO service_tickets(organization_id,asset_id,reporter_id,status,symptom,vendor_id,cost)
-      VALUES($1,$2,$3,'OPEN',$4,$5,$6)`, [request.organization_id, asset.id, request.requester_id, request.reason, payload.vendorId || null, payload.estimatedCost || null]);
+      VALUES($1,$2,$3,'OPEN',$4,$5,$6)`, [request.organization_id, asset.id, request.requester_id, request.reason, payload.vendorId || null, null]);
     toStatus = 'REPAIR';
   } else if (request.request_type === 'LOST') {
     if (!['AVAILABLE', 'ASSIGNED', 'IN_USE'].includes(asset.status_code)) throw new DomainError('현재 상태에서는 분실 처리할 수 없습니다.', 409);
