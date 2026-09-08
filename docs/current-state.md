@@ -1,5 +1,7 @@
 # 서원토건 비품관리 시스템 최신 단일 현황
 
+R5 mutation driver(9/8): 동일 runId·후보 SHA·backup digest에 receipt를 결박하고 false 관찰을 거부하는 driver를 구현했다. 실제 Docker 격리에서 migration 후 실패와 image switch 후 실패가 각각 이전 schema25/login 복귀·후보 schema30 보존으로 PASS했고 집중시험20/20 PASS. 프로젝트 전용 조작 Skill과 기능 등록부를 추가·검증했다. Production action binding·새 변경창·배포·직원 UAT는 미완료이며 운영 변경0, R 트랙5/6·P7 7/8 유지.
+
 R5 운영 driver 사전검증(9/7 16:33 KST): read-only Production preflight 구현·실행 PASS. 서비스3개, backend/database host port0, 후보 image/revision, UAT credential 참조3개, 보호 ACL3규칙, 보존 대상8개를 실제 관찰했고 기술 실패0이다. `16:00 cutoff`가 지나 `safeToMutate=false`; 운영 변경0. 다음 READY는 실제 mutation driver 구현·격리 검증 후 새 변경창에서 실행이며 직원 UAT는 NOT_RUN이다. 증거 `R5_PRODUCTION_DRIVER_PREFLIGHT_EVIDENCE.json`.
 
 현재 R5 변경창 확정: 사용자 위임으로 **2026-09-07 14:00~17:00 KST / 복귀 기준16:00**. 후보469a0c0, 기존 AI PC Production만 대상이다. `R5_ACTIVE_DEPLOYMENT_APPROVAL.json`이 현재 승인 정본이며 아래 미지정/구후보 승인 기록보다 우선한다. 운영 driver 검증 전 실행하지 않고, 16:00부터 신규 전환 금지·복구 검증 시간을 확보한다. 일정 설정은 예약 실행이나 배포 완료가 아니다.

@@ -1,0 +1,26 @@
+{
+  "status": "IMPACT_PLANNED",
+  "counts": {
+    "features": 1,
+    "skills": 1,
+    "tests": 2
+  },
+  "affected_features": [
+    "r5-production-deployment-driver"
+  ],
+  "affected_skills": [
+    "sqcm-i-r5-production-deployment"
+  ],
+  "required_skills": [
+    "sqcm-i-r5-production-deployment"
+  ],
+  "required_tests": [
+    "r5-driver-unit",
+    "r5-isolated-recovery"
+  ],
+  "invalidate_operation_evidence_for": [
+    "r5-production-deployment-driver"
+  ],
+  "test_execution": "NOT_RUN",
+  "commands_executed": 0
+}

@@ -2,6 +2,19 @@
 
 ## 현재 정본: R0~R4 5/6, R5 진행
 
+### R5 mutation driver·격리 복귀 — 2026-09-08
+
+- [x] driver receipt를 동일 runId·후보 SHA에 결박
+- [x] false 성공 관찰과 다른 backup digest 거부
+- [x] migration 적용 후 실패 실 Docker 복귀
+- [x] image switch 후 실패 실 Docker 복귀
+- [x] 이전 schema25·login 복귀와 후보 schema30 보존
+- [x] 프로젝트 전용 사람/에이전트 조작 Skill·기능 등록부·미러 검증
+- [ ] Production action binding
+- [ ] 새 변경창·실제 배포·직원 UAT
+
+집중시험20/20 PASS, 실제 Production 변경0. 증거 `agent docs/harness/R5_MUTATION_DRIVER_ISOLATED_EVIDENCE.json`.
+
 ### R5 운영 driver preflight — 2026-09-07 16:33 KST
 
 - [x] 정확한 후보 SHA·image ID·revision 결박

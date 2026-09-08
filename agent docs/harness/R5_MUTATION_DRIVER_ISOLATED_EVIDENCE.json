@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-09-08",
+  "candidateSha": "469a0c0e35b3e4fff1ef3b83d105e9652b2d9b6e",
+  "status": "PASS_R5_MUTATION_DRIVER_REAL_DOCKER_ISOLATION",
+  "driver": {
+    "source": "src/operations/r5-mutation-driver.mjs",
+    "runAndCandidateReceiptBinding": "PASS",
+    "falseObservationRejection": "PASS",
+    "rollbackDigestAndCandidateDataPreservation": "PASS",
+    "productionActionBinding": "NOT_IMPLEMENTED"
+  },
+  "focusedUnit": {"pass": 20, "fail": 0},
+  "realDockerIsolation": [
+    {"failAt":"migrate","status":"PASS_ISOLATED_R5_RECOVERY","restoredSchema":25,"candidateSchemaPreserved":30,"comparedTables":4,"restoredLogin":"PASS"},
+    {"failAt":"switchImages","status":"PASS_ISOLATED_R5_RECOVERY","restoredSchema":25,"candidateSchemaPreserved":30,"comparedTables":4,"restoredLogin":"PASS"}
+  ],
+  "featureSkill": {
+    "registry": "agent docs/harness/FEATURE_SKILL_REGISTRY.json",
+    "skill": ".agents/skills/sqcm-i-r5-production-deployment/SKILL.md",
+    "mirrorSha256Matched": true,
+    "structureValidation": "PASS",
+    "impact": "agent docs/harness/R5_FEATURE_SKILL_IMPACT.json",
+    "featureStatus": "HOLD_PRODUCTION_ACTION_BINDING"
+  },
+  "externalMutationPerformed": false,
+  "productionChanged": false,
+  "employeeUat": "NOT_RUN"
+}

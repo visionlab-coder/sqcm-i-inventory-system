@@ -4,6 +4,7 @@ import {spawnSync} from 'node:child_process';
 import {randomBytes, randomUUID, createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 import {executeR5Deployment} from '../src/operations/r5-deployment-executor.mjs';
+import {createR5MutationDriver} from '../src/operations/r5-mutation-driver.mjs';
 
 const failAt=process.argv.find(v=>v.startsWith('--fail-at='))?.slice(10);
 assert.ok(['migrate','switchImages'].includes(failAt),'Choose --fail-at=migrate or --fail-at=switchImages');
@@ -60,12 +61,12 @@ function fingerprint(database) {
 }
 const receipt=(ctx,fields)=>({runId:ctx.runId,candidateSha:sha,...fields});
 let dump,backupFingerprint,archives,backupDigest,migrationVerified=false,runtimeRestored=false,started=false,recoveryStep='NOT_STARTED';
-const driver={
+const actions={
   async freeze(ctx) {
     compose('stop','--timeout','20','frontend','backend');
     for(const service of ['frontend','backend'])assert.equal(owned(service).info.State.Running,false);
     assert.equal(sql('r5_synthetic',"SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() AND pid<>pg_backend_pid() AND backend_type='client backend';"),'0');
-    return receipt(ctx,{ingressBlocked:true,workersStopped:true,activeWritesZero:true});
+    return {ingressBlocked:true,workersStopped:true,activeWritesZero:true};
   },
   async backup(ctx) {
     backupFingerprint=fingerprint('r5_synthetic');assert.ok(backupFingerprint.schema_migrations.startsWith('25:'));
@@ -76,7 +77,7 @@ const driver={
     // Restore to a separate DB BEFORE changing the source DB.
     docker(['exec',owned('database').id,'createdb','-U','r5','r5_restore']);
     sql('r5_restore',dump);assert.deepEqual(fingerprint('r5_restore'),backupFingerprint);
-    return receipt(ctx,{restoreVerified:true,runtimeFilesPreserved:true,backupDigest,backupReference:'synthetic-in-memory'});
+    return {restoreVerified:true,runtimeFilesPreserved:true,backupDigest,backupReference:'synthetic-in-memory'};
   },
   async migrate(ctx) {
     spec.services.backend.image=candidates.backend;
@@ -86,7 +87,7 @@ const driver={
     assert.equal(docker(['wait',owned('backend').id]),'0');
     assert.ok(fingerprint('r5_synthetic').schema_migrations.startsWith('30:'));migrationVerified=true;
     if(failAt==='migrate')throw new Error('INJECTED_AFTER_ACTUAL_MIGRATION');
-    return receipt(ctx,{historyVerified:true,seedsDisabled:true});
+    return {historyVerified:true,seedsDisabled:true};
   },
   async switchImages(ctx) {
     spec.services.backend.command=['node','src/server.js'];spec.services.frontend.image=candidates.frontend;
@@ -95,7 +96,7 @@ const driver={
     assert.equal(owned('backend').info.Image,candidates.backend);assert.equal(owned('frontend').info.Image,candidates.frontend);
     assert.equal(owned('frontend').info.State.Running,false);
     if(failAt==='switchImages')throw new Error('INJECTED_AFTER_ACTUAL_IMAGE_SWITCH');
-    return receipt(ctx,{imageIdsMatched:true,threeServices:true,privateDatabasePorts:true});
+    return {imageIdsMatched:true,threeServices:true,privateDatabasePorts:true};
   },
   async verify(){throw new Error('PUBLIC_TLS_NOT_TESTED_IN_ISOLATION');},
   async release(){throw new Error('NO_PUBLIC_RELEASE_IN_REHEARSAL');},
@@ -103,7 +104,7 @@ const driver={
   async contain(){throw new Error('UNKNOWN_REMOTE_COMMAND_REQUIRES_RECONCILIATION');},
   async rollback(ctx,{backup,migrationAttempted}) {
     recoveryStep='FREEZE';
-    await driver.freeze(ctx);
+    await actions.freeze(ctx);
     recoveryStep='BACKUP_DIGEST';
     assert.equal(backup?.backupDigest,backupDigest);assert.equal(digest(dump),backupDigest);
     const candidateFingerprint=fingerprint('r5_synthetic');
@@ -128,9 +129,10 @@ const driver={
     recoveryStep='VERIFY_CANDIDATE_DATABASE_PRESERVED';
     assert.deepEqual(fingerprint('r5_synthetic'),candidateFingerprint);
     assert.equal(owned('frontend').info.State.Running,false);assert.equal(owned('backend').info.Image,oldBackend);runtimeRestored=true;
-    return receipt(ctx,{ingressBlocked:true,originalRuntimeRestored:true,candidateDataPreserved:migrationAttempted,backupDigest});
+    return {ingressBlocked:true,originalRuntimeRestored:true,candidateDataPreserved:migrationAttempted,backupDigest};
   }
 };
+const driver=createR5MutationDriver({candidateSha:sha,actions});
 try {
   compose('config','--quiet');started=true;compose('up','-d','--no-build','--wait','--wait-timeout','120');
   const instant=Date.now();
@@ -139,7 +141,7 @@ try {
   const approval={candidateSha:sha,target:project,publicUrl:candidate.publicUrl,window:{start:new Date(instant-1000).toISOString(),rollbackCutoff:new Date(instant+1200000).toISOString(),end:new Date(instant+1800000).toISOString()}};
   const result=await executeR5Deployment({approval,candidate,driver,execute:true});
   assert.equal(result.status,'ROLLED_BACK_TRAFFIC_HELD');assert.equal(migrationVerified,true);assert.equal(runtimeRestored,true);
-  console.log(JSON.stringify({status:'PASS_ISOLATED_R5_RECOVERY',failAt,executor:result.status,migrationBefore:25,migrationAfter:30,restoredMigration:25,comparedTables:4,runtimeFiles:3,restoredLogin:'PASS',sourceDatabasePreserved:true,realDocker:true,syntheticOnly:true,productionChanged:false,productionDriver:'NOT_IMPLEMENTED',employeeUat:'NOT_RUN'}));
+  console.log(JSON.stringify({status:'PASS_ISOLATED_R5_RECOVERY',failAt,executor:result.status,migrationBefore:25,migrationAfter:30,restoredMigration:25,comparedTables:4,runtimeFiles:3,restoredLogin:'PASS',sourceDatabasePreserved:true,realDocker:true,syntheticOnly:true,productionChanged:false,mutationDriver:'BOUND_AND_VERIFIED',productionActionBinding:'NOT_IMPLEMENTED',employeeUat:'NOT_RUN'}));
 } catch(error) {
   console.error(JSON.stringify({status:'FAIL_ISOLATED_R5_RECOVERY',failAt,migrationVerified,runtimeRestored,recoveryStep,errorClass:error.name}));process.exitCode=1;
 } finally {

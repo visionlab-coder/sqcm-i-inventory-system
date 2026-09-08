@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "inventoryScope": "R5 production deployment and recovery only; registry count does not assert full-product coverage",
+  "skills": [
+    {
+      "id": "sqcm-i-r5-production-deployment",
+      "path": "D:/seowon_projects/sqcm-i-inventory-system/.agents/skills/sqcm-i-r5-production-deployment/SKILL.md",
+      "depends_on": [],
+      "tests": ["r5-driver-unit", "r5-isolated-recovery"]
+    }
+  ],
+  "features": [
+    {
+      "id": "r5-production-deployment-driver",
+      "label": "R5 fail-closed Production deployment and recovery",
+      "sources": [
+        "D:/seowon_projects/sqcm-i-inventory-system/src/operations/r5-deployment-executor.mjs",
+        "D:/seowon_projects/sqcm-i-inventory-system/src/operations/r5-mutation-driver.mjs",
+        "D:/seowon_projects/sqcm-i-inventory-system/src/operations/r5-production-driver-preflight.mjs",
+        "D:/seowon_projects/sqcm-i-inventory-system/scripts/r5-production-driver-preflight.mjs",
+        "D:/seowon_projects/sqcm-i-inventory-system/scripts/r5-isolated-recovery-rehearsal.mjs"
+      ],
+      "skills": ["sqcm-i-r5-production-deployment"],
+      "depends_on": [],
+      "human_entry": "npm.cmd run production:r5-driver-preflight; actual execute remains approval and change-window gated",
+      "agent_entry": "Use the same deterministic npm/Node entrypoints and consume only bounded JSON status",
+      "status": "HOLD"
+    }
+  ],
+  "tests": [
+    {"id":"r5-driver-unit","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/r5-deployment-executor.test.js","D:/seowon_projects/sqcm-i-inventory-system/test/unit/r5-production-driver-preflight.test.js","D:/seowon_projects/sqcm-i-inventory-system/test/unit/r5-mutation-driver.test.js"],"command":"node --test test/unit/r5-deployment-executor.test.js test/unit/r5-production-driver-preflight.test.js test/unit/r5-mutation-driver.test.js","status":"OPERATION_VERIFIED"},
+    {"id":"r5-isolated-recovery","paths":["D:/seowon_projects/sqcm-i-inventory-system/scripts/r5-isolated-recovery-rehearsal.mjs"],"command":"run both migrate and switchImages failure injections against the exact candidate","status":"OPERATION_VERIFIED"}
+  ]
+}

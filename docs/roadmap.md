@@ -1,5 +1,7 @@
 # SQCM-i 비품관리 시스템 전체 로드맵
 
+R5 최신: mutation driver receipt 결박과 real Docker 격리 복귀 2경로 PASS, 기능–Skill 등록/미러 검증 PASS. 다음 READY는 Production action binding → 새 변경창 → 배포 → 직원 UAT. 아직 운영 변경0, R 트랙5/6·P7 7/8이다. 증거 `R5_MUTATION_DRIVER_ISOLATED_EVIDENCE.json`.
+
 R5 driver 진척: read-only 실제 Production preflight와 post-release containment 계약 완료(집중 테스트17 PASS). 기술 관찰 실패0이나 9/7 cutoff 경과로 배포 미실행. 다음은 actual mutation driver 구현·격리 복귀 → 새 변경창 → 배포 → 직원 UAT이며 R 트랙5/6 유지. `R5_PRODUCTION_DRIVER_PREFLIGHT_EVIDENCE.json` 참조.
 
 R5 현재 승인: **9/7 14:00~17:00 KST, cutoff16:00**, 새 후보469a0c0. READY 운영 driver 연결/검증 → 변경창 내 배포 → 실제 UAT. 실행 준비 미완료 시 배포하지 않는다. `R5_ACTIVE_DEPLOYMENT_APPROVAL.json` 참조. 별도 예약 실행은 생성하지 않았다.
