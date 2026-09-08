@@ -1,5 +1,7 @@
 # SQCM-i 비품관리 시스템 전체 로드맵
 
+운영 가용성 복구(9/8): Inventory 전용 cloudflared 종료로 발생한 Error1033을 기존 SQCM-i OS Tunnel 무변경 상태에서 복구했다. Inventory/SQCM-i 연결 각4, 공개 HTTP 각200, Production Docker3/3 healthy다. Limited 권한 로그온＋5분 watchdog 자동 시작을 등록했으며 중복 Inventory 프로세스는 fail-closed한다. DB·이미지·기존 Windows Cloudflared 서비스 변경0. 증거 `PRODUCTION_TUNNEL_RECOVERY_EVIDENCE.json`; R5/P7 Phase 상태는 별도 미완료 Gate를 유지한다.
+
 R5 최신: mutation driver receipt 결박과 real Docker 격리 복귀 2경로 PASS, 기능–Skill 등록/미러 검증 PASS. 다음 READY는 Production action binding → 새 변경창 → 배포 → 직원 UAT. 아직 운영 변경0, R 트랙5/6·P7 7/8이다. 증거 `R5_MUTATION_DRIVER_ISOLATED_EVIDENCE.json`.
 
 R5 driver 진척: read-only 실제 Production preflight와 post-release containment 계약 완료(집중 테스트17 PASS). 기술 관찰 실패0이나 9/7 cutoff 경과로 배포 미실행. 다음은 actual mutation driver 구현·격리 복귀 → 새 변경창 → 배포 → 직원 UAT이며 R 트랙5/6 유지. `R5_PRODUCTION_DRIVER_PREFLIGHT_EVIDENCE.json` 참조.

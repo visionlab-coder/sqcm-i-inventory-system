@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "PRODUCTION-TUNNEL-RECOVERY-20260908",
+  "checkedAt": "2026-09-08T09:10:00.8827536Z",
+  "status": "PASS_INVENTORY_TUNNEL_RECOVERED_AND_AUTOSTART_REGISTERED",
+  "incident": {
+    "publicStatusBefore": 530,
+    "cloudflarePage": "ERROR_1033",
+    "rootCause": "INVENTORY_TUNNEL_PROCESS_STOPPED_WHILE_SQCM_OS_SERVICE_REMAINED_CONNECTED",
+    "productionDockerChanged": false,
+    "productionDataChanged": false
+  },
+  "recovery": {
+    "inventoryProcessStarted": true,
+    "startedProcessId": 44120,
+    "inventoryTunnelConnections": 4,
+    "inventoryPublicStatus": 200,
+    "originHealthStatus": 200
+  },
+  "protectedServices": {
+    "existingWindowsCloudflaredServiceChanged": false,
+    "existingWindowsCloudflaredServiceRestarted": false,
+    "sqcmTunnelConnectionsBefore": 4,
+    "sqcmTunnelConnectionsAfter": 4,
+    "sqcmPublicStatus": 200,
+    "safeLinkRootStatus": 301,
+    "productionComposeServices": 3,
+    "productionComposeHealthy": 3
+  },
+  "autostart": {
+    "taskName": "SQCMI-Inventory-Production-Tunnel",
+    "principalRunLevel": "Limited",
+    "triggers": ["CURRENT_USER_LOGON", "EVERY_5_MINUTES"],
+    "multipleInstances": "IGNORE_NEW",
+    "lastTaskResult": 0,
+    "exactInventoryProcessCount": 1,
+    "totalCloudflaredProcessCount": 2
+  },
+  "safetyContract": {
+    "startOnlyWhenSqcmTunnelConnected": true,
+    "startOnlyWhenInventoryOriginHealthy": true,
+    "duplicateInventoryProcessBlocked": true,
+    "otherTunnelOrServiceStopAllowed": false,
+    "secretValuesReadOrRecorded": false
+  },
+  "verification": {
+    "watchdog": "PASS",
+    "processIdentityUnitTests": {"pass": 10, "fail": 0},
+    "skillValidation": "PASS_BOTH_MIRRORS",
+    "skillMirrorSha256": "DA7541CE46E2A841507625040986EECE24C7481C33E413FD4480A472DC5BC378",
+    "featureSkillImpact": "agent docs/harness/PRODUCTION_TUNNEL_FEATURE_SKILL_IMPACT.json"
+  }
+}

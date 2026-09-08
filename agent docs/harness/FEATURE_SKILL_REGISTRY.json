@@ -6,7 +6,7 @@
       "id": "sqcm-i-r5-production-deployment",
       "path": "D:/seowon_projects/sqcm-i-inventory-system/.agents/skills/sqcm-i-r5-production-deployment/SKILL.md",
       "depends_on": [],
-      "tests": ["r5-driver-unit", "r5-isolated-recovery"]
+      "tests": ["r5-driver-unit", "r5-isolated-recovery", "production-tunnel-watchdog"]
     }
   ],
   "features": [
@@ -25,10 +25,25 @@
       "human_entry": "npm.cmd run production:r5-driver-preflight; actual execute remains approval and change-window gated",
       "agent_entry": "Use the same deterministic npm/Node entrypoints and consume only bounded JSON status",
       "status": "HOLD"
+    },
+    {
+      "id": "production-tunnel-watchdog",
+      "label": "Isolated Inventory Production tunnel availability and autostart",
+      "sources": [
+        "D:/seowon_projects/sqcm-i-inventory-system/package.json",
+        "D:/seowon_projects/sqcm-i-inventory-system/scripts/ensure-inventory-production-tunnel.mjs",
+        "D:/seowon_projects/sqcm-i-inventory-system/scripts/configure-inventory-production-tunnel-autostart.ps1"
+      ],
+      "skills": ["sqcm-i-r5-production-deployment"],
+      "depends_on": ["r5-production-deployment-driver"],
+      "human_entry": "npm.cmd run production:tunnel-watchdog; approved recovery uses production:tunnel-watchdog:execute",
+      "agent_entry": "Use bounded JSON output and never replace or restart the existing SQCM-i OS Cloudflared service",
+      "status": "OPERATION_VERIFIED"
     }
   ],
   "tests": [
     {"id":"r5-driver-unit","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/r5-deployment-executor.test.js","D:/seowon_projects/sqcm-i-inventory-system/test/unit/r5-production-driver-preflight.test.js","D:/seowon_projects/sqcm-i-inventory-system/test/unit/r5-mutation-driver.test.js"],"command":"node --test test/unit/r5-deployment-executor.test.js test/unit/r5-production-driver-preflight.test.js test/unit/r5-mutation-driver.test.js","status":"OPERATION_VERIFIED"},
-    {"id":"r5-isolated-recovery","paths":["D:/seowon_projects/sqcm-i-inventory-system/scripts/r5-isolated-recovery-rehearsal.mjs"],"command":"run both migrate and switchImages failure injections against the exact candidate","status":"OPERATION_VERIFIED"}
+    {"id":"r5-isolated-recovery","paths":["D:/seowon_projects/sqcm-i-inventory-system/scripts/r5-isolated-recovery-rehearsal.mjs"],"command":"run both migrate and switchImages failure injections against the exact candidate","status":"OPERATION_VERIFIED"},
+    {"id":"production-tunnel-watchdog","paths":["D:/seowon_projects/sqcm-i-inventory-system/scripts/ensure-inventory-production-tunnel.mjs","D:/seowon_projects/sqcm-i-inventory-system/scripts/configure-inventory-production-tunnel-autostart.ps1"],"command":"npm.cmd run production:tunnel-watchdog and verify the registered task exact action","status":"OPERATION_VERIFIED"}
   ]
 }

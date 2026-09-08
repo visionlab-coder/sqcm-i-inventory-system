@@ -1,0 +1,29 @@
+{
+  "status": "IMPACT_PLANNED",
+  "counts": {
+    "features": 2,
+    "skills": 1,
+    "tests": 3
+  },
+  "affected_features": [
+    "production-tunnel-watchdog",
+    "r5-production-deployment-driver"
+  ],
+  "affected_skills": [
+    "sqcm-i-r5-production-deployment"
+  ],
+  "required_skills": [
+    "sqcm-i-r5-production-deployment"
+  ],
+  "required_tests": [
+    "production-tunnel-watchdog",
+    "r5-driver-unit",
+    "r5-isolated-recovery"
+  ],
+  "invalidate_operation_evidence_for": [
+    "production-tunnel-watchdog",
+    "r5-production-deployment-driver"
+  ],
+  "test_execution": "NOT_RUN",
+  "commands_executed": 0
+}

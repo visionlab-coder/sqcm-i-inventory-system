@@ -22,3 +22,10 @@ description: SQCM-i 비품관리 R5 후보를 AI PC Production에 배포하거�
 - `node scripts/r5-isolated-recovery-rehearsal.mjs --candidate-sha=<40자리 SHA> --fail-at=switchImages`
 
 격리 리허설은 별도 임시 Compose project·내부 network·tmpfs만 사용해야 한다. 같은 원인의 실제 실행 실패가 3회면 재시도하지 않는다. Production 변경창 밖에는 preflight·격리 리허설만 수행한다.
+
+## Production Tunnel 가용성 복구
+
+- `npm.cmd run production:tunnel-watchdog`은 읽기 전용으로 SQCM-i OS Tunnel, Inventory Tunnel, loopback origin과 공개 URL을 검사한다.
+- 승인된 장애 복구에서는 `npm.cmd run production:tunnel-watchdog:execute`로 Inventory 전용 설정만 기동한다. 기존 Windows `Cloudflared` 서비스와 `sqcm.safe-link.co.kr` 설정은 수정·재시작하지 않는다.
+- watchdog은 보호 SQCM-i Tunnel 연결이 없거나 `127.0.0.1:3300/api/health`가 200이 아니면 Inventory 프로세스를 시작하지 않는다. 이미 정확한 Inventory 프로세스나 연결이 있으면 중복 기동하지 않는다.
+- 자동 시작은 `scripts/configure-inventory-production-tunnel-autostart.ps1`로 현재 사용자·Limited 권한의 `SQCMI-Inventory-Production-Tunnel` 작업만 등록한다. 로그온 및 5분 주기에서 같은 watchdog을 실행하며 다른 Tunnel·서비스·프로세스를 종료하지 않는다.

@@ -1,5 +1,7 @@
 # 서원토건 비품관리 시스템 최신 단일 현황
 
+Production Tunnel 복구(9/8 18:10 KST): `inventory.safe-link.co.kr`의 Cloudflare 1033 원인은 SQCM-i OS 서비스가 아니라 별도 Inventory cloudflared 프로세스 종료였다. 기존 SQCM-i 연결4·공개200과 Production Docker3/3 healthy를 보존한 채 Inventory 전용 프로세스를 기동해 연결4·공개200을 복구했다. 현재 사용자 Limited 권한의 `SQCMI-Inventory-Production-Tunnel` 작업을 로그온＋5분 주기로 등록했고 exact Inventory 프로세스 1개·전체 cloudflared 2개·task result0을 확인했다. 기존 Windows Cloudflared 서비스 수정/재시작, DB·이미지 변경은 0건이다. 증거 `PRODUCTION_TUNNEL_RECOVERY_EVIDENCE.json`.
+
 R5 mutation driver(9/8): 동일 runId·후보 SHA·backup digest에 receipt를 결박하고 false 관찰을 거부하는 driver를 구현했다. 실제 Docker 격리에서 migration 후 실패와 image switch 후 실패가 각각 이전 schema25/login 복귀·후보 schema30 보존으로 PASS했고 집중시험20/20 PASS. 프로젝트 전용 조작 Skill과 기능 등록부를 추가·검증했다. Production action binding·새 변경창·배포·직원 UAT는 미완료이며 운영 변경0, R 트랙5/6·P7 7/8 유지.
 
 R5 운영 driver 사전검증(9/7 16:33 KST): read-only Production preflight 구현·실행 PASS. 서비스3개, backend/database host port0, 후보 image/revision, UAT credential 참조3개, 보호 ACL3규칙, 보존 대상8개를 실제 관찰했고 기술 실패0이다. `16:00 cutoff`가 지나 `safeToMutate=false`; 운영 변경0. 다음 READY는 실제 mutation driver 구현·격리 검증 후 새 변경창에서 실행이며 직원 UAT는 NOT_RUN이다. 증거 `R5_PRODUCTION_DRIVER_PREFLIGHT_EVIDENCE.json`.
