@@ -4,14 +4,14 @@
 
 ## 진행 시각화
 
-`D0 계약 ✅ → D1 가져오기 ✅ → D2 내보내기 ✅ → D3 API·UI·스킬 ✅ → D4 전체 검증·Git 체크포인트 ✅ → D5 Production 배포·직원 UAT ⬜`
+`D0 계약 ✅ → D1 가져오기 ✅ → D2 내보내기 ✅ → D3 API·UI·스킬 ✅ → D4 전체 검증·Git 체크포인트 ✅ → D5 Production 배포 ✅ → D6 직원 UAT ⬜`
 
 ## 1. 요구사항·권한
 
 - [x] 지원 업로드·내보내기 형식 계약
 - [x] `asset.create`와 `report.read` 권한 분리
 - [x] 미리보기와 실제 DB 확정 분리
-- [ ] Production 배포 승인·변경창 확인
+- [x] Production 배포 승인·변경창 확인
 
 ## 2. 데이터 정확성
 
@@ -41,7 +41,8 @@
 - [x] Excel·Word·PPT·JPEG·PNG 실제 파일 signature 시험
 - [x] API 권한·다운로드 route 시험
 - [x] 전체 `npm.cmd run check` — 1,038건, PASS 1,030 / FAIL 0 / SKIP 8
-- [x] `npm.cmd run ui:contract` — 41개 계약 PASS
+- [x] `npm.cmd run ui:contract` — 44개 계약 PASS
+- [x] Production 인증 읽기 smoke — 로그인·MFA·CSV 템플릿·XLSX 내보내기 PASS
 
 ## 6. 기능-스킬 수명주기
 
@@ -53,11 +54,14 @@
 ## 7. 배포·운영
 
 - [x] exact allowlist Git checkpoint commit·push(이 체크리스트를 포함하는 D4 완료 게이트)
-- [ ] 운영 이미지 빌드·배포
+- [x] 운영 이미지 빌드·배포 — `be3cd6a8f3b518b64346927f43e6dbf32bb75758`
+- [x] DB migration 25 → 30 및 격리 복원 검증
+- [x] `frontend`·`backend`·`database` 3서비스 healthy, backend/database host port 비공개
+- [x] Inventory Tunnel·공개 HTTPS 200 및 SQCM-i·SAFE-LINK 연결 보존
 - [ ] 실제 직원 역할 계정으로 업로드 미리보기·취소·확정 UAT
 - [ ] 실제 OCR provider receipt와 감사 로그 확인
 - [ ] 다섯 내보내기 파일을 Office·이미지 뷰어에서 시각 확인
 
-현재 판정: `LOCAL_VERIFIED_PRODUCTION_NOT_RUN`. Production 활성화는 아직 주장하지 않는다.
+현재 판정: `PRODUCTION_DEPLOYED_EMPLOYEE_UAT_PENDING`. Production 기능과 인증된 템플릿·XLSX 다운로드는 검증됐으며, 실제 직원 데이터 확정 UAT와 외부 OCR receipt·Office 시각 확인은 아직 주장하지 않는다.
 
-로컬 운영 이미지 `sqcm-i-inventory:asset-document-io-local`은 Node 24 Alpine에서 의존성 취약점 0건으로 빌드됐고 두 신규 서비스를 실제 require했다. 이 이미지는 Production에 배포하지 않았다.
+운영 이미지는 Git SHA `be3cd6a8f3b518b64346927f43e6dbf32bb75758`로 고정됐고, 서비스 워커 cache revision도 `20260909-asset-io`로 활성화했다. 배포 전 백업은 `D:\seowon_runtime\sqcm-i-inventory-production\backups\r5-protected-fc573a7`에 보호 저장했으며 PostgreSQL 16 tmpfs 격리 복원이 통과했다.

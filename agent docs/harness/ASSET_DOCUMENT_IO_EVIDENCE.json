@@ -1,7 +1,7 @@
 {
-  "evidenceId": "ASSET-DOCUMENT-IO-D4-20260909",
-  "status": "LOCAL_VERIFIED_PRODUCTION_NOT_RUN",
-  "sourceHead": "c635f14ea366d6b782dd2173750ddf7aff916cdc",
+  "evidenceId": "ASSET-DOCUMENT-IO-D5-20260909",
+  "status": "PRODUCTION_DEPLOYED_EMPLOYEE_UAT_PENDING",
+  "sourceHead": "be3cd6a8f3b518b64346927f43e6dbf32bb75758",
   "formats": {
     "import": ["csv", "txt", "md", "xls", "xlsx", "doc", "docx", "hwp", "hwpx", "ppt", "pptx", "pdf", "jpg", "jpeg", "png", "zip"],
     "deterministicImport": ["csv", "txt", "md", "xlsx", "docx", "hwpx", "pptx"],
@@ -21,14 +21,39 @@
   "verification": {
     "focusedTests": { "total": 15, "passed": 15, "failed": 0 },
     "unitSuite": { "total": 1038, "passed": 1030, "failed": 0, "skipped": 8 },
-    "uiContracts": { "total": 41, "passed": 41, "failed": 0 },
+    "uiContracts": { "total": 44, "passed": 44, "failed": 0 },
     "skillMirrorSha256": "BB2A09F540E29033FD903D76F917BA25C6E8D5C15D0517F73E327FA51F7F34BD",
     "dockerBuild": "PASS",
     "dockerRuntimeRequire": "PASS",
     "localImageManifest": "sha256:c0f314694f1d17dda4ed44da76048c8ccbcaa54c579656eee985061bfac54737"
   },
   "production": {
-    "deployed": false,
+    "deployed": true,
+    "deployedRevision": "be3cd6a8f3b518b64346927f43e6dbf32bb75758",
+    "qualityCi": { "runId": 34322343971, "status": "completed", "conclusion": "success" },
+    "databaseMigration": { "before": 25, "after": 30, "status": "PASS" },
+    "backup": {
+      "path": "D:\\seowon_runtime\\sqcm-i-inventory-production\\backups\\r5-protected-fc573a7\\production-predeploy-20260909T155718.dump",
+      "sha256": "a5b13bd559cd698482593b74509291712fa578b40113af3a344d5d5252f064c1",
+      "isolatedRestore": "PASS",
+      "restoredPublicTables": 54
+    },
+    "services": {
+      "expected": ["frontend", "backend", "database"],
+      "healthy": ["frontend", "backend", "database"],
+      "backendHostPortPublished": false,
+      "databaseHostPortPublished": false
+    },
+    "publicHttps": { "inventoryStatus": 200, "sqcmOsStatus": 200, "safeLinkStatus": 301 },
+    "authenticatedReadSmoke": {
+      "role": "ADMIN",
+      "login": "PASS",
+      "mfa": "PASS",
+      "templateCsv": "PASS",
+      "xlsxExport": "PASS",
+      "logout": "PASS"
+    },
+    "browserAutomation": "NOT_RUN_CUA_KERNEL_ASSET_ERROR",
     "employeeUat": "NOT_RUN",
     "externalOcrReceipt": "NOT_RUN",
     "officeVisualOpenCheck": "NOT_RUN"
