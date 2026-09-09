@@ -65,4 +65,7 @@ assert.match(consentJs, /skipBrowserRedirect\s*:\s*true/, 'consent owns one expl
 assert.match(stagingNginx, /proxy_set_header\s+X-Forwarded-Proto\s+https;/, 'staging tunnel preserves the public HTTPS scheme for secure cookies');
 assert.match(offlineStocktake, /createObjectStore\(SNAPSHOTS[\s\S]*createObjectStore\(OPERATIONS/, 'offline data separates snapshots and queued writes');
 assert.match(serviceWorker, /url\.pathname\.startsWith\('\/api\/'\)/, 'service worker never caches authenticated API responses');
-console.log(`UI contract checks passed: ${checks.length + 9}`);
+assert.match(index, /app\.js\?v=20260909-asset-io/, 'index loads the asset I/O application revision');
+assert.match(serviceWorker, /sqcm-i-shell-20260909-asset-io[\s\S]*app\.js\?v=20260909-asset-io/, 'service worker cache matches the application revision');
+assert.match(serviceWorker, /skipWaiting\(\)/, 'updated service worker activates without waiting for every old tab to close');
+console.log(`UI contract checks passed: ${checks.length + 12}`);

@@ -18,6 +18,9 @@ test('service worker는 인증 API를 캐시하지 않는다', () => {
   assert.match(worker, /url\.pathname\.startsWith\('\/api\/'\)/);
   assert.match(worker, /event\.request\.method !== 'GET'/);
   assert.doesNotMatch(worker, /cache\.put[\s\S]*\/api\//);
+  assert.match(worker, /sqcm-i-shell-20260909-asset-io/);
+  assert.match(worker, /app\.js\?v=20260909-asset-io/);
+  assert.match(worker, /skipWaiting\(\)/);
 });
 
 test('PWA manifest와 화면은 오프라인·충돌 상태를 사용자에게 드러낸다', () => {
