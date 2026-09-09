@@ -23,7 +23,7 @@ function appFor(role) {
     req.id = 'route-test'; req.user = { id: 1, role, organizationId: 7, departmentId: 11, isSystemAdmin: false };
     req.get ||= name => req.headers[String(name).toLowerCase()]; next();
   });
-  app.use(createEnterpriseRouter({ pool, apiAuth: (_req, _res, next) => next(), requireRecentReauth: (_req, _res, next) => next() }));
+  app.use(createEnterpriseRouter({ pool, apiAuth: (_req, _res, next) => next(), requireRecentReauth: (_req, _res, next) => next(), malwareScanner:{ async scan(){return{status:'clean'};} } }));
   app.use((error, _req, res, _next) => res.status(error.status || 500).json({ code: error.code || 'ERROR', message: error.message }));
   return app;
 }
@@ -50,4 +50,25 @@ test('일반 사용자는 템플릿과 미리보기 모두 403으로 차단된�
   assert.equal((await supertest(appFor('USER')).get('/assets/import/template.csv')).status, 403);
   const preview = await supertest(appFor('USER')).post('/assets/import/preview').set('content-type', 'text/csv').send('자산번호,자산명\nSW-IT-9202,차단 자산');
   assert.equal(preview.status, 403);
+});
+
+test('담당자는 TXT 문서를 악성코드 검사 후 자산 미리보기로 변환한다', async () => {
+  const response = await supertest(appFor('MANAGER'))
+    .post('/assets/import/document/preview')
+    .set('content-type', 'text/plain; charset=utf-8')
+    .set('x-file-name', encodeURIComponent('자산목록.txt'))
+    .send(Buffer.from('자산번호\t자산명\t상태\t부서코드\t위치코드\t분류코드\nSW-TXT-1\t문서 노트북\tAVAILABLE\tHQ\tSEOUL-HQ\tIT'));
+  assert.equal(response.status, 200);
+  assert.equal(response.body.document.extension, 'txt');
+  assert.equal(response.body.preview.summary.valid, 1);
+  assert.match(response.body.sourceChecksum, /^[a-f0-9]{64}$/);
+});
+
+test('보고서 Excel·Word·PPT·JPEG·PNG route가 다운로드 파일을 생성한다', async () => {
+  for (const [format, expected] of [['xlsx','spreadsheetml'],['docx','wordprocessingml'],['pptx','presentationml'],['jpeg','image/jpeg'],['png','image/png']]) {
+    const response = await supertest(appFor('MANAGER')).get(`/reports/assets.${format}`);
+    assert.equal(response.status, 200);
+    assert.match(response.headers['content-type'], new RegExp(expected));
+    assert.match(response.headers['content-disposition'], new RegExp(`sqcm-i-assets\\.${format === 'jpeg' ? 'jpg' : format}`));
+  }
 });

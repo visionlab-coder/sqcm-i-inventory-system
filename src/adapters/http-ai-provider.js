@@ -58,14 +58,14 @@ function createHttpAiProvider(config, fetchImpl = fetch) {
     };
   }
 
-  async function extract({ organizationId, assetId = null, fileId = null, text = '' }) {
+  async function extract({ organizationId, assetId = null, fileId = null, text = '', contentBase64 = '', contentType = '', originalName = '', schema = '' }) {
     const ocrUrl = String(config.aiProviderOcrUrl || '').trim();
     if (!ocrUrl) throw new Error('AI_PROVIDER_OCR_URL is required for the external OCR adapter.');
-    const response = await request(ocrUrl, { method: 'POST', body: JSON.stringify({ organizationId, assetId, fileId, text }) });
+    const response = await request(ocrUrl, { method: 'POST', body: JSON.stringify({ organizationId, assetId, fileId, text, contentBase64, contentType, originalName, schema }) });
     const result = jsonObject(response, 'ocr');
     if (!result.fields || typeof result.fields !== 'object' || Array.isArray(result.fields)) throw new Error('AI provider OCR response must contain fields.');
     if (!result.confidence || typeof result.confidence !== 'object' || Array.isArray(result.confidence)) throw new Error('AI provider OCR response must contain confidence.');
-    return { fields: result.fields, confidence: result.confidence, usage: result.usage && typeof result.usage === 'object' ? result.usage : null };
+    return { fields: result.fields, rows: Array.isArray(result.rows) ? result.rows : undefined, confidence: result.confidence, usage: result.usage && typeof result.usage === 'object' ? result.usage : null };
   }
 
   async function healthCheck() {

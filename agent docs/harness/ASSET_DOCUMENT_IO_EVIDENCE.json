@@ -1,0 +1,37 @@
+{
+  "evidenceId": "ASSET-DOCUMENT-IO-D4-20260909",
+  "status": "LOCAL_VERIFIED_PRODUCTION_NOT_RUN",
+  "sourceHead": "c635f14ea366d6b782dd2173750ddf7aff916cdc",
+  "formats": {
+    "import": ["csv", "txt", "md", "xls", "xlsx", "doc", "docx", "hwp", "hwpx", "ppt", "pptx", "pdf", "jpg", "jpeg", "png", "zip"],
+    "deterministicImport": ["csv", "txt", "md", "xlsx", "docx", "hwpx", "pptx"],
+    "structuredOcrImport": ["xls", "doc", "hwp", "ppt", "pdf", "jpg", "jpeg", "png"],
+    "export": ["xlsx", "docx", "pptx", "jpeg", "png"]
+  },
+  "security": {
+    "malwareCleanRequired": true,
+    "sourceAndCanonicalChecksumsRequired": true,
+    "atomicCommitRequired": true,
+    "macrosRejected": true,
+    "encryptedArchiveRejected": true,
+    "nestedArchiveRejected": true,
+    "archiveTraversalRejected": true,
+    "dependencyAuditVulnerabilities": 0
+  },
+  "verification": {
+    "focusedTests": { "total": 15, "passed": 15, "failed": 0 },
+    "unitSuite": { "total": 1038, "passed": 1030, "failed": 0, "skipped": 8 },
+    "uiContracts": { "total": 41, "passed": 41, "failed": 0 },
+    "skillMirrorSha256": "BB2A09F540E29033FD903D76F917BA25C6E8D5C15D0517F73E327FA51F7F34BD",
+    "dockerBuild": "PASS",
+    "dockerRuntimeRequire": "PASS",
+    "localImageManifest": "sha256:c0f314694f1d17dda4ed44da76048c8ccbcaa54c579656eee985061bfac54737"
+  },
+  "production": {
+    "deployed": false,
+    "employeeUat": "NOT_RUN",
+    "externalOcrReceipt": "NOT_RUN",
+    "officeVisualOpenCheck": "NOT_RUN"
+  },
+  "secretsRecorded": false
+}

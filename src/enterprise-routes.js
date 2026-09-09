@@ -12,6 +12,8 @@ const { uploadReturnPhoto } = require('./services/return-service');
 const { getCostCommandCenter, getCostRoiSummary, recordSavingsEvent } = require('./services/cost-service');
 const { recommendActions, searchAssets, detectAnomalies, extractDocument, normalizeFeedback, normalizeEvaluation } = require('./services/ai-service');
 const { analyzeAssetImport, commitAssetImport, safeSpreadsheetCsvCell, assetImportTemplate } = require('./services/asset-import-service');
+const { analyzeAssetDocument, commitAssetDocument } = require('./services/asset-document-import-service');
+const { buildAssetExport, EXPORTS } = require('./services/asset-report-export-service');
 const { createIdempotencyMiddleware } = require('./idempotency');
 const QRCode = require('qrcode');
 const { findAssetByQr, findAssetForQrLabel, qrScanUrl } = require('./services/asset-qr-service');
@@ -36,6 +38,7 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
   router.use(apiAuth);
   router.use((req, res, next) => {
     const contentType = String(req.get('content-type') || '').toLowerCase();
+    if (req.path.startsWith('/assets/import/document/')) return next();
     if (contentType.startsWith('image/') || contentType.startsWith('application/pdf') || contentType.startsWith('text/csv') || contentType.startsWith('application/csv')) return next();
     idempotency(req, res, next);
   });
@@ -102,6 +105,19 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
   });
   router.post('/assets/import/commit', rawAssetCsv, idempotency, async (req, res) => {
     const result = await commitAssetImport(pool, req.user, req.body, String(req.get('x-import-checksum') || ''), trace(req));
+    res.status(201).json({ result });
+  });
+  const rawAssetDocument = express.raw({ type: () => true, limit: '10mb' });
+  router.post('/assets/import/document/preview', rawAssetDocument, idempotency, async (req, res) => {
+    const analyzed = await analyzeAssetDocument({ db: pool, pool, user: req.user, content: req.body, contentType: req.get('content-type'), originalName: req.get('x-file-name'), malwareScanner, aiProvider });
+    res.set('cache-control', 'no-store').json({ document: analyzed.document, sourceChecksum: analyzed.sourceChecksum, preview: analyzed.preview });
+  });
+  router.post('/assets/import/document/commit', rawAssetDocument, idempotency, async (req, res) => {
+    const result = await commitAssetDocument(
+      { db: pool, pool, user: req.user, content: req.body, contentType: req.get('content-type'), originalName: req.get('x-file-name'), malwareScanner, aiProvider },
+      { sourceChecksum: String(req.get('x-source-checksum') || ''), importChecksum: String(req.get('x-import-checksum') || '') },
+      trace(req)
+    );
     res.status(201).json({ result });
   });
 
@@ -226,6 +242,7 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
   router.get('/reports/summary', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.query.organizationId); const scope=await resolveScope(pool,req.user); const report=await getAssetReport(pool,organizationId,{},scope); const values=[organizationId]; const scopeSql=scope.departmentIds?(values.push(scope.departmentIds),` AND COALESCE(a.department_id,u.department_id)=ANY($2::bigint[])`):''; const pending=await pool.query(`SELECT count(*)::int count FROM workflow_requests r JOIN users u ON u.id=r.requester_id LEFT JOIN assets a ON a.id=r.asset_id WHERE r.organization_id=$1 AND r.status='SUBMITTED'${scopeSql}`,values); res.json({summary:{...report.summary,pending_requests:pending.rows[0].count}}); });
   router.get('/reports/assets', async(req,res)=>{ requirePermission(req.user,'report.read'); const scope=await resolveScope(pool,req.user); res.json(await getAssetReport(pool,orgId(req,req.query.organizationId),req.query,scope)); });
   router.get('/reports/assets.csv', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.query.organizationId); const scope=await resolveScope(pool,req.user); const report=await getReportAssets(pool,organizationId,req.query,scope); const csv=['asset_tag,name,serial_no,status,department,location,category,acquired_at,acquisition_cost',...report.assets.map(row=>[row.asset_tag,row.name,row.serial_no,row.status_code,row.department_name,row.location_name,row.category_name,row.acquired_at?.toISOString?.().slice(0,10)||row.acquired_at,row.acquisition_cost].map(safeSpreadsheetCsvCell).join(','))].join('\r\n'); await audit(pool,req,'REPORT_EXPORTED','REPORT',organizationId,{format:'csv',rows:report.assets.length,filters:report.filters}); res.set({'content-type':'text/csv; charset=utf-8','content-disposition':'attachment; filename="seowon-assets.csv"'}).send('\ufeff'+csv); });
+  router.get('/reports/assets.:format', async(req,res)=>{ const format=String(req.params.format||'').toLowerCase(); if(!EXPORTS[format])throw new DomainError('지원하지 않는 내보내기 형식입니다.',400); requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.query.organizationId); const scope=await resolveScope(pool,req.user); const report=await getReportAssets(pool,organizationId,req.query,scope); const exported=await buildAssetExport(format,report.assets); await audit(pool,req,'REPORT_EXPORTED','REPORT',organizationId,{format,rows:exported.rows,filters:report.filters}); res.set({'content-type':exported.contentType,'content-disposition':`attachment; filename="sqcm-i-assets.${exported.extension}"`,'cache-control':'no-store','x-content-type-options':'nosniff'}).send(exported.content); });
   router.get('/cost/command-center', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.query.organizationId); const scope=await resolveScope(pool,req.user); res.json(await getCostCommandCenter(pool,req.user,organizationId,scope)); });
   router.get('/cost/roi', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.query.organizationId); const scope=await resolveScope(pool,req.user); res.json(await getCostRoiSummary(pool,req.user,organizationId,scope)); });
   router.post('/cost/savings', async(req,res)=>{ requirePermission(req.user,'report.read'); const organizationId=orgId(req,req.body.organizationId); const scope=await resolveScope(pool,req.user); if(req.body.assetId){const asset=await pool.query('SELECT organization_id,department_id FROM assets WHERE id=$1',[positiveInteger(req.body.assetId,'자산번호')]);if(!asset.rowCount)throw new DomainError('자산을 찾을 수 없습니다.',404);orgId(req,asset.rows[0].organization_id);if(!canAccessDepartment(scope,asset.rows[0].department_id))throw new DomainError('허용된 부서 범위를 벗어났습니다.',403);} const result=await recordSavingsEvent(pool,req.user,{...req.body,organizationId}); await audit(pool,req,'COST_SAVINGS_RECORDED','COST_SAVINGS',result.id,{savingsType:result.savingsType,avoidedAmount:result.avoidedAmount,assetId:result.assetId}); res.status(201).json({savings:result}); });

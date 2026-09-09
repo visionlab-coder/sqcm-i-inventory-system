@@ -1,12 +1,18 @@
 {
   "version": 1,
-  "inventoryScope": "R5 production deployment and recovery only; registry count does not assert full-product coverage",
+  "inventoryScope": "Registered high-risk and operator-facing feature subset; registry count does not assert full-product coverage",
   "skills": [
     {
       "id": "sqcm-i-r5-production-deployment",
       "path": "D:/seowon_projects/sqcm-i-inventory-system/.agents/skills/sqcm-i-r5-production-deployment/SKILL.md",
       "depends_on": [],
       "tests": ["r5-driver-unit", "r5-isolated-recovery", "production-tunnel-watchdog"]
+    },
+    {
+      "id": "sqcm-i-asset-document-io",
+      "path": "D:/seowon_projects/sqcm-i-inventory-system/.agents/skills/sqcm-i-asset-document-io/SKILL.md",
+      "depends_on": [],
+      "tests": ["asset-document-import", "asset-report-export", "asset-document-routes"]
     }
   ],
   "features": [
@@ -39,11 +45,29 @@
       "human_entry": "npm.cmd run production:tunnel-watchdog; approved recovery uses production:tunnel-watchdog:execute",
       "agent_entry": "Use bounded JSON output and never replace or restart the existing SQCM-i OS Cloudflared service",
       "status": "OPERATION_VERIFIED"
+    },
+    {
+      "id": "asset-document-import-export",
+      "label": "Safe multi-format asset document import and report export",
+      "sources": [
+        "D:/seowon_projects/sqcm-i-inventory-system/src/services/asset-document-import-service.js",
+        "D:/seowon_projects/sqcm-i-inventory-system/src/services/asset-report-export-service.js",
+        "D:/seowon_projects/sqcm-i-inventory-system/src/enterprise-routes.js",
+        "D:/seowon_projects/sqcm-i-inventory-system/frontend/app.js"
+      ],
+      "skills": ["sqcm-i-asset-document-io"],
+      "depends_on": [],
+      "human_entry": "Use Asset Register document preview and explicit commit; export from filtered Reports",
+      "agent_entry": "Use document preview/commit checksums and scoped report export endpoints",
+      "status": "LOCAL_VERIFIED_PRODUCTION_NOT_RUN"
     }
   ],
   "tests": [
     {"id":"r5-driver-unit","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/r5-deployment-executor.test.js","D:/seowon_projects/sqcm-i-inventory-system/test/unit/r5-production-driver-preflight.test.js","D:/seowon_projects/sqcm-i-inventory-system/test/unit/r5-mutation-driver.test.js"],"command":"node --test test/unit/r5-deployment-executor.test.js test/unit/r5-production-driver-preflight.test.js test/unit/r5-mutation-driver.test.js","status":"OPERATION_VERIFIED"},
     {"id":"r5-isolated-recovery","paths":["D:/seowon_projects/sqcm-i-inventory-system/scripts/r5-isolated-recovery-rehearsal.mjs"],"command":"run both migrate and switchImages failure injections against the exact candidate","status":"OPERATION_VERIFIED"},
-    {"id":"production-tunnel-watchdog","paths":["D:/seowon_projects/sqcm-i-inventory-system/scripts/ensure-inventory-production-tunnel.mjs","D:/seowon_projects/sqcm-i-inventory-system/scripts/configure-inventory-production-tunnel-autostart.ps1"],"command":"npm.cmd run production:tunnel-watchdog and verify the registered task exact action","status":"OPERATION_VERIFIED"}
+    {"id":"production-tunnel-watchdog","paths":["D:/seowon_projects/sqcm-i-inventory-system/scripts/ensure-inventory-production-tunnel.mjs","D:/seowon_projects/sqcm-i-inventory-system/scripts/configure-inventory-production-tunnel-autostart.ps1"],"command":"npm.cmd run production:tunnel-watchdog and verify the registered task exact action","status":"OPERATION_VERIFIED"},
+    {"id":"asset-document-import","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/asset-document-import-service.test.js"],"command":"node --test test/unit/asset-document-import-service.test.js","status":"LOCAL_VERIFIED"},
+    {"id":"asset-report-export","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/asset-report-export-service.test.js"],"command":"node --test test/unit/asset-report-export-service.test.js","status":"LOCAL_VERIFIED"},
+    {"id":"asset-document-routes","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/asset-import-route.test.js"],"command":"node --test test/unit/asset-import-route.test.js","status":"LOCAL_VERIFIED"}
   ]
 }
