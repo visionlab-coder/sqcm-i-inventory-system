@@ -1,7 +1,9 @@
 # P7 MFA 최초 등록·로그인 복구
 
-기준일: 2026-09-13  
-상태: `PASS_PRODUCTION_MFA_ENROLLMENT_RECOVERY`  
+기준일: 2026-09-13
+
+상태: `PASS_PRODUCTION_MFA_ENROLLMENT_RECOVERY`
+
 배포 코드 SHA: `5ab7b9928fa7ecc3b04fcf66370e4cc9daee86bd`
 
 ## 1. 재현과 원인
