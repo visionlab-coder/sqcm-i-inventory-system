@@ -70,3 +70,46 @@ test('TOTP MFA는 pending challenge 뒤에만 세션을 발급하고 복구코�
     await pool.end();
   }
 });
+
+test('운영 ADMIN은 비밀번호 확인 뒤 제한된 MFA 등록을 끝내야 정식 세션을 받는다', { skip: !baseUrl || !databaseUrl || process.env.INTEGRATION_ENFORCE_MFA_ENROLLMENT !== 'true' }, async () => {
+  const pool = createPool(databaseUrl); const marker = `mfa-enrollment-${Date.now()}`; const email = `${marker}@seowon.local`;
+  const password = 'Phase24-Mfa-Enroll!'; let userId;
+  try {
+    const org = await pool.query("SELECT id FROM organizations WHERE code='SEOWON'");
+    const dept = await pool.query('SELECT id FROM departments WHERE organization_id=$1 ORDER BY id LIMIT 1', [org.rows[0].id]);
+    const created = await pool.query(`INSERT INTO users(email,display_name,password_hash,role,status,organization_id,department_id,password_reset_required,mfa_enabled)
+      VALUES($1,'MFA 등록 검증 관리자',$2,'ADMIN','ACTIVE',$3,$4,false,false) RETURNING id`, [email, await bcrypt.hash(password, 12), org.rows[0].id, dept.rows[0].id]);
+    userId = created.rows[0].id;
+
+    const pending = await passwordLogin(email, password, marker);
+    assert.equal(pending.response.status, 202);
+    assert.equal(pending.data.mfaEnrollmentRequired, true);
+    assert.equal(pending.data.user, undefined);
+    let response = await fetch(`${baseUrl}/api/auth/me`, { headers:{ cookie:pending.session.cookie } });
+    assert.equal(response.status, 401);
+    response = await fetch(`${baseUrl}/api/enterprise/dashboard`, { headers:{ cookie:pending.session.cookie } });
+    assert.equal(response.status, 401);
+
+    response = await post('/api/auth/mfa/enrollment/setup', pending.session, {}, marker);
+    assert.equal(response.status, 200);
+    const setup = await response.json();
+    response = await post('/api/auth/mfa/enrollment/enable', pending.session, { code:totp(setup.secret) }, marker);
+    assert.equal(response.status, 200);
+    const enabled = await response.json();
+    assert.equal(enabled.user.role, 'ADMIN');
+    assert.equal(enabled.user.mfaEnabled, true);
+    assert.equal(enabled.recoveryCodes.length, 8);
+    const authenticated = { cookie:cookieFrom(response), token:enabled.csrfToken };
+    response = await fetch(`${baseUrl}/api/auth/me`, { headers:{ cookie:authenticated.cookie } });
+    assert.equal(response.status, 200);
+    response = await post('/api/auth/logout', authenticated, {}, marker);
+    assert.equal(response.status, 204);
+  } finally {
+    if (userId) {
+      await pool.query("DELETE FROM user_sessions WHERE (sess->>'userId')::bigint=$1 OR (sess->>'pendingMfaUserId')::bigint=$1 OR (sess->>'pendingMfaEnrollmentUserId')::bigint=$1", [userId]);
+      await pool.query('DELETE FROM audit_logs WHERE actor_user_id=$1', [userId]);
+      await pool.query('DELETE FROM users WHERE id=$1', [userId]);
+    }
+    await pool.end();
+  }
+});

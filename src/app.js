@@ -150,13 +150,29 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiPr
     if (req.user.passwordResetRequired) {
       return apiError(req, res, 403, 'PASSWORD_CHANGE_REQUIRED', '업무를 시작하기 전에 초기 비밀번호를 변경하세요.');
     }
+    if (requiresMfaEnrollment(config, req.user)) {
+      return apiError(req, res, 403, 'MFA_ENROLLMENT_REQUIRED', '업무를 시작하기 전에 MFA를 등록하세요.');
+    }
     next();
   };
   const apiRole = (...roles) => (req, res, next) => {
     if (!req.user) return apiError(req, res, 401, 'AUTH_REQUIRED', '로그인이 필요합니다.');
     if (req.user.passwordResetRequired) return apiError(req, res, 403, 'PASSWORD_CHANGE_REQUIRED', '업무를 시작하기 전에 초기 비밀번호를 변경하세요.');
     if (!roles.includes(req.user.role)) return apiError(req, res, 403, 'FORBIDDEN', '권한이 없습니다.');
+    if (requiresMfaEnrollment(config, req.user)) return apiError(req, res, 403, 'MFA_ENROLLMENT_REQUIRED', '업무를 시작하기 전에 MFA를 등록하세요.');
     next();
+  };
+
+  const pendingMfaEnrollmentUser = async req => {
+    const pendingUserId = Number(req.session.pendingMfaEnrollmentUserId || 0);
+    const issuedAt = Number(req.session.pendingMfaEnrollmentIssuedAt || 0);
+    if (!pendingUserId || !issuedAt || Date.now() - issuedAt > 5 * 60 * 1000) {
+      delete req.session.pendingMfaEnrollmentUserId;
+      delete req.session.pendingMfaEnrollmentIssuedAt;
+      return null;
+    }
+    const user = await loadScopedUser(pool, pendingUserId);
+    return user && requiresMfaEnrollment(config, user) ? user : null;
   };
 
   const requireRecentReauth = (req, res, next) => {
@@ -236,8 +252,14 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiPr
     }
 
     if (requiresMfaEnrollment(config, user)) {
-      await writeAudit(pool, user.id, 'LOGIN_BLOCKED_MFA_ENROLLMENT_REQUIRED', 'AUTH', user.id, {}, auditTrace(req));
-      return apiError(req, res, 403, 'MFA_ENROLLMENT_REQUIRED', '운영 로그인 전에 MFA 등록이 필요합니다. 관리자에게 문의하세요.');
+      await new Promise((resolve, reject) => req.session.regenerate(error => error ? reject(error) : resolve()));
+      req.session.csrfToken = crypto.randomBytes(32).toString('hex');
+      req.session.pendingMfaEnrollmentUserId = user.id;
+      req.session.pendingMfaEnrollmentIssuedAt = Date.now();
+      loginRateLimit.clear(req);
+      await pool.query('UPDATE users SET failed_login_count=0,locked_until=NULL WHERE id=$1', [user.id]);
+      await writeAudit(pool, user.id, 'MFA_ENROLLMENT_CHALLENGE_ISSUED', 'AUTH', user.id, {}, auditTrace(req));
+      return res.status(202).json({ code:'MFA_ENROLLMENT_REQUIRED',mfaEnrollmentRequired:true,email:user.email,csrfToken:req.session.csrfToken });
     }
 
     await new Promise((resolve, reject) => req.session.regenerate(error => error ? reject(error) : resolve()));
@@ -268,6 +290,32 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiPr
     await pool.query('UPDATE users SET failed_login_count=0,locked_until=NULL,last_login_at=now() WHERE id=$1', [user.id]);
     await writeAudit(pool, user.id, 'LOGIN_SUCCEEDED', 'AUTH', user.id, { mfa: true }, auditTrace(req));
     res.json({ user: sanitizeUser(await loadScopedUser(pool, user.id)), csrfToken: req.session.csrfToken });
+  });
+
+  app.get('/api/auth/mfa/enrollment/status', async (req, res) => {
+    const user = await pendingMfaEnrollmentUser(req);
+    if (!user) return apiError(req, res, 401, 'MFA_ENROLLMENT_SESSION_REQUIRED', 'MFA 등록 시간이 만료되었습니다. 다시 로그인하세요.');
+    res.json({ mfaEnrollmentRequired:true,email:user.email,csrfToken:csrfToken(req) });
+  });
+
+  app.post('/api/auth/mfa/enrollment/setup', async (req, res) => {
+    const user = await pendingMfaEnrollmentUser(req);
+    if (!user) return apiError(req, res, 401, 'MFA_ENROLLMENT_SESSION_REQUIRED', 'MFA 등록 시간이 만료되었습니다. 다시 로그인하세요.');
+    res.json(await startMfaSetup(pool, user, config.mfaEncryptionKey, auditTrace(req)));
+  });
+
+  app.post('/api/auth/mfa/enrollment/enable', async (req, res) => {
+    const user = await pendingMfaEnrollmentUser(req);
+    if (!user) return apiError(req, res, 401, 'MFA_ENROLLMENT_SESSION_REQUIRED', 'MFA 등록 시간이 만료되었습니다. 다시 로그인하세요.');
+    const result = await enableMfa(pool, user, req.body.code, config.mfaEncryptionKey, auditTrace(req));
+    await new Promise((resolve, reject) => req.session.regenerate(error => error ? reject(error) : resolve()));
+    req.session.userId = user.id;
+    req.session.mfaVerifiedAt = Date.now();
+    req.session.reauthenticatedAt = Date.now();
+    req.session.csrfToken = crypto.randomBytes(32).toString('hex');
+    await pool.query('UPDATE users SET failed_login_count=0,locked_until=NULL,last_login_at=now() WHERE id=$1', [user.id]);
+    await writeAudit(pool, user.id, 'LOGIN_SUCCEEDED', 'AUTH', user.id, { mfa:true,enrollment:true }, auditTrace(req));
+    res.json({ ...result,user:sanitizeUser(await loadScopedUser(pool,user.id)),csrfToken:req.session.csrfToken });
   });
 
   app.post('/api/auth/password/change-required', apiSessionAuth, async (req, res) => {

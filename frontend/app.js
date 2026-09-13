@@ -123,6 +123,7 @@ function showLogin() {
   $('#app-shell').classList.add('hidden');
   $('#login-page').classList.remove('hidden');
   $('#mfa-login-form').classList.add('hidden');
+  $('#required-mfa-enrollment-panel').classList.add('hidden');
   $('#required-password-change-form').classList.add('hidden');
   $('#invitation-form').classList.add('hidden');
   $('#login-form').classList.remove('hidden');
@@ -137,9 +138,24 @@ function showRequiredPasswordChange() {
   $('#login-page').classList.remove('hidden');
   $('#login-form').classList.add('hidden');
   $('#mfa-login-form').classList.add('hidden');
+  $('#required-mfa-enrollment-panel').classList.add('hidden');
   $('#invitation-form').classList.add('hidden');
   $('#required-password-change-email').textContent = state.user?.email || '';
   $('#required-password-change-form').classList.remove('hidden');
+}
+
+function showRequiredMfaEnrollment(email) {
+  $('#app-shell').classList.add('hidden');
+  $('#login-page').classList.remove('hidden');
+  $('#login-form').classList.add('hidden');
+  $('#mfa-login-form').classList.add('hidden');
+  $('#required-password-change-form').classList.add('hidden');
+  $('#invitation-form').classList.add('hidden');
+  $('#required-mfa-enrollment-email').textContent = email || '';
+  $('#required-mfa-enrollment-error').classList.add('hidden');
+  $('#required-mfa-enrollment-result').innerHTML = '';
+  $('#required-mfa-enrollment-start').classList.remove('hidden');
+  $('#required-mfa-enrollment-panel').classList.remove('hidden');
 }
 
 function closeMobileNav() {
@@ -191,10 +207,16 @@ async function boot() {
     state.csrfToken = csrf.csrfToken;
     const invitationToken = location.hash.startsWith('#invitation=') ? decodeURIComponent(location.hash.slice('#invitation='.length)) : '';
     if (invitationToken) return showInvitation(invitationToken);
-    const me = await request('/api/auth/me');
-    state.user = me.user;
-    state.csrfToken = me.csrfToken;
-    showApp();
+    try {
+      const me = await request('/api/auth/me');
+      state.user = me.user;
+      state.csrfToken = me.csrfToken;
+      showApp();
+    } catch (_authError) {
+      const enrollment = await request('/api/auth/mfa/enrollment/status');
+      state.csrfToken = enrollment.csrfToken;
+      showRequiredMfaEnrollment(enrollment.email);
+    }
   } catch (_error) {
     showLogin();
   }
@@ -626,6 +648,7 @@ $('#login-form').addEventListener('submit', async event => {
     if (loginReadiness) await loginReadiness;
     if (!state.csrfToken) { const csrf = await request('/api/auth/csrf'); state.csrfToken = csrf.csrfToken; }
     const data = await request('/api/auth/login', { method: 'POST', body: Object.fromEntries(new FormData(event.target)) });
+    if (data.mfaEnrollmentRequired) { state.csrfToken=data.csrfToken; event.target.reset(); showRequiredMfaEnrollment(data.email); return; }
     if (data.mfaRequired) { state.csrfToken=data.csrfToken; event.target.reset(); event.target.classList.add('hidden'); $('#mfa-login-form').classList.remove('hidden'); return; }
     state.user = data.user;
     state.csrfToken = data.csrfToken;
@@ -643,6 +666,25 @@ $('#mfa-login-form').addEventListener('submit', async event => {
   catch(error){errorBox.textContent=error.message;errorBox.classList.remove('hidden');}
 });
 $('#mfa-login-back').addEventListener('click',async()=>{const csrf=await request('/api/auth/csrf');state.csrfToken=csrf.csrfToken;$('#mfa-login-form').classList.add('hidden');$('#login-form').classList.remove('hidden');});
+
+$('#required-mfa-enrollment-start').addEventListener('click', async event => {
+  const button=event.currentTarget; const errorBox=$('#required-mfa-enrollment-error'); errorBox.classList.add('hidden'); button.disabled=true;
+  try {
+    const setup=await request('/api/auth/mfa/enrollment/setup',{method:'POST',body:{}});
+    button.classList.add('hidden');
+    $('#required-mfa-enrollment-result').innerHTML=`<p>Microsoft Authenticator, Google Authenticator 등 인증 앱에 아래 비밀키를 등록하세요.</p><p class="mono">${escapeHtml(setup.secret)}</p><form id="required-mfa-enrollment-enable" class="grid-form"><label>앱에 표시된 6자리 코드<input name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" required></label><button class="primary full" type="submit">MFA 활성화</button></form>`;
+    $('#required-mfa-enrollment-enable').addEventListener('submit', async enableEvent => {
+      enableEvent.preventDefault(); const enableButton=enableEvent.submitter; enableButton.disabled=true; errorBox.classList.add('hidden');
+      try {
+        const result=await request('/api/auth/mfa/enrollment/enable',{method:'POST',body:{code:new FormData(enableEvent.target).get('code')}});
+        state.user=result.user; state.csrfToken=result.csrfToken;
+        $('#required-mfa-enrollment-result').innerHTML=`<div class="alert success"><strong>복구코드는 지금 한 번만 표시됩니다. 안전한 곳에 보관하세요.</strong><p class="mono">${result.recoveryCodes.map(escapeHtml).join('<br>')}</p></div><button id="required-mfa-enrollment-continue" class="primary full" type="button">복구코드를 저장했습니다</button>`;
+        $('#required-mfa-enrollment-continue').addEventListener('click',()=>showApp());
+      } catch(error) { errorBox.textContent=error.message; errorBox.classList.remove('hidden'); enableButton.disabled=false; }
+    });
+  } catch(error) { errorBox.textContent=error.message; errorBox.classList.remove('hidden'); button.disabled=false; }
+});
+$('#required-mfa-enrollment-back').addEventListener('click',async()=>{const csrf=await request('/api/auth/csrf');state.csrfToken=csrf.csrfToken;showLogin();});
 
 $('#required-password-change-form').addEventListener('submit', async event => {
   event.preventDefault();

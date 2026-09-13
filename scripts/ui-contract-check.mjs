@@ -32,6 +32,9 @@ const checks = [
   ,['first login requires an isolated password-change form', /id="required-password-change-form"[\s\S]*autocomplete="current-password"[\s\S]*autocomplete="new-password"/]
   ,['password-reset-required user is routed before the app shell', /function showApp\(\)[\s\S]*passwordResetRequired[\s\S]*showRequiredPasswordChange/]
   ,['password-change-required API responses route to the isolated form', /data\.code === 'PASSWORD_CHANGE_REQUIRED'[\s\S]*showRequiredPasswordChange\(\)/]
+  ,['required MFA enrollment has a pre-auth isolated screen', /id="required-mfa-enrollment-panel"[\s\S]*id="required-mfa-enrollment-start"[\s\S]*id="required-mfa-enrollment-result"/]
+  ,['login routes required MFA enrollment before the app shell', /data\.mfaEnrollmentRequired[\s\S]*showRequiredMfaEnrollment\(data\.email\)/]
+  ,['required MFA enrollment completes before opening the app', /api\/auth\/mfa\/enrollment\/setup[\s\S]*api\/auth\/mfa\/enrollment\/enable[\s\S]*required-mfa-enrollment-continue/]
   ,['multi-format migration exposes template, bounded file input, and explicit preview', /assets\/import\/template\.csv[\s\S]*name="assetDocument"[\s\S]*\.hwpx[\s\S]*\.zip[\s\S]*자동 추출·미리보기/]
   ,['reports expose Excel Word PPT JPEG and PNG exports', /reports\/assets\.\$\{format\}[\s\S]*Excel[\s\S]*Word[\s\S]*PPT[\s\S]*JPEG[\s\S]*PNG/]
   ,['bulk import keeps preview before explicit confirmation', /assets\/import\/document\/preview[\s\S]*window\.confirm[\s\S]*assets\/import\/document\/commit/]
@@ -65,7 +68,7 @@ assert.match(consentJs, /skipBrowserRedirect\s*:\s*true/, 'consent owns one expl
 assert.match(stagingNginx, /proxy_set_header\s+X-Forwarded-Proto\s+https;/, 'staging tunnel preserves the public HTTPS scheme for secure cookies');
 assert.match(offlineStocktake, /createObjectStore\(SNAPSHOTS[\s\S]*createObjectStore\(OPERATIONS/, 'offline data separates snapshots and queued writes');
 assert.match(serviceWorker, /url\.pathname\.startsWith\('\/api\/'\)/, 'service worker never caches authenticated API responses');
-assert.match(index, /app\.js\?v=20260909-asset-io/, 'index loads the asset I/O application revision');
-assert.match(serviceWorker, /sqcm-i-shell-20260909-asset-io[\s\S]*app\.js\?v=20260909-asset-io/, 'service worker cache matches the application revision');
+assert.match(index, /app\.js\?v=20260913-mfa-enrollment/, 'index loads the MFA enrollment application revision');
+assert.match(serviceWorker, /sqcm-i-shell-20260913-mfa-enrollment[\s\S]*app\.js\?v=20260913-mfa-enrollment/, 'service worker cache matches the application revision');
 assert.match(serviceWorker, /skipWaiting\(\)/, 'updated service worker activates without waiting for every old tab to close');
 console.log(`UI contract checks passed: ${checks.length + 12}`);

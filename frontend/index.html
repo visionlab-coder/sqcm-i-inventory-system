@@ -39,6 +39,16 @@
         <button class="primary full" type="submit">인증 완료</button>
         <button class="link full" id="mfa-login-back" type="button">로그인으로 돌아가기</button>
       </form>
+      <section id="required-mfa-enrollment-panel" class="login-form hidden" aria-labelledby="required-mfa-enrollment-title">
+        <p class="eyebrow">FIRST MFA ENROLLMENT</p>
+        <h2 id="required-mfa-enrollment-title">인증 앱을 등록해 주세요</h2>
+        <p class="muted">비밀번호 확인이 끝났습니다. 업무 화면을 열기 전에 인증 앱에 일회용 코드를 등록합니다.</p>
+        <p class="auth-account"><span>로그인 계정</span><strong id="required-mfa-enrollment-email"></strong></p>
+        <div id="required-mfa-enrollment-error" class="alert error hidden" role="alert"></div>
+        <button class="primary full" id="required-mfa-enrollment-start" type="button">MFA 등록 시작</button>
+        <div id="required-mfa-enrollment-result" class="details" aria-live="polite"></div>
+        <button class="link full" id="required-mfa-enrollment-back" type="button">다른 계정으로 로그인</button>
+      </section>
       <form id="required-password-change-form" class="login-form password-change-form hidden">
         <header class="auth-form-header">
           <p class="eyebrow">FIRST LOGIN SECURITY</p>
@@ -108,6 +118,6 @@
   <script src="/ui-components.js?v=20260810-p2" defer></script>
   <script src="/session-boundary.js?v=20260907-scope" defer></script>
   <script src="/offline-stocktake.js?v=20260907-scope" defer></script>
-  <script src="/app.js?v=20260909-asset-io" defer></script>
+  <script src="/app.js?v=20260913-mfa-enrollment" defer></script>
 </body>
 </html>
