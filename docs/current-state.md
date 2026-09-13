@@ -1,5 +1,7 @@
 # 서원토건 비품관리 시스템 최신 단일 현황
 
+MFA 최초 등록 복구(9/13): ADMIN·MANAGER가 올바른 비밀번호를 입력해도 MFA 등록 전에는 업무 세션을 발급하지 않으면서, 5분 제한 등록 세션으로 인증 앱 등록을 완료할 수 있도록 교착 상태를 수정해 Production에 배포했다. 후보 `5ab7b9928fa7ecc3b04fcf66370e4cc9daee86bd`, GitHub quality run `34733776078` SUCCESS, 전체 단위 1038건(1030 PASS·8 SKIP·0 FAIL), UI 계약47 PASS, 실제 격리 등록 흐름 PASS다. Production Docker3/3 healthy, database 컨테이너 불변, Inventory/SQCM-i tunnel 연결 각4와 공개 응답을 보존했다. 승인된 master 2계정은 ACTIVE·미잠금이며 실제 MFA 등록은 각 사용자가 다음 로그인에서 수행한다. P7은 별도 운영 인수 증거가 남아 **7/8** 유지. 증거 `P7_MFA_ENROLLMENT_RECOVERY_EVIDENCE.json`, 보고서168.
+
 Production Tunnel 복구(9/8 18:10 KST): `inventory.safe-link.co.kr`의 Cloudflare 1033 원인은 SQCM-i OS 서비스가 아니라 별도 Inventory cloudflared 프로세스 종료였다. 기존 SQCM-i 연결4·공개200과 Production Docker3/3 healthy를 보존한 채 Inventory 전용 프로세스를 기동해 연결4·공개200을 복구했다. 현재 사용자 Limited 권한의 `SQCMI-Inventory-Production-Tunnel` 작업을 로그온＋5분 주기로 등록했고 exact Inventory 프로세스 1개·전체 cloudflared 2개·task result0을 확인했다. 기존 Windows Cloudflared 서비스 수정/재시작, DB·이미지 변경은 0건이다. 증거 `PRODUCTION_TUNNEL_RECOVERY_EVIDENCE.json`.
 
 R5 mutation driver(9/8): 동일 runId·후보 SHA·backup digest에 receipt를 결박하고 false 관찰을 거부하는 driver를 구현했다. 실제 Docker 격리에서 migration 후 실패와 image switch 후 실패가 각각 이전 schema25/login 복귀·후보 schema30 보존으로 PASS했고 집중시험20/20 PASS. 프로젝트 전용 조작 Skill과 기능 등록부를 추가·검증했다. Production action binding·새 변경창·배포·직원 UAT는 미완료이며 운영 변경0, R 트랙5/6·P7 7/8 유지.

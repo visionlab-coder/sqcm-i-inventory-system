@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "P7-MFA-ENROLLMENT-RECOVERY-20260913",
+  "status": "PASS_PRODUCTION_MFA_ENROLLMENT_RECOVERY",
+  "observedAt": "2026-09-13T11:51:27+09:00",
+  "codeRevision": "5ab7b9928fa7ecc3b04fcf66370e4cc9daee86bd",
+  "cause": "MFA_REQUIRED_USERS_COULD_NOT_REACH_AUTHENTICATED_MFA_SETUP",
+  "securityContract": {
+    "mfaDisabled": false,
+    "businessSessionIssuedBeforeEnrollment": false,
+    "pendingEnrollmentTtlMinutes": 5,
+    "sessionRegeneratedAfterEnrollment": true,
+    "secretsRecorded": false
+  },
+  "verification": {
+    "unit": {
+      "total": 1038,
+      "pass": 1030,
+      "skip": 8,
+      "fail": 0
+    },
+    "uiContract": {
+      "pass": 47,
+      "fail": 0
+    },
+    "isolatedEnrollmentFlow": {
+      "login": 202,
+      "pendingAuthMe": 401,
+      "pendingBusinessApi": 401,
+      "setup": 200,
+      "enable": 200,
+      "authenticatedAuthMe": 200,
+      "logout": 204,
+      "pass": true
+    },
+    "githubActions": {
+      "runId": 34733776078,
+      "conclusion": "success",
+      "headShaMatched": true
+    }
+  },
+  "production": {
+    "frontendHealthy": true,
+    "backendHealthy": true,
+    "databaseHealthy": true,
+    "serviceCount": 3,
+    "backendHostPort": 0,
+    "databaseHostPort": 0,
+    "databaseContainerUnchanged": true,
+    "databaseMigrationPerformed": false,
+    "publicInventoryStatus": 200,
+    "inventoryTunnelConnections": 4,
+    "protectedSqcmiTunnelConnectionsBefore": 4,
+    "protectedSqcmiTunnelConnectionsAfter": 4,
+    "protectedSqcmiStatus": 200
+  },
+  "accounts": {
+    "approvedMasterCount": 2,
+    "activeCount": 2,
+    "lockedCount": 0,
+    "mfaEnrollmentCompletedCount": 0,
+    "nextAction": "EACH_USER_COMPLETES_AUTHENTICATOR_ENROLLMENT_ON_NEXT_VALID_PASSWORD_LOGIN"
+  },
+  "phase": {
+    "completed": 7,
+    "total": 8,
+    "current": "P7",
+    "ready": "P7-G1-OPERATIONS-ACTIVATION-AND-SIGNOFF",
+    "changedByThisEvidence": false
+  }
+}
