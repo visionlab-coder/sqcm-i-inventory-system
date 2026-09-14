@@ -8,6 +8,8 @@ test('Production 로컬 인증은 권한 사용자 MFA를 유지하고 일반 �
   assert.equal(requiresMfaEnrollment({ localAuthMfaRequired: true }, { role:'USER', mfa_enabled:false, password_reset_required:false }), false);
   assert.equal(requiresMfaEnrollment({ localAuthMfaRequired: true }, { role:'ADMIN', mfa_enabled:false, password_reset_required:true }), false);
   assert.equal(requiresMfaEnrollment({ localAuthMfaRequired: true }, { role:'ADMIN', mfa_enabled:true, password_reset_required:false }), false);
+  assert.equal(requiresMfaEnrollment({ localAuthMfaRequired: false }, { role:'ADMIN', mfa_enabled:false, password_reset_required:false }), false);
+  assert.equal(requiresMfaEnrollment({ localAuthMfaRequired: false }, { role:'MANAGER', mfa_enabled:false, password_reset_required:false }), false);
 });
 
 test('새 비밀번호는 12자와 네 종류 문자 조건을 모두 충족한다', () => {

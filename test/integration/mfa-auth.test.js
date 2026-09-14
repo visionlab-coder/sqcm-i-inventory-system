@@ -113,3 +113,36 @@ test('운영 ADMIN은 비밀번호 확인 뒤 제한된 MFA 등록을 끝내야 
     await pool.end();
   }
 });
+
+test('필수 MFA가 꺼진 운영 정책은 ADMIN을 비밀번호 확인 뒤 바로 인증한다', { skip: !baseUrl || !databaseUrl || process.env.INTEGRATION_ENFORCE_MFA_ENROLLMENT !== 'false' }, async () => {
+  const pool = createPool(databaseUrl); const marker = `password-only-${Date.now()}`; const email = `${marker}@seowon.local`;
+  const password = 'Password-Only-Test!24'; let userId;
+  try {
+    const org = await pool.query("SELECT id FROM organizations WHERE code='SEOWON'");
+    const dept = await pool.query('SELECT id FROM departments WHERE organization_id=$1 ORDER BY id LIMIT 1', [org.rows[0].id]);
+    const created = await pool.query(`INSERT INTO users(email,display_name,password_hash,role,status,organization_id,department_id,password_reset_required,mfa_enabled)
+      VALUES($1,'비밀번호 로그인 검증 관리자',$2,'ADMIN','ACTIVE',$3,$4,false,false) RETURNING id`, [email, await bcrypt.hash(password, 12), org.rows[0].id, dept.rows[0].id]);
+    userId = created.rows[0].id;
+
+    const authenticated = await passwordLogin(email, password, marker);
+    assert.equal(authenticated.response.status, 200);
+    assert.equal(authenticated.data.user.role, 'ADMIN');
+    assert.equal(authenticated.data.user.mfaEnabled, false);
+    assert.equal(authenticated.data.mfaEnrollmentRequired, undefined);
+    let response = await fetch(`${baseUrl}/api/auth/me`, { headers:{ cookie:authenticated.session.cookie } });
+    assert.equal(response.status, 200);
+    response = await fetch(`${baseUrl}/api/enterprise/dashboard`, { headers:{ cookie:authenticated.session.cookie } });
+    assert.equal(response.status, 200);
+    response = await post('/api/auth/logout', authenticated.session, {}, marker);
+    assert.equal(response.status, 204);
+    const audits = await pool.query("SELECT action FROM audit_logs WHERE actor_user_id=$1 AND request_id=$2", [userId, marker]);
+    assert.ok(audits.rows.some(row => row.action === 'LOGIN_SUCCEEDED'));
+  } finally {
+    if (userId) {
+      await pool.query("DELETE FROM user_sessions WHERE (sess->>'userId')::bigint=$1 OR (sess->>'pendingMfaUserId')::bigint=$1 OR (sess->>'pendingMfaEnrollmentUserId')::bigint=$1", [userId]);
+      await pool.query('DELETE FROM audit_logs WHERE actor_user_id=$1', [userId]);
+      await pool.query('DELETE FROM users WHERE id=$1', [userId]);
+    }
+    await pool.end();
+  }
+});

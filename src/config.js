@@ -104,7 +104,6 @@ function getConfig(overrides = {}) {
   if (env.NODE_ENV === 'production') {
     if (dbAutoMigrate) throw new Error('Production cannot auto-apply migrations at application startup.');
     if (dbRunSeeds) throw new Error('Production cannot create seed users or sample data.');
-    if (authProvider === 'local' && !localAuthMfaRequired) throw new Error('Production local authentication requires PRODUCTION_LOCAL_AUTH_MFA_REQUIRED=true.');
     if (malwareScanDriver !== 'external') throw new Error('Production requires MALWARE_SCAN_DRIVER=external.');
     if (aiProviderDriver !== 'external') throw new Error('Production requires AI_PROVIDER_DRIVER=external.');
     if (!operationalAdapterModule) throw new Error('Production requires OPERATIONAL_ADAPTER_MODULE.');

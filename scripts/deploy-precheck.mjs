@@ -67,9 +67,6 @@ if (target !== "local" && value("MALWARE_SCAN_DRIVER").toLowerCase() !== "extern
 if (target !== "local" && !["local", "oidc"].includes(value("AUTH_PROVIDER").toLowerCase())) {
   failures.push("External deployments require AUTH_PROVIDER=local or oidc.");
 }
-if (target !== "local" && value("AUTH_PROVIDER").toLowerCase() === "local" && value("PRODUCTION_LOCAL_AUTH_MFA_REQUIRED").toLowerCase() !== "true") {
-  failures.push("Production local authentication requires PRODUCTION_LOCAL_AUTH_MFA_REQUIRED=true.");
-}
 if (target !== "local" && !value("OPERATIONAL_ADAPTER_MODULE")) {
   failures.push("External deployments require OPERATIONAL_ADAPTER_MODULE.");
 }

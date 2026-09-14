@@ -9,7 +9,6 @@ test('운영 설정은 안전한 세션 비밀과 secure cookie를 강제한다'
   assert.throws(() => getConfig({ NODE_ENV: 'production', SESSION_SECRET: 'x'.repeat(32), COOKIE_SECURE: 'false' }), /COOKIE_SECURE/);
   assert.throws(() => getConfig({ NODE_ENV: 'production', SESSION_SECRET: 'x'.repeat(32), COOKIE_SECURE: 'true', MFA_ENCRYPTION_KEY: '' }), /MFA_ENCRYPTION_KEY/);
   assert.throws(() => getConfig({ NODE_ENV: 'production', SESSION_SECRET: 'x'.repeat(32), COOKIE_SECURE: 'true', MFA_ENCRYPTION_KEY: mfaKey }), /external or PostgreSQL file storage/);
-  assert.throws(() => getConfig({ NODE_ENV: 'production', SESSION_SECRET: 'x'.repeat(32), COOKIE_SECURE: 'true', MFA_ENCRYPTION_KEY: mfaKey, FILE_STORAGE_DRIVER: 'external', DB_AUTO_MIGRATE: 'false', DB_RUN_SEEDS: 'false' }), /PRODUCTION_LOCAL_AUTH_MFA_REQUIRED/);
   const config = getConfig({ NODE_ENV: 'production', SESSION_SECRET: 'x'.repeat(32), COOKIE_SECURE: 'true', MFA_ENCRYPTION_KEY: mfaKey, FILE_STORAGE_DRIVER: 'external', AUTH_PROVIDER:'oidc', MALWARE_SCAN_DRIVER:'external', AI_PROVIDER_DRIVER:'external', OPERATIONAL_ADAPTER_MODULE:'C:/runtime/adapters.js', PUBLIC_BASE_URL:'https://inventory.example', OIDC_REDIRECT_URI:'https://inventory.example/api/auth/oidc/callback', SUPABASE_URL:'https://project.supabase.co', SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test', DB_AUTO_MIGRATE:'false', DB_RUN_SEEDS:'false' });
   assert.equal(config.cookieSecure, true);
   assert.equal(config.publicBaseUrl, 'https://inventory.example');
@@ -21,13 +20,13 @@ test('운영 설정은 안전한 세션 비밀과 secure cookie를 강제한다'
   assert.equal(getConfig({ AUTOMATION_WORKER_ENABLED: 'false' }).automationWorkerEnabled, false);
   assert.throws(()=>createApp({pool:{},config}),/fileStore cannot use the LOCAL driver/);
 });
-test('Production 무료 PostgreSQL 구성은 로컬 인증 MFA와 DB 파일 저장을 강제한다', () => {
+test('Production 무료 PostgreSQL 구성은 로컬 인증에서 필수 MFA 여부를 명시적으로 선택한다', () => {
   const base={NODE_ENV:'production',SESSION_SECRET:'x'.repeat(32),COOKIE_SECURE:'true',MFA_ENCRYPTION_KEY:Buffer.alloc(32,7).toString('base64'),FILE_STORAGE_DRIVER:'postgres',AUTH_PROVIDER:'local',MALWARE_SCAN_DRIVER:'external',AI_PROVIDER_DRIVER:'external',OPERATIONAL_ADAPTER_MODULE:'adapter.js',PUBLIC_BASE_URL:'https://inventory.safe-link.co.kr',DB_AUTO_MIGRATE:'false',DB_RUN_SEEDS:'false'};
-  assert.throws(() => getConfig(base), /PRODUCTION_LOCAL_AUTH_MFA_REQUIRED/);
-  const config = getConfig({...base,PRODUCTION_LOCAL_AUTH_MFA_REQUIRED:'true'});
+  const config = getConfig({...base,PRODUCTION_LOCAL_AUTH_MFA_REQUIRED:'false'});
   assert.equal(config.fileStorageDriver, 'postgres');
   assert.equal(config.authProvider, 'local');
-  assert.equal(config.localAuthMfaRequired, true);
+  assert.equal(config.localAuthMfaRequired, false);
+  assert.equal(getConfig({...base,PRODUCTION_LOCAL_AUTH_MFA_REQUIRED:'true'}).localAuthMfaRequired, true);
   assert.equal(config.oidcRedirectUri, '');
   const pool={on(){},query(){return Promise.resolve({rows:[]});}};
   const fileStore={driver:'POSTGRES',async write(){},async read(){},async removeNew(){},async healthCheck(){return{status:'ok'};}};

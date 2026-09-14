@@ -36,10 +36,10 @@ test('mock 스캐너는 staging 계약 테스트에서만 clean 결과를 낸다
   assert.equal((await scanner.healthCheck()).status,'ok');
 });
 
-test('AI PC Production은 MFA·PostgreSQL·인증된 host loopback event publisher만 허용한다', async () => {
+test('AI PC Production은 PostgreSQL·로컬 인증·인증된 host loopback event publisher만 허용한다', async () => {
   const requests = [];
   const config = {
-    env: 'production', fileStorageDriver: 'postgres', authProvider: 'local', localAuthMfaRequired: true,
+    env: 'production', fileStorageDriver: 'postgres', authProvider: 'local', localAuthMfaRequired: false,
     eventPublisherUrl: 'http://host.docker.internal:18766/events/publish', eventPublisherApiKey: 'secret-reference-value'
   };
   const publisher = createHttpEventPublisher(config, async (url, options) => {
@@ -50,5 +50,6 @@ test('AI PC Production은 MFA·PostgreSQL·인증된 host loopback event publish
   assert.deepEqual(await publisher.publish({ eventType: 'ASSET_UPDATED' }), { id: 'production-loopback-receipt' });
   assert.equal(requests[0].options.headers.authorization, 'Bearer secret-reference-value');
   assert.throws(() => createHttpEventPublisher({ ...config, eventPublisherUrl: 'http://192.168.0.10/events' }), /AI PC production loopback/);
-  assert.throws(() => createHttpEventPublisher({ ...config, localAuthMfaRequired: false }), /AI PC production loopback/);
+  assert.throws(() => createHttpEventPublisher({ ...config, authProvider: 'oidc' }), /AI PC production loopback/);
+  assert.throws(() => createHttpEventPublisher({ ...config, fileStorageDriver: 'external' }), /AI PC production loopback/);
 });

@@ -5,9 +5,7 @@ const { createHttpSecurityProvider } = require('./http-security-provider');
 async function createOperationalAdapters(config) {
   if (config.env !== 'production') throw new Error('AI PC production adapters require production mode.');
   if (config.fileStorageDriver !== 'postgres') throw new Error('AI PC production requires PostgreSQL file storage.');
-  if (config.authProvider !== 'local' || config.localAuthMfaRequired !== true) {
-    throw new Error('AI PC production requires MFA-protected local authentication.');
-  }
+  if (config.authProvider !== 'local') throw new Error('AI PC production requires local authentication.');
   return {
     aiProvider: createHttpAiProvider(config),
     malwareScanner: createHttpSecurityProvider(config),

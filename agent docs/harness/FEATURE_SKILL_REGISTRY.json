@@ -13,6 +13,12 @@
       "path": "D:/seowon_projects/sqcm-i-inventory-system/.agents/skills/sqcm-i-asset-document-io/SKILL.md",
       "depends_on": [],
       "tests": ["asset-document-import", "asset-report-export", "asset-document-routes"]
+    },
+    {
+      "id": "bamsoft-login-lifecycle",
+      "path": "C:/Users/user/.agents/skills/bamsoft-login-lifecycle/SKILL.md",
+      "depends_on": [],
+      "tests": ["production-local-auth-policy", "production-auth-config", "production-operational-adapters"]
     }
   ],
   "features": [
@@ -60,6 +66,22 @@
       "human_entry": "Use Asset Register document preview and explicit commit; export from filtered Reports",
       "agent_entry": "Use document preview/commit checksums and scoped report export endpoints",
       "status": "LOCAL_VERIFIED_PRODUCTION_NOT_RUN"
+    },
+    {
+      "id": "production-local-password-auth",
+      "label": "Production local email and password authentication with optional TOTP MFA",
+      "sources": [
+        "D:/seowon_projects/sqcm-i-inventory-system/src/config.js",
+        "D:/seowon_projects/sqcm-i-inventory-system/src/app.js",
+        "D:/seowon_projects/sqcm-i-inventory-system/src/adapters/ai-pc-production-operational-adapters.js",
+        "D:/seowon_projects/sqcm-i-inventory-system/src/adapters/http-event-publisher.js",
+        "D:/seowon_projects/sqcm-i-inventory-system/frontend/app.js"
+      ],
+      "skills": ["bamsoft-login-lifecycle"],
+      "depends_on": ["production-tunnel-watchdog"],
+      "human_entry": "Sign in with the approved company email and current password; optional MFA remains available under Security Settings",
+      "agent_entry": "Set PRODUCTION_LOCAL_AUTH_MFA_REQUIRED=false only for the approved Production environment and verify password, CSRF, session, RBAC and rate-limit controls",
+      "status": "LOCAL_VERIFIED_PRODUCTION_NOT_RUN"
     }
   ],
   "tests": [
@@ -68,6 +90,9 @@
     {"id":"production-tunnel-watchdog","paths":["D:/seowon_projects/sqcm-i-inventory-system/scripts/ensure-inventory-production-tunnel.mjs","D:/seowon_projects/sqcm-i-inventory-system/scripts/configure-inventory-production-tunnel-autostart.ps1"],"command":"npm.cmd run production:tunnel-watchdog and verify the registered task exact action","status":"OPERATION_VERIFIED"},
     {"id":"asset-document-import","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/asset-document-import-service.test.js"],"command":"node --test test/unit/asset-document-import-service.test.js","status":"LOCAL_VERIFIED"},
     {"id":"asset-report-export","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/asset-report-export-service.test.js"],"command":"node --test test/unit/asset-report-export-service.test.js","status":"LOCAL_VERIFIED"},
-    {"id":"asset-document-routes","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/asset-import-route.test.js"],"command":"node --test test/unit/asset-import-route.test.js","status":"LOCAL_VERIFIED"}
+    {"id":"asset-document-routes","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/asset-import-route.test.js"],"command":"node --test test/unit/asset-import-route.test.js","status":"LOCAL_VERIFIED"},
+    {"id":"production-local-auth-policy","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/production-local-auth.test.js"],"command":"node --test test/unit/production-local-auth.test.js","status":"LOCAL_VERIFIED"},
+    {"id":"production-auth-config","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/config.test.js"],"command":"node --test test/unit/config.test.js","status":"LOCAL_VERIFIED"},
+    {"id":"production-operational-adapters","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/operational-adapters.test.js"],"command":"node --test test/unit/operational-adapters.test.js","status":"LOCAL_VERIFIED"}
   ]
 }

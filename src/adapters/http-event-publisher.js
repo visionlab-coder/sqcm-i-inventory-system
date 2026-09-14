@@ -15,7 +15,6 @@ function createHttpEventPublisher(config, fetchImpl = fetch) {
   const isAiPcProductionLoopback = config.env === 'production'
     && config.fileStorageDriver === 'postgres'
     && config.authProvider === 'local'
-    && config.localAuthMfaRequired === true
     && endpoint?.protocol === 'http:'
     && stagingLoopbackHosts.has(endpoint.hostname);
   if ((!isHttps && !isStagingLoopback && !isAiPcProductionLoopback) || !apiKey) {
