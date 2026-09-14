@@ -68,7 +68,7 @@ assert.match(consentJs, /skipBrowserRedirect\s*:\s*true/, 'consent owns one expl
 assert.match(stagingNginx, /proxy_set_header\s+X-Forwarded-Proto\s+https;/, 'staging tunnel preserves the public HTTPS scheme for secure cookies');
 assert.match(offlineStocktake, /createObjectStore\(SNAPSHOTS[\s\S]*createObjectStore\(OPERATIONS/, 'offline data separates snapshots and queued writes');
 assert.match(serviceWorker, /url\.pathname\.startsWith\('\/api\/'\)/, 'service worker never caches authenticated API responses');
-assert.match(index, /app\.js\?v=20260913-mfa-enrollment/, 'index loads the MFA enrollment application revision');
-assert.match(serviceWorker, /sqcm-i-shell-20260913-mfa-enrollment[\s\S]*app\.js\?v=20260913-mfa-enrollment/, 'service worker cache matches the application revision');
+assert.match(index, /experience\.css\?v=20260914-dashboard-balance[\s\S]*app\.js\?v=20260914-dashboard-balance/, 'index loads the balanced dashboard revision');
+assert.match(serviceWorker, /sqcm-i-shell-20260914-dashboard-balance[\s\S]*experience\.css\?v=20260914-dashboard-balance[\s\S]*app\.js\?v=20260914-dashboard-balance/, 'service worker cache matches the dashboard revision');
 assert.match(serviceWorker, /skipWaiting\(\)/, 'updated service worker activates without waiting for every old tab to close');
 console.log(`UI contract checks passed: ${checks.length + 12}`);

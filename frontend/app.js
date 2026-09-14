@@ -275,8 +275,9 @@ async function renderDashboard() {
     <section class="panel"><div class="panel-head"><h2>최근 자산</h2><button class="link" data-go="assets">통합 원장 전체 보기</button></div><div class="table-wrap"><table><thead><tr><th>자산번호</th><th>자산명</th><th>위치</th><th>부서</th><th>상태</th><th>관리</th></tr></thead><tbody>${rows || '<tr><td colspan="6" class="empty-cell">등록된 기업 자산이 없습니다.</td></tr>'}</tbody></table></div></section>`;
   const position = document.createElement('section');
   position.className = 'panel product-position';
+  position.setAttribute('aria-labelledby', 'cost-position-title');
   const costSignal = cost?.summary ? `<span>유휴 자본 ${Number(cost.summary.idle_capital || 0).toLocaleString('ko-KR')}원 · TCO ${Number(cost.summary.tco || 0).toLocaleString('ko-KR')}원</span>` : '<span>비용 의사결정은 관리자 화면에서 확인할 수 있습니다.</span>';
-  position.innerHTML = `<p class="eyebrow">COST CONTROL POSITION</p><h2>구매 전에, 다른 현장의 유휴 자산부터 찾습니다.</h2><p class="muted">이동 · 수리 · 교체 중 가장 낮은 비용의 다음 행동을 추천하는 AI 현장 자산 Cost Control</p><div class="position-actions"><button class="primary" data-go="cost-control">비용 의사결정 열기</button><button class="secondary" data-go="assets">정식 자산 원장 보기</button></div><small class="cost-signal">${costSignal}</small>`;
+  position.innerHTML = `<div class="position-copy"><p class="eyebrow">COST CONTROL POSITION</p><h2 id="cost-position-title">구매 전에, 다른 현장의 유휴 자산부터 찾습니다.</h2><p class="muted">이동 · 수리 · 교체 중 가장 낮은 비용의 다음 행동을 추천하는 AI 현장 자산 Cost Control</p><small class="cost-signal">${costSignal}</small></div><div class="position-actions" aria-label="비용 관리 바로가기"><button class="primary" data-go="cost-control">비용 의사결정 열기</button><button class="secondary" data-go="assets">정식 자산 원장 보기</button></div>`;
   $('#view-root').prepend(position);
 }
 
