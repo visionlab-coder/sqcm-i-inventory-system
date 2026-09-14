@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "P7-OPTIONAL-MFA-LOGIN-SIMPLIFICATION-20260914",
+  "observedAt": "2026-09-14T10:37:27.4760651+09:00",
+  "status": "OPERATION_VERIFIED",
+  "phase": "P7",
+  "phaseProgress": "7/8",
+  "userChange": {
+    "mandatoryMfaEnrollment": false,
+    "passwordLoginForUnenrolledUsers": true,
+    "optionalMfaEnrollmentRetained": true,
+    "existingMfaChallengeRetained": true
+  },
+  "securityInvariants": {
+    "passwordHashing": true,
+    "csrfAndSameOrigin": true,
+    "secureSession": true,
+    "rbac": true,
+    "loginRateLimit": true,
+    "secretMaterialRecorded": false
+  },
+  "release": {
+    "deployedRevision": "189edd749f8d40cdce03e6cc1938c2d1fe35979d",
+    "previousRevision": "5ab7b9928fa7ecc3b04fcf66370e4cc9daee86bd",
+    "remoteBranch": "codex/p7-qs-6-16-0-production-evidence",
+    "remoteRevisionMatched": true,
+    "qualityRunId": 34796291677,
+    "qualityConclusion": "success",
+    "backendImageId": "sha256:a80caf95b11e51f09868e700ebba4d073e32213a938bd2c77418a8bee43c298b",
+    "frontendImageId": "sha256:2a8c9eb3ec10912032675af5eab90d58ffb6c4b24fdaf73434f97cc082fef5ae"
+  },
+  "verification": {
+    "unit": { "total": 1039, "passed": 1031, "skipped": 8, "failed": 0 },
+    "uiContract": { "passed": 47, "failed": 0 },
+    "isolatedDockerPasswordLogin": "PASS",
+    "publicHttpStatus": 200,
+    "publicBrowserState": "EMAIL_PASSWORD_LOGIN_VISIBLE",
+    "recentBackendFatalMatches": 0
+  },
+  "production": {
+    "services": ["backend", "database", "frontend"],
+    "healthyCount": 3,
+    "backendPublishedPorts": 0,
+    "databasePublishedPorts": 0,
+    "frontendBinding": "127.0.0.1:3300",
+    "databaseContainerPreserved": true,
+    "databaseContainerId": "21cd02e609acdceed47e0aa84aefdcc37149c4b2a6c1998a3ac9d49e93f64a65",
+    "inventoryTunnelConnections": 4,
+    "protectedTunnelConnectionsBefore": 4,
+    "protectedTunnelConnectionsAfter": 4,
+    "protectedEndpoints": {
+      "https://sqcm.safe-link.co.kr/os": 200,
+      "https://safe-link.co.kr": 301
+    }
+  },
+  "failureAndFallback": {
+    "ghcrPush": "FAILED_PERMISSION_SCOPE",
+    "repeated": false,
+    "fallback": "EXACT_LOCAL_REPOSITORY_AND_40_CHAR_SHA_IMAGE_CONTRACT",
+    "productionMutationBeforeFallbackVerification": false
+  },
+  "notPerformed": [
+    "DATABASE_MIGRATION",
+    "DATABASE_RECREATION",
+    "SQCM_I_TUNNEL_RESTART_OR_REPLACEMENT",
+    "USER_PASSWORD_OR_TOTP_READ",
+    "P7_COMPLETION_CLAIM"
+  ]
+}

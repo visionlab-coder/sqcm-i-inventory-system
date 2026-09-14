@@ -1,5 +1,7 @@
 # SQCM-i 비품관리 시스템 전체 로드맵
 
+MFA 로그인 간소화(9/14): Production 최초 MFA 등록 의무를 제거하고 이메일·비밀번호 직접 로그인을 배포했다. 선택형 MFA 등록과 기존 MFA 활성 계정의 검증은 유지하며 비밀번호·CSRF·세션·RBAC·rate limit 보안 통제는 그대로다. SHA `189edd7`, quality run `34796291677` SUCCESS, 전체 unit·UI 계약·격리 Docker 로그인·공개 브라우저·Docker 3서비스·DB 불변·Inventory/SQCM-i Tunnel 보존 검증 PASS. P7은 운영 인수 증거가 남아 **7/8** 유지한다. 증거 `P7_OPTIONAL_MFA_LOGIN_SIMPLIFICATION_EVIDENCE.json`, 보고서169.
+
 MFA 운영 복구(9/13): 최초 MFA가 필요한 ADMIN·MANAGER에게 완전한 업무 세션 대신 5분 제한 등록 세션을 발급하고, 등록 완료 뒤에만 인증 세션을 승격하는 경로를 Production에 반영했다. 코드·CI·격리 E2E·공개 정적 자산·Docker3/3·Inventory/SQCM-i tunnel 보존 검증 PASS. master 2계정의 실제 MFA 등록은 사용자 행동으로 남으며 P7 운영 인수는 **7/8** 유지한다. 증거 `P7_MFA_ENROLLMENT_RECOVERY_EVIDENCE.json`, 보고서168.
 
 운영 가용성 복구(9/8): Inventory 전용 cloudflared 종료로 발생한 Error1033을 기존 SQCM-i OS Tunnel 무변경 상태에서 복구했다. Inventory/SQCM-i 연결 각4, 공개 HTTP 각200, Production Docker3/3 healthy다. Limited 권한 로그온＋5분 watchdog 자동 시작을 등록했으며 중복 Inventory 프로세스는 fail-closed한다. DB·이미지·기존 Windows Cloudflared 서비스 변경0. 증거 `PRODUCTION_TUNNEL_RECOVERY_EVIDENCE.json`; R5/P7 Phase 상태는 별도 미완료 Gate를 유지한다.

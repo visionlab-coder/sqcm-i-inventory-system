@@ -81,7 +81,7 @@
       "depends_on": ["production-tunnel-watchdog"],
       "human_entry": "Sign in with the approved company email and current password; optional MFA remains available under Security Settings",
       "agent_entry": "Set PRODUCTION_LOCAL_AUTH_MFA_REQUIRED=false only for the approved Production environment and verify password, CSRF, session, RBAC and rate-limit controls",
-      "status": "LOCAL_VERIFIED_PRODUCTION_NOT_RUN"
+      "status": "OPERATION_VERIFIED"
     }
   ],
   "tests": [
