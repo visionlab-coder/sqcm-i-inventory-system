@@ -56,7 +56,8 @@ failures.push(...validateImmutableImageConfig({
   target,
   releaseTag: value('RELEASE_TAG'),
   backendImage: value('BACKEND_IMAGE'),
-  frontendImage: value('FRONTEND_IMAGE')
+  frontendImage: value('FRONTEND_IMAGE'),
+  allowVerifiedLocalProductionImages: value('ALLOW_VERIFIED_LOCAL_PRODUCTION_IMAGES').toLowerCase() === 'true'
 }));
 if (target !== "local" && !["external", "postgres"].includes((value("FILE_STORAGE_DRIVER") || "local").toLowerCase())) {
   failures.push("External deployments require FILE_STORAGE_DRIVER=external or postgres.");
