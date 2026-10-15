@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "P7-TF13-INITIAL-RESET-20261015",
+  "checkedAt": "2026-10-15T00:21:51.6788066Z",
+  "status": "PASS_TF13_INITIAL_RESET",
+  "environment": "production",
+  "approvalRef": "USER_APPROVAL_TF13_RESET_20261015",
+  "supersedesCredentialPolicyOf": "P7-COMPANY-ACCESS-20261015",
+  "scope": "13 existing active company accounts only; wider employee rollout deferred by user",
+  "deployedSha": "edd552829e9f67b49e0f9ea075f5567d9a96d06c",
+  "accounts": { "targets": 13, "updated": 13, "allInitialPasswordHashesVerified": true, "bcryptCost": 12, "firstLoginChangeRequired": 13, "adminsPreserved": 2, "usersPreserved": 11, "mfaChanged": false, "nonTargetAccountsPreserved": 3, "revokedSessions": 1, "remainingTargetSessions": 0, "auditEvents": 13 },
+  "verification": { "publicInitialLoginSamples": 2, "sampleRoles": ["ADMIN", "USER"], "loginHttp": 200, "passwordResetRequired": true, "businessBeforeChangeHttp": 403, "businessBeforeChangeCode": "PASSWORD_CHANGE_REQUIRED", "logoutHttp": 204, "employeeFinalPasswordChangedByAutomation": false, "employeeUat": "NOT_RUN", "isolatedLifecycleReuseRef": "P7-COMPANY-ACCESS-20261015" },
+  "backup": { "path": "D:/seowon_runtime/sqcm-i-inventory-production/backups/pre-tf13-initial-reset-20261015.dump", "bytes": 3795787, "sha256": "3a29e32f225eace9c2d599e51b3b08833feff2b33b044fda1dda6f86aa6f8373", "archiveListEntries": 656, "archiveReadCheck": "PASS", "actualRestoreThisRun": "NOT_RUN" },
+  "invariants": { "healthyServices": 3, "allProductionContainersUnchanged": true, "inventoryTunnelConnections": 4, "protectedTunnelConnectionsBefore": 4, "protectedTunnelConnectionsAfter": 4, "inventoryHttp": 200, "sqcmOsHttp": 200, "safeLinkHttp": 301, "applicationRedeployed": false, "processesRestarted": false, "secretsRecorded": false, "staffListCommitted": false },
+  "nextAction": "TF employees sign in, change their own password and perform pilot UAT"
+}
