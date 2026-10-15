@@ -17,6 +17,7 @@ const { startMfaSetup, enableMfa, verifyMfaLogin, disableMfa } = require('./serv
 const { MockMalwareScanner } = require('./adapters/mock-malware-scanner');
 const { validateOperationalAdapters } = require('./adapters/contracts');
 const { pkcePair } = require('./adapters/supabase-oidc-provider');
+const { validateStrongPassword, PASSWORD_POLICY_MESSAGE } = require('./password-policy');
 
 function safeReturnPath(value) {
   return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : '/';
@@ -53,15 +54,6 @@ function requiresMfaEnrollment(config, user) {
   return config.localAuthMfaRequired === true
     && ['ADMIN', 'MANAGER'].includes(user?.role)
     && user?.mfa_enabled !== true;
-}
-
-function validateStrongPassword(password) {
-  const value = String(password || '');
-  return value.length >= 12
-    && /[A-Z]/.test(value)
-    && /[a-z]/.test(value)
-    && /\d/.test(value)
-    && /[^A-Za-z0-9]/.test(value);
 }
 
 function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiProvider, eventPublisher }) {
@@ -323,7 +315,7 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiPr
     const currentPassword = String(req.body.currentPassword || '');
     const newPassword = String(req.body.newPassword || '');
     if (!validateStrongPassword(newPassword)) {
-      return apiError(req, res, 400, 'VALIDATION_ERROR', '새 비밀번호는 12자 이상이며 대문자·소문자·숫자·특수문자를 포함해야 합니다.', [{ field: 'newPassword' }]);
+      return apiError(req, res, 400, 'VALIDATION_ERROR', PASSWORD_POLICY_MESSAGE, [{ field: 'newPassword' }]);
     }
 
     const client = await pool.connect();
@@ -419,7 +411,7 @@ function createApp({ pool, config, fileStore, malwareScanner, oidcProvider, aiPr
     const tokenHash = crypto.createHash('sha256').update(String(req.body.token || '')).digest('hex');
     const password = String(req.body.newPassword || '');
     if (!validateStrongPassword(password)) {
-      return apiError(req, res, 400, 'VALIDATION_ERROR', '비밀번호는 12자 이상이며 대문자·소문자·숫자·특수문자를 포함해야 합니다.', [{ field: 'newPassword' }]);
+      return apiError(req, res, 400, 'VALIDATION_ERROR', PASSWORD_POLICY_MESSAGE, [{ field: 'newPassword' }]);
     }
     const client = await pool.connect();
     try {

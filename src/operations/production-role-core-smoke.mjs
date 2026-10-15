@@ -1,3 +1,5 @@
+import passwordPolicy from '../password-policy.js';
+
 export const ROLE_CORE_SMOKE_ROLES = Object.freeze(['ADMIN', 'MANAGER', 'USER']);
 
 export const ROLE_CORE_SMOKE_MATRIX = Object.freeze({
@@ -9,7 +11,7 @@ export const ROLE_CORE_SMOKE_MATRIX = Object.freeze({
 export function validateRoleCredential(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   return typeof value.email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.email)
-    && typeof value.password === 'string' && value.password.length >= 12
+    && typeof value.password === 'string' && value.password.length >= passwordPolicy.MIN_PASSWORD_LENGTH
     && typeof value.totpSecret === 'string' && /^[A-Z2-7]{16,128}$/.test(value.totpSecret);
 }
 

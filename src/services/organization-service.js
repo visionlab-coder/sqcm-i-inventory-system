@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('node:crypto');
 const { DomainError, positiveInteger } = require('./inventory-service');
 const { requirePermission, requireOrganization } = require('./enterprise-service');
+const { validateStrongPassword, PASSWORD_POLICY_MESSAGE } = require('../password-policy');
 
 const UNIT_TYPES = new Set(['CORPORATE', 'HEADQUARTERS', 'DEPARTMENT', 'TEAM']);
 const INVITABLE_ROLES = new Set(['USER', 'MANAGER']);
@@ -44,8 +45,8 @@ function normalizeInvitation(input = {}) {
 }
 
 function validatePassword(password) {
-  if (password.length < 12 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
-    validation('newPassword', '비밀번호는 12자 이상이며 대문자·소문자·숫자·특수문자를 포함해야 합니다.');
+  if (!validateStrongPassword(password)) {
+    validation('newPassword', PASSWORD_POLICY_MESSAGE);
   }
 }
 

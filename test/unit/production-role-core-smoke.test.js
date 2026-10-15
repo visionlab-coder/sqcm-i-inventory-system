@@ -11,9 +11,11 @@ const pass = {
   anonymousItems: 401
 };
 
-test('credential reference는 이메일·12자 비밀번호·Base32 TOTP만 허용한다', async () => {
+test('credential reference는 이메일·10자 이상 비밀번호·Base32 TOTP를 허용한다', async () => {
   const { validateRoleCredential } = await roleSmokeModule;
   assert.equal(validateRoleCredential({ email:'admin@example.com',password:'LongPassword!',totpSecret:'ABCDEFGHIJKLMNOP' }), true);
+  assert.equal(validateRoleCredential({ email:'admin@example.com',password:'lower1234!',totpSecret:'ABCDEFGHIJKLMNOP' }), true);
+  assert.equal(validateRoleCredential({ email:'admin@example.com',password:'lower123!',totpSecret:'ABCDEFGHIJKLMNOP' }), false);
   assert.equal(validateRoleCredential({ email:'bad',password:'short',totpSecret:'secret' }), false);
 });
 

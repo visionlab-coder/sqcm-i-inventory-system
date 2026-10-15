@@ -441,11 +441,11 @@ test('관리자는 조직 팀을 만들고 해시 저장된 초대로 사용자�
     const stored=await pool.query('SELECT token_hash FROM user_invitations WHERE id=$1',[invitationId]);
     assert.notEqual(stored.rows[0].token_hash,token); assert.equal(stored.rows[0].token_hash,crypto.createHash('sha256').update(token).digest('hex'));
     const csrfResponse=await fetch(`${baseUrl}/api/auth/csrf`); const cookie=cookieFrom(csrfResponse); const csrfToken=(await csrfResponse.json()).csrfToken;
-    const accepted=await fetch(`${baseUrl}/api/auth/invitations/accept`,{method:'POST',headers:{cookie,'content-type':'application/json'},body:JSON.stringify({_csrf:csrfToken,token,newPassword:'InvitedUser123!@'})});
+    const accepted=await fetch(`${baseUrl}/api/auth/invitations/accept`,{method:'POST',headers:{cookie,'content-type':'application/json'},body:JSON.stringify({_csrf:csrfToken,token,newPassword:'lower1234!'})});
     assert.equal(accepted.status,201); userId=(await accepted.json()).user.id;
-    const reused=await fetch(`${baseUrl}/api/auth/invitations/accept`,{method:'POST',headers:{cookie,'content-type':'application/json'},body:JSON.stringify({_csrf:csrfToken,token,newPassword:'InvitedUser123!@'})}); assert.equal(reused.status,400);
+    const reused=await fetch(`${baseUrl}/api/auth/invitations/accept`,{method:'POST',headers:{cookie,'content-type':'application/json'},body:JSON.stringify({_csrf:csrfToken,token,newPassword:'lower1234!'})}); assert.equal(reused.status,400);
     const scope=await pool.query('SELECT role_code,scope_type,department_id FROM user_role_scopes WHERE user_id=$1',[userId]); assert.deepEqual(scope.rows[0],{role_code:'USER',scope_type:'DEPARTMENT',department_id:String(unitId)});
-    invited=await login(email,'InvitedUser123!@'); assert.equal(invited.user.departmentId,unitId);
+    invited=await login(email,'lower1234!'); assert.equal(invited.user.departmentId,unitId);
   } finally {
     await removeTestSessions(pool,[admin,employee,invited]);
     if(userId) await pool.query('DELETE FROM audit_logs WHERE actor_user_id=$1 OR (entity_type=\'USER\' AND entity_id=$2)',[userId,String(userId)]);
@@ -521,9 +521,9 @@ test('비밀번호 재설정 토큰은 단회 사용되고 기존 세션을 폐�
     const inserted=await pool.query("INSERT INTO users(email,display_name,password_hash,role,status,organization_id) VALUES($1,'재설정 테스트',$2,'USER','ACTIVE',$3) RETURNING id",[email,hash,organization.rows[0].id]); userId=inserted.rows[0].id;
     const csrfResponse=await fetch(`${baseUrl}/api/auth/csrf`); const cookie=cookieFrom(csrfResponse); const csrfToken=(await csrfResponse.json()).csrfToken;
     const requested=await fetch(`${baseUrl}/api/auth/password-reset/request`,{method:'POST',headers:{cookie,'content-type':'application/json'},body:JSON.stringify({_csrf:csrfToken,email})}); assert.equal(requested.status,200); const token=(await requested.json()).developmentToken; assert.ok(token);
-    const confirmed=await fetch(`${baseUrl}/api/auth/password-reset/confirm`,{method:'POST',headers:{cookie,'content-type':'application/json'},body:JSON.stringify({_csrf:csrfToken,token,newPassword:'AfterReset123!@'})}); assert.equal(confirmed.status,204);
-    const reused=await fetch(`${baseUrl}/api/auth/password-reset/confirm`,{method:'POST',headers:{cookie,'content-type':'application/json'},body:JSON.stringify({_csrf:csrfToken,token,newPassword:'AfterReset123!@'})}); assert.equal(reused.status,400);
-    loggedIn=await login(email,'AfterReset123!@'); assert.equal(loggedIn.user.id,userId);
+    const confirmed=await fetch(`${baseUrl}/api/auth/password-reset/confirm`,{method:'POST',headers:{cookie,'content-type':'application/json'},body:JSON.stringify({_csrf:csrfToken,token,newPassword:'UPPER1234!'})}); assert.equal(confirmed.status,204);
+    const reused=await fetch(`${baseUrl}/api/auth/password-reset/confirm`,{method:'POST',headers:{cookie,'content-type':'application/json'},body:JSON.stringify({_csrf:csrfToken,token,newPassword:'UPPER1234!'})}); assert.equal(reused.status,400);
+    loggedIn=await login(email,'UPPER1234!'); assert.equal(loggedIn.user.id,userId);
   } finally {
     await removeTestSessions(pool,[loggedIn]); if(userId){await pool.query('DELETE FROM password_reset_tokens WHERE user_id=$1',[userId]);await pool.query("DELETE FROM audit_logs WHERE actor_user_id=$1",[userId]);await pool.query('DELETE FROM users WHERE id=$1',[userId]);} await pool.end();
   }
@@ -617,7 +617,7 @@ test('QR 자산 조회는 공개 식별자만 사용하고 인증·조직 범위
 
 test('초기 비밀번호 계정은 업무 API가 차단되고 강한 새 비밀번호 변경 후에만 사용할 수 있다', { skip: !baseUrl || !databaseUrl }, async () => {
   const pool=createPool(databaseUrl); const marker=Date.now().toString().slice(-9); const email=`first-login-${marker}@seowonenc.co.kr`;
-  const initialPassword='TemporaryOnly123!'; const newPassword='EmployeeOwned456!'; let userId; let initialSession; let changedSession; let finalSession;
+  const initialPassword='TemporaryOnly123!'; const newPassword='lower1234!'; let userId; let initialSession; let changedSession; let finalSession;
   try {
     const organization=await pool.query("SELECT id FROM organizations WHERE code='SEOWON'");
     const department=await pool.query("SELECT id FROM departments WHERE organization_id=$1 AND code='HQ'",[organization.rows[0].id]);

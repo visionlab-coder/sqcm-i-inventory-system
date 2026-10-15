@@ -12,11 +12,15 @@ test('Production 로컬 인증은 권한 사용자 MFA를 유지하고 일반 �
   assert.equal(requiresMfaEnrollment({ localAuthMfaRequired: false }, { role:'MANAGER', mfa_enabled:false, password_reset_required:false }), false);
 });
 
-test('새 비밀번호는 12자와 네 종류 문자 조건을 모두 충족한다', () => {
+test('새 비밀번호는 10자 이상 영문·숫자·특수문자를 요구하되 대소문자 혼합은 강제하지 않는다', () => {
   assert.equal(validateStrongPassword('StrongPassword12!'), true);
-  assert.equal(validateStrongPassword('short1!A'), false);
-  assert.equal(validateStrongPassword('lowercase-only-12!'), false);
-  assert.equal(validateStrongPassword('UPPERCASE-ONLY-12!'), false);
+  assert.equal(validateStrongPassword('lower1234!'), true);
+  assert.equal(validateStrongPassword('UPPER1234!'), true);
+  assert.equal(validateStrongPassword('lower123!'), false);
   assert.equal(validateStrongPassword('NoDigitsAllowed!'), false);
   assert.equal(validateStrongPassword('NoSpecial123456'), false);
+  assert.equal(validateStrongPassword('123456789!'), false);
+  assert.equal(validateStrongPassword('lower1234 '), false);
+  assert.equal(validateStrongPassword('lower1234한'), false);
+  assert.equal(validateStrongPassword(null), false);
 });

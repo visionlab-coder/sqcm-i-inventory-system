@@ -58,13 +58,13 @@
         </header>
         <div id="required-password-rules" class="password-requirements">
           <strong>새 비밀번호 조건</strong>
-          <ul><li>12자 이상</li><li>영문 대문자와 소문자 포함</li><li>숫자와 특수문자 포함</li></ul>
+          <ul><li>10자 이상</li><li>영문 포함 (대문자 또는 소문자)</li><li>숫자와 특수문자 포함</li></ul>
         </div>
         <div id="required-password-change-error" class="alert error hidden" role="alert"></div>
         <div class="auth-field-stack">
           <label><span>현재 비밀번호</span><input type="password" name="currentPassword" autocomplete="current-password" required></label>
-          <label><span>새 비밀번호</span><input type="password" name="newPassword" autocomplete="new-password" minlength="12" aria-describedby="required-password-rules" required></label>
-          <label><span>새 비밀번호 확인</span><input type="password" name="passwordConfirm" autocomplete="new-password" minlength="12" aria-describedby="required-password-rules" required></label>
+          <label><span>새 비밀번호</span><input type="password" name="newPassword" autocomplete="new-password" minlength="10" aria-describedby="required-password-rules" required></label>
+          <label><span>새 비밀번호 확인</span><input type="password" name="passwordConfirm" autocomplete="new-password" minlength="10" aria-describedby="required-password-rules" required></label>
         </div>
         <div class="auth-form-actions">
           <button class="primary full" type="submit">새 비밀번호로 시작하기</button>
@@ -74,11 +74,11 @@
       <form id="invitation-form" class="login-form hidden">
         <p class="eyebrow">ACCOUNT ACTIVATION</p>
         <h2>초대 계정 활성화</h2>
-        <p class="muted">12자 이상이며 대문자·소문자·숫자·특수문자를 포함한 비밀번호를 설정하세요.</p>
+        <p class="muted">10자 이상이며 영문·숫자·특수문자를 포함한 비밀번호를 설정하세요. 대소문자 혼합은 필요하지 않습니다.</p>
         <div id="invitation-error" class="alert error hidden" role="alert"></div>
         <input type="hidden" name="token">
-        <label>새 비밀번호<input type="password" name="newPassword" autocomplete="new-password" minlength="12" required></label>
-        <label>비밀번호 확인<input type="password" name="passwordConfirm" autocomplete="new-password" minlength="12" required></label>
+        <label>새 비밀번호<input type="password" name="newPassword" autocomplete="new-password" minlength="10" required></label>
+        <label>비밀번호 확인<input type="password" name="passwordConfirm" autocomplete="new-password" minlength="10" required></label>
         <button class="primary full" type="submit">계정 활성화</button>
         <button class="link full" id="invitation-back" type="button">로그인으로 돌아가기</button>
       </form>
@@ -118,6 +118,6 @@
   <script src="/ui-components.js?v=20260810-p2" defer></script>
   <script src="/session-boundary.js?v=20260907-scope" defer></script>
   <script src="/offline-stocktake.js?v=20260907-scope" defer></script>
-  <script src="/app.js?v=20260914-dashboard-balance" defer></script>
+  <script src="/app.js?v=20261015-password-policy" defer></script>
 </body>
 </html>
