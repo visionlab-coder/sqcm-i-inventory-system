@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "P7-COMPANY-ACCESS-20261015",
+  "checkedAt": "2026-10-15T00:12:52Z",
+  "status": "PARTIAL_WAIT_FULL_ROSTER",
+  "environment": "production",
+  "publicBaseUrl": "https://inventory.safe-link.co.kr",
+  "sourceSha": "edd552829e9f67b49e0f9ea075f5567d9a96d06c",
+  "harness": { "check": "PASS", "currentPhase": "P7", "completedPhases": 7 },
+  "server": { "healthyServices": 3, "publicHttp": 200, "readinessHttp": 200, "database": "up", "storage": "ok", "malware": "ok", "anonymousBusinessHttp": 401, "frontendBinding": "127.0.0.1:3300", "backendHostPorts": 0, "databaseHostPorts": 0 },
+  "roster": {
+    "sourceRef": "external-local://SQCM-i/control-tower/tf_team.json",
+    "totalSeats": 13,
+    "activeCompanyEmails": 11,
+    "matchedBefore": 9,
+    "missingBefore": 2,
+    "created": 2,
+    "newRole": "USER",
+    "updatedInitialCredentials": 8,
+    "newInitialCredentialsAlreadyMatched": 2,
+    "companyAccountsAfter": 13,
+    "initialChangeRequiredAfter": 10,
+    "changedPasswordAccountsPreserved": 3,
+    "fullEmployeeRoster": "MISSING",
+    "fullCompanyCoverageVerified": false,
+    "arbitraryDomainRegistrationEnabled": false
+  },
+  "verification": { "companyProvisioningUnitPass": 3, "isolatedHttpDbChecks": 7, "isolatedLifecycleTestsPass": 2, "publicInitialLoginSamples": 2, "loginHttp": 200, "passwordResetRequired": true, "businessBeforeChangeHttp": 403, "businessBeforeChangeCode": "PASSWORD_CHANGE_REQUIRED", "logoutHttp": 204, "requestedAccountActiveAdminUnlocked": true, "employeeFinalPasswordChangedByAutomation": false, "employeeUat": "NOT_RUN" },
+  "backup": { "path": "D:/seowon_runtime/sqcm-i-inventory-production/backups/pre-company-login-20261015.dump", "bytes": 3794473, "sha256": "62a1465d2f5011f0d64adea71e6323bbf7613e7597fbc8f440e4288c62a174ed", "archiveListEntries": 656, "archiveReadCheck": "PASS", "actualRestoreThisRun": "NOT_RUN" },
+  "invariants": { "services": ["frontend", "backend", "database"], "databaseContainerId": "21cd02e609acdceed47e0aa84aefdcc37149c4b2a6c1998a3ac9d49e93f64a65", "databaseContainerUnchanged": true, "existingRolesMfaAndNonTargetCredentialsPreserved": true, "inventoryTunnelConnections": 4, "protectedTunnelConnectionsBefore": 4, "protectedTunnelConnectionsAfter": 4, "sqcmOsHttp": 200, "safeLinkHttp": 301, "applicationRedeployed": false, "processesRestarted": false, "secretsRecorded": false, "staffListCommitted": false },
+  "nextReady": "PROVIDE_VERIFIED_FULL_COMPANY_EMAIL_ROSTER"
+}
