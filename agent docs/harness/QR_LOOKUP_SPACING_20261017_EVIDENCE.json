@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "QR-LOOKUP-SPACING-20261017",
+  "dateKst": "2026-10-17",
+  "status": "PASS_PRODUCTION_LAYOUT",
+  "sourceSha": "0c7ba0cb001bc1123860dab834a33bb857a92ffe",
+  "previousFrontendSha": "1e0f9145e1f4e93f9d7b7485319a33815c159321",
+  "local": { "syntaxFiles": 501, "unitPass": 1031, "unitFail": 0, "unitSkip": 8, "uiContractPass": 47, "focusedPass": 4, "exitCode": 0 },
+  "ci": { "runId": 38982935955, "conclusion": "success", "headShaMatches": true, "jobs": ["unit", "three-tier-integration"] },
+  "browser": {
+    "environment": "production authenticated existing session",
+    "desktop": { "viewportWidth": 1440, "viewportHeight": 1000, "paddingPx": 24, "documentClientWidth": 1440, "documentScrollWidth": 1440, "cardClientWidths": [477,646], "cardScrollWidths": [477,646] },
+    "mobile": { "viewportWidth": 390, "viewportHeight": 844, "paddingPx": 16, "documentClientWidth": 375, "documentScrollWidth": 375, "cardClientWidths": [341,341], "cardScrollWidths": [341,341], "navigationClosed": true },
+    "visualReview": "PASS",
+    "viewportRestored": true,
+    "cameraPermissionRequested": false,
+    "realAssetLookup": "NOT_RUN"
+  },
+  "production": { "frontendImageId": "sha256:39310e5efc5559fafae28a8bc32fc98a2d47420b1c2bb0269cba4051551b024b", "frontendContainer": "6db41487eae7", "backendContainer": "bd1c381ffae0", "databaseContainer": "21cd02e609ac", "backendContainerUnchanged": true, "databaseContainerUnchanged": true, "healthyServices": 3, "backendHostPorts": 0, "databaseHostPorts": 0, "smoke": "PASS", "inventoryTunnelConnections": 4, "protectedTunnelConnections": 4, "protectedSqcmHttp": 200, "safeLinkHttp": 301, "rollbackExecuted": false },
+  "skill": { "id": "sqcm-i-qr-lookup", "manualReview": "PASS", "quickValidate": "NOT_RUN_PYTHON_UNAVAILABLE", "unrelatedRegistryLegacyStatusPreserved": true },
+  "credentialsChanged": false,
+  "databaseWrites": false,
+  "secretsRecorded": false,
+  "phaseCompletionChanged": false
+}

@@ -3,6 +3,12 @@
   "inventoryScope": "Registered high-risk and operator-facing feature subset; registry count does not assert full-product coverage",
   "skills": [
     {
+      "id": "sqcm-i-qr-lookup",
+      "path": "D:/seowon_projects/sqcm-i-inventory-system/.agents/skills/sqcm-i-qr-lookup/SKILL.md",
+      "depends_on": [],
+      "tests": ["qr-layout-regression"]
+    },
+    {
       "id": "sqcm-i-company-login",
       "path": "D:/seowon_projects/sqcm-i-inventory-system/.agents/skills/sqcm-i-company-login/SKILL.md",
       "depends_on": ["bamsoft-login-lifecycle"],
@@ -28,6 +34,16 @@
     }
   ],
   "features": [
+    {
+      "id": "qr-lookup-layout",
+      "label": "QR lookup card spacing and responsive containment",
+      "sources": ["D:/seowon_projects/sqcm-i-inventory-system/frontend/experience.css"],
+      "skills": ["sqcm-i-qr-lookup"],
+      "depends_on": [],
+      "human_entry": "Open QR asset lookup; use manual identifier or explicitly start camera",
+      "agent_entry": "Observe QR panel padding and overflow at 390px and 1440px; do not grant camera permission",
+      "status": "OPERATION_VERIFIED"
+    },
     {
       "id": "r5-production-deployment-driver",
       "label": "R5 fail-closed Production deployment and recovery",
@@ -96,6 +112,7 @@
     }
   ],
   "tests": [
+    {"id":"qr-layout-regression","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/offline-stocktake-pwa.test.js","D:/seowon_projects/sqcm-i-inventory-system/test/unit/ui-contract.test.js"],"command":"npm.cmd run ui:contract; node --test test/unit/offline-stocktake-pwa.test.js test/unit/ui-contract.test.js; browser viewport 390 and 1440 padding and overflow observation","status":"OPERATION_VERIFIED"},
     {"id":"company-password-lifecycle","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/integration/http-smoke.test.js","D:/seowon_projects/sqcm-i-inventory-system/test/unit/production-role-core-smoke.test.js"],"command":"npm.cmd run test:integration in an isolated seeded environment; never use production for synthetic accounts","status":"OPERATION_VERIFIED"},
     {"id":"r5-driver-unit","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/r5-deployment-executor.test.js","D:/seowon_projects/sqcm-i-inventory-system/test/unit/r5-production-driver-preflight.test.js","D:/seowon_projects/sqcm-i-inventory-system/test/unit/r5-mutation-driver.test.js"],"command":"node --test test/unit/r5-deployment-executor.test.js test/unit/r5-production-driver-preflight.test.js test/unit/r5-mutation-driver.test.js","status":"OPERATION_VERIFIED"},
     {"id":"r5-isolated-recovery","paths":["D:/seowon_projects/sqcm-i-inventory-system/scripts/r5-isolated-recovery-rehearsal.mjs"],"command":"run both migrate and switchImages failure injections against the exact candidate","status":"OPERATION_VERIFIED"},
