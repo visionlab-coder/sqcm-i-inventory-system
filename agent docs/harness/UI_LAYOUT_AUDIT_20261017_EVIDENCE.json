@@ -1,0 +1,3684 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "UI-LAYOUT-AUDIT-20261017",
+  "dateKst": "2026-10-17",
+  "status": "PASS_PRODUCTION_LAYOUT",
+  "sourceSha": "63aed8b6a58bbb00e1359fc81d1d6f7c214a7e2b",
+  "previousFrontendSha": "0c7ba0cb001bc1123860dab834a33bb857a92ffe",
+  "scope": {
+    "role": "existing ADMIN session",
+    "menus": 14,
+    "primaryScreens": 28,
+    "subtabScreens": 14,
+    "intermediateScreens": 10,
+    "syntheticWidths": [
+      1440,
+      1024,
+      768,
+      390,
+      360
+    ],
+    "realBusinessSubmissions": 0,
+    "accountChanges": 0
+  },
+  "verification": {
+    "syntaxFiles": 502,
+    "unitPass": 1031,
+    "unitFail": 0,
+    "unitSkip": 8,
+    "uiContractPass": 47,
+    "focusedPass": 4,
+    "ci": {
+      "runId": 38989593591,
+      "conclusion": "success",
+      "headShaMatches": true,
+      "jobs": [
+        "unit",
+        "three-tier-integration"
+      ]
+    },
+    "keyboardSynthetic": {
+      "nextFieldType": "datetime-local",
+      "focusOutlinePx": 3
+    },
+    "promptContract": {
+      "status": "PASS",
+      "groupsPassed": 8,
+      "groupsTotal": 8,
+      "warnings": 0
+    },
+    "skillImpact": "IMPACT_PLANNED_SCOPED_TWO_FEATURES",
+    "skillQuickValidate": "BLOCKED_PYYAML_DEPENDENCY",
+    "skillManualStructureReview": "PASS"
+  },
+  "production": {
+    "frontendImageId": "sha256:85c8812f5eaec973937a6f1a8e0a29d1eee19ac9bdf16bacf5f8a8af5c29a5ea",
+    "frontendContainer": "457fc23f4cf7",
+    "backendContainer": "bd1c381ffae0",
+    "databaseContainer": "21cd02e609ac",
+    "backendContainerUnchanged": true,
+    "databaseContainerUnchanged": true,
+    "healthyServices": 3,
+    "backendHostPorts": 0,
+    "databaseHostPorts": 0,
+    "smoke": "PASS",
+    "inventoryTunnelConnections": 4,
+    "protectedTunnelConnections": 4,
+    "sqcmOsHttp": 200,
+    "safeLinkHttp": 301,
+    "rollbackExecuted": false
+  },
+  "summary": {
+    "layoutFailures": 0,
+    "viewportRestored": true,
+    "cameraPermissionRequested": false,
+    "employeeWorkflowUat": "NOT_RUN",
+    "allDataStatesCovered": false,
+    "phaseCompletionChanged": false,
+    "secretsRecorded": false
+  },
+  "screenshots": [
+    "docs/screenshots/ui-layout-20261017-desktop.jpg",
+    "docs/screenshots/ui-layout-20261017-mobile.jpg"
+  ],
+  "before": [
+    {
+      "menu": "대시보드",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel product-position",
+          "cw": 1119,
+          "padding": "36px",
+          "sw": 1119
+        },
+        {
+          "cls": "panel",
+          "cw": 1126,
+          "padding": "0px",
+          "sw": 1126
+        }
+      ],
+      "route": "#view=dashboard",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440
+    },
+    {
+      "menu": "내 비품",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel self-assets",
+          "cw": 1126,
+          "padding": "0px",
+          "sw": 1126
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel self-alerts",
+          "cw": 1126,
+          "padding": "0px",
+          "sw": 1126
+        }
+      ],
+      "route": "#view=self-service",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440
+    },
+    {
+      "menu": "자산 목록",
+      "client": 1440,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel",
+          "cw": 1141,
+          "padding": "0px",
+          "sw": 1141
+        }
+      ],
+      "route": "#view=assets",
+      "scroll": 1440,
+      "tightButtons": [],
+      "width": 1440
+    },
+    {
+      "menu": "QR 자산 조회",
+      "client": 1440,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel qr-scan-card",
+          "cw": 477,
+          "padding": "24px",
+          "sw": 477
+        },
+        {
+          "cls": "panel qr-result",
+          "cw": 646,
+          "padding": "24px",
+          "sw": 646
+        }
+      ],
+      "route": "#view=qr-scan",
+      "scroll": 1440,
+      "tightButtons": [],
+      "width": 1440
+    },
+    {
+      "menu": "자산 등록",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel import-panel",
+          "cw": 1126,
+          "padding": "0px",
+          "sw": 1126
+        },
+        {
+          "cls": "panel step-panel",
+          "cw": 1126,
+          "padding": "0px",
+          "sw": 1126
+        }
+      ],
+      "route": "#view=asset-register",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440
+    },
+    {
+      "menu": "배정·반납",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 398,
+          "padding": "0px",
+          "sw": 398
+        },
+        {
+          "cls": "panel",
+          "cw": 710,
+          "padding": "0px",
+          "sw": 710
+        }
+      ],
+      "route": "#view=assignments",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440
+    },
+    {
+      "menu": "요청함",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [
+        {
+          "cls": "workflow-shell",
+          "cw": 240,
+          "sw": 320,
+          "tag": "DIV"
+        }
+      ],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 1126,
+          "padding": "22.4px",
+          "sw": 1126
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 1126,
+          "padding": "22.4px",
+          "sw": 1126
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        }
+      ],
+      "route": "#view=requests",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440
+    },
+    {
+      "menu": "재물조사",
+      "client": 1440,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 1141,
+          "padding": "22.4px",
+          "sw": 1141
+        },
+        {
+          "cls": "panel",
+          "cw": 1141,
+          "padding": "0px",
+          "sw": 1141
+        }
+      ],
+      "route": "#view=stocktakes",
+      "scroll": 1440,
+      "tightButtons": [],
+      "width": 1440
+    },
+    {
+      "menu": "수리 관리",
+      "client": 1440,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 1141,
+          "padding": "22.4px",
+          "sw": 1141
+        },
+        {
+          "cls": "panel",
+          "cw": 1141,
+          "padding": "0px",
+          "sw": 1141
+        }
+      ],
+      "route": "#view=repairs",
+      "scroll": 1440,
+      "tightButtons": [],
+      "width": 1440
+    },
+    {
+      "menu": "Cost Command Center",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 1126,
+          "padding": "0px",
+          "sw": 1126
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 1126,
+          "padding": "22.4px",
+          "sw": 1126
+        }
+      ],
+      "route": "#view=cost-control",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440
+    },
+    {
+      "menu": "보고서",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 1126,
+          "padding": "22.4px",
+          "sw": 1126
+        },
+        {
+          "cls": "panel report-amount",
+          "cw": 1126,
+          "padding": "0px",
+          "sw": 1126
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        }
+      ],
+      "route": "#view=reports",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440
+    },
+    {
+      "menu": "관리자",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [
+        {
+          "cls": "panel form-panel",
+          "cw": 553,
+          "sw": 1003,
+          "tag": "ARTICLE"
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 553,
+          "sw": 1003,
+          "tag": "ARTICLE"
+        }
+      ],
+      "loading": false,
+      "outside": [
+        {
+          "cls": "grid-form",
+          "id": "invite-create",
+          "right": 1813,
+          "tag": "FORM",
+          "w": 686
+        },
+        {
+          "cls": "",
+          "id": "",
+          "right": 1579,
+          "tag": "LABEL",
+          "w": 218
+        },
+        {
+          "cls": "",
+          "id": "",
+          "right": 1579,
+          "tag": "INPUT",
+          "w": 218
+        },
+        {
+          "cls": "",
+          "id": "",
+          "right": 1813,
+          "tag": "LABEL",
+          "w": 218
+        },
+        {
+          "cls": "",
+          "id": "",
+          "right": 1813,
+          "tag": "SELECT",
+          "w": 218
+        },
+        {
+          "cls": "",
+          "id": "",
+          "right": 1579,
+          "tag": "LABEL",
+          "w": 218
+        },
+        {
+          "cls": "",
+          "id": "",
+          "right": 1579,
+          "tag": "SELECT",
+          "w": 218
+        },
+        {
+          "cls": "",
+          "id": "",
+          "right": 1813,
+          "tag": "LABEL",
+          "w": 218
+        },
+        {
+          "cls": "",
+          "id": "",
+          "right": 1813,
+          "tag": "INPUT",
+          "w": 218
+        }
+      ],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 553,
+          "padding": "22.4px",
+          "sw": 1003
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 553,
+          "padding": "22.4px",
+          "sw": 1003
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 1126,
+          "padding": "22.4px",
+          "sw": 1126
+        },
+        {
+          "cls": "panel reference-console",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        }
+      ],
+      "route": "#view=admin",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440
+    },
+    {
+      "menu": "감사 로그",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [
+        {
+          "cls": "",
+          "cw": 397,
+          "sw": 536,
+          "tag": "LABEL"
+        }
+      ],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 1126,
+          "padding": "22.4px",
+          "sw": 1126
+        },
+        {
+          "cls": "panel audit-ledger",
+          "cw": 1126,
+          "padding": "0px",
+          "sw": 1126
+        }
+      ],
+      "route": "#view=audit",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440
+    },
+    {
+      "menu": "보안 설정",
+      "client": 1440,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 1141,
+          "padding": "22.4px",
+          "sw": 1141
+        }
+      ],
+      "route": "#view=security",
+      "scroll": 1440,
+      "tightButtons": [],
+      "width": 1440
+    },
+    {
+      "menu": "대시보드",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel product-position",
+          "cw": 334,
+          "padding": "20px",
+          "sw": 334
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=dashboard",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390
+    },
+    {
+      "menu": "내 비품",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel self-assets",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel self-alerts",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=self-service",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390
+    },
+    {
+      "menu": "자산 목록",
+      "client": 390,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel",
+          "cw": 356,
+          "padding": "0px",
+          "sw": 356
+        }
+      ],
+      "route": "#view=assets",
+      "scroll": 390,
+      "tightButtons": [],
+      "width": 390
+    },
+    {
+      "menu": "QR 자산 조회",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel qr-scan-card",
+          "cw": 341,
+          "padding": "16px",
+          "sw": 341
+        },
+        {
+          "cls": "panel qr-result",
+          "cw": 341,
+          "padding": "16px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=qr-scan",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390
+    },
+    {
+      "menu": "자산 등록",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [
+        {
+          "cls": "import-actions",
+          "cw": 293,
+          "sw": 298,
+          "tag": "DIV"
+        }
+      ],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel import-panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel step-panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=asset-register",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390
+    },
+    {
+      "menu": "배정·반납",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=assignments",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390
+    },
+    {
+      "menu": "요청함",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        }
+      ],
+      "route": "#view=requests",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390
+    },
+    {
+      "menu": "재물조사",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=stocktakes",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390
+    },
+    {
+      "menu": "수리 관리",
+      "client": 390,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 356,
+          "padding": "22.4px",
+          "sw": 356
+        },
+        {
+          "cls": "panel",
+          "cw": 356,
+          "padding": "0px",
+          "sw": 356
+        }
+      ],
+      "route": "#view=repairs",
+      "scroll": 390,
+      "tightButtons": [],
+      "width": 390
+    },
+    {
+      "menu": "Cost Command Center",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=cost-control",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390
+    },
+    {
+      "menu": "보고서",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel report-amount",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=reports",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390
+    },
+    {
+      "menu": "관리자",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel reference-console",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=admin",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390
+    },
+    {
+      "menu": "감사 로그",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "sw": 581,
+          "tag": "SECTION"
+        }
+      ],
+      "loading": false,
+      "outside": [
+        {
+          "cls": "",
+          "id": "",
+          "right": 575,
+          "tag": "DIV",
+          "w": 536
+        },
+        {
+          "cls": "",
+          "id": "",
+          "right": 575,
+          "tag": "H2",
+          "w": 536
+        },
+        {
+          "cls": "muted",
+          "id": "",
+          "right": 575,
+          "tag": "P",
+          "w": 536
+        },
+        {
+          "cls": "grid-form enterprise-form",
+          "id": "audit-filter",
+          "right": 575,
+          "tag": "FORM",
+          "w": 536
+        },
+        {
+          "cls": "",
+          "id": "",
+          "right": 575,
+          "tag": "LABEL",
+          "w": 536
+        },
+        {
+          "cls": "",
+          "id": "",
+          "right": 575,
+          "tag": "INPUT",
+          "w": 536
+        },
+        {
+          "cls": "",
+          "id": "",
+          "right": 575,
+          "tag": "LABEL",
+          "w": 536
+        },
+        {
+          "cls": "",
+          "id": "",
+          "right": 575,
+          "tag": "INPUT",
+          "w": 536
+        },
+        {
+          "cls": "",
+          "id": "",
+          "right": 575,
+          "tag": "LABEL",
+          "w": 536
+        },
+        {
+          "cls": "",
+          "id": "",
+          "right": 575,
+          "tag": "SELECT",
+          "w": 536
+        },
+        {
+          "cls": "",
+          "id": "",
+          "right": 575,
+          "tag": "LABEL",
+          "w": 536
+        },
+        {
+          "cls": "",
+          "id": "",
+          "right": 575,
+          "tag": "INPUT",
+          "w": 536
+        },
+        {
+          "cls": "",
+          "id": "",
+          "right": 575,
+          "tag": "LABEL",
+          "w": 536
+        },
+        {
+          "cls": "",
+          "id": "",
+          "right": 575,
+          "tag": "INPUT",
+          "w": 536
+        }
+      ],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 581
+        },
+        {
+          "cls": "panel audit-ledger",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=audit",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390
+    },
+    {
+      "menu": "보안 설정",
+      "client": 390,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 356,
+          "padding": "22.4px",
+          "sw": 356
+        }
+      ],
+      "route": "#view=security",
+      "scroll": 390,
+      "tightButtons": [],
+      "width": 390
+    }
+  ],
+  "after": [
+    {
+      "menu": "대시보드",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel product-position",
+          "cw": 1119,
+          "padding": "36px",
+          "sw": 1119
+        },
+        {
+          "cls": "panel",
+          "cw": 1126,
+          "padding": "0px",
+          "sw": 1126
+        }
+      ],
+      "route": "#view=dashboard",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "내 비품",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel self-assets",
+          "cw": 1126,
+          "padding": "0px",
+          "sw": 1126
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel self-alerts",
+          "cw": 1126,
+          "padding": "0px",
+          "sw": 1126
+        }
+      ],
+      "route": "#view=self-service",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "자산 목록",
+      "client": 1440,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel",
+          "cw": 1141,
+          "padding": "0px",
+          "sw": 1141
+        }
+      ],
+      "route": "#view=assets",
+      "scroll": 1440,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "QR 자산 조회",
+      "client": 1440,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel qr-scan-card",
+          "cw": 477,
+          "padding": "24px",
+          "sw": 477
+        },
+        {
+          "cls": "panel qr-result",
+          "cw": 646,
+          "padding": "24px",
+          "sw": 646
+        }
+      ],
+      "route": "#view=qr-scan",
+      "scroll": 1440,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "자산 등록",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel import-panel",
+          "cw": 1126,
+          "padding": "0px",
+          "sw": 1126
+        },
+        {
+          "cls": "panel step-panel",
+          "cw": 1126,
+          "padding": "0px",
+          "sw": 1126
+        }
+      ],
+      "route": "#view=asset-register",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "배정·반납",
+      "client": 1440,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 404,
+          "padding": "0px",
+          "sw": 404
+        },
+        {
+          "cls": "panel",
+          "cw": 719,
+          "padding": "0px",
+          "sw": 719
+        }
+      ],
+      "route": "#view=assignments",
+      "scroll": 1440,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "요청함",
+      "client": 1440,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 1141,
+          "padding": "22.4px",
+          "sw": 1141
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        }
+      ],
+      "route": "#view=requests",
+      "scroll": 1440,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "재물조사",
+      "client": 1440,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 1141,
+          "padding": "22.4px",
+          "sw": 1141
+        },
+        {
+          "cls": "panel",
+          "cw": 1141,
+          "padding": "0px",
+          "sw": 1141
+        }
+      ],
+      "route": "#view=stocktakes",
+      "scroll": 1440,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "수리 관리",
+      "client": 1440,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 1141,
+          "padding": "22.4px",
+          "sw": 1141
+        },
+        {
+          "cls": "panel",
+          "cw": 1141,
+          "padding": "0px",
+          "sw": 1141
+        }
+      ],
+      "route": "#view=repairs",
+      "scroll": 1440,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "Cost Command Center",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 1126,
+          "padding": "0px",
+          "sw": 1126
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 1126,
+          "padding": "22.4px",
+          "sw": 1126
+        }
+      ],
+      "route": "#view=cost-control",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "보고서",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 1126,
+          "padding": "22.4px",
+          "sw": 1126
+        },
+        {
+          "cls": "panel report-amount",
+          "cw": 1126,
+          "padding": "24px",
+          "sw": 1126
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        }
+      ],
+      "route": "#view=reports",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": "24px"
+    },
+    {
+      "menu": "관리자",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 553,
+          "padding": "22.4px",
+          "sw": 553
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 553,
+          "padding": "22.4px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel reference-console",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        }
+      ],
+      "route": "#view=admin",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "감사 로그",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 1126,
+          "padding": "22.4px",
+          "sw": 1126
+        },
+        {
+          "cls": "panel audit-ledger",
+          "cw": 1126,
+          "padding": "0px",
+          "sw": 1126
+        }
+      ],
+      "route": "#view=audit",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "보안 설정",
+      "client": 1440,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 1141,
+          "padding": "22.4px",
+          "sw": 1141
+        }
+      ],
+      "route": "#view=security",
+      "scroll": 1440,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "대시보드",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel product-position",
+          "cw": 334,
+          "padding": "20px",
+          "sw": 334
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=dashboard",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "내 비품",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel self-assets",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel self-alerts",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=self-service",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "자산 목록",
+      "client": 390,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel",
+          "cw": 356,
+          "padding": "0px",
+          "sw": 356
+        }
+      ],
+      "route": "#view=assets",
+      "scroll": 390,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "QR 자산 조회",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel qr-scan-card",
+          "cw": 341,
+          "padding": "16px",
+          "sw": 341
+        },
+        {
+          "cls": "panel qr-result",
+          "cw": 341,
+          "padding": "16px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=qr-scan",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "자산 등록",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel import-panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel step-panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=asset-register",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "배정·반납",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=assignments",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "요청함",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        }
+      ],
+      "route": "#view=requests",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "재물조사",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=stocktakes",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "수리 관리",
+      "client": 390,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 356,
+          "padding": "22.4px",
+          "sw": 356
+        },
+        {
+          "cls": "panel",
+          "cw": 356,
+          "padding": "0px",
+          "sw": 356
+        }
+      ],
+      "route": "#view=repairs",
+      "scroll": 390,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "Cost Command Center",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=cost-control",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "보고서",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel report-amount",
+          "cw": 341,
+          "padding": "16px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=reports",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": "16px"
+    },
+    {
+      "menu": "관리자",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel reference-console",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        }
+      ],
+      "route": "#view=admin",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "감사 로그",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel audit-ledger",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=audit",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "보안 설정",
+      "client": 390,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 356,
+          "padding": "22.4px",
+          "sw": 356
+        }
+      ],
+      "route": "#view=security",
+      "scroll": 390,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    }
+  ],
+  "subtabs": [
+    {
+      "menu": "관리자",
+      "subtab": "조직·초대",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 553,
+          "padding": "22.4px",
+          "sw": 553
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 553,
+          "padding": "22.4px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel reference-console",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        }
+      ],
+      "route": "#view=admin",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "관리자",
+      "subtab": "승인 정책",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 1126,
+          "padding": "22.4px",
+          "sw": 1126
+        },
+        {
+          "cls": "panel reference-console",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        }
+      ],
+      "route": "#view=admin",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "관리자",
+      "subtab": "기준정보",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel reference-console",
+          "cw": 1126,
+          "padding": "0px",
+          "sw": 1126
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        }
+      ],
+      "route": "#view=admin",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "관리자",
+      "subtab": "사용자·이벤트",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel reference-console",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        },
+        {
+          "cls": "panel",
+          "cw": 553,
+          "padding": "0px",
+          "sw": 553
+        }
+      ],
+      "route": "#view=admin",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "요청함",
+      "subtab": "요청 작성",
+      "client": 1440,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 1141,
+          "padding": "22.4px",
+          "sw": 1141
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        }
+      ],
+      "route": "#view=requests",
+      "scroll": 1440,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "요청함",
+      "subtab": "승인 큐",
+      "client": 1440,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 1141,
+          "padding": "0px",
+          "sw": 1141
+        }
+      ],
+      "route": "#view=requests",
+      "scroll": 1440,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "요청함",
+      "subtab": "발주·입고·검수",
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 1126,
+          "padding": "22.4px",
+          "sw": 1126
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        }
+      ],
+      "route": "#view=requests",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "관리자",
+      "subtab": "조직·초대",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel reference-console",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        }
+      ],
+      "route": "#view=admin",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "관리자",
+      "subtab": "승인 정책",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel reference-console",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        }
+      ],
+      "route": "#view=admin",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "관리자",
+      "subtab": "기준정보",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel reference-console",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        }
+      ],
+      "route": "#view=admin",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "관리자",
+      "subtab": "사용자·이벤트",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel reference-console",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        }
+      ],
+      "route": "#view=admin",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "요청함",
+      "subtab": "요청 작성",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        }
+      ],
+      "route": "#view=requests",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "요청함",
+      "subtab": "승인 큐",
+      "client": 390,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 356,
+          "padding": "0px",
+          "sw": 356
+        }
+      ],
+      "route": "#view=requests",
+      "scroll": 390,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "요청함",
+      "subtab": "발주·입고·검수",
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        }
+      ],
+      "route": "#view=requests",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    }
+  ],
+  "intermediate": [
+    {
+      "menu": "관리자",
+      "client": 1009,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel reference-console",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 345,
+          "padding": "0px",
+          "sw": 345
+        },
+        {
+          "cls": "panel",
+          "cw": 345,
+          "padding": "0px",
+          "sw": 345
+        }
+      ],
+      "route": "#view=admin",
+      "scroll": 1009,
+      "tightButtons": [],
+      "width": 1024,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "감사 로그",
+      "client": 1009,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 710,
+          "padding": "22.4px",
+          "sw": 710
+        },
+        {
+          "cls": "panel audit-ledger",
+          "cw": 710,
+          "padding": "0px",
+          "sw": 710
+        }
+      ],
+      "route": "#view=audit",
+      "scroll": 1009,
+      "tightButtons": [],
+      "width": 1024,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "요청함",
+      "client": 1009,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 710,
+          "padding": "22.4px",
+          "sw": 710
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        }
+      ],
+      "route": "#view=requests",
+      "scroll": 1009,
+      "tightButtons": [],
+      "width": 1024,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "자산 등록",
+      "client": 1009,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel import-panel",
+          "cw": 710,
+          "padding": "0px",
+          "sw": 710
+        },
+        {
+          "cls": "panel step-panel",
+          "cw": 710,
+          "padding": "0px",
+          "sw": 710
+        }
+      ],
+      "route": "#view=asset-register",
+      "scroll": 1009,
+      "tightButtons": [],
+      "width": 1024,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "보고서",
+      "client": 1009,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 710,
+          "padding": "22.4px",
+          "sw": 710
+        },
+        {
+          "cls": "panel report-amount",
+          "cw": 710,
+          "padding": "20.48px",
+          "sw": 710
+        },
+        {
+          "cls": "panel",
+          "cw": 345,
+          "padding": "0px",
+          "sw": 345
+        },
+        {
+          "cls": "panel",
+          "cw": 345,
+          "padding": "0px",
+          "sw": 345
+        },
+        {
+          "cls": "panel",
+          "cw": 345,
+          "padding": "0px",
+          "sw": 345
+        },
+        {
+          "cls": "panel",
+          "cw": 345,
+          "padding": "0px",
+          "sw": 345
+        }
+      ],
+      "route": "#view=reports",
+      "scroll": 1009,
+      "tightButtons": [],
+      "width": 1024,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": "20.48px"
+    },
+    {
+      "menu": "관리자",
+      "client": 753,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel reference-console",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        },
+        {
+          "cls": "panel",
+          "cw": 484,
+          "padding": "0px",
+          "sw": 484
+        },
+        {
+          "cls": "panel",
+          "cw": 484,
+          "padding": "0px",
+          "sw": 484
+        }
+      ],
+      "route": "#view=admin",
+      "scroll": 753,
+      "tightButtons": [],
+      "width": 768,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "감사 로그",
+      "client": 753,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 484,
+          "padding": "22.4px",
+          "sw": 484
+        },
+        {
+          "cls": "panel audit-ledger",
+          "cw": 484,
+          "padding": "0px",
+          "sw": 484
+        }
+      ],
+      "route": "#view=audit",
+      "scroll": 753,
+      "tightButtons": [],
+      "width": 768,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "요청함",
+      "client": 753,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 484,
+          "padding": "22.4px",
+          "sw": 484
+        },
+        {
+          "cls": "panel",
+          "cw": 0,
+          "padding": "0px",
+          "sw": 0
+        }
+      ],
+      "route": "#view=requests",
+      "scroll": 753,
+      "tightButtons": [],
+      "width": 768,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "자산 등록",
+      "client": 753,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel import-panel",
+          "cw": 484,
+          "padding": "0px",
+          "sw": 484
+        },
+        {
+          "cls": "panel step-panel",
+          "cw": 484,
+          "padding": "0px",
+          "sw": 484
+        }
+      ],
+      "route": "#view=asset-register",
+      "scroll": 753,
+      "tightButtons": [],
+      "width": 768,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": null
+    },
+    {
+      "menu": "보고서",
+      "client": 753,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 484,
+          "padding": "22.4px",
+          "sw": 484
+        },
+        {
+          "cls": "panel report-amount",
+          "cw": 484,
+          "padding": "16px",
+          "sw": 484
+        },
+        {
+          "cls": "panel",
+          "cw": 484,
+          "padding": "0px",
+          "sw": 484
+        },
+        {
+          "cls": "panel",
+          "cw": 484,
+          "padding": "0px",
+          "sw": 484
+        },
+        {
+          "cls": "panel",
+          "cw": 484,
+          "padding": "0px",
+          "sw": 484
+        },
+        {
+          "cls": "panel",
+          "cw": 484,
+          "padding": "0px",
+          "sw": 484
+        }
+      ],
+      "route": "#view=reports",
+      "scroll": 753,
+      "tightButtons": [],
+      "width": 768,
+      "fieldsOutsidePanel": [],
+      "hiddenVisible": 0,
+      "reportPadding": "16px"
+    }
+  ],
+  "synthetic": [
+    {
+      "client": 1425,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 1346,
+          "padding": "22.4px",
+          "sw": 1346
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 663,
+          "padding": "22.4px",
+          "sw": 663
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 663,
+          "padding": "22.4px",
+          "sw": 663
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel reference-console",
+          "cw": 1346,
+          "padding": "0px",
+          "sw": 1346
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 1346,
+          "padding": "22.4px",
+          "sw": 1346
+        },
+        {
+          "cls": "panel report-amount",
+          "cw": 1346,
+          "padding": "24px",
+          "sw": 1346
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 1346,
+          "padding": "22.4px",
+          "sw": 1346
+        }
+      ],
+      "route": "",
+      "scroll": 1425,
+      "tightButtons": [],
+      "width": 1440,
+      "fieldOutside": [],
+      "hiddenVisible": 0,
+      "reportPadding": "24px"
+    },
+    {
+      "client": 1009,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 930,
+          "padding": "22.4px",
+          "sw": 930
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 455,
+          "padding": "22.4px",
+          "sw": 455
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 455,
+          "padding": "22.4px",
+          "sw": 455
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel reference-console",
+          "cw": 930,
+          "padding": "0px",
+          "sw": 930
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 930,
+          "padding": "22.4px",
+          "sw": 930
+        },
+        {
+          "cls": "panel report-amount",
+          "cw": 930,
+          "padding": "20.48px",
+          "sw": 930
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 930,
+          "padding": "22.4px",
+          "sw": 930
+        }
+      ],
+      "route": "",
+      "scroll": 1009,
+      "tightButtons": [],
+      "width": 1024,
+      "fieldOutside": [],
+      "hiddenVisible": 0,
+      "reportPadding": "20.48px"
+    },
+    {
+      "client": 753,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 674,
+          "padding": "22.4px",
+          "sw": 674
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 674,
+          "padding": "22.4px",
+          "sw": 674
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 674,
+          "padding": "22.4px",
+          "sw": 674
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel reference-console",
+          "cw": 674,
+          "padding": "0px",
+          "sw": 674
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 674,
+          "padding": "22.4px",
+          "sw": 674
+        },
+        {
+          "cls": "panel report-amount",
+          "cw": 674,
+          "padding": "16px",
+          "sw": 674
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 674,
+          "padding": "22.4px",
+          "sw": 674
+        }
+      ],
+      "route": "",
+      "scroll": 753,
+      "tightButtons": [],
+      "width": 768,
+      "fieldOutside": [],
+      "hiddenVisible": 0,
+      "reportPadding": "16px"
+    },
+    {
+      "client": 375,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel reference-console",
+          "cw": 341,
+          "padding": "0px",
+          "sw": 341
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        },
+        {
+          "cls": "panel report-amount",
+          "cw": 341,
+          "padding": "16px",
+          "sw": 341
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 341,
+          "padding": "22.4px",
+          "sw": 341
+        }
+      ],
+      "route": "",
+      "scroll": 375,
+      "tightButtons": [],
+      "width": 390,
+      "fieldOutside": [],
+      "hiddenVisible": 0,
+      "reportPadding": "16px"
+    },
+    {
+      "client": 345,
+      "error": false,
+      "innerOverflow": [],
+      "loading": false,
+      "outside": [],
+      "panels": [
+        {
+          "cls": "panel form-panel",
+          "cw": 311,
+          "padding": "22.4px",
+          "sw": 311
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 311,
+          "padding": "22.4px",
+          "sw": 311
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 311,
+          "padding": "22.4px",
+          "sw": 311
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 0,
+          "padding": "22.4px",
+          "sw": 0
+        },
+        {
+          "cls": "panel reference-console",
+          "cw": 311,
+          "padding": "0px",
+          "sw": 311
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 311,
+          "padding": "22.4px",
+          "sw": 311
+        },
+        {
+          "cls": "panel report-amount",
+          "cw": 311,
+          "padding": "16px",
+          "sw": 311
+        },
+        {
+          "cls": "panel form-panel",
+          "cw": 311,
+          "padding": "22.4px",
+          "sw": 311
+        }
+      ],
+      "route": "",
+      "scroll": 345,
+      "tightButtons": [],
+      "width": 360,
+      "fieldOutside": [],
+      "hiddenVisible": 0,
+      "reportPadding": "16px"
+    }
+  ]
+}
