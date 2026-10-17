@@ -11,4 +11,6 @@ description: 비품관리 QR 조회 화면의 수동 조회·카메라 시작과
 
 배치 변경 시 `frontend/experience.css`의 `.qr-scan-card`, `.qr-result`, `.qr-manual-form`을 확인한다. 두 패널 내부 여백을 유지하고 입력·버튼·긴 식별자가 패널 밖으로 넘치지 않도록 한다. 390px와 1440px에서 실제 브라우저로 여백·줄바꿈·가로 넘침을 관찰하고 임시 viewport는 복구한다.
 
+다른 메뉴와 공통 폼·탭 배치가 함께 바뀌면 `../sqcm-i-responsive-ui/SKILL.md`의 전체 메뉴·합성 fixture 검증을 적용한다.
+
 `npm.cmd run ui:contract`와 `node --test test/unit/offline-stocktake-pwa.test.js test/unit/ui-contract.test.js`로 회귀를 확인한다. CSS 배포 시 index와 service worker 캐시 참조를 함께 갱신한다. 화면 배치 PASS는 실제 자산 조회·카메라·권한 UAT 완료를 의미하지 않는다.

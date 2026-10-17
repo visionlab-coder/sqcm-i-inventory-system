@@ -3,9 +3,15 @@
   "inventoryScope": "Registered high-risk and operator-facing feature subset; registry count does not assert full-product coverage",
   "skills": [
     {
+      "id": "sqcm-i-responsive-ui",
+      "path": "D:/seowon_projects/sqcm-i-inventory-system/.agents/skills/sqcm-i-responsive-ui/SKILL.md",
+      "depends_on": [],
+      "tests": ["responsive-layout-browser"]
+    },
+    {
       "id": "sqcm-i-qr-lookup",
       "path": "D:/seowon_projects/sqcm-i-inventory-system/.agents/skills/sqcm-i-qr-lookup/SKILL.md",
-      "depends_on": [],
+      "depends_on": ["sqcm-i-responsive-ui"],
       "tests": ["qr-layout-regression"]
     },
     {
@@ -34,6 +40,16 @@
     }
   ],
   "features": [
+    {
+      "id": "responsive-menu-layout",
+      "label": "All-menu spacing, form containment and hidden tab panels",
+      "sources": ["D:/seowon_projects/sqcm-i-inventory-system/frontend/experience.css", "D:/seowon_projects/sqcm-i-inventory-system/frontend/index.html", "D:/seowon_projects/sqcm-i-inventory-system/frontend/sw.js", "D:/seowon_projects/sqcm-i-inventory-system/scripts/ui-layout-preview.mjs", "D:/seowon_projects/sqcm-i-inventory-system/test/fixtures/ui-layout.html"],
+      "skills": ["sqcm-i-responsive-ui"],
+      "depends_on": [],
+      "human_entry": "Open each of the 14 menus and admin/request subtabs without submitting business forms",
+      "agent_entry": "Observe geometry and screenshots at desktop/mobile widths; use loopback synthetic fixture for long content; no business mutations",
+      "status": "LOCAL_VERIFIED"
+    },
     {
       "id": "qr-lookup-layout",
       "label": "QR lookup card spacing and responsive containment",
@@ -112,6 +128,7 @@
     }
   ],
   "tests": [
+    {"id":"responsive-layout-browser","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/fixtures/ui-layout.html","D:/seowon_projects/sqcm-i-inventory-system/scripts/ui-layout-preview.mjs"],"command":"node scripts/ui-layout-preview.mjs; observe synthetic geometry at 1440/1024/768/390/360 and real menus at 1440/390 using browser tools; npm.cmd run ui:contract","status":"LOCAL_VERIFIED"},
     {"id":"qr-layout-regression","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/offline-stocktake-pwa.test.js","D:/seowon_projects/sqcm-i-inventory-system/test/unit/ui-contract.test.js"],"command":"npm.cmd run ui:contract; node --test test/unit/offline-stocktake-pwa.test.js test/unit/ui-contract.test.js; browser viewport 390 and 1440 padding and overflow observation","status":"OPERATION_VERIFIED"},
     {"id":"company-password-lifecycle","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/integration/http-smoke.test.js","D:/seowon_projects/sqcm-i-inventory-system/test/unit/production-role-core-smoke.test.js"],"command":"npm.cmd run test:integration in an isolated seeded environment; never use production for synthetic accounts","status":"OPERATION_VERIFIED"},
     {"id":"r5-driver-unit","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/r5-deployment-executor.test.js","D:/seowon_projects/sqcm-i-inventory-system/test/unit/r5-production-driver-preflight.test.js","D:/seowon_projects/sqcm-i-inventory-system/test/unit/r5-mutation-driver.test.js"],"command":"node --test test/unit/r5-deployment-executor.test.js test/unit/r5-production-driver-preflight.test.js test/unit/r5-mutation-driver.test.js","status":"OPERATION_VERIFIED"},
