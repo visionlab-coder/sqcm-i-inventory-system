@@ -2,6 +2,7 @@
   "version": 1,
   "inventoryScope": "Registered high-risk and operator-facing feature subset; registry count does not assert full-product coverage",
   "skills": [
+    {"id":"sqcm-i-asset-workflow","path":"D:/seowon_projects/sqcm-i-inventory-system/.agents/skills/sqcm-i-asset-workflow/SKILL.md","depends_on":[],"tests":["asset-workflow-browser"]},
     {"id":"sqcm-i-asset-metadata","path":"D:/seowon_projects/sqcm-i-inventory-system/.agents/skills/sqcm-i-asset-metadata/SKILL.md","depends_on":[],"tests":["asset-metadata-edit"]},
     {
       "id": "sqcm-i-responsive-ui",
@@ -41,6 +42,7 @@
     }
   ],
   "features": [
+    {"id":"asset-assignment-return-repair","label":"Synthetic browser assignment, photo return and repair reception","sources":["D:/seowon_projects/sqcm-i-inventory-system/frontend/app.js","D:/seowon_projects/sqcm-i-inventory-system/src/services/enterprise-service.js","D:/seowon_projects/sqcm-i-inventory-system/src/services/return-service.js","D:/seowon_projects/sqcm-i-inventory-system/src/services/repair-service.js","D:/seowon_projects/sqcm-i-inventory-system/scripts/production-asset-workflow-uat.mjs"],"skills":["sqcm-i-asset-workflow"],"depends_on":[],"human_entry":"Assignment request > submit; own assets return with photo; repair board reception/progress","agent_entry":"Observed browser controls, independent approved UAT reviewer, owned-trial DB observation and preservation comparison","status":"HOLD"},
     {"id":"asset-metadata-edit","label":"Scoped asset metadata edit with optimistic concurrency and audit history","sources":["D:/seowon_projects/sqcm-i-inventory-system/src/services/asset-metadata-service.js","D:/seowon_projects/sqcm-i-inventory-system/src/enterprise-routes.js","D:/seowon_projects/sqcm-i-inventory-system/frontend/app.js","D:/seowon_projects/sqcm-i-inventory-system/frontend/experience.css"],"skills":["sqcm-i-asset-metadata","sqcm-i-responsive-ui"],"depends_on":[],"human_entry":"Asset list > detail > edit basic information and reason > save > inspect before/after history","agent_entry":"GET asset.edit_version; PATCH allowed fields with expectedVersion and reason; verify history and conflict/permission denial","status":"OPERATION_VERIFIED"},
     {
       "id": "responsive-menu-layout",
@@ -130,6 +132,7 @@
     }
   ],
   "tests": [
+    {"id":"asset-workflow-browser","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/enterprise-service.test.js","D:/seowon_projects/sqcm-i-inventory-system/test/unit/approval-service.test.js","D:/seowon_projects/sqcm-i-inventory-system/test/unit/return-service.test.js","D:/seowon_projects/sqcm-i-inventory-system/test/unit/repair-service.test.js"],"command":"Focused four-file unit suite; approved synthetic browser assignment/return/repair; production-asset-workflow-uat.mjs guarded observation/reviewer","status":"HOLD"},
     {"id":"asset-metadata-edit","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/asset-metadata-service.test.js","D:/seowon_projects/sqcm-i-inventory-system/test/integration/http-smoke.test.js"],"command":"node --test test/unit/asset-metadata-service.test.js; run http-smoke integration in isolated seeded DB; approved synthetic production browser create/edit/read","status":"OPERATION_VERIFIED"},
     {"id":"responsive-layout-browser","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/fixtures/ui-layout.html","D:/seowon_projects/sqcm-i-inventory-system/scripts/ui-layout-preview.mjs"],"command":"node scripts/ui-layout-preview.mjs; observe synthetic geometry at 1440/1024/768/390/360 and real menus at 1440/390 using browser tools; npm.cmd run ui:contract","status":"OPERATION_VERIFIED"},
     {"id":"qr-layout-regression","paths":["D:/seowon_projects/sqcm-i-inventory-system/test/unit/offline-stocktake-pwa.test.js","D:/seowon_projects/sqcm-i-inventory-system/test/unit/ui-contract.test.js"],"command":"npm.cmd run ui:contract; node --test test/unit/offline-stocktake-pwa.test.js test/unit/ui-contract.test.js; browser viewport 390 and 1440 padding and overflow observation","status":"OPERATION_VERIFIED"},

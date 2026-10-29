@@ -1,0 +1,527 @@
+{
+  "version": 1,
+  "date": "2026-10-29",
+  "feature": "asset-assignment-return-repair",
+  "overall": "HOLD",
+  "executionMode": "single",
+  "modelConfiguration": "inherited/unknown",
+  "baselineSha": "f28b9ad022edb22b173f24dda1b994b3a298adc2",
+  "productionRevision": "e0d2b554b13995718127a2a25c91bb146865af8b",
+  "deploymentPerformed": false,
+  "serviceOrConfigurationChanged": false,
+  "employeeAccountChanged": false,
+  "realBusinessDataChanged": false,
+  "syntheticTag": "UAT-20261029-WORKFLOW-01",
+  "steps": {
+    "create": "PASS_BROWSER",
+    "assignmentRequestSubmit": "PASS_BROWSER",
+    "independentApproval": "PASS_API_NOT_BROWSER",
+    "assignedReadback": "PASS_BROWSER_AND_DB",
+    "returnDraft": "PASS_BROWSER",
+    "returnUpload": {
+      "status": "FAIL",
+      "httpStatus": 422,
+      "durationMs": 4998.6,
+      "attempts": 1,
+      "securityVerdict": "unknown",
+      "category": "MALWARE_UNKNOWN",
+      "alertDelivered": true,
+      "notEvidenceOfInfection": true
+    },
+    "returnSubmitApproval": "NOT_RUN_UPLOAD_BLOCKED",
+    "returnCompletion": "NOT_RUN_UPLOAD_BLOCKED",
+    "repairReception": "PASS_BROWSER_OPEN",
+    "repairProgress": "PASS_BROWSER_IN_PROGRESS",
+    "repairCancel": "PASS_API_AND_BROWSER_READBACK",
+    "selfServiceRepairWorkflow": "NOT_RUN",
+    "freshBrowserLogin": "NOT_RUN_EXISTING_SESSION_PRESERVED",
+    "fullCleanup": "HOLD_ACTIVE_ASSIGNMENT_AND_RETURN_DRAFT"
+  },
+  "scanner": {
+    "configuredExecutable": "C:\\ProgramData\\Microsoft\\Windows Defender\\Platform\\4.18.26070.9-0\\MpCmdRun.exe",
+    "configuredFileExists": false,
+    "health": "ok",
+    "engineVersion": "4.18.26100.4",
+    "signatureVersion": "1.463.16.0",
+    "cause": "Fixed scan executable missing while health queries current PowerShell protection status",
+    "bypassPerformed": false,
+    "repairRequiresApproval": "Inventory bridge scanner configuration and bridge18766-only activation; do not alter SQCM-i/Safe-link"
+  },
+  "defects": [
+    {
+      "id": "WF-01",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "finding": "Return photo fails closed because configured scanner executable is absent while health reports ready"
+    },
+    {
+      "id": "WF-02",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "finding": "APPROVED assignment remains included in ongoing requests summary",
+      "observedApprovedOnly": 1,
+      "observedWithDraftReturn": 2
+    },
+    {
+      "id": "WF-03",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "finding": "Upload failure leaves draft without browser retry/cancel path; transient global error outside modal",
+      "duplicateDraftRisk": "SOURCE_INFERENCE_NOT_REPRODUCED",
+      "actualDuplicateDrafts": 0
+    }
+  ],
+  "preservation": {
+    "status": "PASS",
+    "existingBusinessAndConfigurationTables": 25,
+    "companyAccounts": 13,
+    "companyRoleScopes": 13,
+    "before": {
+      "assets": {
+        "count": 2,
+        "fingerprint": "ba74bc1515a2eb2e854c501739e07355"
+      },
+      "asset_assignments": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "workflow_requests": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "service_tickets": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "asset_return_records": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "workflow_request_approvals": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "workflow_request_files": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "file_records": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "asset_cost_events": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "items": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "loans": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "purchase_orders": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "receipts": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "inspections": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "asset_files": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "stocktakes": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "item_categories": {
+        "count": 1,
+        "fingerprint": "3658dce7b5cef493e986092d0ff760ba"
+      },
+      "item_models": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "locations": {
+        "count": 2,
+        "fingerprint": "a1704d468eea2b51c8d1b1a566bd353b"
+      },
+      "departments": {
+        "count": 1,
+        "fingerprint": "68b8cd0f64fa3b9264e6bf4c1fb78908"
+      },
+      "organizations": {
+        "count": 1,
+        "fingerprint": "2e7a770a916e73a7303f17e1742c8fb9"
+      },
+      "asset_status_definitions": {
+        "count": 14,
+        "fingerprint": "4215bf584baf66507187b5b249df2129"
+      },
+      "asset_reason_definitions": {
+        "count": 5,
+        "fingerprint": "be7a260ac99edfc15769ff1efebf2941"
+      },
+      "approval_policies": {
+        "count": 7,
+        "fingerprint": "c0ba9133a0bdde0ac17bc467bbb728db"
+      },
+      "approval_policy_steps": {
+        "count": 7,
+        "fingerprint": "3be9f605435331798b53eb80fbca7169"
+      },
+      "employees": {
+        "count": 13,
+        "fingerprint": "31dcb632b2ac5c8e8e124f8560ac6484"
+      },
+      "employeeRoles": {
+        "count": 13,
+        "fingerprint": "983db43524d13eca917343f5e0891422"
+      }
+    },
+    "receipts": [
+      {
+        "mode": "--approve",
+        "tag": "UAT-20261029-WORKFLOW-01",
+        "credentialsRecorded": false,
+        "approved": {
+          "id": 1,
+          "type": "ASSIGN",
+          "status": "APPROVED"
+        },
+        "observation": {
+          "asset": {
+            "id": 10,
+            "status": "ASSIGNED",
+            "cost": 0,
+            "deactivated": false,
+            "createdBy": 20,
+            "organizationId": 1
+          },
+          "assignments": [
+            {
+              "id": 1,
+              "userId": 20,
+              "status": "ACTIVE",
+              "ended": false,
+              "condition": null
+            }
+          ],
+          "requests": [
+            {
+              "id": 1,
+              "type": "ASSIGN",
+              "status": "APPROVED",
+              "requesterId": 20,
+              "reviewerId": 5
+            }
+          ],
+          "repairs": [],
+          "returns": 0,
+          "photos": 0,
+          "costEvents": 0
+        },
+        "preserved": true,
+        "status": "PASS"
+      },
+      {
+        "mode": "--permission",
+        "tag": "UAT-20261029-WORKFLOW-01",
+        "credentialsRecorded": false,
+        "reviewStatus": 403,
+        "nonAssigneeStatus": 403,
+        "observation": {
+          "asset": {
+            "id": 10,
+            "status": "ASSIGNED",
+            "cost": 0,
+            "deactivated": false,
+            "createdBy": 20,
+            "organizationId": 1
+          },
+          "assignments": [
+            {
+              "id": 1,
+              "userId": 20,
+              "status": "ACTIVE",
+              "ended": false,
+              "condition": null
+            }
+          ],
+          "requests": [
+            {
+              "id": 1,
+              "type": "ASSIGN",
+              "status": "APPROVED",
+              "requesterId": 20,
+              "reviewerId": 5
+            }
+          ],
+          "repairs": [],
+          "returns": 0,
+          "photos": 0,
+          "costEvents": 0
+        },
+        "preserved": true,
+        "status": "PASS"
+      },
+      {
+        "mode": "--observe",
+        "tag": "UAT-20261029-WORKFLOW-01",
+        "credentialsRecorded": false,
+        "observation": {
+          "asset": {
+            "id": 10,
+            "status": "ASSIGNED",
+            "cost": 0,
+            "deactivated": false,
+            "createdBy": 20,
+            "organizationId": 1
+          },
+          "assignments": [
+            {
+              "id": 1,
+              "userId": 20,
+              "status": "ACTIVE",
+              "ended": false,
+              "condition": null
+            }
+          ],
+          "requests": [
+            {
+              "id": 1,
+              "type": "ASSIGN",
+              "status": "APPROVED",
+              "requesterId": 20,
+              "reviewerId": 5
+            },
+            {
+              "id": 2,
+              "type": "RETURN",
+              "status": "DRAFT",
+              "requesterId": 20,
+              "reviewerId": null
+            }
+          ],
+          "repairs": [],
+          "returns": 0,
+          "photos": 0,
+          "costEvents": 0
+        },
+        "preserved": true,
+        "status": "PASS"
+      },
+      {
+        "mode": "--observe",
+        "tag": "UAT-20261029-WORKFLOW-01",
+        "credentialsRecorded": false,
+        "observation": {
+          "asset": {
+            "id": 10,
+            "status": "ASSIGNED",
+            "cost": 0,
+            "deactivated": false,
+            "createdBy": 20,
+            "organizationId": 1
+          },
+          "assignments": [
+            {
+              "id": 1,
+              "userId": 20,
+              "status": "ACTIVE",
+              "ended": false,
+              "condition": null
+            }
+          ],
+          "requests": [
+            {
+              "id": 1,
+              "type": "ASSIGN",
+              "status": "APPROVED",
+              "requesterId": 20,
+              "reviewerId": 5
+            },
+            {
+              "id": 2,
+              "type": "RETURN",
+              "status": "DRAFT",
+              "requesterId": 20,
+              "reviewerId": null
+            }
+          ],
+          "repairs": [
+            {
+              "id": 1,
+              "status": "IN_PROGRESS",
+              "cost": null
+            }
+          ],
+          "returns": 0,
+          "photos": 0,
+          "costEvents": 0
+        },
+        "preserved": true,
+        "status": "PASS"
+      },
+      {
+        "mode": "--park",
+        "tag": "UAT-20261029-WORKFLOW-01",
+        "credentialsRecorded": false,
+        "parked": "HOLD_SCANNER_EXECUTABLE_MISSING",
+        "observation": {
+          "asset": {
+            "id": 10,
+            "status": "ASSIGNED",
+            "cost": 0,
+            "deactivated": false,
+            "createdBy": 20,
+            "organizationId": 1
+          },
+          "assignments": [
+            {
+              "id": 1,
+              "userId": 20,
+              "status": "ACTIVE",
+              "ended": false,
+              "condition": null
+            }
+          ],
+          "requests": [
+            {
+              "id": 1,
+              "type": "ASSIGN",
+              "status": "APPROVED",
+              "requesterId": 20,
+              "reviewerId": 5
+            },
+            {
+              "id": 2,
+              "type": "RETURN",
+              "status": "DRAFT",
+              "requesterId": 20,
+              "reviewerId": null
+            }
+          ],
+          "repairs": [
+            {
+              "id": 1,
+              "status": "CANCELLED",
+              "cost": null
+            }
+          ],
+          "returns": 0,
+          "photos": 0,
+          "costEvents": 0
+        },
+        "preserved": true,
+        "status": "PASS"
+      }
+    ],
+    "exclusions": "Only unique synthetic asset and rows directly linked to that asset/request; existing assets8/9 unchanged"
+  },
+  "finalTrialState": {
+    "asset": {
+      "id": 10,
+      "status": "ASSIGNED",
+      "cost": 0,
+      "deactivated": false,
+      "createdBy": 20,
+      "organizationId": 1
+    },
+    "assignments": [
+      {
+        "id": 1,
+        "userId": 20,
+        "status": "ACTIVE",
+        "ended": false,
+        "condition": null
+      }
+    ],
+    "requests": [
+      {
+        "id": 1,
+        "type": "ASSIGN",
+        "status": "APPROVED",
+        "requesterId": 20,
+        "reviewerId": 5
+      },
+      {
+        "id": 2,
+        "type": "RETURN",
+        "status": "DRAFT",
+        "requesterId": 20,
+        "reviewerId": null
+      }
+    ],
+    "repairs": [
+      {
+        "id": 1,
+        "status": "CANCELLED",
+        "cost": null
+      }
+    ],
+    "returns": 0,
+    "photos": 0,
+    "costEvents": 0
+  },
+  "permission": {
+    "userReviewStatus": 403,
+    "nonAssigneeReturnStatus": 403
+  },
+  "verification": {
+    "unit": {
+      "command": "node --test test/unit/enterprise-service.test.js test/unit/approval-service.test.js test/unit/return-service.test.js test/unit/repair-service.test.js",
+      "exitCode": 0,
+      "pass": 20,
+      "fail": 0
+    },
+    "repositoryHygiene": "NOT_CONFIRMED_RUNNING_AT_CHECKPOINT",
+    "stagedSensitivePatternMatches": 0,
+    "harnessCheck": "PASS",
+    "helperSyntax": {
+      "exitCode": 0
+    },
+    "promptContract": {
+      "pass": 8,
+      "total": 8,
+      "warnings": 0
+    },
+    "fullUnitThisTurn": "NOT_RUN_PREVIOUS_EXACT_PRODUCTION_CI_REUSED",
+    "helperFailure": {
+      "count": 1,
+      "reason": "Strict string/numeric reviewer organization comparison",
+      "writePerformed": false,
+      "resolution": "Normalize numeric ID; one successful approval only"
+    },
+    "skillValidation": {
+      "manualFrontmatter": "PASS",
+      "scopedImpact": "IMPACT_PLANNED",
+      "quickValidator": "BLOCKED_PREEXISTING_PYYAML_NOT_INSTALLED",
+      "wholeRegistry": "NOT_CLAIMED"
+    }
+  },
+  "availability": {
+    "inventoryConnections": 4,
+    "sqcmiConnections": 4,
+    "inventoryHttp": 200,
+    "sqcmiOsHttp": 200,
+    "safeLinkHttp": 301,
+    "tunnelMutation": false
+  },
+  "evidence": {
+    "assigned": "docs/screenshots/asset-workflow-20261029/assigned.png",
+    "returnBlocked": "docs/screenshots/asset-workflow-20261029/return-blocked.png",
+    "repairInProgress": "docs/screenshots/asset-workflow-20261029/repair-in-progress.png",
+    "finalState": "docs/screenshots/asset-workflow-20261029/blocked-final-state.png"
+  },
+  "nextGate": "Approve Inventory scanner path/bridge-only recovery and existing RETURN2 draft resume/cancel handling; retest then close assignment/cleanup",
+  "p7": "7/8 unchanged",
+  "checkpointType": "WIP recovery checkpoint; not completion or deployment"
+}
