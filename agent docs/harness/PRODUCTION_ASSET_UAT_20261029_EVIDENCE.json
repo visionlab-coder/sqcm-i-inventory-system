@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "dateKst": "2026-10-29",
+  "target": "https://inventory.safe-link.co.kr",
+  "tag": "UAT-20261029-LOGIN-ASSET-01",
+  "mode": "execute",
+  "checks": {
+    "anonymousRead": 401,
+    "passwordLogin": 202,
+    "mfa": 200,
+    "authenticatedMe": 200,
+    "create": 201,
+    "initialDetail": 200,
+    "statusModification": 200,
+    "search": 200,
+    "updatedDetail": 200,
+    "logout": 204,
+    "oldSessionAfterLogout": 401
+  },
+  "browserFlow": "NOT_RUN_API_DB_VALIDATION_ONLY",
+  "metadataEdit": "NOT_IMPLEMENTED_NO_UI_OR_ROUTE",
+  "mutationScope": "one synthetic asset only",
+  "credentialsRecorded": false,
+  "preflight": {
+    "testActorReady": true,
+    "employeeAccountUsed": false,
+    "cancelPolicyReady": true,
+    "existingTestTagCount": 0
+  },
+  "before": {
+    "assets": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "asset_assignments": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "items": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "loans": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "workflow_requests": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "purchase_orders": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "receipts": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "inspections": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "asset_files": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "stocktakes": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "item_categories": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "item_models": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "locations": {
+      "count": 1,
+      "fingerprint": "f3beb2d66f1f1c2e8cd3576be4b08e3d"
+    },
+    "departments": {
+      "count": 1,
+      "fingerprint": "68b8cd0f64fa3b9264e6bf4c1fb78908"
+    },
+    "organizations": {
+      "count": 1,
+      "fingerprint": "2e7a770a916e73a7303f17e1742c8fb9"
+    },
+    "asset_status_definitions": {
+      "count": 14,
+      "fingerprint": "4215bf584baf66507187b5b249df2129"
+    },
+    "asset_reason_definitions": {
+      "count": 5,
+      "fingerprint": "be7a260ac99edfc15769ff1efebf2941"
+    },
+    "employeeAccounts": {
+      "count": 13,
+      "fingerprint": "c40d6f38ee871544d74d488ba9a5682f"
+    },
+    "employeeRoles": {
+      "count": 13,
+      "fingerprint": "983db43524d13eca917343f5e0891422"
+    }
+  },
+  "assetId": "8",
+  "persisted": {
+    "assetCount": 1,
+    "cancelled": true,
+    "deactivated": true,
+    "zeroCost": true,
+    "historyCount": 2,
+    "auditCount": 2,
+    "assignments": 0
+  },
+  "status": "PASS_LOGIN_CREATE_STATUS_EDIT_READ_METADATA_EDIT_UNIMPLEMENTED",
+  "after": {
+    "assets": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "asset_assignments": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "items": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "loans": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "workflow_requests": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "purchase_orders": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "receipts": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "inspections": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "asset_files": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "stocktakes": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "item_categories": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "item_models": {
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "locations": {
+      "count": 1,
+      "fingerprint": "f3beb2d66f1f1c2e8cd3576be4b08e3d"
+    },
+    "departments": {
+      "count": 1,
+      "fingerprint": "68b8cd0f64fa3b9264e6bf4c1fb78908"
+    },
+    "organizations": {
+      "count": 1,
+      "fingerprint": "2e7a770a916e73a7303f17e1742c8fb9"
+    },
+    "asset_status_definitions": {
+      "count": 14,
+      "fingerprint": "4215bf584baf66507187b5b249df2129"
+    },
+    "asset_reason_definitions": {
+      "count": 5,
+      "fingerprint": "be7a260ac99edfc15769ff1efebf2941"
+    },
+    "employeeAccounts": {
+      "count": 13,
+      "fingerprint": "c40d6f38ee871544d74d488ba9a5682f"
+    },
+    "employeeRoles": {
+      "count": 13,
+      "fingerprint": "983db43524d13eca917343f5e0891422"
+    }
+  },
+  "preserved": true,
+  "finishedAtUtc": "2026-10-29T04:25:38.118Z"
+}
