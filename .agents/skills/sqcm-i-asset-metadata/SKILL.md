@@ -11,4 +11,4 @@ API는 `GET /api/enterprise/assets/:id`의 `asset.edit_version`을 읽고 `PATCH
 
 동시수정409(`ASSET_EDIT_CONFLICT`)에서는 입력을 유지하고 최신 정보 버튼으로 원본을 확인한다. 사용자 동의 없이 덮어쓰기·반복 제출하지 않는다. 취소/폐기 자산은409, 미변경 저장400이며 이력을 추가하지 않는다. 단일 트랜잭션으로 asset와 audit를 저장한다. 이력은 현재 자산 조회 권한 안에서 최근100건만 제공한다.
 
-검증은 `node --test test/unit/asset-metadata-service.test.js`, 격리 `test/integration/http-smoke.test.js`의 기본정보 수정 시험, 실제 브라우저의 등록→수정→재조회·이력·취소·PC/모바일 흐름이다. 실제 운영 시험은 명시된 시험 자산·전용 UAT 계정만 사용한다. `scripts/production-asset-edit-uat.mjs`는 준비·검증·정리 전용이며 사용 전 현재 승인·고유 표식·보존 계약을 읽는다. 직원 계정·실제 자산·원문 Secret은 사용·변경·기록하지 않는다. 기본정보 수정은 자산 상태 변경과 구분한다.
+검증은 `node --test test/unit/asset-metadata-service.test.js`, 격리 `test/integration/http-smoke.test.js`의 기본정보 수정 시험, 실제 브라우저의 등록→수정→재조회·이력·취소·PC/모바일 흐름이다. 실제 운영 시험은 명시된 시험 자산과 승인된 관리자 세션만 사용한다. 사용자가 열어둔 로그인은 유지하고 시험 자산만 조작할 수 있으며 직원 계정의 비밀번호·역할·상태·세션 교체는 금지한다. `scripts/production-asset-edit-uat.mjs`는 준비·검증·정리 전용이다. `--baseline`은 읽기 전용 보존 지문, `--prepare [관찰·확인된 관리자ID]`는 시험 기준정보를 생성하며 생략하면 전용 UAT ADMIN을 소유자로 사용한다. `--verify`와 `--cleanup`은 해당 소유자·표식·조직이 모두 일치할 때만 검증·취소·시험 기준정보 비활성화를 수행한다. 실제 자산·원문 Secret을 변경·기록하지 않는다. 기본정보 수정은 자산 상태 변경과 구분한다.

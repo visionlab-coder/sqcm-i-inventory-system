@@ -1,0 +1,376 @@
+{
+  "version": 1,
+  "feature": "asset-metadata-edit",
+  "status": "OPERATION_VERIFIED",
+  "date": "2026-10-29",
+  "executionMode": "single",
+  "modelConfiguration": "inherited/unknown",
+  "laya": "RULE",
+  "target": "https://inventory.safe-link.co.kr",
+  "approval": "Current user explicitly approved deployment and synthetic browser create/edit/read/history; existing employee accounts and actual business records must remain unchanged.",
+  "candidateSha": "e0d2b554b13995718127a2a25c91bb146865af8b",
+  "codeCheckpoint": {
+    "branch": "codex/p7-qs-6-16-0-production-evidence",
+    "sha": "e0d2b554b13995718127a2a25c91bb146865af8b",
+    "pushed": true,
+    "remoteShaMatched": true
+  },
+  "ci": {
+    "runId": 40821227968,
+    "url": "https://github.com/visionlab-coder/sqcm-i-inventory-system/actions/runs/40821227968",
+    "headSha": "e0d2b554b13995718127a2a25c91bb146865af8b",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": {
+      "unit": "success",
+      "three-tier-integration": "success"
+    }
+  },
+  "deployment": {
+    "status": "PASS",
+    "frontendRevision": "e0d2b554b13995718127a2a25c91bb146865af8b",
+    "backendRevision": "e0d2b554b13995718127a2a25c91bb146865af8b",
+    "backendImageId": "sha256:e796ddab064a8233933f5d2e7be4f282a7f1dc2792aba8d4358360c45dd3a9ab",
+    "frontendImageId": "sha256:ded395be9129246cf5a151ad61365cd47556f2ce33ba1dd4e72d4ddcf950c612",
+    "databaseContainerUnchanged": true,
+    "databaseContainerId": "21cd02e609acdceed47e0aa84aefdcc37149c4b2a6c1998a3ac9d49e93f64a65",
+    "migration": "NOT_RUN_NOT_REQUIRED",
+    "services": 3,
+    "healthy": 3,
+    "backendHostPorts": 0,
+    "databaseHostPorts": 0,
+    "frontendHostBinding": "127.0.0.1:3300",
+    "deployPrecheck": "PASS",
+    "composeConfig": "PASS",
+    "deploySmoke": {
+      "/health": 200,
+      "/api/health": 200,
+      "/api/readiness": 200,
+      "/api/items": 401,
+      "/assets/seowon-official-logo-reversed.png": 200
+    },
+    "rollback": {
+      "status": "NOT_RUN",
+      "reason": "No deployment failure; no migration. Exact previous backend/frontend images retained; rollback branch was prepared but not triggered.",
+      "backendPrevious": "sha-1e0f9145e1f4e93f9d7b7485319a33815c159321",
+      "frontendPrevious": "sha-63aed8b6a58bbb00e1359fc81d1d6f7c214a7e2b"
+    },
+    "backendRecentErrorOrFatal": 0,
+    "backendParsedLogCount": 91
+  },
+  "browser": {
+    "status": "PASS",
+    "driver": "Computer Use in-app browser; observed UI locators only",
+    "authentication": "Existing valid ADMIN session retained; transient startup login form was not session expiry; attempted credential fill found no field and transmitted nothing; no account switch or employee credential entry.",
+    "create": {
+      "tag": "UAT-20261029-METADATA-01",
+      "name": "[시험용] 기본정보 수정 전",
+      "serialNo": "UAT-20261029-METADATA-S1",
+      "acquiredAt": "2026-10-01",
+      "cost": 0,
+      "status": "DRAFT",
+      "result": "Listed in UI and detail opened"
+    },
+    "edit": {
+      "name": "[시험용] 기본정보 수정 완료",
+      "serialNo": "UAT-20261029-METADATA-S2",
+      "categoryId": 1,
+      "locationId": 2,
+      "acquiredAt": "2026-10-28",
+      "reason": "브라우저 시험: 기본정보 수정·이력 검증",
+      "result": "UI save success and before/after history"
+    },
+    "cancelUnsavedInput": "PASS: unsaved name discarded, saved name restored, metadata audit remained one",
+    "reloadSearchRead": "PASS: full reload, search exact tag, one result, detail persisted name/date/category/location/history",
+    "desktop": {
+      "width": 1440,
+      "documentScrollWidth": 1425,
+      "formContainment": true,
+      "screenshot": "docs/screenshots/asset-metadata-20261029/desktop.png"
+    },
+    "mobile": {
+      "width": 390,
+      "documentScrollWidth": 375,
+      "formContainment": true,
+      "history": "Dedicated horizontal table scroller, no document overflow",
+      "screenshot": "docs/screenshots/asset-metadata-20261029/mobile.png"
+    },
+    "viewportReset": true,
+    "consoleErrors": 0
+  },
+  "productionVerification": {
+    "status": "PASS",
+    "assetId": 9,
+    "assetTag": "UAT-20261029-METADATA-01",
+    "assetName": "[시험용] 기본정보 수정 완료",
+    "categoryId": 1,
+    "locationId": 2,
+    "acquiredAt": "2026-10-28",
+    "auditCount": 1,
+    "changedFields": [
+      "name",
+      "serial_no",
+      "category_id",
+      "location_id",
+      "acquired_at"
+    ],
+    "userPatchStatus": 403,
+    "preserved": true,
+    "employees": 13,
+    "employeeRoles": 13,
+    "logoutStatus": 204
+  },
+  "syntheticCleanup": {
+    "status": "PASS",
+    "cancelled": true,
+    "deactivated": true,
+    "cost": 0,
+    "assignments": 0,
+    "metadataAudits": 1,
+    "categoryActive": false,
+    "locationStatus": "INACTIVE",
+    "destructiveDeletion": false,
+    "logoutStatus": 204
+  },
+  "preservation": {
+    "status": "PASS",
+    "before": {
+      "assets": {
+        "count": 1,
+        "fingerprint": "db01fff32425cb7c55b132e882a619f6"
+      },
+      "asset_assignments": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "items": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "loans": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "workflow_requests": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "purchase_orders": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "receipts": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "inspections": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "asset_files": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "stocktakes": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "item_categories": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "item_models": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "locations": {
+        "count": 1,
+        "fingerprint": "f3beb2d66f1f1c2e8cd3576be4b08e3d"
+      },
+      "departments": {
+        "count": 1,
+        "fingerprint": "68b8cd0f64fa3b9264e6bf4c1fb78908"
+      },
+      "organizations": {
+        "count": 1,
+        "fingerprint": "2e7a770a916e73a7303f17e1742c8fb9"
+      },
+      "asset_status_definitions": {
+        "count": 14,
+        "fingerprint": "4215bf584baf66507187b5b249df2129"
+      },
+      "asset_reason_definitions": {
+        "count": 5,
+        "fingerprint": "be7a260ac99edfc15769ff1efebf2941"
+      },
+      "employees": {
+        "count": 13,
+        "fingerprint": "c40d6f38ee871544d74d488ba9a5682f"
+      },
+      "employeeRoles": {
+        "count": 13,
+        "fingerprint": "983db43524d13eca917343f5e0891422"
+      }
+    },
+    "after": {
+      "assets": {
+        "count": 1,
+        "fingerprint": "db01fff32425cb7c55b132e882a619f6"
+      },
+      "asset_assignments": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "items": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "loans": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "workflow_requests": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "purchase_orders": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "receipts": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "inspections": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "asset_files": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "stocktakes": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "item_categories": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "item_models": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "locations": {
+        "count": 1,
+        "fingerprint": "f3beb2d66f1f1c2e8cd3576be4b08e3d"
+      },
+      "departments": {
+        "count": 1,
+        "fingerprint": "68b8cd0f64fa3b9264e6bf4c1fb78908"
+      },
+      "organizations": {
+        "count": 1,
+        "fingerprint": "2e7a770a916e73a7303f17e1742c8fb9"
+      },
+      "asset_status_definitions": {
+        "count": 14,
+        "fingerprint": "4215bf584baf66507187b5b249df2129"
+      },
+      "asset_reason_definitions": {
+        "count": 5,
+        "fingerprint": "be7a260ac99edfc15769ff1efebf2941"
+      },
+      "employees": {
+        "count": 13,
+        "fingerprint": "c40d6f38ee871544d74d488ba9a5682f"
+      },
+      "employeeRoles": {
+        "count": 13,
+        "fingerprint": "983db43524d13eca917343f5e0891422"
+      }
+    },
+    "match": true,
+    "existingBusinessTables": 17,
+    "companyAccounts": 13,
+    "companyRoleScopes": 13,
+    "excludedOnlyNewTag": "UAT-20261029-METADATA-01",
+    "excludedOnlyNewReferenceCode": "UAT-METADATA-20261029"
+  },
+  "protectedServices": {
+    "changed": false,
+    "inventoryTunnelConnectionsBefore": 4,
+    "inventoryTunnelConnectionsAfter": 4,
+    "sqcmiTunnelConnectionsBefore": 4,
+    "sqcmiTunnelConnectionsAfter": 4,
+    "inventoryHttps": 200,
+    "sqcmiOsHttps": 200,
+    "safeLinkHttps": 301,
+    "listenerOwnersUnchanged": {
+      "1234": 31896,
+      "11434": 95224,
+      "18766": 11460
+    },
+    "port18765": "No listener before or after, not changed by this task",
+    "cloudflaredPidsUnchanged": [
+      23340,
+      75468
+    ],
+    "staging": "NOT_CHANGED"
+  },
+  "skillVerification": {
+    "operation": "PASS_REAL_BROWSER_AND_HTTP_DB",
+    "scopedImpact": "IMPACT_PLANNED",
+    "manualFrontmatter": "PASS",
+    "quickValidate": "BLOCKED_MISSING_PYYAML",
+    "wholeRegistry": "NOT_CLAIMED_PREEXISTING_UNRELATED_INVALID_STATUS"
+  },
+  "scopeLimits": {
+    "modelSelection": "NOT_CHANGED",
+    "newAccounts": "NOT_CREATED",
+    "existingEmployeeAccounts": "UNCHANGED",
+    "actualBusinessData": "UNCHANGED",
+    "mainMerge": "NOT_RUN",
+    "release": "NOT_RUN",
+    "wholeP7": "7/8 unchanged",
+    "liveRollback": "NOT_RUN",
+    "freshBrowserLogin": "NOT_RUN_EXISTING_SESSION_REUSED"
+  },
+  "observedAtUtc": "2026-10-29T05:19:36Z",
+  "localVerification": {
+    "check": {
+      "exitCode": 0,
+      "syntaxFiles": 506,
+      "tests": 1052,
+      "pass": 1044,
+      "skip": 8,
+      "fail": 0
+    },
+    "focused": {
+      "exitCode": 0,
+      "pass": 17
+    },
+    "uiContract": {
+      "exitCode": 0,
+      "pass": 47
+    },
+    "hygiene": {
+      "exitCode": 0,
+      "fixedCredentialMatches": 0,
+      "mockMetadataMatches": 0,
+      "pngMetadataMatches": 0
+    },
+    "promptContract": {
+      "exitCode": 0,
+      "passed": 8,
+      "total": 8,
+      "warnings": 0
+    },
+    "harnessCheck": {
+      "status": "PASS",
+      "errors": 0,
+      "currentPhase": "P7",
+      "completedPhases": 7
+    }
+  }
+}
