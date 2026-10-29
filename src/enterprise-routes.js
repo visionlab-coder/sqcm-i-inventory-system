@@ -21,6 +21,7 @@ const { normalizeOfflineBatch } = require('./services/stocktake-offline-service'
 const { getEmployeeSelfService, createEmployeeAssetRequest } = require('./services/employee-self-service');
 const { requeueDeadLetter } = require('./services/outbox-service');
 const { updateRepairStatus } = require('./services/repair-service');
+const { updateAssetMetadata, listAssetMetadataHistory } = require('./services/asset-metadata-service');
 
 const page = req => ({ size: Math.min(100, Math.max(1, Number(req.query.size) || 25)), offset: Math.max(0, Number(req.query.page) || 0) * Math.min(100, Math.max(1, Number(req.query.size) || 25)) });
 const trace = req => ({ ...auditTrace(req), idempotencyKey: String(req.get('idempotency-key') || '').slice(0, 100) || null });
@@ -156,7 +157,7 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
   });
   router.get('/assets/:id', async (req, res) => {
     requirePermission(req.user, 'asset.read'); const id = positiveInteger(req.params.id, '자산번호');
-    const asset = await pool.query('SELECT * FROM assets WHERE id=$1', [id]);
+    const asset = await pool.query("SELECT a.*,a.xmin::text AS edit_version,to_char(a.acquired_at,'YYYY-MM-DD') AS acquired_at FROM assets a WHERE id=$1", [id]);
     if (!asset.rowCount) throw new DomainError('자산을 찾을 수 없습니다.', 404);
     orgId(req, asset.rows[0].organization_id);
     const scope=await resolveScope(pool,req.user); if(!canAccessDepartment(scope,asset.rows[0].department_id)) throw new DomainError('허용된 부서 범위를 벗어났습니다.',403);
@@ -165,8 +166,10 @@ function createEnterpriseRouter({ pool, apiAuth, requireRecentReauth, isProducti
       pool.query('SELECT aa.*,u.display_name,d.name department_name,l.name location_name FROM asset_assignments aa LEFT JOIN users u ON u.id=aa.user_id LEFT JOIN departments d ON d.id=aa.department_id LEFT JOIN locations l ON l.id=aa.location_id WHERE aa.asset_id=$1 ORDER BY aa.started_at DESC', [id]),
       pool.query("SELECT f.id,f.original_name,f.content_type,f.checksum,f.size_bytes,f.created_at,af.file_type FROM asset_files af JOIN file_records f ON f.id=af.file_id WHERE af.asset_id=$1 AND f.status='ACTIVE' ORDER BY f.created_at DESC", [id])
     ]);
-    res.json({ asset: asset.rows[0], history: history.rows, assignments: assignments.rows, files: files.rows });
+    const metadataHistory = await listAssetMetadataHistory(pool,req.user,asset.rows[0]);
+    res.json({ asset: asset.rows[0], history: history.rows, metadataHistory, assignments: assignments.rows, files: files.rows });
   });
+  router.patch('/assets/:id', async (req,res) => res.json({asset:await updateAssetMetadata(pool,req.user,req.params.id,req.body,trace(req))}));
   router.post('/assets/:id/status', async (req, res) => res.json({ asset: await changeAssetStatus(pool, req.user, req.params.id, req.body, trace(req)) }));
 
   router.get('/requests', async (req, res) => {

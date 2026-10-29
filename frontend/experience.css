@@ -120,6 +120,9 @@ body::before { content:""; position:fixed; inset:0; pointer-events:none; opacity
 .asset-facts dt,.asset-facts dd { margin:0; padding:1rem 0; border-bottom:1px solid #cbd0ce; }
 .asset-facts dt { color:#63707b; }
 .asset-facts dd { font-weight:800; }
+.metadata-changes { min-width:200px; max-width:520px; white-space:normal; overflow-wrap:anywhere; }
+.metadata-changes ul { margin:0; padding-left:1.1rem; }
+.qr-label-panel { padding:clamp(1rem,2vw,1.5rem); }
 .danger-button { min-height:43px; padding:.72rem 1rem; border:1px solid #c9342f; background:#fff; color:#a92925; font-weight:800; }
 
 .workflow-shell { display:grid; grid-template-columns:minmax(320px,.72fr) 1.28fr; gap:1rem; align-items:start; }

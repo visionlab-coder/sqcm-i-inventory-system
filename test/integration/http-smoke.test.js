@@ -9,6 +9,43 @@ const baseUrl = process.env.INTEGRATION_BASE_URL;
 const databaseUrl = process.env.INTEGRATION_DATABASE_URL;
 const integrationConfig = getConfig();
 
+test('기본정보 수정은 실제 DB 버전·이력·권한·기준정보·동시성 계약을 지킨다',{skip:!baseUrl||!databaseUrl},async()=>{
+  const pool=createPool(databaseUrl),marker=crypto.randomUUID().slice(0,8);let admin,manager,employee,assetId,otherOrg,categoryId,locationId,foreignCategoryId,foreignAssetId;
+  try{
+    admin=await login('admin@seowon.local',integrationConfig.seedAdminPassword);manager=await login('manager@seowon.local',integrationConfig.seedManagerPassword);employee=await login('employee@seowon.local',integrationConfig.seedUserPassword);
+    const org=admin.user.organizationId;
+    otherOrg=(await pool.query('INSERT INTO organizations(code,name) VALUES($1,$2) RETURNING id',[`ME-O-${marker}`,'Synthetic foreign edit org'])).rows[0].id;
+    categoryId=(await pool.query('INSERT INTO item_categories(organization_id,code,name) VALUES($1,$2,$3) RETURNING id',[org,`ME-C-${marker}`,'Synthetic edit category'])).rows[0].id;
+    foreignCategoryId=(await pool.query('INSERT INTO item_categories(organization_id,code,name) VALUES($1,$2,$3) RETURNING id',[otherOrg,`ME-F-${marker}`,'Synthetic foreign category'])).rows[0].id;
+    locationId=(await pool.query("INSERT INTO locations(organization_id,code,name,location_type) VALUES($1,$2,$3,'ROOM') RETURNING id",[org,`ME-L-${marker}`,'Synthetic edit location'])).rows[0].id;
+    const create=await api('/api/enterprise/assets',admin,{method:'POST',body:{assetTag:`META-${marker.toUpperCase()}`,name:'Synthetic original',statusCode:'DRAFT',departmentId:employee.user.departmentId,acquisitionCost:0}});assert.equal(create.status,201);assetId=(await create.json()).asset.id;
+    const endpoint=`/api/enterprise/assets/${assetId}`;
+    const initial=await (await api(endpoint,admin)).json();assert.match(initial.asset.edit_version,/^\d+$/);assert.equal(initial.metadataHistory.length,0);
+    const payload={name:'Synthetic modified',categoryId,locationId,acquiredAt:'2026-10-28',expectedVersion:initial.asset.edit_version,reason:'Synthetic complete edit'};
+    const anonymous=await fetch(baseUrl+'/api/auth/csrf');const anonymousToken=(await anonymous.json()).csrfToken;
+    assert.equal((await fetch(baseUrl+endpoint,{method:'PATCH',headers:{'content-type':'application/json',cookie:cookieFrom(anonymous)},body:JSON.stringify({...payload,_csrf:anonymousToken})})).status,401);
+    assert.equal((await api(endpoint,employee,{method:'PATCH',body:payload})).status,403);
+    assert.equal((await api(endpoint,admin,{method:'PATCH',includeCsrf:false,body:payload})).status,403);
+    assert.equal((await api(endpoint,admin,{method:'PATCH',body:{...payload,categoryId:foreignCategoryId}})).status,400);
+    assert.equal((await api(endpoint,admin,{method:'PATCH',body:{...payload,acquiredAt:'2026-02-30'}})).status,400);
+    assert.equal((await api(endpoint,admin,{method:'PATCH',body:{...payload,assetTag:'ILLEGAL'}})).status,400);
+    const changed=await api(endpoint,manager,{method:'PATCH',body:payload});assert.equal(changed.status,200);const updated=(await changed.json()).asset;assert.notEqual(updated.edit_version,initial.asset.edit_version);assert.equal(updated.acquired_at,'2026-10-28');
+    assert.equal((await api(endpoint,admin,{method:'PATCH',body:{...payload,name:'Stale overwrite'}})).status,409);
+    assert.equal((await api(endpoint,admin,{method:'PATCH',body:{name:updated.name,expectedVersion:updated.edit_version,reason:'Synthetic no-op'}})).status,400);
+    const concurrent=await Promise.all(['A','B'].map(suffix=>api(endpoint,admin,{method:'PATCH',body:{name:'Synthetic concurrent '+suffix,expectedVersion:updated.edit_version,reason:'Synthetic concurrent request'}})));assert.deepEqual(concurrent.map(r=>r.status).sort(),[200,409]);
+    const detail=await (await api(endpoint,admin)).json();assert.equal(detail.metadataHistory.length,2);assert.ok(detail.metadataHistory.some(row=>row.reason==='Synthetic complete edit'&&row.changes.some(c=>c.field==='acquired_at'&&c.before===null&&c.after==='2026-10-28')));assert.equal(detail.asset.acquired_at,'2026-10-28');
+    const persisted=(await pool.query('SELECT name,category_id,location_id,acquired_at::text FROM assets WHERE id=$1',[assetId])).rows[0];assert.equal(persisted.name,detail.asset.name);assert.equal(Number(persisted.category_id),Number(categoryId));assert.equal(Number(persisted.location_id),Number(locationId));assert.equal(persisted.acquired_at,'2026-10-28');
+    foreignAssetId=(await pool.query("INSERT INTO assets(organization_id,asset_tag,name,status_code,created_by) VALUES($1,$2,'Synthetic foreign asset','DRAFT',$3) RETURNING id",[otherOrg,`ME-X-${marker}`,admin.user.id])).rows[0].id;
+    assert.equal((await api(`/api/enterprise/assets/${foreignAssetId}`,manager,{method:'PATCH',body:{name:'Foreign overwrite',expectedVersion:detail.asset.edit_version,reason:'Synthetic forbidden'}})).status,403);
+    assert.equal((await api(`/api/enterprise/assets/${foreignAssetId}`,manager)).status,403);
+    assert.equal(Number((await pool.query("SELECT count(*) FROM audit_logs WHERE entity_type='ASSET' AND entity_id=$1 AND action='ASSET_METADATA_UPDATED'",[String(assetId)])).rows[0].count),2);
+  }finally{
+    await removeTestSessions(pool,[admin,manager,employee]);
+    for(const ownedId of [assetId,foreignAssetId].filter(Boolean)){await pool.query("DELETE FROM audit_logs WHERE entity_type='ASSET' AND entity_id=$1",[String(ownedId)]);await pool.query("DELETE FROM outbox_events WHERE aggregate_type='ASSET' AND aggregate_id=$1",[String(ownedId)]);await pool.query('DELETE FROM asset_status_histories WHERE asset_id=$1',[ownedId]);await pool.query('DELETE FROM assets WHERE id=$1',[ownedId]);}
+    if(categoryId)await pool.query('DELETE FROM item_categories WHERE id=$1',[categoryId]);if(foreignCategoryId)await pool.query('DELETE FROM item_categories WHERE id=$1',[foreignCategoryId]);if(locationId)await pool.query('DELETE FROM locations WHERE id=$1',[locationId]);if(otherOrg)await pool.query('DELETE FROM organizations WHERE id=$1',[otherOrg]);await pool.end();
+  }
+});
+
 test('수리 비용 상태 변경은 원장·감사와 함께 보존되고 실패하면 롤백한다',{skip:!baseUrl||!databaseUrl},async()=>{
   const pool=createPool(databaseUrl); let admin; let employee; let assetId; let ticketId; let repairRequestId;
   try {
@@ -691,6 +728,7 @@ test('부서 범위 관리자는 기준 부서와 하위 부서 자산만 조회
     assert.equal(session.user.scopeType,'DEPARTMENT');
     const list=await api('/api/enterprise/assets?size=100',session); assert.equal(list.status,200); const listed=(await list.json()).assets.map(row=>Number(row.id)); assert.ok(listed.includes(Number(assetIds[0]))&&listed.includes(Number(assetIds[1])),`expected ${assetIds.slice(0,2)} in ${listed}`); assert.ok(!listed.includes(Number(assetIds[2])));
     assert.equal((await api(`/api/enterprise/assets/${assetIds[2]}`,session)).status,403);
+    assert.equal((await api(`/api/enterprise/assets/${assetIds[2]}`,session,{method:'PATCH',body:{name:'부서 범위 밖 수정',expectedVersion:'1',reason:'합성 권한 거부'}})).status,403);
     const report=await api('/api/enterprise/reports/assets',session); assert.equal(report.status,200); assert.equal((await report.json()).summary.assets,2);
     const denied=await api('/api/enterprise/assets',session,{method:'POST',body:{organizationId,assetTag:`SC-D-${marker}`,name:'범위 외 생성',departmentId:outside.rows[0].id,statusCode:'AVAILABLE'}}); assert.equal(denied.status,403);
     const reference=await api('/api/enterprise/reference',session); assert.equal(reference.status,200); const visible=(await reference.json()).departments.map(row=>Number(row.id)); assert.ok(visible.includes(Number(parent.rows[0].id))&&visible.includes(Number(child.rows[0].id))); assert.ok(!visible.includes(Number(outside.rows[0].id)));

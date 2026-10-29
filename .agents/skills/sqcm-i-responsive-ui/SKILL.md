@@ -12,3 +12,5 @@ description: 비품관리 전체 메뉴의 여백·줄바꿈·폼 잘림·탭 �
 운영 데이터 없이 긴 선택지·날짜·파일 입력·금액·숨김 패널을 반복 검증하려면 `node scripts/ui-layout-preview.mjs`로 loopback3398의 합성 fixture를 연다. 포트가 이미 점유되었으면 기존 owner를 종료하지 않는다. 이 서버는 fixture와 제품 CSS만 제공하며 API·Secret·저장소 파일을 노출하지 않는다. 작업 후 자신이 띄운 preview만 종료한다.
 
 `npm.cmd run ui:contract`, `npm.cmd run check`와 브라우저 회귀를 기록한다. CSS 배포는 index·service worker 버전을 동기화하며, 임시 viewport를 복구한다. 캡처에는 계정명부·인증값·운영 세부 데이터를 남기지 않는다. UI 관찰은 실데이터 업무·저장·권한 UAT와 구분한다. QR 고유 조작은 `../sqcm-i-qr-lookup/SKILL.md`를 따른다.
+
+자산 상세에 기본정보 수정 폼과 변경 이력이 추가되면 `../sqcm-i-asset-metadata/SKILL.md`의 허용 필드·취소·충돌 상태를 유지하면서 폼 폭과 `.metadata-changes`의 줄바꿈·표 내부 스크롤을 확인한다. 배치 점검만으로 실제 저장 성공을 판정하지 않는다.
