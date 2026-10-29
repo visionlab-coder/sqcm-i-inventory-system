@@ -41,6 +41,7 @@ services:
         read_only: true
 
   frontend:
+    image: ${FRONTEND_IMAGE:-seowon-inventory-frontend}:${FRONTEND_RELEASE_TAG:-${RELEASE_TAG:-local}}
     ports: !override
       - "127.0.0.1:${FRONTEND_PORT:-3300}:80"
     cpus: "0.50"

@@ -68,7 +68,7 @@ assert.match(consentJs, /skipBrowserRedirect\s*:\s*true/, 'consent owns one expl
 assert.match(stagingNginx, /proxy_set_header\s+X-Forwarded-Proto\s+https;/, 'staging tunnel preserves the public HTTPS scheme for secure cookies');
 assert.match(offlineStocktake, /createObjectStore\(SNAPSHOTS[\s\S]*createObjectStore\(OPERATIONS/, 'offline data separates snapshots and queued writes');
 assert.match(serviceWorker, /url\.pathname\.startsWith\('\/api\/'\)/, 'service worker never caches authenticated API responses');
-assert.match(index, /experience\.css\?v=20261029-asset-edit[\s\S]*app\.js\?v=20261029-asset-edit/, 'index loads the current asset edit revision');
-assert.match(serviceWorker, /sqcm-i-shell-20261029-asset-edit[\s\S]*experience\.css\?v=20261029-asset-edit[\s\S]*app\.js\?v=20261029-asset-edit/, 'service worker cache matches the asset edit revision');
+assert.match(index, /experience\.css\?v=20261029-asset-edit[\s\S]*return-draft-recovery\.js\?v=20261029-return-retry[\s\S]*app\.js\?v=20261029-return-retry/, 'index loads the current return retry revision');
+assert.match(serviceWorker, /sqcm-i-shell-20261029-return-retry[\s\S]*experience\.css\?v=20261029-asset-edit[\s\S]*return-draft-recovery\.js\?v=20261029-return-retry[\s\S]*app\.js\?v=20261029-return-retry/, 'service worker cache matches the return retry revision');
 assert.match(serviceWorker, /skipWaiting\(\)/, 'updated service worker activates without waiting for every old tab to close');
 console.log(`UI contract checks passed: ${checks.length + 12}`);

@@ -18,9 +18,9 @@ test('service worker는 인증 API를 캐시하지 않는다', () => {
   assert.match(worker, /url\.pathname\.startsWith\('\/api\/'\)/);
   assert.match(worker, /event\.request\.method !== 'GET'/);
   assert.doesNotMatch(worker, /cache\.put[\s\S]*\/api\//);
-  assert.match(worker, /sqcm-i-shell-20261029-asset-edit/);
+  assert.match(worker, /sqcm-i-shell-20261029-return-retry/);
   assert.match(worker, /experience\.css\?v=20261029-asset-edit/);
-  assert.match(worker, /app\.js\?v=20261029-asset-edit/);
+  assert.match(worker, /app\.js\?v=20261029-return-retry/);
   assert.match(worker, /skipWaiting\(\)/);
 });
 
