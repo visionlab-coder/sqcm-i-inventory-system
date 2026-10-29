@@ -1,0 +1,539 @@
+{
+  "version": 1,
+  "date": "2026-10-29",
+  "status": "PASS_SCOPED_RECOVERY",
+  "feature": "asset-assignment-return-repair",
+  "executionMode": "single",
+  "modelConfiguration": "inherited/unknown",
+  "laya": "RULE",
+  "goal": "Recover scanner and existing RETURN2, end only owned synthetic assignment, preserve existing accounts/data/services",
+  "approvals": {
+    "bridge": "Current user explicitly approved scanner path repair and Inventory18766 bridge-only restart; SQCM-i/SAFE-LINK and existing data preserved",
+    "frontend": "User explicitly approved minimal frontend correction and frontend-only redeploy in asynchronous answer",
+    "newRequestCreation": false,
+    "backendRedeploy": false,
+    "databaseMigration": false
+  },
+  "source": {
+    "baselineSha": "de43864752cfbf14ad90edc9c34fa86717493409",
+    "candidateSha": "19813c7777904892ce4eb5f04453cf57765e6807",
+    "branch": "codex/p7-qs-6-16-0-production-evidence",
+    "pushed": true,
+    "ci": {
+      "runId": 40833770349,
+      "headSha": "19813c7777904892ce4eb5f04453cf57765e6807",
+      "conclusion": "success",
+      "jobs": {
+        "unit": "success",
+        "three-tier-integration": "success"
+      },
+      "url": "https://github.com/visionlab-coder/sqcm-i-inventory-system/actions/runs/40833770349"
+    }
+  },
+  "scanner": {
+    "configReference": "D:/seowon_runtime/sqcmi-inventory-ai/config/bridge.json",
+    "backupReference": "D:/seowon_runtime/sqcmi-inventory-ai/config/bridge.before-defender-path-20261029.json",
+    "previousExecutableMissing": true,
+    "oldVersionPath": "4.18.26070.9-0",
+    "executable": "C:/ProgramData/Microsoft/Windows Defender/Platform/CurrentVersion/MpCmdRun.exe",
+    "version": "4.18.26100.4",
+    "signature": "Valid",
+    "signer": "Microsoft Windows Publisher",
+    "sha256": "EADB987D2174F22715F36E5C2C9F5B25AE3A6CF82425E963D0270534F0CE7AE4",
+    "onlyScannerConfigFieldChanged": true,
+    "backupCreateOnly": true,
+    "originalAclRestoredAndMatched": true,
+    "directSyntheticScanExit": 0,
+    "backendLiveScan": {
+      "status": "clean",
+      "engine": "Microsoft Defender Antivirus",
+      "engineVersion": "4.18.26100.4",
+      "signatureVersion": "1.463.16.0"
+    },
+    "bypassPerformed": false,
+    "liveMalwareInjection": "NOT_RUN"
+  },
+  "bridge": {
+    "task": "SQCMI-Inventory-AI-Bridge",
+    "port": 18766,
+    "oldPid": 11460,
+    "newPid": 101896,
+    "newCreationTime": "2026-10-29T15:56:16.282004+09:00",
+    "restartCount": 1,
+    "readinessFirst20SecondWaitExceeded": true,
+    "explanation": "Same new process was slow loading dependencies; later became ready without an additional restart or alternate runtime",
+    "taskActionPrincipalTriggersChanged": false,
+    "hostRuntime18767Restarted": false
+  },
+  "frontend": {
+    "revision": "19813c7777904892ce4eb5f04453cf57765e6807",
+    "imageId": "sha256:5554bcbeaf3b0ebe6e1da2e55682238d2ed64b320d30006a8f72df33af4d9f82",
+    "containerIdPrefix": "3ce32d71a0d9",
+    "releasePin": "FRONTEND_RELEASE_TAG",
+    "commonReleaseTagUnchanged": "sha-e0d2b554b13995718127a2a25c91bb146865af8b",
+    "runtimeEnvProtected": true,
+    "runtimeEnvUnexpectedAllowPrincipals": 0,
+    "controls": [
+      "own RETURN DRAFT only",
+      "same existing request ID",
+      "no create-draft call",
+      "deduplicate in-flight click",
+      "persist modal error",
+      "reuse uploaded photo after submit-only failure",
+      "block cross-session continuation"
+    ],
+    "actualRollback": "NOT_RUN"
+  },
+  "unchangedContainers": {
+    "backend": {
+      "id": "97de674c406f0509db1a9796c0e5397583aa96e89179ff4d32c8fa1bcea52ee3",
+      "revision": "e0d2b554b13995718127a2a25c91bb146865af8b"
+    },
+    "database": {
+      "id": "21cd02e609acdceed47e0aa84aefdcc37149c4b2a6c1998a3ac9d49e93f64a65",
+      "image": "postgres:16-alpine"
+    }
+  },
+  "browser": {
+    "status": "PASS",
+    "session": "Existing ADMIN session retained; no employee credentials entered or account switch",
+    "entry": "My Assets > My Requests > RETURN #2 > Resume return photo",
+    "requestId": 2,
+    "uploadHttp": 201,
+    "uploadDurationMs": 12773.7,
+    "submitHttp": 200,
+    "requestStatusAfterSubmit": "SUBMITTED",
+    "newReturnRequests": 0,
+    "totalTrialRequests": 2,
+    "returnRequests": 1,
+    "photoCount": 1,
+    "readback": "APPROVED; My Assets0, no assigned assets, assignment ENDED; cleanup detail DISPOSED with return history and evidence",
+    "toolPrematureWaitTimeout": 1,
+    "writeResubmissionsAfterTimeout": 0,
+    "approval": "Independent UAT API, not a browser approval click",
+    "screenshots": {
+      "returned": "docs/screenshots/scanner-return-recovery-20261029/returned-desktop.png",
+      "cleaned": "docs/screenshots/scanner-return-recovery-20261029/cleaned-detail.png"
+    }
+  },
+  "returnData": {
+    "conditionPreserved": true,
+    "notePreserved": true,
+    "accessoriesPreserved": true,
+    "photoStorage": "POSTGRES",
+    "photoBytes": 1061,
+    "photoChecksum": "ac4e706765885d3088b8e7ec6f2df8b16a780fb358bc38c1ad115c487db9bed3",
+    "recordCount": 1,
+    "reviewerId": 5,
+    "requesterId": 20
+  },
+  "finalTrial": {
+    "asset": {
+      "id": 10,
+      "status": "DISPOSED",
+      "cost": 0,
+      "deactivated": true,
+      "createdBy": 20,
+      "organizationId": 1
+    },
+    "assignments": [
+      {
+        "id": 1,
+        "userId": 20,
+        "status": "ENDED",
+        "ended": true,
+        "condition": "GOOD"
+      }
+    ],
+    "requests": [
+      {
+        "id": 1,
+        "type": "ASSIGN",
+        "status": "APPROVED",
+        "requesterId": 20,
+        "reviewerId": 5
+      },
+      {
+        "id": 2,
+        "type": "RETURN",
+        "status": "APPROVED",
+        "requesterId": 20,
+        "reviewerId": 5
+      }
+    ],
+    "repairs": [
+      {
+        "id": 1,
+        "status": "CANCELLED",
+        "cost": null
+      }
+    ],
+    "returns": 1,
+    "photos": 1,
+    "costEvents": 0
+  },
+  "receipts": [
+    {
+      "mode": "--approve",
+      "tag": "UAT-20261029-WORKFLOW-01",
+      "credentialsRecorded": false,
+      "approved": {
+        "id": 2,
+        "type": "RETURN",
+        "status": "APPROVED"
+      },
+      "observation": {
+        "asset": {
+          "id": 10,
+          "status": "RETURNED",
+          "cost": 0,
+          "deactivated": false,
+          "createdBy": 20,
+          "organizationId": 1
+        },
+        "assignments": [
+          {
+            "id": 1,
+            "userId": 20,
+            "status": "ENDED",
+            "ended": true,
+            "condition": "GOOD"
+          }
+        ],
+        "requests": [
+          {
+            "id": 1,
+            "type": "ASSIGN",
+            "status": "APPROVED",
+            "requesterId": 20,
+            "reviewerId": 5
+          },
+          {
+            "id": 2,
+            "type": "RETURN",
+            "status": "APPROVED",
+            "requesterId": 20,
+            "reviewerId": 5
+          }
+        ],
+        "repairs": [
+          {
+            "id": 1,
+            "status": "CANCELLED",
+            "cost": null
+          }
+        ],
+        "returns": 1,
+        "photos": 1,
+        "costEvents": 0
+      },
+      "preserved": true,
+      "status": "PASS"
+    },
+    {
+      "mode": "--finalize",
+      "tag": "UAT-20261029-WORKFLOW-01",
+      "credentialsRecorded": false,
+      "finalized": true,
+      "observation": {
+        "asset": {
+          "id": 10,
+          "status": "DISPOSED",
+          "cost": 0,
+          "deactivated": true,
+          "createdBy": 20,
+          "organizationId": 1
+        },
+        "assignments": [
+          {
+            "id": 1,
+            "userId": 20,
+            "status": "ENDED",
+            "ended": true,
+            "condition": "GOOD"
+          }
+        ],
+        "requests": [
+          {
+            "id": 1,
+            "type": "ASSIGN",
+            "status": "APPROVED",
+            "requesterId": 20,
+            "reviewerId": 5
+          },
+          {
+            "id": 2,
+            "type": "RETURN",
+            "status": "APPROVED",
+            "requesterId": 20,
+            "reviewerId": 5
+          }
+        ],
+        "repairs": [
+          {
+            "id": 1,
+            "status": "CANCELLED",
+            "cost": null
+          }
+        ],
+        "returns": 1,
+        "photos": 1,
+        "costEvents": 0
+      },
+      "preserved": true,
+      "status": "PASS"
+    },
+    {
+      "mode": "--verify",
+      "tag": "UAT-20261029-WORKFLOW-01",
+      "credentialsRecorded": false,
+      "observation": {
+        "asset": {
+          "id": 10,
+          "status": "DISPOSED",
+          "cost": 0,
+          "deactivated": true,
+          "createdBy": 20,
+          "organizationId": 1
+        },
+        "assignments": [
+          {
+            "id": 1,
+            "userId": 20,
+            "status": "ENDED",
+            "ended": true,
+            "condition": "GOOD"
+          }
+        ],
+        "requests": [
+          {
+            "id": 1,
+            "type": "ASSIGN",
+            "status": "APPROVED",
+            "requesterId": 20,
+            "reviewerId": 5
+          },
+          {
+            "id": 2,
+            "type": "RETURN",
+            "status": "APPROVED",
+            "requesterId": 20,
+            "reviewerId": 5
+          }
+        ],
+        "repairs": [
+          {
+            "id": 1,
+            "status": "CANCELLED",
+            "cost": null
+          }
+        ],
+        "returns": 1,
+        "photos": 1,
+        "costEvents": 0
+      },
+      "preserved": true,
+      "status": "PASS"
+    }
+  ],
+  "preservation": {
+    "baselineEvidence": "ASSET_WORKFLOW_BROWSER_20261029_EVIDENCE.json",
+    "businessAndConfigurationTables": 25,
+    "companyAccounts": 13,
+    "companyRoleScopes": 13,
+    "beforeDigest": "711bafff78ed91177b9f9271941031c77ce837612c7efa31c3b5934f7fa053be",
+    "afterDigest": "711bafff78ed91177b9f9271941031c77ce837612c7efa31c3b5934f7fa053be",
+    "match": true,
+    "after": {
+      "assets": {
+        "count": 2,
+        "fingerprint": "ba74bc1515a2eb2e854c501739e07355"
+      },
+      "asset_assignments": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "workflow_requests": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "service_tickets": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "asset_return_records": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "workflow_request_approvals": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "workflow_request_files": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "file_records": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "asset_cost_events": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "asset_files": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "items": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "loans": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "purchase_orders": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "receipts": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "inspections": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "stocktakes": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "item_categories": {
+        "count": 1,
+        "fingerprint": "3658dce7b5cef493e986092d0ff760ba"
+      },
+      "item_models": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "locations": {
+        "count": 2,
+        "fingerprint": "a1704d468eea2b51c8d1b1a566bd353b"
+      },
+      "departments": {
+        "count": 1,
+        "fingerprint": "68b8cd0f64fa3b9264e6bf4c1fb78908"
+      },
+      "organizations": {
+        "count": 1,
+        "fingerprint": "2e7a770a916e73a7303f17e1742c8fb9"
+      },
+      "asset_status_definitions": {
+        "count": 14,
+        "fingerprint": "4215bf584baf66507187b5b249df2129"
+      },
+      "asset_reason_definitions": {
+        "count": 5,
+        "fingerprint": "be7a260ac99edfc15769ff1efebf2941"
+      },
+      "approval_policies": {
+        "count": 7,
+        "fingerprint": "c0ba9133a0bdde0ac17bc467bbb728db"
+      },
+      "approval_policy_steps": {
+        "count": 7,
+        "fingerprint": "3be9f605435331798b53eb80fbca7169"
+      },
+      "employees": {
+        "count": 13,
+        "fingerprint": "31dcb632b2ac5c8e8e124f8560ac6484"
+      },
+      "employeeRoles": {
+        "count": 13,
+        "fingerprint": "983db43524d13eca917343f5e0891422"
+      }
+    },
+    "excludedOnly": "Synthetic asset10/tag UAT-20261029-WORKFLOW-01 and its directly linked new trial rows; previous assets8/9 and original employees/roles remain included",
+    "secretValuesRecorded": false
+  },
+  "protected": {
+    "listenersUnchanged": {
+      "1234": 31896,
+      "11434": 95224,
+      "18767": 112664
+    },
+    "port18765": "No listener before or after, not changed by this work",
+    "cloudflaredPidsUnchanged": [
+      23340,
+      75468
+    ],
+    "inventoryTunnelConnections": 4,
+    "sqcmiTunnelConnections": 4,
+    "http": {
+      "inventory": 200,
+      "sqcmiOs": 200,
+      "safeLink": 301
+    },
+    "bot37IndividualE2E": "NOT_RUN_NO_BOT_COMMANDS_OR_RESTARTS_SENT",
+    "staging": "UNCHANGED",
+    "dockerServices": 3,
+    "healthy": 3,
+    "backendHostPorts": 0,
+    "databaseHostPorts": 0
+  },
+  "verification": {
+    "fullLocal": {
+      "exitCode": 0,
+      "syntaxFiles": 509,
+      "tests": 1059,
+      "pass": 1051,
+      "skip": 8,
+      "fail": 0
+    },
+    "focused": 14,
+    "composeRelease": 6,
+    "uiContract": 47,
+    "promptContract": "PASS8/8_NO_WARNINGS",
+    "composeConfig": "PASS",
+    "deploySmoke": "PASS",
+    "harness": "PASS_P7_7/8",
+    "scopedSkillImpact": "IMPACT_PLANNED",
+    "quickSkillValidator": "BLOCKED_PREEXISTING_MISSING_PYYAML",
+    "wholeRegistryPass": "NOT_CLAIMED_PREEXISTING_UNRELATED_INVALID_STATUS"
+  },
+  "remaining": {
+    "WF01": "CURRENT_INCIDENT_RESOLVED; health still does not itself perform a real file scan",
+    "WF02": "OPEN_APPROVED_REQUESTS_INCLUDED_IN_ONGOING_SUMMARY; displaying2 is not an active assignment or draft count",
+    "WF03": "EXISTING_DRAFT_RESUMPTION_RESOLVED; original new-request modal and general cancellation UX not expanded",
+    "dependencyAudit": {
+      "status": "OPEN_SEPARATE_BACKEND_SECURITY_GATE",
+      "command": "npm audit --json",
+      "exitCode": 1,
+      "critical": 1,
+      "high": 3,
+      "moderate": 1,
+      "packages": {
+        "proxy-addr": "critical",
+        "body-parser": "high",
+        "brace-expansion": "high",
+        "sharp": "high",
+        "qs": "moderate"
+      },
+      "packageAndLockDiff": 0,
+      "browserBundleInputs": 44,
+      "flaggedPackagesIncludedInBrowserBundle": false,
+      "applicability": "Individual production exploitability not assessed; no automatic dependency/backend updates",
+      "references": [
+        "https://github.com/advisories/GHSA-jqcg-44mw-7w3h",
+        "https://github.com/advisories/GHSA-27r3-jxmh-p828",
+        "https://github.com/advisories/GHSA-q2hr-2g5m-vwhr",
+        "https://github.com/advisories/GHSA-wq5f-xc86-pv6w",
+        "https://github.com/advisories/GHSA-6pq8-jhm2-2vcw"
+      ]
+    }
+  },
+  "p7": "7/8 unchanged",
+  "productSecurityOrWholePhaseComplete": false,
+  "gitEvidenceCheckpoint": "Commit containing this receipt and report178; distinguish from deployed code19813c7"
+}
